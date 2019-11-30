@@ -14,9 +14,10 @@
 #include "common/configurations.h"
 #include "common/version.h"
 #include "common/gameinfo.h"
+#include "engine/lifeengine.h"
 #include "engine/iengineinternal.h"
-
 #include "engine/consolesystem.h"
+#include "engine/window.h"
 
 //---------------------------------------------------------------------//
 
@@ -24,36 +25,61 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
+	class IStudioRenderInternal;
+
+	//---------------------------------------------------------------------//
+
+	struct StudioRenderDescriptor
+	{
+		void*								handle;
+		LE_CreateStudioRenderFn_t			LE_CreateStudioRender;
+		LE_DeleteStudioRenderFn_t			LE_DeleteStudioRender;
+	};
+
+	//---------------------------------------------------------------------//
+
 	class Engine : public IEngineInternal
 	{
 	public:
 		// IEngine
-		virtual bool				LoadConfig( const char* FilePath );
-		virtual bool				SaveConfig( const char* FilePath );
+		virtual bool					LoadConfig( const char* FilePath );
+		virtual bool					SaveConfig( const char* FilePath );
 		
-		virtual void				RunSimulation();
-		virtual void				StopSimulation();
-		virtual void				SetConfig( const Configurations& Configurations );
+		virtual void					RunSimulation();
+		virtual void					StopSimulation();
+		virtual void					SetConfig( const Configurations& Configurations );
 		
-		virtual bool				IsRunSimulation() const;
-		virtual IConsoleSystem*		GetConsoleSystem() const;
-		
+		virtual bool					IsRunSimulation() const;
+		virtual IConsoleSystem*			GetConsoleSystem() const;
+		virtual IStudioRender*			GetStudioRender() const;
+		virtual IWindow*				GetWindow() const;
+		virtual const Configurations&	GetConfigurations() const;
+		virtual const Version&			GetVersion() const;
+
 		// IEngineInternal
-		virtual bool				Initialize( WindowHandle_t WindowHandle = nullptr );
-		virtual bool				LoadGame( const char* DirGame );
-		virtual void				UnloadGame();
+		virtual bool					Initialize( WindowHandle_t WindowHandle = nullptr );
+		virtual bool					LoadGame( const char* DirGame );
+		virtual void					UnloadGame();
 
 		// Engine
 		Engine();
 		~Engine();
 
 	private:
-		bool				isRunSimulation;
+		void							LoadStudioRender( const char* PathDLL );
+		void							UnloadStudioRender();
 
-		ConsoleSystem		consoleSystem;
-		GameInfo			gameInfo;
-		Configurations		configurations;
-		Version				version;
+		bool						isInit;
+		bool						isRunSimulation;
+
+		IStudioRenderInternal*		studioRender;
+		StudioRenderDescriptor		studioRenderDescriptor;
+
+		ConsoleSystem				consoleSystem;
+		Window						window;
+		GameInfo					gameInfo;
+		Configurations				configurations;
+		Version						version;
 	};
 
 	//---------------------------------------------------------------------//

@@ -27,12 +27,13 @@ void le::ConsoleSystem::Initialize()
 void le::ConsoleSystem::PrintInfo( const char* Message, ... )
 {
 	if ( !fileLog ) return;
-
 	va_list			argList = nullptr;	
-	va_start( argList, Message );
-	
+
+	va_start( argList, Message );	
 	vfprintf( fileLog, ( "[Info] " + std::string( Message ) + "\n" ).c_str(), argList );
 	va_end( argList );
+
+	fflush( fileLog );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -41,12 +42,13 @@ void le::ConsoleSystem::PrintInfo( const char* Message, ... )
 void le::ConsoleSystem::PrintWarning( const char* Message, ... )
 {
 	if ( !fileLog ) return;
-
 	va_list			argList = nullptr;
+
 	va_start( argList, Message );
-	
 	vfprintf( fileLog, ( "[Warning] " + std::string( Message ) + "\n" ).c_str(), argList );
 	va_end( argList );
+
+	fflush( fileLog );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -55,12 +57,13 @@ void le::ConsoleSystem::PrintWarning( const char* Message, ... )
 void le::ConsoleSystem::PrintError( const char* Message, ... )
 {
 	if ( !fileLog ) return;
-	
 	va_list			argList = nullptr;
+
 	va_start( argList, Message );
-	
 	vfprintf( fileLog, ( "[Error] " + std::string( Message ) + "\n" ).c_str(), argList );
 	va_end( argList );
+
+	fflush( fileLog );
 }
 
 // ------------------------------------------------------------------------------------ //

@@ -10,6 +10,8 @@
 
 #include <Windows.h>
 #include <exception>
+
+#include "engine/paths.h"
 #include "engine/lifeengine.h"
 #include "engine/iengineinternal.h"
 
@@ -30,23 +32,25 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
 
 	try
 	{
-		engineDLL = LoadLibraryA( "engine/engine.dll" );
+		engineDLL = LoadLibraryA( "engine/" LIFEENGINE_ENGINE_DLL );
 		if ( !engineDLL )
-			throw std::exception( "Faile loaded engine/engine.dll" );
+			throw std::exception( "Faile loaded engine/" LIFEENGINE_ENGINE_DLL );
 
 		LE_CreateEngine = ( le::LE_CreateEngineFn_t ) GetProcAddress( engineDLL, "LE_CreateEngine" );
 		if ( !LE_CreateEngine )
 			throw std::exception( "Faile get adress on function LE_CreateEngine" );
 
 		LE_DeleteEngine = ( le::LE_DeleteEngineFn_t ) GetProcAddress( engineDLL, "LE_DeleteEngine" );
-		
 		// Если нет функции LE_DeleteEngine, то это не критично
 
 		le::IEngineInternal*		engine = ( le::IEngineInternal* ) LE_CreateEngine();
 		if ( !engine->LoadConfig( "config.cfg" ) )
 			engine->SaveConfig( "config.cfg" );
 
+		if ( !engine->Initialize() )
+			throw std::exception( "Engine not initialized" );
 
+		engine->RunSimulation();
 	}
 	catch ( const std::exception& Exception )
 	{

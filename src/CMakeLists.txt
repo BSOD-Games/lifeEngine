@@ -7,6 +7,7 @@ project( lifeEngine )
 
 set( PROJECT_LAUNCHER launcher )
 set( PROJECT_ENGINE engine )
+set( PROJECT_STUDIORENDER studiorender )
 
 #
 #   --- Настройки сборки ---
@@ -17,6 +18,7 @@ set( EXTLIBS_DIR ${PROJECT_SOURCE_DIR}/extlibs )
 option( LIFEENGINE_DEBUG "Enable debug mode" OFF )
 option( BUILD_LAUNCHER "Build launcher engine" OFF )
 option( BUILD_ENGINE "Build engine" OFF )
+option( BUILD_STUDIORENDER "Build studiorender" OFF )
 
 if( LIFEENGINE_DEBUG )
 	message( STATUS "Debug mode enabled" )
@@ -43,4 +45,8 @@ endif()
 
 if ( BUILD_ENGINE )
 	add_subdirectory( ${PROJECT_ENGINE} )
+endif()
+
+if ( BUILD_STUDIORENDER )
+	add_subdirectory( ${PROJECT_STUDIORENDER} )
 endif()

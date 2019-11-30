@@ -13,6 +13,12 @@
 
 //---------------------------------------------------------------------//
 
+#define LIFEENGINE_VERSION_MAJOR		0
+#define LIFEENGINE_VERSION_MINOR		1
+#define LIFEENGINE_VERSION_PATCH		0
+
+//---------------------------------------------------------------------//
+
 #	if defined( _WIN32 ) || defined( _WIN64 )
 #		define PLATFORM_WINDOWS
 #	else
@@ -35,10 +41,10 @@
 			LIFEENGINE_API le::IEngine* LE_CreateEngine() { return new EngineClass(); } \
 			LIFEENGINE_API void LE_DeleteEngine( le::IEngine* Object ) { delete static_cast<EngineClass*>( Object ); }
 
-#		define LIFEENGINE_SUBSYSTEM_API( SubsystemClass ) \
-			namespace le { class IEngineSubsystem; } \
-			LIFEENGINE_API le::IEngineSubsystem* LE_CreateSubsystem() { return new SubsystemClass(); } \
-			LIFEENGINE_API void LE_DeleteSubsystem( le::IEngineSubsystem* Object ) { delete static_cast<SubsystemClass*>( Object ); }
+#		define LIFEENGINE_STUDIORENDER_API( StudioRenderClass ) \
+			namespace le { class IStudioRender; } \
+			LIFEENGINE_API le::IStudioRender* LE_CreateStudioRender() { return new StudioRenderClass(); } \
+			LIFEENGINE_API void LE_DeleteStudioRender( le::IStudioRender* Object ) { delete static_cast<StudioRenderClass*>( Object );}
 
 #		define LIFEENGINE_GAME_API( GameClass ) \
 			namespace le { class IGame; } \
@@ -66,18 +72,16 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	class IEngine;
-	class IEngineSubsystem;
+	class IStudioRender;
 	class IGame;
 
 	//---------------------------------------------------------------------//
 
-	typedef		void*				WindowHandle_t;
-	typedef		IEngine*			( *LE_CreateEngineFn_t )( );											
-	typedef		void				( *LE_DeleteEngineFn_t )( IEngine* Engine );							
-	typedef		IEngineSubsystem*	( *LE_CreateSubsystemFn_t )( );									
-	typedef		void				( *LE_DeleteSubsystemFn_t )( IEngineSubsystem* EngineSubsystem );
-	typedef		IGame*				( *LE_CreateGameFn_t )( );
-	typedef		void				( *LE_DeleteGameFn_t )( IGame* Game );
+	typedef		void*						WindowHandle_t;
+	typedef		IEngine*					( *LE_CreateEngineFn_t )( );
+	typedef		void						( *LE_DeleteEngineFn_t )( IEngine* Engine );
+	typedef		IStudioRender*				( *LE_CreateStudioRenderFn_t )( );
+	typedef		void						( *LE_DeleteStudioRenderFn_t )( IStudioRender* StudioRender );
 
 	//---------------------------------------------------------------------//
 }

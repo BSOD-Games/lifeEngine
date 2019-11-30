@@ -18,7 +18,10 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	struct Configurations;
+	struct Version;
 	class IConsoleSystem;
+	class IStudioRender;
+	class IWindow;
 
 	//---------------------------------------------------------------------//
 
@@ -34,6 +37,10 @@ namespace le
 		
 		virtual bool					IsRunSimulation() const = 0;
 		virtual IConsoleSystem*			GetConsoleSystem() const = 0;
+		virtual IStudioRender*			GetStudioRender() const = 0;
+		virtual IWindow*				GetWindow() const = 0;
+		virtual const Configurations&	GetConfigurations() const = 0;
+		virtual const Version&			GetVersion() const = 0;
 	};
 
 	//---------------------------------------------------------------------//
