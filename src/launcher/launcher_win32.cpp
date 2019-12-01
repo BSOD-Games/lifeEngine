@@ -10,12 +10,14 @@
 
 #include <Windows.h>
 #include <exception>
+#include <fstream>
 
+#include "common/configurations.h"
 #include "engine/paths.h"
 #include "engine/lifeengine.h"
 #include "engine/iengineinternal.h"
-#include <fstream>
-#define DEFAULT_GAME		"eliot"
+
+#define DEFAULT_GAME		"episodic"
 
 // ------------------------------------------------------------------------------------ //
 // Критическая ошибка
@@ -25,7 +27,7 @@ void Engine_CriticalError( const char* Message )
 	std::ofstream			fileLog( "engine.log", std::ios::app );
 
 	MessageBoxA( nullptr, Message, "Error lifeEngine", MB_OK | MB_ICONERROR );	
-	fileLog << std::endl << Message;
+	fileLog << "\nCritical error: " << Message;
 
 	exit( 1 );
 }
@@ -35,8 +37,6 @@ void Engine_CriticalError( const char* Message )
 // ------------------------------------------------------------------------------------ //
 int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nCmdShow )
 {	
-	// Загружаем ядро движка
-
 	HINSTANCE								engineDLL = nullptr;
 	le::LE_CreateEngineFn_t					LE_CreateEngine = nullptr;
 	le::LE_DeleteEngineFn_t					LE_DeleteEngine = nullptr;
@@ -46,6 +46,7 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
 
 	try
 	{
+		// Загружаем ядро движка
 		engineDLL = LoadLibraryA( "engine/" LIFEENGINE_ENGINE_DLL );
 		if ( !engineDLL )
 			throw std::exception( "Faile loaded engine/" LIFEENGINE_ENGINE_DLL );
@@ -61,13 +62,67 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
 		LE_SetCriticalError( Engine_CriticalError );
 		le::IEngineInternal*		engine = ( le::IEngineInternal* ) LE_CreateEngine();
 
-		if ( !engine->LoadConfig( "config.cfg" ) )
-			engine->SaveConfig( "config.cfg" );
+		{
+			// Загружаем конфигурации движка, если нет - сохраняем
+			if ( !engine->LoadConfig( "config.cfg" ) )
+				engine->SaveConfig( "config.cfg" );
 
-		if ( !engine->Initialize() )
-			throw std::exception( "The engine is not initialized. See the logs for details" );
+			std::string				gameDir = DEFAULT_GAME;
+			le::Configurations		configurations = engine->GetConfigurations();
 
+			// Cчитываем аргументы запуска лаунчера
+			int				argc;
+			LPWSTR*			argList = CommandLineToArgvW( GetCommandLineW(), &argc );
+			char**			argv = new char* [ argc ];
+
+			for ( int index = 0; index < argc; ++index )
+			{
+				int			size = wcslen( argList[ index ] ) + 1;
+				argv[ index ] = new char[ size ];
+
+				wcstombs( argv[ index ], argList[ index ], size );
+			}
+
+			// Парсим аргументы запуска и меняем конфигурации
+			for ( int index = 0; index < argc; ++index )
+			{
+				if ( ( strstr( argv[ index ], "-game" ) || strstr( argv[ index ], "-g" ) ) && index + 1 < argc )
+				{
+					gameDir = argv[ index + 1 ];
+					++index;
+				}
+				else if ( ( strstr( argv[ index ], "-width" ) || strstr( argv[ index ], "-w" ) ) && index + 1 < argc )
+				{
+					configurations.windowWidth = atoi( argv[ index + 1 ] );
+					++index;
+				}
+				else if ( ( strstr( argv[ index ], "-height" ) || strstr( argv[ index ], "-h" ) ) && index + 1 < argc )
+				{
+					configurations.windowHeight = atoi( argv[ index + 1 ] );
+					++index;
+				}
+			}
+
+			engine->SetConfig( configurations );
+
+			// Удаляем выделенную память под аргументы и запускаем игру
+			LocalFree( argList );
+			delete[] argv;
+
+			// Инициализируем движок для запуска игры
+			if ( !engine->Initialize() )
+				throw std::exception( "The engine is not initialized. See the logs for details" );
+
+			// Загружаем игру
+			if ( !engine->LoadGame( gameDir.c_str() ) )
+				throw std::exception( ( std::string( "Failed to load game [" ) + gameDir + "]" ).c_str() );
+		}
+
+		// Если все прошло успешно - запускаем симуляцию игры
 		engine->RunSimulation();
+
+		if ( LE_DeleteEngine ) LE_DeleteEngine( engine );
+		FreeLibrary( engineDLL );
 	}
 	catch ( const std::exception& Exception )
 	{

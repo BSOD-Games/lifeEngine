@@ -29,6 +29,8 @@ namespace le
 	typedef		void						( *LE_DeleteEngineFn_t )( IEngine* Engine );
 	typedef		IStudioRender*				( *LE_CreateStudioRenderFn_t )( );
 	typedef		void						( *LE_DeleteStudioRenderFn_t )( IStudioRender* StudioRender );
+	typedef		IGame*						( *LE_CreateGameFn_t )( );
+	typedef		void						( *LE_DeleteGameFn_t )( IGame* Game );
 	typedef		void						( *LE_SetCriticalErrorFn_t )( CriticalErrorFn_t CriticalError );
 
 	//---------------------------------------------------------------------//
@@ -54,7 +56,7 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#	if defined( LIFEENGINE_EXPORT ) && defined( PLATFORM_WINDOWS )
+#	if defined( PLATFORM_WINDOWS )
 #		define LIFEENGINE_API				extern "C" __declspec( dllexport )
 #	else
 #		define LIFEENGINE_API

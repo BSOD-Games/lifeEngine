@@ -22,6 +22,7 @@
 #include "engine/engine.h"
 #include "engine/window.h"
 #include "engine/istudiorenderinternal.h"
+#include "engine/igame.h"
 #include "engine/global.h"
 #include "engine/convar.h"
 #include "engine/concmd.h"
@@ -56,6 +57,8 @@ le::Engine::Engine() :
 	isInit( false ),
 	studioRender( nullptr ),
 	studioRenderDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
+	game( nullptr ),
+	gameDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
 	criticalError( nullptr ),
 	cmd_Exit( new ConCmd() ),
 	cmd_Version( new ConCmd() )
@@ -85,8 +88,9 @@ le::Engine::Engine() :
 // ------------------------------------------------------------------------------------ //
 le::Engine::~Engine()
 {
-	if ( studioRender ) UnloadStudioRender();
-	if ( window.IsOpen() ) window.Close();
+	if ( game )				UnloadModule_Game();
+	if ( studioRender )		UnloadModule_StudioRender();	
+	if ( window.IsOpen() )	window.Close();
 
 	if ( cmd_Exit )
 	{
@@ -104,35 +108,46 @@ le::Engine::~Engine()
 // ------------------------------------------------------------------------------------ //
 // Загрузить модуль рендера
 // ------------------------------------------------------------------------------------ //
-bool le::Engine::LoadStudioRender( const char* PathDLL )
+bool le::Engine::LoadModule_StudioRender( const char* PathDLL )
 {
 	// Если модуль ранее был загружен, то удаляем
-	if ( studioRenderDescriptor.handle ) UnloadStudioRender();
+	if ( studioRenderDescriptor.handle ) UnloadModule_StudioRender();
 
-	// Загружаем модуль
-	studioRenderDescriptor.handle = SDL_LoadObject( PathDLL );
-	if ( !studioRenderDescriptor.handle )	return false;
+	consoleSystem.PrintInfo( "Loading studiorender [%s]", PathDLL );
 
-	// Берем из модуля методы для создания рендера
-	studioRenderDescriptor.LE_CreateStudioRender = ( LE_CreateStudioRenderFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_CreateStudioRender" );
-	studioRenderDescriptor.LE_DeleteStudioRender = ( LE_DeleteStudioRenderFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_DeleteStudioRender" );
-	studioRenderDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_SetCriticalError" );
-	if ( !studioRenderDescriptor.LE_CreateStudioRender )	return false;
+	try
+	{
+		// Загружаем модуль
+		studioRenderDescriptor.handle = SDL_LoadObject( PathDLL );
+		if ( !studioRenderDescriptor.handle )	throw std::exception( SDL_GetError() );
 
-	// Создаем рендер
-	if ( studioRenderDescriptor.LE_SetCriticalError ) 
-		studioRenderDescriptor.LE_SetCriticalError( g_criticalError );
+		// Берем из модуля API для работы с ним
+		studioRenderDescriptor.LE_CreateStudioRender = ( LE_CreateStudioRenderFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_CreateStudioRender" );
+		studioRenderDescriptor.LE_DeleteStudioRender = ( LE_DeleteStudioRenderFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_DeleteStudioRender" );
+		studioRenderDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_SetCriticalError" );
+		if ( !studioRenderDescriptor.LE_CreateStudioRender )	throw std::exception( "Function LE_CreateStudioRender not found" );
 
-	studioRender = ( IStudioRenderInternal* ) studioRenderDescriptor.LE_CreateStudioRender();
-	if ( !studioRender->Initialize( this ) )	return false;
+		// Создаем рендер
+		if ( studioRenderDescriptor.LE_SetCriticalError )
+			studioRenderDescriptor.LE_SetCriticalError( g_criticalError );
 
+		studioRender = ( IStudioRenderInternal* ) studioRenderDescriptor.LE_CreateStudioRender();
+		if ( !studioRender->Initialize( this ) )	throw std::exception( "Fail initialize studiorender" );
+	}
+	catch ( std::exception& Exception )
+	{
+		consoleSystem.PrintError( Exception.what() );
+		return false;
+	}
+
+	consoleSystem.PrintInfo( "Loaded studiorender [%s]", PathDLL );
 	return true;
 }
 
 // ------------------------------------------------------------------------------------ //
 // Выгрузить модуль рендера
 // ------------------------------------------------------------------------------------ //
-void le::Engine::UnloadStudioRender()
+void le::Engine::UnloadModule_StudioRender()
 {
 	if ( !studioRender ) return;
 
@@ -141,7 +156,134 @@ void le::Engine::UnloadStudioRender()
 
 	SDL_UnloadObject( studioRenderDescriptor.handle );
 	studioRender = nullptr;
-	studioRenderDescriptor = { nullptr, nullptr, nullptr };
+	studioRenderDescriptor = { nullptr, nullptr, nullptr, nullptr };
+
+	consoleSystem.PrintInfo( "Unloaded studiorender" );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Загрузить информацию об игре
+// ------------------------------------------------------------------------------------ //
+bool le::Engine::LoadGameInfo( const char* DirGame )
+{
+	gameInfo.Clear();
+	consoleSystem.PrintInfo( "Loading gameinfo.txt from dir [%s]", DirGame );
+	
+	std::ifstream		file( std::string( DirGame ) + "/gameinfo.txt" );
+	if ( !file.is_open() )
+	{
+		consoleSystem.PrintError( "File gameinfo.txt not found in dir [%s]", DirGame );
+		return false;
+	}
+
+	std::string					stringBuffer;
+	UInt32_t					stringLength = 0;
+	std::getline( file, stringBuffer, '\0' );
+
+	rapidjson::Document			document;
+	document.Parse( stringBuffer.c_str() );
+	if ( document.HasParseError() )
+	{
+		consoleSystem.PrintError( "Fail parse gameinfo.txt in dir [%s]", DirGame );
+		return false;
+	}
+
+	for ( auto it = document.MemberBegin(), itEnd = document.MemberEnd(); it != itEnd; ++it )
+	{
+		// Путь к модулю с игровой логикой
+		if ( strcmp( it->name.GetString(), "gameDLL" ) == 0 && it->value.IsString() )
+		{
+			stringLength = it->value.GetStringLength();
+
+			gameInfo.gameDLL = new char[ stringLength + 1 ];
+			memcpy( gameInfo.gameDLL, it->value.GetString(), stringLength );
+			gameInfo.gameDLL[ stringLength ] = '\0';
+		}
+
+		// Путь к иконке
+		if ( strcmp( it->name.GetString(), "icon" ) == 0 && it->value.IsString() )
+		{
+			stringLength = it->value.GetStringLength();
+
+			gameInfo.icon = new char[ stringLength + 1 ];
+			memcpy( gameInfo.icon, it->value.GetString(), stringLength );
+			gameInfo.icon[ stringLength ] = '\0';
+		}
+
+		// Заголовок игры	
+		if ( strcmp( it->name.GetString(), "title" ) == 0 && it->value.IsString() )
+		{
+			stringLength = it->value.GetStringLength();
+
+			gameInfo.title = new char[ stringLength + 1 ];
+			memcpy( gameInfo.title, it->value.GetString(), stringLength );
+			gameInfo.title[ stringLength ] = '\0';
+		}
+	}
+
+	stringLength = strlen( DirGame );
+	gameInfo.gameDir = new char[ stringLength + 1 ];
+	memcpy( gameInfo.gameDir, DirGame, stringLength );
+	gameInfo.gameDir[ stringLength ] = '\0';
+
+	consoleSystem.PrintInfo( "Loaded gameinfo.txt from dir [%s]", DirGame );
+	return true;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Загрузить модуль игры
+// ------------------------------------------------------------------------------------ //
+bool le::Engine::LoadModule_Game( const char* PathDLL )
+{
+	// Если модуль ранее был загружен, то удаляем
+	if ( gameDescriptor.handle ) UnloadModule_Game();
+
+	consoleSystem.PrintInfo( "Loading game [%s]", PathDLL );
+
+	try
+	{
+		// Загружаем модуль
+		gameDescriptor.handle = SDL_LoadObject( PathDLL );
+		if ( !gameDescriptor.handle )	throw std::exception( SDL_GetError() );
+
+		// Берем из модуля API для работы с ним
+		gameDescriptor.LE_CreateGame = ( LE_CreateGameFn_t ) SDL_LoadFunction( gameDescriptor.handle, "LE_CreateGame" );
+		gameDescriptor.LE_DeleteGame = ( LE_DeleteGameFn_t ) SDL_LoadFunction( gameDescriptor.handle, "LE_DeleteGame" );
+		gameDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( gameDescriptor.handle, "LE_SetCriticalError" );
+		if ( !gameDescriptor.LE_CreateGame )	throw std::exception( "Function LE_CreateGame not found" );
+
+		// Создаем игровую логику
+		if ( gameDescriptor.LE_SetCriticalError )
+			gameDescriptor.LE_SetCriticalError( g_criticalError );
+
+		game = gameDescriptor.LE_CreateGame();
+		if ( !game->Initialize( this ) )	throw std::exception( "Fail initialize game" );
+	}
+	catch ( std::exception& Exception )
+	{
+		consoleSystem.PrintError( Exception.what() );
+		return false;
+	}
+
+	consoleSystem.PrintInfo( "Loaded game [%s]", PathDLL );
+	return true;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Выгрузить модуль игры
+// ------------------------------------------------------------------------------------ //
+void le::Engine::UnloadModule_Game()
+{
+	if ( !game ) return;
+
+	if ( gameDescriptor.LE_DeleteGame )
+		gameDescriptor.LE_DeleteGame( game );
+
+	SDL_UnloadObject( gameDescriptor.handle );
+	game = nullptr;
+	gameDescriptor = { nullptr, nullptr, nullptr, nullptr };
+	
+	consoleSystem.PrintInfo( "Unloaded game" );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -245,29 +387,61 @@ bool le::Engine::SaveConfig( const char* FilePath )
 // ------------------------------------------------------------------------------------ //
 void le::Engine::RunSimulation()
 {
-	LIFEENGINE_ASSERT( window.IsOpen() || studioRender );
+	LIFEENGINE_ASSERT( window.IsOpen() && studioRender );
+	
+	if ( !game )
+	{
+		consoleSystem.PrintError( "The simulation is not running because the game is not loaded" );
+		return;
+	}
 
 	consoleSystem.PrintInfo( "*** Game logic start ***" );
-	isRunSimulation = true;
-	Event		event;
+	
+	UInt32_t			startTime = 0;
+	UInt32_t			deltaTime = 0;
+	Event				event;
+	bool				isFocus = true;
+	isRunSimulation = true;	
 
 	while ( isRunSimulation )
 	{
 		// TODO: добавить обработку событий окна
 
 		while ( window.PollEvent( event ) )
+		{
 			switch ( event.type )
 			{
 			case Event::ET_WINDOW_CLOSE:
 				StopSimulation();
 				break;
 
+			case Event::ET_WINDOW_FOCUS_GAINED:
+				isFocus = true;
+				break;
+
+			case Event::ET_WINDOW_FOCUS_LOST:
+				isFocus = false;
+				break;
+
 			case Event::ET_WINDOW_RESIZE:
 				studioRender->ResizeViewport( 0, 0, event.windowResize.width, event.windowResize.height );
 				break;
-			}			
 
-		studioRender->RenderFrame();
+			default: break;
+			}
+
+			game->OnEvent( event );
+		}
+
+		if ( isFocus )
+		{	
+			startTime = SDL_GetTicks();
+
+			game->Update( deltaTime );
+			studioRender->RenderFrame();
+
+			deltaTime = ( SDL_GetTicks() - startTime );
+		}
 	}
 
 	isRunSimulation = false;
@@ -387,7 +561,7 @@ bool le::Engine::Initialize( WindowHandle_t WindowHandle )
 
 		// Загружаем и инициализируем рендер
 
-		if ( !LoadStudioRender( LIFEENGINE_STUDIORENDER_DLL ) )		throw std::exception( "Failed loading studiorender" );
+		if ( !LoadModule_StudioRender( LIFEENGINE_STUDIORENDER_DLL ) )		throw std::exception( "Failed loading studiorender" );
 	}
 	catch ( const std::exception& Exception )
 	{
@@ -405,11 +579,20 @@ bool le::Engine::Initialize( WindowHandle_t WindowHandle )
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::LoadGame( const char* DirGame )
 {
-	return false;
+	if ( !LoadGameInfo( DirGame ) || !LoadModule_Game( ( std::string( DirGame ) + "/" + gameInfo.gameDLL ).c_str() ) )
+		return false;
+
+	window.SetTitle( gameInfo.title );
+	return true;
 }
 
 // ------------------------------------------------------------------------------------ //
 // Выгрузить игру
 // ------------------------------------------------------------------------------------ //
 void le::Engine::UnloadGame()
-{}
+{
+	StopSimulation();
+
+	gameInfo.Clear();
+	if ( game ) UnloadModule_Game();
+}

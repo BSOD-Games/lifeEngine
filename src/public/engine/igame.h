@@ -8,8 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef GAMEINFO_H
-#define GAMEINFO_H
+#ifndef IGAME_H
+#define IGAME_H
+
+#include "common/types.h"
 
 //---------------------------------------------------------------------//
 
@@ -17,29 +19,17 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	struct GameInfo
+	struct Event;
+	class IEngine;
+
+	//---------------------------------------------------------------------//
+
+	class IGame
 	{
-		GameInfo() :
-			gameDir( nullptr ),
-			title( nullptr ),
-			gameDLL( nullptr ),
-			icon( nullptr )
-		{}
-
-		~GameInfo() { Clear(); }
-
-		inline void			Clear()
-		{
-			if ( gameDir )		delete[] gameDir;
-			if ( title )		delete[] title;
-			if ( gameDLL )		delete[] gameDLL;
-			if ( icon )			delete[] icon;
-		}
-
-		char*			gameDir;
-		char*			title;
-		char*			gameDLL;
-		char*			icon;
+	public:
+		virtual bool				Initialize( IEngine* Engine ) = 0;
+		virtual void				Update( UInt32_t DeltaTime ) = 0;
+		virtual void				OnEvent( const Event& Event ) = 0;
 	};
 
 	//---------------------------------------------------------------------//
@@ -47,4 +37,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !GAMEINFO_H
+#endif // !IGAME_H
+

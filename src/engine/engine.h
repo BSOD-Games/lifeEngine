@@ -40,6 +40,16 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
+	struct GameDescriptor
+	{
+		void*								handle;
+		LE_CreateGameFn_t					LE_CreateGame;
+		LE_DeleteGameFn_t					LE_DeleteGame;
+		LE_SetCriticalErrorFn_t				LE_SetCriticalError;
+	};
+
+	//---------------------------------------------------------------------//
+
 	class Engine : public IEngineInternal
 	{
 	public:
@@ -68,8 +78,11 @@ namespace le
 		~Engine();
 
 	private:
-		bool							LoadStudioRender( const char* PathDLL );
-		void							UnloadStudioRender();
+		bool							LoadModule_StudioRender( const char* PathDLL );
+		void							UnloadModule_StudioRender();
+		bool							LoadGameInfo( const char* GameDir );
+		bool							LoadModule_Game( const char* PathDLL );
+		void							UnloadModule_Game();
 
 		bool							isInit;
 		bool							isRunSimulation;
@@ -79,6 +92,9 @@ namespace le
 
 		IStudioRenderInternal*			studioRender;
 		StudioRenderDescriptor			studioRenderDescriptor;
+
+		IGame*							game;
+		GameDescriptor					gameDescriptor;
 
 		CriticalErrorCallbackFn_t		criticalError;
 		ConsoleSystem					consoleSystem;
