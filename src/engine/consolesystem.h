@@ -12,6 +12,9 @@
 #define CONSOLESYSTEM_H
 
 #include <stdio.h>
+#include <string>
+#include <unordered_map>
+
 #include "engine/iconsolesysteminternal.h"
 
 //---------------------------------------------------------------------//
@@ -27,16 +30,25 @@ namespace le
 		virtual void		Initialize();
 
 		// IConsoleSystem
+		virtual void		RegisterVar( IConVar* ConVar );
+		virtual void		RegisterCommand( IConCmd* ConCmd );
+		virtual void		UnregisterVar( const char* Name );
+		virtual void		UnregisterCommand( const char* Name );
+		virtual bool		Exec( const char* Command );
 		virtual void		PrintInfo( const char* Message, ... );
 		virtual void		PrintWarning( const char* Message, ... );
 		virtual void		PrintError( const char* Message, ... );
+		virtual IConVar*	GetVar( const char* Name ) const;
+		virtual IConCmd*	GetCommand( const char* Name ) const;
 
 		// ConsoleSystem
 		ConsoleSystem();
 		~ConsoleSystem();
 
 	private:
-		FILE*			fileLog;
+		FILE*												fileLog;
+		std::unordered_map< std::string, IConVar* >			vars;
+		std::unordered_map< std::string, IConCmd* >			commands;
 	};
 
 	//---------------------------------------------------------------------//

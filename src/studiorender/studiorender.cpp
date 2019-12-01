@@ -27,7 +27,8 @@ LIFEENGINE_STUDIORENDER_API( le::StudioRender );
 // ------------------------------------------------------------------------------------ //
 bool le::StudioRender::Initialize( IEngine* Engine )
 {
-	if ( !Engine ) return false;
+	LIFEENGINE_ASSERT( Engine );
+
 	g_consoleSystem = Engine->GetConsoleSystem();
 
 	// Если в ядре окно не создано (указатель на IWindow nullptr) или
@@ -96,4 +97,7 @@ void le::StudioRender::RenderFrame()
 // Включить вертикальную синхронизацию
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::SetVerticalSyncEnabled( bool IsEnabled )
-{}
+{
+	if ( !renderContext.IsCreated() ) return;
+	renderContext.SetVerticalSync( IsEnabled );
+}

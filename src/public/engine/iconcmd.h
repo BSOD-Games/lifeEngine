@@ -8,8 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#ifndef ICONCMD_H
+#define ICONCMD_H
+
+#include "common/types.h"
 
 //---------------------------------------------------------------------//
 
@@ -17,16 +19,26 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class ConsoleSystem;
-	extern ConsoleSystem*			g_consoleSystem;
+	typedef	void				( *ExecCallbackFn_t )( UInt32_t CountArguments, const char** Arguments );
 
 	//---------------------------------------------------------------------//
 
-	class Engine;
-	extern Engine*					g_engine;
+	class IConCmd
+	{
+	public:
+		virtual void					Initialize( const char* Name, ExecCallbackFn_t ExecCallback ) = 0;
+		virtual void					Exec( UInt32_t CountArguments, const char** Arguments ) = 0;
+		
+		virtual void					SetExecCallback( ExecCallbackFn_t ExecCallback ) = 0;
+		virtual void					SetName( const char* Name ) = 0;
+		
+		virtual const char*				GetName() const = 0;
+	};
+
+	//---------------------------------------------------------------------//
 }
 
 //---------------------------------------------------------------------//
 
-#endif // !GLOBAL_H
+#endif // !ICONCMD_H
 

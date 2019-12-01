@@ -40,12 +40,7 @@ namespace le
 	//---------------------------------------------------------------------//
 }
 
-//---------------------------------------------------------------------//
-
 static le::ContextDescriptor*				currentContext = nullptr;
-
-//---------------------------------------------------------------------//
-
 
 // ------------------------------------------------------------------------------------ //
 // Создать контекст
@@ -71,7 +66,7 @@ bool le::WinGL_CreateContext( WindowHandle_t WindowHandle, const SettingsContext
 
 	try
 	{
-		// ������� ���������� ������ ��� ������ ��������
+		// Создаем временый контекст
 
 		if ( pixelFormat != 0 )
 		{
@@ -93,12 +88,12 @@ bool le::WinGL_CreateContext( WindowHandle_t WindowHandle, const SettingsContext
 		if ( !wglMakeCurrent( deviceContext, renderContext ) )
 			throw "Selecting temporary render context fail. Code error: " + to_string( GetLastError() );
 
-		// ��������� ���������� OpenGL
+		// Инициализируем GLEW
 
 		glewExperimental = GL_TRUE;
 		if ( glewInit() != GLEW_OK )	throw "OpenGL context is broken";
 
-		// ������� ���������� �� OpenGL
+		// Выводим параметры видеокарты и поддерживаемы расширения
 
 		int			numberExtensions = 0;
 		glGetIntegerv( GL_NUM_EXTENSIONS, &numberExtensions );
@@ -118,14 +113,14 @@ bool le::WinGL_CreateContext( WindowHandle_t WindowHandle, const SettingsContext
 
 		g_consoleSystem->PrintInfo( "*** OpenGL info end ***" );
 
-		// ���� ���� ��������� wglCreateContextAttribsARB - ���������� ��,
-		// ����� ����� �������� � ������� �����������
+		// Создаем расширеный контекст через wglCreateContextAttribsARB. Если он не поддерживается,
+		// оставляем старый контекст
 
 		if ( wglewIsSupported( "WGL_ARB_create_context" ) == 1 )
 		{
 			std::vector<int>				attributes;
 
-			// ��������� ��� �� �������� OpenGL ������ 1.1
+			// Если версия OpenGL больше 1.1, то записываем в атрибуты версию OpenGL
 
 			if ( SettingsContext.majorVersion > 1 || ( SettingsContext.majorVersion == 1 && SettingsContext.minorVersion > 1 ) )
 			{
@@ -135,7 +130,7 @@ bool le::WinGL_CreateContext( WindowHandle_t WindowHandle, const SettingsContext
 				attributes.push_back( SettingsContext.minorVersion );
 			}
 
-			// ���������, �������������� �� ��������� �������
+			// Выбираем профиль контекста (core, debug, etc)
 
 			if ( wglewIsSupported( "WGL_ARB_create_context_profile" ) == 1 )
 			{
@@ -152,7 +147,7 @@ bool le::WinGL_CreateContext( WindowHandle_t WindowHandle, const SettingsContext
 			else if ( ( SettingsContext.attributeFlags & le::SettingsContext::CA_CORE ) || ( SettingsContext.attributeFlags & le::SettingsContext::CA_DEBUG ) )
 					g_consoleSystem->PrintWarning( "Selecting a profile during context creation is not supported, disabling comptibility and debug" );
 
-			// ��������� ����������� 0
+			// Добавляем признак конца массива
 
 			attributes.push_back( 0 );
 			attributes.push_back( 0 );

@@ -8,8 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#ifndef BUILDNUM_H
+#define BUILDNUM_H
+
+#include "common/types.h"
 
 //---------------------------------------------------------------------//
 
@@ -17,16 +19,11 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class ConsoleSystem;
-	extern ConsoleSystem*			g_consoleSystem;
+	UInt32_t			Engine_BuildNumber();
 
 	//---------------------------------------------------------------------//
-
-	class Engine;
-	extern Engine*					g_engine;
 }
 
 //---------------------------------------------------------------------//
 
-#endif // !GLOBAL_H
-
+#endif // !BUILDNUM_H

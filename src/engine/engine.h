@@ -26,6 +26,7 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	class IStudioRenderInternal;
+	class IConCmd;
 
 	//---------------------------------------------------------------------//
 
@@ -34,6 +35,7 @@ namespace le
 		void*								handle;
 		LE_CreateStudioRenderFn_t			LE_CreateStudioRender;
 		LE_DeleteStudioRenderFn_t			LE_DeleteStudioRender;
+		LE_SetCriticalErrorFn_t				LE_SetCriticalError;
 	};
 
 	//---------------------------------------------------------------------//
@@ -43,12 +45,12 @@ namespace le
 	public:
 		// IEngine
 		virtual bool					LoadConfig( const char* FilePath );
-		virtual bool					SaveConfig( const char* FilePath );
-		
+		virtual bool					SaveConfig( const char* FilePath );		
 		virtual void					RunSimulation();
-		virtual void					StopSimulation();
+		virtual void					StopSimulation();		
+
 		virtual void					SetConfig( const Configurations& Configurations );
-		
+
 		virtual bool					IsRunSimulation() const;
 		virtual IConsoleSystem*			GetConsoleSystem() const;
 		virtual IStudioRender*			GetStudioRender() const;
@@ -66,20 +68,23 @@ namespace le
 		~Engine();
 
 	private:
-		void							LoadStudioRender( const char* PathDLL );
+		bool							LoadStudioRender( const char* PathDLL );
 		void							UnloadStudioRender();
 
-		bool						isInit;
-		bool						isRunSimulation;
+		bool							isInit;
+		bool							isRunSimulation;
 
-		IStudioRenderInternal*		studioRender;
-		StudioRenderDescriptor		studioRenderDescriptor;
+		IConCmd*						cmd_Exit;
+		IConCmd*						cmd_Version;
 
-		ConsoleSystem				consoleSystem;
-		Window						window;
-		GameInfo					gameInfo;
-		Configurations				configurations;
-		Version						version;
+		IStudioRenderInternal*			studioRender;
+		StudioRenderDescriptor			studioRenderDescriptor;
+
+		CriticalErrorCallbackFn_t		criticalError;
+		ConsoleSystem					consoleSystem;
+		Window							window;
+		GameInfo						gameInfo;
+		Configurations					configurations;
 	};
 
 	//---------------------------------------------------------------------//

@@ -8,11 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IENGINE_INTERNAL_H
-#define IENGINE_INTERNAL_H
+#ifndef CONCMD_H
+#define CONCMD_H
 
-#include "engine/lifeengine.h"
-#include "engine/iengine.h"
+#include "engine/iconcmd.h"
 
 //---------------------------------------------------------------------//
 
@@ -20,16 +19,25 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	typedef void			( *CriticalErrorCallbackFn_t )( const char* Message );
-
-	//---------------------------------------------------------------------//
-
-	class IEngineInternal : public IEngine
+	class ConCmd : public IConCmd
 	{
 	public:
-		virtual bool		Initialize( WindowHandle_t WindowHandle = nullptr ) = 0;
-		virtual bool		LoadGame( const char* DirGame ) = 0;
-		virtual void		UnloadGame() = 0;
+		// IConCmd
+		virtual void					Initialize( const char* Name, ExecCallbackFn_t ExecCallback );
+		virtual void					Exec( UInt32_t CountArguments, const char** Arguments );
+		
+		virtual void					SetExecCallback( ExecCallbackFn_t ExecCallback );
+		virtual void					SetName( const char* Name );
+		
+		virtual const char*				GetName() const;
+
+		// ConCmd
+		ConCmd();
+		~ConCmd();
+
+	private:
+		const char*					name;
+		ExecCallbackFn_t			execCallback;
 	};
 
 	//---------------------------------------------------------------------//
@@ -37,4 +45,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !IENGINE_INTERNAL_H
+#endif // !ICONCMD_H
+

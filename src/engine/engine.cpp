@@ -23,8 +23,30 @@
 #include "engine/window.h"
 #include "engine/istudiorenderinternal.h"
 #include "engine/global.h"
+#include "engine/convar.h"
+#include "engine/concmd.h"
+#include "engine/buildnum.h"
 
 LIFEENGINE_ENGINE_API( le::Engine );
+
+// ------------------------------------------------------------------------------------ //
+// Консольная команда выхода
+// ------------------------------------------------------------------------------------ //
+void CMD_Exit( le::UInt32_t CountArguments, const char** Arguments )
+{
+	if ( !le::g_engine ) return;
+	le::g_engine->StopSimulation();
+	exit( 0 );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Консольная команда вывода версии движка
+// ------------------------------------------------------------------------------------ //
+void CMD_Version( le::UInt32_t CountArguments, const char** Arguments )
+{
+	if ( !le::g_consoleSystem ) return;
+	le::g_consoleSystem->PrintInfo( "lifeEngine version %i.%i.%i (build %i)", LIFEENGINE_VERSION_MAJOR, LIFEENGINE_VERSION_MINOR, LIFEENGINE_VERSION_PATCH, le::Engine_BuildNumber() );
+}
 
 // ------------------------------------------------------------------------------------ //
 // Конструктор
@@ -32,8 +54,14 @@ LIFEENGINE_ENGINE_API( le::Engine );
 le::Engine::Engine() :
 	isRunSimulation( false ),
 	isInit( false ),
-	studioRender( nullptr )
+	studioRender( nullptr ),
+	studioRenderDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
+	criticalError( nullptr ),
+	cmd_Exit( new ConCmd() ),
+	cmd_Version( new ConCmd() )
 {
+	LIFEENGINE_ASSERT( !g_engine );
+
 	configurations.fov = 75.f;
 	configurations.isFullscreen = false;
 	configurations.isVerticalSinc = false;
@@ -41,10 +69,15 @@ le::Engine::Engine() :
 	configurations.windowWidth = 800;
 	configurations.windowHeight = 600;
 
-	studioRenderDescriptor = { nullptr, nullptr, nullptr };
-
 	consoleSystem.Initialize();
+	cmd_Exit->Initialize( "exit", CMD_Exit );
+	cmd_Version->Initialize( "version", CMD_Version );
+
+	consoleSystem.RegisterCommand( cmd_Exit );
+	consoleSystem.RegisterCommand( cmd_Version );
+
 	g_consoleSystem = &consoleSystem;
+	g_engine = this;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -54,27 +87,46 @@ le::Engine::~Engine()
 {
 	if ( studioRender ) UnloadStudioRender();
 	if ( window.IsOpen() ) window.Close();
+
+	if ( cmd_Exit )
+	{
+		consoleSystem.UnregisterCommand( cmd_Exit->GetName() );
+		delete cmd_Exit;
+	}
+
+	if ( cmd_Version )
+	{
+		consoleSystem.UnregisterCommand( cmd_Version->GetName() );
+		delete cmd_Version;
+	}
 }
 
 // ------------------------------------------------------------------------------------ //
 // Загрузить модуль рендера
 // ------------------------------------------------------------------------------------ //
-void le::Engine::LoadStudioRender( const char* PathDLL )
+bool le::Engine::LoadStudioRender( const char* PathDLL )
 {
 	// Если модуль ранее был загружен, то удаляем
 	if ( studioRenderDescriptor.handle ) UnloadStudioRender();
 
 	// Загружаем модуль
 	studioRenderDescriptor.handle = SDL_LoadObject( PathDLL );
-	if ( !studioRenderDescriptor.handle )				throw std::exception( SDL_GetError() );
+	if ( !studioRenderDescriptor.handle )	return false;
 
 	// Берем из модуля методы для создания рендера
 	studioRenderDescriptor.LE_CreateStudioRender = ( LE_CreateStudioRenderFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_CreateStudioRender" );
 	studioRenderDescriptor.LE_DeleteStudioRender = ( LE_DeleteStudioRenderFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_DeleteStudioRender" );
-	if ( !studioRenderDescriptor.LE_CreateStudioRender ) throw std::exception( SDL_GetError() );
+	studioRenderDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_SetCriticalError" );
+	if ( !studioRenderDescriptor.LE_CreateStudioRender )	return false;
 
 	// Создаем рендер
+	if ( studioRenderDescriptor.LE_SetCriticalError ) 
+		studioRenderDescriptor.LE_SetCriticalError( g_criticalError );
+
 	studioRender = ( IStudioRenderInternal* ) studioRenderDescriptor.LE_CreateStudioRender();
+	if ( !studioRender->Initialize( this ) )	return false;
+
+	return true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -193,9 +245,9 @@ bool le::Engine::SaveConfig( const char* FilePath )
 // ------------------------------------------------------------------------------------ //
 void le::Engine::RunSimulation()
 {
-	if ( !window.IsOpen() || !studioRender ) return;
-	consoleSystem.PrintInfo( "*** Game logic start ***" );
+	LIFEENGINE_ASSERT( window.IsOpen() || studioRender );
 
+	consoleSystem.PrintInfo( "*** Game logic start ***" );
 	isRunSimulation = true;
 	Event		event;
 
@@ -283,7 +335,7 @@ const le::Configurations& le::Engine::GetConfigurations() const
 // ------------------------------------------------------------------------------------ //
 const le::Version& le::Engine::GetVersion() const
 {
-	return version;
+	return Version( LIFEENGINE_VERSION_MAJOR, LIFEENGINE_VERSION_MINOR, LIFEENGINE_VERSION_PATCH, Engine_BuildNumber() );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -291,6 +343,7 @@ const le::Version& le::Engine::GetVersion() const
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::Initialize( WindowHandle_t WindowHandle )
 {
+	if ( isInit ) return true;
 	consoleSystem.PrintInfo( "Initialization lifeEngine" );
 
 	// Выводим системную информацию
@@ -300,7 +353,7 @@ bool le::Engine::Initialize( WindowHandle_t WindowHandle )
 	consoleSystem.PrintInfo( "*** System info start ****" );
 	consoleSystem.PrintInfo( "  Base path: %s", SDL_GetBasePath() );
 	consoleSystem.PrintInfo( "" );
-	consoleSystem.PrintInfo( "  lifeEngine %i.%i.%i (build %i)", LIFEENGINE_VERSION_MAJOR, LIFEENGINE_VERSION_MINOR, LIFEENGINE_VERSION_PATCH, 0 );
+	consoleSystem.PrintInfo( "  lifeEngine %i.%i.%i (build %i)", LIFEENGINE_VERSION_MAJOR, LIFEENGINE_VERSION_MINOR, LIFEENGINE_VERSION_PATCH, Engine_BuildNumber() );
 	consoleSystem.PrintInfo( "  SDL version: %i.%i.%i", sdlVersion.major, sdlVersion.minor, sdlVersion.patch );
 	consoleSystem.PrintInfo( "  Platform: %s", SDL_GetPlatform() );
 	consoleSystem.PrintInfo( "  CPU cache L1 size: %i bytes", SDL_GetCPUCacheLineSize() );
@@ -327,22 +380,18 @@ bool le::Engine::Initialize( WindowHandle_t WindowHandle )
 		if ( !WindowHandle )
 		{
 			if ( !window.Create( "lifeEngine", configurations.windowWidth, configurations.windowHeight, configurations.isFullscreen ? SW_FULLSCREEN : SW_DEFAULT ) )
-				throw std::exception( "Fail create window" );
+				throw std::exception( SDL_GetError() );
 		}
 		else 
 			window.SetHandle( WindowHandle );
 
 		// Загружаем и инициализируем рендер
 
-		LoadStudioRender( LIFEENGINE_STUDIORENDER_DLL );
-		if ( !studioRender->Initialize( this ) )
-			throw std::exception( "Fail initialize studiorender" );
+		if ( !LoadStudioRender( LIFEENGINE_STUDIORENDER_DLL ) )		throw std::exception( "Failed loading studiorender" );
 	}
 	catch ( const std::exception& Exception )
 	{
-		consoleSystem.PrintError( "%s", Exception.what() );
-
-		if ( window.IsOpen() ) window.Close();
+		if ( g_criticalError )		g_criticalError( Exception.what() );
 		return false;
 	}
 
