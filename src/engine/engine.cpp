@@ -132,7 +132,8 @@ bool le::Engine::LoadModule_StudioRender( const char* PathDLL )
 			studioRenderDescriptor.LE_SetCriticalError( g_criticalError );
 
 		studioRender = ( IStudioRenderInternal* ) studioRenderDescriptor.LE_CreateStudioRender();
-		if ( !studioRender->Initialize( this ) )	throw std::exception( "Fail initialize studiorender" );
+		if ( !studioRender->Connect( &engineFactory ) )		throw std::exception( "Fail connection studiorender" );
+		if ( !studioRender->Initialize() )					throw std::exception( "Fail initialize studiorender" );
 	}
 	catch ( std::exception& Exception )
 	{
@@ -150,6 +151,9 @@ bool le::Engine::LoadModule_StudioRender( const char* PathDLL )
 void le::Engine::UnloadModule_StudioRender()
 {
 	if ( !studioRender ) return;
+	
+	studioRender->Shutdown();
+	studioRender->Disconnect();	
 
 	if ( studioRenderDescriptor.LE_DeleteStudioRender )
 		studioRenderDescriptor.LE_DeleteStudioRender( studioRender );
@@ -257,7 +261,8 @@ bool le::Engine::LoadModule_Game( const char* PathDLL )
 			gameDescriptor.LE_SetCriticalError( g_criticalError );
 
 		game = gameDescriptor.LE_CreateGame();
-		if ( !game->Initialize( this ) )	throw std::exception( "Fail initialize game" );
+		if ( !game->Connect( &engineFactory ) )			throw std::exception( "Fail connection studiorender" );
+		if ( !game->Initialize() )						throw std::exception( "Fail initialize game" );
 	}
 	catch ( std::exception& Exception )
 	{
@@ -275,6 +280,9 @@ bool le::Engine::LoadModule_Game( const char* PathDLL )
 void le::Engine::UnloadModule_Game()
 {
 	if ( !game ) return;
+
+	game->Shutdown();
+	game->Disconnect();
 
 	if ( gameDescriptor.LE_DeleteGame )
 		gameDescriptor.LE_DeleteGame( game );
@@ -494,6 +502,14 @@ le::IStudioRender* le::Engine::GetStudioRender() const
 le::IWindow* le::Engine::GetWindow() const
 {
 	return ( IWindow* ) &window;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить фабрику движка
+// ------------------------------------------------------------------------------------ //
+le::IFactory* le::Engine::GetFactory() const
+{
+	return ( IFactory* ) &engineFactory;
 }
 
 // ------------------------------------------------------------------------------------ //

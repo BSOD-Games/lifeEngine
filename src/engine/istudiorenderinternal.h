@@ -26,7 +26,6 @@ namespace le
 	class IStudioRenderInternal : public IStudioRender
 	{
 	public:
-		virtual bool			Initialize( IEngine* Engine ) = 0;
 		virtual void			RenderFrame() = 0;
 	};
 

@@ -22,6 +22,7 @@ namespace le
 	class IConsoleSystem;
 	class IStudioRender;
 	class IWindow;
+	class IFactory;
 
 	//---------------------------------------------------------------------//
 
@@ -39,12 +40,17 @@ namespace le
 		virtual IConsoleSystem*			GetConsoleSystem() const = 0;
 		virtual IStudioRender*			GetStudioRender() const = 0;
 		virtual IWindow*				GetWindow() const = 0;
+		virtual IFactory*				GetFactory() const = 0;
 		virtual const Configurations&	GetConfigurations() const = 0;
 		virtual const Version&			GetVersion() const = 0;
 	};
 
 	//---------------------------------------------------------------------//
 }
+
+//---------------------------------------------------------------------//
+
+#define ENGINE_INTERFACE_VERSION "LE_Engine001"
 
 //---------------------------------------------------------------------//
 

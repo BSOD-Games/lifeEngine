@@ -66,6 +66,7 @@ void le::RenderContext::MakeCurrent()
 void le::RenderContext::Destroy()
 {
 	if ( !isCreated )	return;
+	isCreated = false;
 
 #if defined( PLATFORM_WINDOWS )
 	WinGL_DeleteContext( contextDescriptor );

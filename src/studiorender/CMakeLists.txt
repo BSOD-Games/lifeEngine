@@ -4,7 +4,7 @@ cmake_minimum_required( VERSION 3.7 )
 #   --- Задаем переменные ---
 #
 
-file( GLOB SOURCE_FILES "*.h" "*.cpp" )
+file( GLOB SOURCE_FILES "*.h" "*.cpp" "../public/studiorender/*.h" )
 set( MODULE_NAME studiorender )
 
 set( GLEW_PATH ${EXTLIBS_DIR}/GLEW CACHE PATH "Path to GLEW" )

@@ -17,6 +17,8 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	IConsoleSystem*			g_consoleSystem = nullptr;
+	IEngine*				g_engine = nullptr;
+	IFactory*				g_engineFactory = nullptr;
 
 	//---------------------------------------------------------------------//
 }

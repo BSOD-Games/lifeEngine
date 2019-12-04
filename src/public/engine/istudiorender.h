@@ -11,8 +11,9 @@
 #ifndef ISTUDIORENDER_H
 #define ISTUDIORENDER_H
 
-#include "engine/lifeengine.h"
 #include "common/types.h"
+#include "engine/lifeengine.h"
+#include "engine/iappsystem.h"
 
 //---------------------------------------------------------------------//
 
@@ -20,7 +21,7 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IStudioRender
+	class IStudioRender : public IAppSystem
 	{
 	public:
 		virtual void			ResizeViewport( UInt32_t X, UInt32_t Y, UInt32_t Width, UInt32_t Height ) = 0;
@@ -31,6 +32,10 @@ namespace le
 
 	//---------------------------------------------------------------------//
 }
+
+//---------------------------------------------------------------------//
+
+#define STUDIO_RENDER_INTERFACE_VERSION "LE_StudioRender001"
 
 //---------------------------------------------------------------------//
 

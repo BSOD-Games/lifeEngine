@@ -18,6 +18,7 @@
 #include "engine/iengineinternal.h"
 #include "engine/consolesystem.h"
 #include "engine/window.h"
+#include "engine/enginefactory.h"
 
 //---------------------------------------------------------------------//
 
@@ -65,6 +66,7 @@ namespace le
 		virtual IConsoleSystem*			GetConsoleSystem() const;
 		virtual IStudioRender*			GetStudioRender() const;
 		virtual IWindow*				GetWindow() const;
+		virtual IFactory*				GetFactory() const;
 		virtual const Configurations&	GetConfigurations() const;
 		virtual const Version&			GetVersion() const;
 
@@ -99,6 +101,7 @@ namespace le
 		CriticalErrorCallbackFn_t		criticalError;
 		ConsoleSystem					consoleSystem;
 		Window							window;
+		EngineFactory					engineFactory;
 		GameInfo						gameInfo;
 		Configurations					configurations;
 	};

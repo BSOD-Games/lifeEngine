@@ -23,16 +23,25 @@ namespace le
 	class StudioRender : public IStudioRenderInternal
 	{
 	public:
+		// IAppSystem
+		virtual bool			Connect( IFactory* Factory );
+		virtual void			Disconnect();
+		virtual void			Shutdown();
+		virtual bool			Initialize();
+
+		virtual IFactory*		GetFactory() const;
+
 		// IStudioRenderInternal
-		virtual bool			Initialize( IEngine* Engine );
+		virtual void			RenderFrame();
 
 		// IStudioRender
 		virtual void			ResizeViewport( UInt32_t X, UInt32_t Y, UInt32_t Width, UInt32_t Height );
-		virtual void			RenderFrame();
-
 		virtual void			SetVerticalSyncEnabled( bool IsEnabled = true );
 
 	private:
+		bool					isConnect;
+		bool					isInitialize;
+
 		RenderContext			renderContext;
 	};
 

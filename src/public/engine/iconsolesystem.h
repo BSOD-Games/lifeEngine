@@ -42,5 +42,9 @@ namespace le
 
 //---------------------------------------------------------------------//
 
+#define CONSOLE_SYSTEM_INTERFACE_VERSION "LE_ConsoleSystem001"
+
+//---------------------------------------------------------------------//
+
 #endif // !ICONSOLESYSTEM_H
 

@@ -12,6 +12,7 @@
 #define IGAME_H
 
 #include "common/types.h"
+#include "engine/iappsystem.h"
 
 //---------------------------------------------------------------------//
 
@@ -24,10 +25,9 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class IGame
+	class IGame : public IAppSystem
 	{
 	public:
-		virtual bool				Initialize( IEngine* Engine ) = 0;
 		virtual void				Update( UInt32_t DeltaTime ) = 0;
 		virtual void				OnEvent( const Event& Event ) = 0;
 	};
