@@ -21,7 +21,7 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IStudioRender : public IAppSystem
+	class IStudioRender
 	{
 	public:
 		virtual void			ResizeViewport( UInt32_t X, UInt32_t Y, UInt32_t Width, UInt32_t Height ) = 0;
@@ -32,10 +32,6 @@ namespace le
 
 	//---------------------------------------------------------------------//
 }
-
-//---------------------------------------------------------------------//
-
-#define STUDIO_RENDER_INTERFACE_VERSION "LE_StudioRender001"
 
 //---------------------------------------------------------------------//
 

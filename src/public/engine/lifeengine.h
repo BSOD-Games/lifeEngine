@@ -20,6 +20,8 @@ namespace le
 	class IEngine;
 	class IStudioRender;
 	class IGame;
+	class IShaderDLL;
+	class IMaterialSystem;
 
 	//---------------------------------------------------------------------//
 
@@ -32,6 +34,10 @@ namespace le
 	typedef		IGame*						( *LE_CreateGameFn_t )( );
 	typedef		void						( *LE_DeleteGameFn_t )( IGame* Game );
 	typedef		void						( *LE_SetCriticalErrorFn_t )( CriticalErrorFn_t CriticalError );
+	typedef		IShaderDLL*					( *LE_CreateShaderDLLFn_t )();
+	typedef		void						( *LE_DeleteShaderDLLFn_t )( IShaderDLL* ShaderDLL );
+	typedef		IMaterialSystem*			( *LE_CreateMaterialSystemFn_t )( );
+	typedef		void						( *LE_DeleteMaterialSystemFn_t )( IMaterialSystem* MaterialSystem );
 
 	//---------------------------------------------------------------------//
 
@@ -84,6 +90,18 @@ namespace le
 		namespace le { class IGame; } \
 		LIFEENGINE_API le::IGame* LE_CreateGame() { return new GameClass(); } \
 		LIFEENGINE_API void LE_DeleteGame( le::IGame* Object ) { delete static_cast<GameClass*>( Object ); } \
+		LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
+
+#	define LIFEENGINE_STDSHADERS_API( ShaderDLLClass ) \
+		namespace le { class IShaderDLL; } \
+		LIFEENGINE_API le::IShaderDLL* LE_CreateShaderDLL() { return new ShaderDLLClass(); } \
+		LIFEENGINE_API void LE_DeleteShaderDLL( le::IShaderDLL* Object ) { delete static_cast<ShaderDLLClass*>( Object ); } \
+		LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
+
+#	define LIFEENGINE_MATERIALSYSTEM_API( MaterialSystemClass ) \
+		namespace le { class IMaterialSystem; } \
+		LIFEENGINE_API le::IMaterialSystem* LE_CreateMaterialSystem() { return new MaterialSystemClass(); } \
+		LIFEENGINE_API void LE_DeleteMaterialSystem( le::IMaterialSystem* Object ) { delete static_cast<MaterialSystemClass*>( Object ); } \
 		LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
 
 //---------------------------------------------------------------------//

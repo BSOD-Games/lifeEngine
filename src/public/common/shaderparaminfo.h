@@ -8,28 +8,28 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IAPPSYSTEM_H
-#define IAPPSYSTEM_H
+#ifndef SHADERPARAMINFO_H
+#define SHADERPARAMINFO_H
 
-#include "engine/ifactory.h"
+#include "materialsystem/imaterialvar.h"
+
+//---------------------------------------------------------------------//
 
 namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IAppSystem
+	struct ShaderParamInfo
 	{
-	public:
-		virtual bool				Connect( IFactory* Factory ) = 0;
-		virtual void				Disconnect() = 0;	
-		virtual bool				Initialize() = 0;
-		virtual void				Shutdown() = 0;
-
-		virtual IFactory*			GetFactory() const = 0;
+		const char*				name;
+		const char*				helpString;
+		const char*				defaultString;
+		MATERIAL_VAR_TYPE		typeValue;
 	};
 
 	//---------------------------------------------------------------------//
 }
 
-#endif // !IAPPSYSTEM_H
+//---------------------------------------------------------------------//
 
+#endif // !SHADERPARAMINFO_H

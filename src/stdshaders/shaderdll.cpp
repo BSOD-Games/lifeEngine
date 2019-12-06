@@ -8,28 +8,34 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#include <string.h>
+#include "engine/lifeengine.h"
+#include "engine/iengine.h"
+#include "engine/iconsolesystem.h"
 
-#include "enginefactory.h"
-#include "concmd.h"
-#include "convar.h"
+#include "shaderdll.h"
+
+LIFEENGINE_STDSHADERS_API( le::ShaderDLL );
 
 // ------------------------------------------------------------------------------------ //
-// Создать объект
+// Инициализировать библиотеку шейдеров
 // ------------------------------------------------------------------------------------ //
-void* le::EngineFactory::Create( const char* NameInterface )
+bool le::ShaderDLL::Initialize( IEngine* Engine )
 {
-	if ( strcmp( NameInterface, CONCMD_INTERFACE_VERSION ) == 0 )				return new ConCmd();
-	else if ( strcmp( NameInterface, CONVAR_INTERFACE_VERSION ) == 0 )			return new ConVar();
-
-	return nullptr;
+	return true;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Удалить объект
+// Получить количество шейдеров
 // ------------------------------------------------------------------------------------ //
-void le::EngineFactory::Delete( const char* NameInterface, void* Object )
+le::UInt32_t le::ShaderDLL::GetShaderCount() const
 {
-	if ( !Object ) return;
-	delete Object;
+	return UInt32_t();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить шейдер
+// ------------------------------------------------------------------------------------ //
+le::IShader* le::ShaderDLL::GetShader( UInt32_t Index ) const
+{
+	return nullptr;
 }

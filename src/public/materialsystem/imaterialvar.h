@@ -8,8 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef ICONSOLESYSTEM_H
-#define ICONSOLESYSTEM_H
+#ifndef IMATERIALVAR_H
+#define IMATERIALVAR_H
 
 //---------------------------------------------------------------------//
 
@@ -17,24 +17,26 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IConVar;
-	class IConCmd;
+	enum MATERIAL_VAR_TYPE
+	{
+		MVT_TEXTURE,
+		MVT_FLOAT,
+		MVT_INT,
+		MVT_BOOL,
+		MVT_VECTOR_2D,
+		MVT_VECTOR_3D,
+		MVT_VECTOR_4D,
+		MVT_MATRIX,
+		MVT_STRING,
+		MVT_SHADER_FLAG
+	};
 
 	//---------------------------------------------------------------------//
 
-	class IConsoleSystem
+	class IMaterialVar
 	{
 	public:
-		virtual void		RegisterVar( IConVar* ConVar ) = 0;
-		virtual void		RegisterCommand( IConCmd* ConCmd ) = 0;
-		virtual void		UnregisterVar( const char* Name ) = 0;
-		virtual void		UnregisterCommand( const char* Name ) = 0;
-		virtual bool		Exec( const char* Command ) = 0;
-		virtual void		PrintInfo( const char* Message, ... ) = 0;
-		virtual void		PrintWarning( const char* Message, ... ) = 0;
-		virtual void		PrintError( const char* Message, ... ) = 0;
-		virtual IConVar*	GetVar( const char* Name ) const = 0;
-		virtual IConCmd*	GetCommand( const char* Name ) const = 0;
+		//TODO: реализовать интерфейс
 	};
 
 	//---------------------------------------------------------------------//
@@ -42,5 +44,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !ICONSOLESYSTEM_H
+#endif // !IMATERIALVAR_H
 

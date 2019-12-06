@@ -8,8 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef ICONSOLESYSTEM_H
-#define ICONSOLESYSTEM_H
+#ifndef ISHADERDLL_H
+#define ISHADERDLL_H
+
+#include "common/types.h"
 
 //---------------------------------------------------------------------//
 
@@ -17,24 +19,18 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IConVar;
-	class IConCmd;
+	class IEngine;
+	class IShader;
 
 	//---------------------------------------------------------------------//
 
-	class IConsoleSystem
+	class IShaderDLL
 	{
 	public:
-		virtual void		RegisterVar( IConVar* ConVar ) = 0;
-		virtual void		RegisterCommand( IConCmd* ConCmd ) = 0;
-		virtual void		UnregisterVar( const char* Name ) = 0;
-		virtual void		UnregisterCommand( const char* Name ) = 0;
-		virtual bool		Exec( const char* Command ) = 0;
-		virtual void		PrintInfo( const char* Message, ... ) = 0;
-		virtual void		PrintWarning( const char* Message, ... ) = 0;
-		virtual void		PrintError( const char* Message, ... ) = 0;
-		virtual IConVar*	GetVar( const char* Name ) const = 0;
-		virtual IConCmd*	GetCommand( const char* Name ) const = 0;
+		virtual bool				Initialize( IEngine* Engine ) = 0;
+
+		virtual UInt32_t			GetShaderCount() const = 0;
+		virtual IShader*			GetShader( UInt32_t Index ) const = 0;
 	};
 
 	//---------------------------------------------------------------------//
@@ -42,5 +38,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !ICONSOLESYSTEM_H
+#endif // !ISHADERDLL_H
 

@@ -34,68 +34,23 @@ void le::StudioRender::ResizeViewport( UInt32_t X, UInt32_t Y, UInt32_t Width, U
 }
 
 // ------------------------------------------------------------------------------------ //
-// Подключиться к движку
-// ------------------------------------------------------------------------------------ //
-bool le::StudioRender::Connect( IFactory* Factory )
-{
-	try
-	{
-		if ( !Factory )				throw std::exception( "studiorender requires factory engine" );
-
-		g_engine = ( IEngine* ) Factory->Create( ENGINE_INTERFACE_VERSION );
-		if ( !g_engine )			throw std::exception( "studiorender requires engine api" );
-
-		g_consoleSystem = ( IConsoleSystem* ) Factory->Create( CONSOLE_SYSTEM_INTERFACE_VERSION );
-		if ( !g_consoleSystem )		throw std::exception( "studiorender requires consoleSystem" );
-
-		g_engineFactory = Factory;
-	}
-	catch ( std::exception& Exception )
-	{
-		if ( g_consoleSystem )		g_consoleSystem->PrintError( Exception.what() );
-		else						printf( Exception.what() );
-
-		Disconnect();
-		return false;
-	}
-	
-	isConnect = true;
-	return true;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Отключится от движка
-// ------------------------------------------------------------------------------------ //
-void le::StudioRender::Disconnect()
-{
-	g_engine = nullptr;
-	g_consoleSystem = nullptr;
-	g_engineFactory = nullptr;
-
-	isConnect = false;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Прекратить работу рендера
-// ------------------------------------------------------------------------------------ //
-void le::StudioRender::Shutdown()
-{
-	renderContext.Destroy();
-	isInitialize = false;
-}
-
-// ------------------------------------------------------------------------------------ //
 // Инициализировать рендер
 // ------------------------------------------------------------------------------------ //
-bool le::StudioRender::Initialize()
+bool le::StudioRender::Initialize( IEngine* Engine )
 {
-	if ( !isConnect ) return false;
 	if ( isInitialize ) return true;
+
+	g_consoleSystem = Engine->GetConsoleSystem();
+	if ( !g_consoleSystem )
+	{
+		g_consoleSystem->PrintError( "Studiorender requared console system" );
+		return false;
+	}
 
 	// Если в ядре окно не создано (указатель на IWindow nullptr) или
 	// заголовок окна nullptr, то выбрасываем ошибку
 
-	if ( !g_engine->GetWindow() || !g_engine->GetWindow()->GetHandle() )
+	if ( !Engine->GetWindow() || !Engine->GetWindow()->GetHandle() )
 	{
 		g_consoleSystem->PrintError( "Window not open or not valid handle" );
 		return false;
@@ -103,7 +58,7 @@ bool le::StudioRender::Initialize()
 
 	// Создаем контекст OpenGL
 
-	Configurations				configurations = g_engine->GetConfigurations();
+	Configurations				configurations = Engine->GetConfigurations();
 	SettingsContext				settingsContext;
 	settingsContext.redBits = 8;
 	settingsContext.greenBits = 8;
@@ -115,7 +70,7 @@ bool le::StudioRender::Initialize()
 	settingsContext.minorVersion = 3;
 	settingsContext.attributeFlags = SettingsContext::CA_CORE;
 
-	if ( !renderContext.Create( g_engine->GetWindow()->GetHandle(), settingsContext ) )
+	if ( !renderContext.Create( Engine->GetWindow()->GetHandle(), settingsContext ) )
 	{
 		g_consoleSystem->PrintError( "Failed created context" );
 		return false;
@@ -132,14 +87,6 @@ bool le::StudioRender::Initialize()
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
 	return true;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Инициализировать рендер
-// ------------------------------------------------------------------------------------ //
-le::IFactory* le::StudioRender::GetFactory() const
-{
-	return nullptr;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -160,4 +107,19 @@ void le::StudioRender::SetVerticalSyncEnabled( bool IsEnabled )
 {
 	if ( !renderContext.IsCreated() ) return;
 	renderContext.SetVerticalSync( IsEnabled );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Конструктор
+// ------------------------------------------------------------------------------------ //
+le::StudioRender::StudioRender() :
+	isInitialize( false )
+{}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+le::StudioRender::~StudioRender()
+{
+	if ( renderContext.IsCreated() )		renderContext.Destroy();
 }

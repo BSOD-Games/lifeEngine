@@ -8,28 +8,31 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IAPPSYSTEM_H
-#define IAPPSYSTEM_H
+#ifndef SHADERDLL_H
+#define SHADERDLL_H
 
-#include "engine/ifactory.h"
+#include "stdshaders/ishaderdll.h"
+
+//---------------------------------------------------------------------//
 
 namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IAppSystem
+	class ShaderDLL : public IShaderDLL
 	{
 	public:
-		virtual bool				Connect( IFactory* Factory ) = 0;
-		virtual void				Disconnect() = 0;	
-		virtual bool				Initialize() = 0;
-		virtual void				Shutdown() = 0;
-
-		virtual IFactory*			GetFactory() const = 0;
+		// IShaderDLL
+		virtual bool				Initialize( IEngine* Engine );
+	
+		virtual UInt32_t			GetShaderCount() const;
+		virtual IShader*			GetShader( UInt32_t Index ) const;
 	};
 
 	//---------------------------------------------------------------------//
 }
 
-#endif // !IAPPSYSTEM_H
+//---------------------------------------------------------------------//
+
+#endif // !SHADERDLL_H
 

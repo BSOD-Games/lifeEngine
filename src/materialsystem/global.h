@@ -8,8 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef ICONSOLESYSTEM_H
-#define ICONSOLESYSTEM_H
+#ifndef GLOBAL_H
+#define GLOBAL_H
 
 //---------------------------------------------------------------------//
 
@@ -17,30 +17,22 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IConVar;
-	class IConCmd;
+	class IConsoleSystem;
+	extern IConsoleSystem*		g_consoleSystem;
 
 	//---------------------------------------------------------------------//
 
-	class IConsoleSystem
-	{
-	public:
-		virtual void		RegisterVar( IConVar* ConVar ) = 0;
-		virtual void		RegisterCommand( IConCmd* ConCmd ) = 0;
-		virtual void		UnregisterVar( const char* Name ) = 0;
-		virtual void		UnregisterCommand( const char* Name ) = 0;
-		virtual bool		Exec( const char* Command ) = 0;
-		virtual void		PrintInfo( const char* Message, ... ) = 0;
-		virtual void		PrintWarning( const char* Message, ... ) = 0;
-		virtual void		PrintError( const char* Message, ... ) = 0;
-		virtual IConVar*	GetVar( const char* Name ) const = 0;
-		virtual IConCmd*	GetCommand( const char* Name ) const = 0;
-	};
+	class IEngine;
+	extern IEngine*				g_engine;
+
+	//---------------------------------------------------------------------//
+
+	class IStudioRender;
+	extern IStudioRender*		g_studioRender;
 
 	//---------------------------------------------------------------------//
 }
 
 //---------------------------------------------------------------------//
 
-#endif // !ICONSOLESYSTEM_H
-
+#endif // !GLOBAL_H

@@ -8,8 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef ICONSOLESYSTEM_H
-#define ICONSOLESYSTEM_H
+#ifndef IMATERIALSYSTEM_INTERNAL_H
+#define IMATERIALSYSTEM_INTERNAL_H
+
+#include "materialsystem/imaterialsystem.h"
 
 //---------------------------------------------------------------------//
 
@@ -17,24 +19,14 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IConVar;
-	class IConCmd;
+	class IEngine;
 
 	//---------------------------------------------------------------------//
 
-	class IConsoleSystem
+	class IMaterialSystemInternal : public IMaterialSystem
 	{
 	public:
-		virtual void		RegisterVar( IConVar* ConVar ) = 0;
-		virtual void		RegisterCommand( IConCmd* ConCmd ) = 0;
-		virtual void		UnregisterVar( const char* Name ) = 0;
-		virtual void		UnregisterCommand( const char* Name ) = 0;
-		virtual bool		Exec( const char* Command ) = 0;
-		virtual void		PrintInfo( const char* Message, ... ) = 0;
-		virtual void		PrintWarning( const char* Message, ... ) = 0;
-		virtual void		PrintError( const char* Message, ... ) = 0;
-		virtual IConVar*	GetVar( const char* Name ) const = 0;
-		virtual IConCmd*	GetCommand( const char* Name ) const = 0;
+		virtual bool			Initialize( IEngine* Engine ) = 0;
 	};
 
 	//---------------------------------------------------------------------//
@@ -42,5 +34,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !ICONSOLESYSTEM_H
+#endif // !IMATERIALSYSTEM_INTERNAL_H
 

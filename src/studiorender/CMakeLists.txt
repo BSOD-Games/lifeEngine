@@ -34,7 +34,6 @@ add_definitions( -DLIFEENGINE_EXPORT )
 
 add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} )
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
-target_link_libraries( ${MODULE_NAME} ${PROJECT_COMMON} )
 include_directories( ../public )
 include_directories( ../ )
 include_directories( ./ )

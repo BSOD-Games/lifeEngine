@@ -8,28 +8,26 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IAPPSYSTEM_H
-#define IAPPSYSTEM_H
+#ifndef IMATERIALSYSTEM_H
+#define IMATERIALSYSTEM_H
 
-#include "engine/ifactory.h"
+//---------------------------------------------------------------------//
 
 namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IAppSystem
+	class IMaterialSystem
 	{
 	public:
-		virtual bool				Connect( IFactory* Factory ) = 0;
-		virtual void				Disconnect() = 0;	
-		virtual bool				Initialize() = 0;
-		virtual void				Shutdown() = 0;
-
-		virtual IFactory*			GetFactory() const = 0;
+		virtual bool			LoadShaderDLL( const char* FullPath ) = 0;
+		virtual void			UnloadShaderDLL( const char* FullPath ) = 0;
 	};
 
 	//---------------------------------------------------------------------//
 }
 
-#endif // !IAPPSYSTEM_H
+//---------------------------------------------------------------------//
+
+#endif // !IMATERIALSYSTEM_H
 

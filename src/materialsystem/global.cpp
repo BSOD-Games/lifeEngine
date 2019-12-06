@@ -8,28 +8,19 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IAPPSYSTEM_H
-#define IAPPSYSTEM_H
+#include "global.h"
 
-#include "engine/ifactory.h"
+//---------------------------------------------------------------------//
 
 namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IAppSystem
-	{
-	public:
-		virtual bool				Connect( IFactory* Factory ) = 0;
-		virtual void				Disconnect() = 0;	
-		virtual bool				Initialize() = 0;
-		virtual void				Shutdown() = 0;
-
-		virtual IFactory*			GetFactory() const = 0;
-	};
+	IConsoleSystem*		g_consoleSystem = nullptr;
+	IEngine*			g_engine = nullptr;
+	IStudioRender*		g_studioRender = nullptr;
 
 	//---------------------------------------------------------------------//
 }
 
-#endif // !IAPPSYSTEM_H
-
+//---------------------------------------------------------------------//
