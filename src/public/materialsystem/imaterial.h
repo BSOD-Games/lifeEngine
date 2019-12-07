@@ -8,8 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef ICONSOLESYSTEM_H
-#define ICONSOLESYSTEM_H
+#ifndef IMATERIAL_H
+#define IMATERIAL_H
+
+#include "common/types.h"
 
 //---------------------------------------------------------------------//
 
@@ -17,27 +19,25 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IConVar;
-	class IConCmd;
-	class IFactory;
+	class IMaterialVar;
 
 	//---------------------------------------------------------------------//
 
-	class IConsoleSystem
+	class IMaterial
 	{
 	public:
-		virtual void		RegisterVar( IConVar* ConVar ) = 0;
-		virtual void		RegisterCommand( IConCmd* ConCmd ) = 0;
-		virtual void		UnregisterVar( const char* Name ) = 0;
-		virtual void		UnregisterCommand( const char* Name ) = 0;
-		virtual bool		Exec( const char* Command ) = 0;
-		virtual void		PrintInfo( const char* Message, ... ) = 0;
-		virtual void		PrintWarning( const char* Message, ... ) = 0;
-		virtual void		PrintError( const char* Message, ... ) = 0;
+		virtual void			AddVar( IMaterialVar* MaterialVar ) = 0;
+		virtual IMaterialVar*	FindVar( const char* Name ) = 0;
+		virtual void			Clear() = 0;
 
-		virtual IConVar*	GetVar( const char* Name ) const = 0;
-		virtual IConCmd*	GetCommand( const char* Name ) const = 0;
-		virtual IFactory*	GetFactory() const = 0;
+		virtual void			SetName( const char* Name ) = 0;
+		virtual void			SetShader( const char* Name ) = 0;
+
+		virtual const char*		GetName() const = 0;
+		virtual const char*		GetShaderName() const = 0;
+		virtual UInt32_t		GetCountVars() const = 0;
+		virtual IMaterialVar*	GetVar( UInt32_t Index ) const = 0;
+		virtual IMaterialVar**	GetVars() const = 0;
 	};
 
 	//---------------------------------------------------------------------//
@@ -45,5 +45,9 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !ICONSOLESYSTEM_H
+#define MATERIAL_INTERFACE_VERSION "LE_Material001"
+
+//---------------------------------------------------------------------//
+
+#endif // !IMATERIAL_H
 

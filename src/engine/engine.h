@@ -44,7 +44,7 @@ namespace le
 
 	struct MaterialSystemDescriptor
 	{
-		void* handle;
+		void*								handle;
 		LE_CreateMaterialSystemFn_t			LE_CreateMaterialSystem;
 		LE_DeleteMaterialSystemFn_t			LE_DeleteMaterialSystem;
 		LE_SetCriticalErrorFn_t				LE_SetCriticalError;

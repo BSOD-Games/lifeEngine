@@ -13,12 +13,15 @@
 
 #include "common/types.h"
 #include "engine/lifeengine.h"
-#include "engine/iappsystem.h"
 
 //---------------------------------------------------------------------//
 
 namespace le
 {
+	//---------------------------------------------------------------------//
+
+	class IFactory;
+
 	//---------------------------------------------------------------------//
 
 	class IStudioRender
@@ -28,6 +31,7 @@ namespace le
 		// TODO: добавить методы добавления геометрии на рендер кадра
 		
 		virtual void			SetVerticalSyncEnabled( bool IsEnabled = true ) = 0;
+		virtual IFactory*		GetFactory() const = 0;
 	};
 
 	//---------------------------------------------------------------------//

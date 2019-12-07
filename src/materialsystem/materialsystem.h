@@ -13,9 +13,11 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "engine/lifeengine.h"
 #include "materialsystem/imaterialsysteminternal.h"
+#include "materialsystem/materialsystemfactory.h"
 
 //---------------------------------------------------------------------//
 
@@ -37,11 +39,14 @@ namespace le
 			LE_SetCriticalError( nullptr )
 		{}
 
-		void*						handle;
-		IShaderDLL*					shaderDLL;
-		LE_CreateShaderDLLFn_t		LE_CreateShaderDLL;
-		LE_DeleteShaderDLLFn_t		LE_DeleteShaderDLL;
-		LE_SetCriticalErrorFn_t		LE_SetCriticalError;
+		std::string										fileName;
+		void*											handle;
+		IShaderDLL*										shaderDLL;
+		std::unordered_map< std::string, IShader* >		shaders;
+
+		LE_CreateShaderDLLFn_t							LE_CreateShaderDLL;
+		LE_DeleteShaderDLLFn_t							LE_DeleteShaderDLL;
+		LE_SetCriticalErrorFn_t							LE_SetCriticalError;
 	};
 
 	//---------------------------------------------------------------------//
@@ -56,13 +61,20 @@ namespace le
 		virtual bool			LoadShaderDLL( const char* FullPath );
 		virtual void			UnloadShaderDLL( const char* FullPath );
 
+		virtual IFactory*		GetFactory() const;
+
 		// MaterialSystem
 		MaterialSystem();
 		~MaterialSystem();
 
+		IShader*				FindShader( const char* Name ) const;
+
 	private:
-		typedef		std::unordered_map< std::string, ShaderDLLDescriptor >			ShaderDLLsMap_t;
-		ShaderDLLsMap_t			shaderDLLs;
+		// MaterialSystem
+		void					UnloadShaderDLL( const ShaderDLLDescriptor& ShaderDLLDescriptor );
+
+		MaterialSystemFactory					materialSystemFactory;
+		std::vector<ShaderDLLDescriptor>		shaderLibs;
 	};
 
 	//---------------------------------------------------------------------//

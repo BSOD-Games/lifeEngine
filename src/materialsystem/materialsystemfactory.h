@@ -8,20 +8,25 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#include "global.h"
+#ifndef MATERIAL_SYSTEM_FACTORY_H
+#define MATERIAL_SYSTEM_FACTORY_H
 
-//---------------------------------------------------------------------//
+#include "engine/ifactory.h"
 
 namespace le
 {
 	//---------------------------------------------------------------------//
 
-	IConsoleSystem*		g_consoleSystem = nullptr;
-	IEngine*			g_engine = nullptr;
-	IStudioRender*		g_studioRender = nullptr;
-	MaterialSystem*		g_materialSystem = nullptr;
+	class MaterialSystemFactory : public IFactory
+	{
+	public:
+		// IFactory
+		virtual void*			Create( const char* NameInterface );
+		virtual void			Delete( const char* NameInterface, void* Object );
+	};
 
 	//---------------------------------------------------------------------//
 }
 
-//---------------------------------------------------------------------//
+#endif // !MATERIAL_SYSTEM_FACTORY_H
+

@@ -11,6 +11,9 @@
 #ifndef SHADERDLL_H
 #define SHADERDLL_H
 
+#include <vector>
+
+#include "stdshaders/ishader.h"
 #include "stdshaders/ishaderdll.h"
 
 //---------------------------------------------------------------------//
@@ -27,6 +30,12 @@ namespace le
 	
 		virtual UInt32_t			GetShaderCount() const;
 		virtual IShader*			GetShader( UInt32_t Index ) const;
+
+		// ShaderDLL
+		~ShaderDLL();
+
+	private:
+		std::vector< IShader* >				shaders;
 	};
 
 	//---------------------------------------------------------------------//

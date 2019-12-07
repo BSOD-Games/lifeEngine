@@ -13,6 +13,7 @@
 
 #include "engine/istudiorenderinternal.h"
 #include "rendercontext.h"
+#include "studiorenderfactory.h"
 
 //---------------------------------------------------------------------//
 
@@ -29,15 +30,19 @@ namespace le
 
 		// IStudioRender
 		virtual void			ResizeViewport( UInt32_t X, UInt32_t Y, UInt32_t Width, UInt32_t Height );
+		
 		virtual void			SetVerticalSyncEnabled( bool IsEnabled = true );
-
+		virtual IFactory*		GetFactory() const;
+		
 		// StudioRender
 		StudioRender();
 		~StudioRender();
 
 	private:
 		bool					isInitialize;
+
 		RenderContext			renderContext;
+		StudioRenderFactory		studioRenderFactory;
 	};
 
 	//---------------------------------------------------------------------//

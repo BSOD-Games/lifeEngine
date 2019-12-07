@@ -17,11 +17,17 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
+	class IFactory;
+
+	//---------------------------------------------------------------------//
+
 	class IMaterialSystem
 	{
 	public:
 		virtual bool			LoadShaderDLL( const char* FullPath ) = 0;
 		virtual void			UnloadShaderDLL( const char* FullPath ) = 0;
+
+		virtual IFactory*		GetFactory() const = 0;
 	};
 
 	//---------------------------------------------------------------------//

@@ -8,20 +8,25 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#include "global.h"
+#ifndef STUDIORENDER_FACTORY_H
+#define STUDIORENDER_FACTORY_H
 
-//---------------------------------------------------------------------//
+#include "engine/ifactory.h"
 
 namespace le
 {
 	//---------------------------------------------------------------------//
 
-	IConsoleSystem*		g_consoleSystem = nullptr;
-	IEngine*			g_engine = nullptr;
-	IStudioRender*		g_studioRender = nullptr;
-	MaterialSystem*		g_materialSystem = nullptr;
+	class StudioRenderFactory : public IFactory
+	{
+	public:
+		// IFactory
+		virtual void*			Create( const char* NameInterface );
+		virtual void			Delete( const char* NameInterface, void* Object );
+	};
 
 	//---------------------------------------------------------------------//
 }
 
-//---------------------------------------------------------------------//
+#endif // !STUDIORENDER_FACTORY_H
+

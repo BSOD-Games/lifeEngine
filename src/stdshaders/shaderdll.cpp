@@ -13,6 +13,7 @@
 #include "engine/iconsolesystem.h"
 
 #include "shaderdll.h"
+#include "testshader.h"
 
 LIFEENGINE_STDSHADERS_API( le::ShaderDLL );
 
@@ -21,6 +22,8 @@ LIFEENGINE_STDSHADERS_API( le::ShaderDLL );
 // ------------------------------------------------------------------------------------ //
 bool le::ShaderDLL::Initialize( IEngine* Engine )
 {
+	shaders.push_back( new TestShader() );
+
 	return true;
 }
 
@@ -29,7 +32,7 @@ bool le::ShaderDLL::Initialize( IEngine* Engine )
 // ------------------------------------------------------------------------------------ //
 le::UInt32_t le::ShaderDLL::GetShaderCount() const
 {
-	return UInt32_t();
+	return shaders.size();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -37,5 +40,17 @@ le::UInt32_t le::ShaderDLL::GetShaderCount() const
 // ------------------------------------------------------------------------------------ //
 le::IShader* le::ShaderDLL::GetShader( UInt32_t Index ) const
 {
-	return nullptr;
+	if ( Index >= shaders.size() ) return nullptr;
+	return shaders[ Index ];
+}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+le::ShaderDLL::~ShaderDLL()
+{
+	for ( UInt32_t index = 0, count = shaders.size(); index < count; ++index )
+		delete shaders[ index ];
+
+	shaders.clear();
 }

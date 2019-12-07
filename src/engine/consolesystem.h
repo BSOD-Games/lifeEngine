@@ -16,6 +16,7 @@
 #include <unordered_map>
 
 #include "engine/iconsolesysteminternal.h"
+#include "engine/consolesystemfactory.h"
 
 //---------------------------------------------------------------------//
 
@@ -38,8 +39,10 @@ namespace le
 		virtual void		PrintInfo( const char* Message, ... );
 		virtual void		PrintWarning( const char* Message, ... );
 		virtual void		PrintError( const char* Message, ... );
+
 		virtual IConVar*	GetVar( const char* Name ) const;
 		virtual IConCmd*	GetCommand( const char* Name ) const;
+		virtual IFactory*	GetFactory() const;
 
 		// ConsoleSystem
 		ConsoleSystem();
@@ -47,6 +50,8 @@ namespace le
 
 	private:
 		FILE*												fileLog;
+
+		ConsoleSystemFactory								consoleSystemFactory;
 		std::unordered_map< std::string, IConVar* >			vars;
 		std::unordered_map< std::string, IConCmd* >			commands;
 	};
