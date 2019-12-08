@@ -10,6 +10,7 @@ set( MODULE_NAME engine )
 set( SDL2_PATH ${EXTLIBS_DIR}/SDL2 CACHE PATH "Path to SDL2" )
 set( RAPIDJSON_PATH ${EXTLIBS_DIR} CACHE PATH "Path to RapidJSON" )
 set( GLM_PATH ${EXTLIBS_DIR} CACHE PATH "Path to GLM" )
+set( FREEIMAGE_PATH ${EXTLIBS_DIR}/FreeImage CACHE PATH "Path to FreeImage" )
 
 #
 #   --- Название модулей движка ---
@@ -77,6 +78,18 @@ if( NOT SDL2_FOUND )
 else()
     include_directories( ${SDL2_INCLUDE} )
     target_link_libraries( ${MODULE_NAME} ${SDL2_LIB} ${SDL2MAIN_LIB} )
+endif()
+
+#---------------
+#   FreeImage
+
+find_package( FreeImage REQUIRED )
+if ( NOT FREEIMAGE_FOUND )
+    message( SEND_ERROR "Failed to FreeImage" )
+    return()
+else()
+    include_directories( ${FREEIMAGE_INCLUDE} )
+	target_link_libraries( ${MODULE_NAME} ${FREEIMAGE_LIB} )
 endif()
 
 #---------------

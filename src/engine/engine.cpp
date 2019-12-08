@@ -16,6 +16,7 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 #include <SDL2/SDL.h>
+#include <FreeImage/FreeImage.h>
 
 #include "engine/lifeengine.h"
 #include "engine/paths.h"
@@ -27,6 +28,7 @@
 #include "engine/convar.h"
 #include "engine/concmd.h"
 #include "engine/buildnum.h"
+#include "engine/resourcesystem.h"
 #include "materialsystem/imaterialsysteminternal.h"
 
 LIFEENGINE_ENGINE_API( le::Engine );
@@ -51,6 +53,56 @@ void CMD_Version( le::UInt32_t CountArguments, const char** Arguments )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Загрузить изображение
+// ------------------------------------------------------------------------------------ //
+void LE_LoadImage( const char* Path, le::Image& Image, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels )
+{
+	IsError = false;
+	FREE_IMAGE_FORMAT		imageFormat = FIF_UNKNOWN;
+	imageFormat = FreeImage_GetFileType( Path, 0 );
+
+	if ( imageFormat == FIF_UNKNOWN )
+		imageFormat = FreeImage_GetFIFFromFilename( Path );
+
+	FIBITMAP* bitmap = FreeImage_Load( imageFormat, Path, 0 );
+	if ( !bitmap )
+	{
+		IsError = true;
+		return;
+	}
+
+	if ( IsFlipVertical )				FreeImage_FlipVertical( bitmap );
+	if ( IsSwitchRedAndBlueChannels )
+	{
+		auto		red = FreeImage_GetChannel( bitmap, FREE_IMAGE_COLOR_CHANNEL::FICC_RED );
+		auto		blue = FreeImage_GetChannel( bitmap, FREE_IMAGE_COLOR_CHANNEL::FICC_BLUE );
+
+		FreeImage_SetChannel( bitmap, blue, FREE_IMAGE_COLOR_CHANNEL::FICC_RED );
+		FreeImage_SetChannel( bitmap, red, FREE_IMAGE_COLOR_CHANNEL::FICC_BLUE );
+
+		FreeImage_Unload( red );
+		FreeImage_Unload( blue );
+	}
+
+	le::UInt8_t*		tempData = FreeImage_GetBits( bitmap );
+	Image.width = FreeImage_GetWidth( bitmap );
+	Image.height = FreeImage_GetHeight( bitmap );
+	Image.depth = FreeImage_GetBPP( bitmap );
+	Image.pitch = FreeImage_GetPitch( bitmap );
+
+	Image.data = ( le::UInt8_t* ) malloc( Image.pitch * Image.height );
+	memcpy( Image.data, tempData, Image.pitch * Image.height );
+
+	Image.rMask = 0x00ff0000;
+	Image.gMask = 0x0000ff00;
+	Image.bMask = 0x000000ff;
+	Image.aMask = ( Image.depth == 24 ) ? 0 : 0xff000000;
+
+	FreeImage_Unload( bitmap );
+	return;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
 le::Engine::Engine() :
@@ -68,6 +120,9 @@ le::Engine::Engine() :
 {
 	LIFEENGINE_ASSERT( !g_engine );
 
+	g_consoleSystem = &consoleSystem;
+	g_engine = this;
+
 	configurations.fov = 75.f;
 	configurations.isFullscreen = false;
 	configurations.isVerticalSinc = false;
@@ -82,8 +137,8 @@ le::Engine::Engine() :
 	consoleSystem.RegisterCommand( cmd_Exit );
 	consoleSystem.RegisterCommand( cmd_Version );
 
-	g_consoleSystem = &consoleSystem;
-	g_engine = this;
+	resourceSystem.RegisterParser( "png", LE_LoadImage );
+	resourceSystem.RegisterParser( "jpg", LE_LoadImage );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -92,6 +147,9 @@ le::Engine::Engine() :
 le::Engine::~Engine()
 {
 	if ( game )				UnloadModule_Game();
+
+	resourceSystem.DeleteAll();
+
 	if ( materialSystem )	UnloadModule_MaterialSystem();
 	if ( studioRender )		UnloadModule_StudioRender();	
 	if ( window.IsOpen() )	window.Close();
@@ -559,6 +617,14 @@ le::IMaterialSystem* le::Engine::GetMaterialSystem() const
 // ------------------------------------------------------------------------------------ //
 // Получить окно
 // ------------------------------------------------------------------------------------ //
+le::IResourceSystem* le::Engine::GetResourceSystem() const
+{
+	return ( IResourceSystem* ) &resourceSystem;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить окно
+// ------------------------------------------------------------------------------------ //
 le::IWindow* le::Engine::GetWindow() const
 {
 	return ( IWindow* ) &window;
@@ -587,7 +653,7 @@ const le::Version& le::Engine::GetVersion() const
 {
 	return Version( LIFEENGINE_VERSION_MAJOR, LIFEENGINE_VERSION_MINOR, LIFEENGINE_VERSION_PATCH, Engine_BuildNumber() );
 }
-#include "stdshaders/ishaderdll.h"
+
 // ------------------------------------------------------------------------------------ //
 // Инициализировать движок
 // ------------------------------------------------------------------------------------ //
@@ -660,6 +726,19 @@ bool le::Engine::LoadGame( const char* DirGame )
 {
 	if ( !LoadGameInfo( DirGame ) || !LoadModule_Game( ( std::string( DirGame ) + "/" + gameInfo.gameDLL ).c_str() ) )
 		return false;
+
+	if ( gameInfo.icon )
+	{
+		bool		isError = false;
+		Image		image;
+
+		LE_LoadImage( ( std::string( gameInfo.gameDir ) + "/" + gameInfo.icon ).c_str(), image, isError, true, false );
+		if ( !isError )
+		{
+			window.SetIcon( image );
+			delete[] image.data;
+		}
+	}
 
 	window.SetTitle( gameInfo.title );
 	return true;

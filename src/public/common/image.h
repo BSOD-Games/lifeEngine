@@ -30,8 +30,6 @@ namespace le
 		UInt32_t		gMask;
 		UInt32_t		bMask;
 		UInt32_t		aMask;
-
-		void*			handle;
 	};
 
 	//---------------------------------------------------------------------//
