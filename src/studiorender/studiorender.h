@@ -1,17 +1,17 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
+//			*** lifeEngine (Р”РІРёРіР°С‚РµР»СЊ Р¶РёР·РЅРё) ***
 //				Copyright (C) 2018-2019
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Р РµРїРѕР·РёС‚РѕСЂРёР№ РґРІРёР¶РєР°:  https://github.com/zombihello/lifeEngine
+// РђРІС‚РѕСЂС‹:				Р•РіРѕСЂ РџРѕРіСѓР»СЏРєР° (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
 #ifndef STUDIORENDER_H
 #define STUDIORENDER_H
 
-#include "engine/istudiorenderinternal.h"
+#include "studiorender/istudiorenderinternal.h"
 #include "rendercontext.h"
 #include "studiorenderfactory.h"
 

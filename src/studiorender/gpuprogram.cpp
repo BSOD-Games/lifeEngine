@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
+//			*** lifeEngine (Р”РІРёРіР°С‚РµР»СЊ Р¶РёР·РЅРё) ***
 //				Copyright (C) 2018-2019
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Р РµРїРѕР·РёС‚РѕСЂРёР№ РґРІРёР¶РєР°:  https://github.com/zombihello/lifeEngine
+// РђРІС‚РѕСЂС‹:				Р•РіРѕСЂ РџРѕРіСѓР»СЏРєР° (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -16,7 +16,7 @@
 #include "global.h"
 
 // ------------------------------------------------------------------------------------ //
-// Вставить дефайны в код шейдера
+// Р’СЃС‚Р°РІРёС‚СЊ РґРµС„Р°Р№РЅС‹ РІ РєРѕРґ С€РµР№РґРµСЂР°
 // ------------------------------------------------------------------------------------ //
 inline void InstertDefinesToShaderCode( std::string& CodeShader, const std::string& DefineCode )
 {
@@ -34,7 +34,7 @@ inline void InstertDefinesToShaderCode( std::string& CodeShader, const std::stri
 }
 
 // ------------------------------------------------------------------------------------ //
-// Скомпилировать шейдер
+// РЎРєРѕРјРїРёР»РёСЂРѕРІР°С‚СЊ С€РµР№РґРµСЂ
 // ------------------------------------------------------------------------------------ //
 bool le::GPUProgram::Compile( const ShaderDescriptor& ShaderDescriptor, UInt32_t CountDefines, const char** Defines )
 {
@@ -45,12 +45,12 @@ bool le::GPUProgram::Compile( const ShaderDescriptor& ShaderDescriptor, UInt32_t
 		for ( UInt32_t index = 0; index < CountDefines; ++index )
 			defineCode += "#define " + std::string( Defines[ index ] ) + "\n";
 
-	// Если шейдер ранее был создан - удаляем
+	// Р•СЃР»Рё С€РµР№РґРµСЂ СЂР°РЅРµРµ Р±С‹Р» СЃРѕР·РґР°РЅ - СѓРґР°Р»СЏРµРј
 	if ( programID > 0 )		Clear();
 
 	try
 	{
-		// Компилируем вершиный шейдер
+		// РљРѕРјРїРёР»РёСЂСѓРµРј РІРµСЂС€РёРЅС‹Р№ С€РµР№РґРµСЂ
 		if ( ShaderDescriptor.vertexShaderSource )
 		{
 			codeShader = ShaderDescriptor.vertexShaderSource;
@@ -59,7 +59,7 @@ bool le::GPUProgram::Compile( const ShaderDescriptor& ShaderDescriptor, UInt32_t
 			if ( !Compile_VertexShader( codeShader.c_str() ) )	throw;
 		}
 
-		// Компилируем геометрический шейдер
+		// РљРѕРјРїРёР»РёСЂСѓРµРј РіРµРѕРјРµС‚СЂРёС‡РµСЃРєРёР№ С€РµР№РґРµСЂ
 		if ( ShaderDescriptor.geometryShaderSource )
 		{
 			codeShader = ShaderDescriptor.geometryShaderSource;
@@ -68,7 +68,7 @@ bool le::GPUProgram::Compile( const ShaderDescriptor& ShaderDescriptor, UInt32_t
 			if ( !Compile_GeometryShader( codeShader.c_str() ) )		throw;
 		}
 
-		// Компилируем фрагментный шейдер
+		// РљРѕРјРїРёР»РёСЂСѓРµРј С„СЂР°РіРјРµРЅС‚РЅС‹Р№ С€РµР№РґРµСЂ
 		if ( ShaderDescriptor.fragmentShaderSource )
 		{
 			codeShader = ShaderDescriptor.fragmentShaderSource;
@@ -77,7 +77,7 @@ bool le::GPUProgram::Compile( const ShaderDescriptor& ShaderDescriptor, UInt32_t
 			if ( !Compile_FragmentShader( codeShader.c_str() ) )		throw;
 		}
 
-		// Линкуем шейдер
+		// Р›РёРЅРєСѓРµРј С€РµР№РґРµСЂ
 		if ( !Link() )		throw;
 	}
 	catch ( ... )
@@ -90,7 +90,7 @@ bool le::GPUProgram::Compile( const ShaderDescriptor& ShaderDescriptor, UInt32_t
 }
 
 // ------------------------------------------------------------------------------------ //
-// Активировать шейдер
+// РђРєС‚РёРІРёСЂРѕРІР°С‚СЊ С€РµР№РґРµСЂ
 // ------------------------------------------------------------------------------------ //
 void le::GPUProgram::Bind()
 {
@@ -99,7 +99,7 @@ void le::GPUProgram::Bind()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Деактивировать шейдер
+// Р”РµР°РєС‚РёРІРёСЂРѕРІР°С‚СЊ С€РµР№РґРµСЂ
 // ------------------------------------------------------------------------------------ //
 void le::GPUProgram::Unbind()
 {
@@ -108,7 +108,7 @@ void le::GPUProgram::Unbind()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Удалить шейдер
+// РЈРґР°Р»РёС‚СЊ С€РµР№РґРµСЂ
 // ------------------------------------------------------------------------------------ //
 void le::GPUProgram::Clear()
 {
@@ -121,7 +121,7 @@ void le::GPUProgram::Clear()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Задать юниформ-переменную
+// Р—Р°РґР°С‚СЊ СЋРЅРёС„РѕСЂРј-РїРµСЂРµРјРµРЅРЅСѓСЋ
 // ------------------------------------------------------------------------------------ //
 void le::GPUProgram::SetUniform( const char* Name, int Value )
 {
@@ -130,7 +130,7 @@ void le::GPUProgram::SetUniform( const char* Name, int Value )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Задать юниформ-переменную
+// Р—Р°РґР°С‚СЊ СЋРЅРёС„РѕСЂРј-РїРµСЂРµРјРµРЅРЅСѓСЋ
 // ------------------------------------------------------------------------------------ //
 void le::GPUProgram::SetUniform( const char* Name, float Value )
 {
@@ -139,7 +139,7 @@ void le::GPUProgram::SetUniform( const char* Name, float Value )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Задать юниформ-переменную
+// Р—Р°РґР°С‚СЊ СЋРЅРёС„РѕСЂРј-РїРµСЂРµРјРµРЅРЅСѓСЋ
 // ------------------------------------------------------------------------------------ //
 void le::GPUProgram::SetUniform( const char* Name, bool Value )
 {
@@ -148,7 +148,7 @@ void le::GPUProgram::SetUniform( const char* Name, bool Value )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Задать юниформ-переменную
+// Р—Р°РґР°С‚СЊ СЋРЅРёС„РѕСЂРј-РїРµСЂРµРјРµРЅРЅСѓСЋ
 // ------------------------------------------------------------------------------------ //
 void le::GPUProgram::SetUniform( const char* Name, const Vector2D_t& Value )
 {
@@ -157,7 +157,7 @@ void le::GPUProgram::SetUniform( const char* Name, const Vector2D_t& Value )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Задать юниформ-переменную
+// Р—Р°РґР°С‚СЊ СЋРЅРёС„РѕСЂРј-РїРµСЂРµРјРµРЅРЅСѓСЋ
 // ------------------------------------------------------------------------------------ //
 void le::GPUProgram::SetUniform( const char* Name, const Vector3D_t& Value )
 {
@@ -166,7 +166,7 @@ void le::GPUProgram::SetUniform( const char* Name, const Vector3D_t& Value )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Задать юниформ-переменную
+// Р—Р°РґР°С‚СЊ СЋРЅРёС„РѕСЂРј-РїРµСЂРµРјРµРЅРЅСѓСЋ
 // ------------------------------------------------------------------------------------ //
 void le::GPUProgram::SetUniform( const char* Name, const Vector4D_t& Value )
 {
@@ -175,7 +175,7 @@ void le::GPUProgram::SetUniform( const char* Name, const Vector4D_t& Value )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Задать юниформ-переменную
+// Р—Р°РґР°С‚СЊ СЋРЅРёС„РѕСЂРј-РїРµСЂРµРјРµРЅРЅСѓСЋ
 // ------------------------------------------------------------------------------------ //
 void le::GPUProgram::SetUniform( const char* Name, const Matrix4x4_t& Value )
 {
@@ -184,7 +184,7 @@ void le::GPUProgram::SetUniform( const char* Name, const Matrix4x4_t& Value )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Скомпилирован ли шейдер
+// РЎРєРѕРјРїРёР»РёСЂРѕРІР°РЅ Р»Рё С€РµР№РґРµСЂ
 // ------------------------------------------------------------------------------------ //
 bool le::GPUProgram::IsCompile() const
 {
@@ -192,7 +192,7 @@ bool le::GPUProgram::IsCompile() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Конструктор
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ
 // ------------------------------------------------------------------------------------ //
 le::GPUProgram::GPUProgram() :
 	vertexShaderID( 0 ),
@@ -202,7 +202,7 @@ le::GPUProgram::GPUProgram() :
 {}
 
 // ------------------------------------------------------------------------------------ //
-// Деструктор
+// Р”РµСЃС‚СЂСѓРєС‚РѕСЂ
 // ------------------------------------------------------------------------------------ //
 le::GPUProgram::~GPUProgram()
 {
@@ -210,7 +210,7 @@ le::GPUProgram::~GPUProgram()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Скомпилировать вершиный шейдер
+// РЎРєРѕРјРїРёР»РёСЂРѕРІР°С‚СЊ РІРµСЂС€РёРЅС‹Р№ С€РµР№РґРµСЂ
 // ------------------------------------------------------------------------------------ //
 bool le::GPUProgram::Compile_VertexShader( const char* Code )
 {
@@ -218,7 +218,7 @@ bool le::GPUProgram::Compile_VertexShader( const char* Code )
 	glShaderSource( vertexShaderID, 1, &Code, NULL );
 	glCompileShader( vertexShaderID );
 
-	// Проверяем результат компиляции	
+	// РџСЂРѕРІРµСЂСЏРµРј СЂРµР·СѓР»СЊС‚Р°С‚ РєРѕРјРїРёР»СЏС†РёРё	
 	int						errorCompilation = 0;
 	glGetShaderiv( vertexShaderID, GL_COMPILE_STATUS, &errorCompilation );
 
@@ -245,7 +245,7 @@ bool le::GPUProgram::Compile_VertexShader( const char* Code )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Скомпилировать геометрический шейдер
+// РЎРєРѕРјРїРёР»РёСЂРѕРІР°С‚СЊ РіРµРѕРјРµС‚СЂРёС‡РµСЃРєРёР№ С€РµР№РґРµСЂ
 // ------------------------------------------------------------------------------------ //
 bool le::GPUProgram::Compile_GeometryShader( const char* Code )
 {
@@ -253,7 +253,7 @@ bool le::GPUProgram::Compile_GeometryShader( const char* Code )
 	glShaderSource( geometryShaderID, 1, &Code, NULL );
 	glCompileShader( geometryShaderID );
 
-	// Проверяем результат компиляции	
+	// РџСЂРѕРІРµСЂСЏРµРј СЂРµР·СѓР»СЊС‚Р°С‚ РєРѕРјРїРёР»СЏС†РёРё	
 	int						errorCompilation = 0;
 	glGetShaderiv( geometryShaderID, GL_COMPILE_STATUS, &errorCompilation );
 
@@ -280,7 +280,7 @@ bool le::GPUProgram::Compile_GeometryShader( const char* Code )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Скомпилировать фрагментный шейдер
+// РЎРєРѕРјРїРёР»РёСЂРѕРІР°С‚СЊ С„СЂР°РіРјРµРЅС‚РЅС‹Р№ С€РµР№РґРµСЂ
 // ------------------------------------------------------------------------------------ //
 bool le::GPUProgram::Compile_FragmentShader( const char* Code )
 {
@@ -290,7 +290,7 @@ bool le::GPUProgram::Compile_FragmentShader( const char* Code )
 	glShaderSource( fragmentShaderID, 1, &Code, NULL );
 	glCompileShader( fragmentShaderID );
 
-	// Проверяем результат компиляции	
+	// РџСЂРѕРІРµСЂСЏРµРј СЂРµР·СѓР»СЊС‚Р°С‚ РєРѕРјРїРёР»СЏС†РёРё	
 	glGetShaderiv( fragmentShaderID, GL_COMPILE_STATUS, &errorCompilation );
 
 	if ( errorCompilation != GL_TRUE )
@@ -316,7 +316,7 @@ bool le::GPUProgram::Compile_FragmentShader( const char* Code )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Слинковать шейдер
+// РЎР»РёРЅРєРѕРІР°С‚СЊ С€РµР№РґРµСЂ
 // ------------------------------------------------------------------------------------ //
 bool le::GPUProgram::Link()
 {
@@ -326,7 +326,7 @@ bool le::GPUProgram::Link()
 	if ( geometryShaderID )		glAttachShader( programID, geometryShaderID );
 	if ( fragmentShaderID )		glAttachShader( programID, fragmentShaderID );
 
-	// Линкуем программу и проверяем на ошибки
+	// Р›РёРЅРєСѓРµРј РїСЂРѕРіСЂР°РјРјСѓ Рё РїСЂРѕРІРµСЂСЏРµРј РЅР° РѕС€РёР±РєРё
 	glLinkProgram( programID );
 
 	int			errorLink = 0;
@@ -355,19 +355,19 @@ bool le::GPUProgram::Link()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Существует ли юниформ-переменная
+// РЎСѓС‰РµСЃС‚РІСѓРµС‚ Р»Рё СЋРЅРёС„РѕСЂРј-РїРµСЂРµРјРµРЅРЅР°СЏ
 // ------------------------------------------------------------------------------------ //
 bool le::GPUProgram::IsUniformExists( const char* Name )
 {
-	// Провиряем кеш юниформов
+	// РџСЂРѕРІРёСЂСЏРµРј РєРµС€ СЋРЅРёС„РѕСЂРјРѕРІ
 	auto		it = uniforms.find( Name );
 
-	// Нашли в кеше - возвращаем true если позиция больше -1
+	// РќР°С€Р»Рё РІ РєРµС€Рµ - РІРѕР·РІСЂР°С‰Р°РµРј true РµСЃР»Рё РїРѕР·РёС†РёСЏ Р±РѕР»СЊС€Рµ -1
 	if ( it != uniforms.end() )
 		return it->second > -1;
 	else
 	{
-		// В кеше не нашли, то тогда запрашиваем позицию в OpenGL'е
+		// Р’ РєРµС€Рµ РЅРµ РЅР°С€Р»Рё, С‚Рѕ С‚РѕРіРґР° Р·Р°РїСЂР°С€РёРІР°РµРј РїРѕР·РёС†РёСЋ РІ OpenGL'Рµ
 		int			location = glGetUniformLocation( programID, Name );
 		uniforms.insert( std::make_pair( Name, location ) );
 
@@ -376,19 +376,19 @@ bool le::GPUProgram::IsUniformExists( const char* Name )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить расположение юниформ-переменной
+// РџРѕР»СѓС‡РёС‚СЊ СЂР°СЃРїРѕР»РѕР¶РµРЅРёРµ СЋРЅРёС„РѕСЂРј-РїРµСЂРµРјРµРЅРЅРѕР№
 // ------------------------------------------------------------------------------------ //
 le::UInt32_t le::GPUProgram::GetUniformLocation( const char* Name )
 {
-	// Провиряем кеш юниформов
+	// РџСЂРѕРІРёСЂСЏРµРј РєРµС€ СЋРЅРёС„РѕСЂРјРѕРІ
 	auto		it = uniforms.find( Name );
 
-	// Нашли в кеше - возвращаем позицию с него
+	// РќР°С€Р»Рё РІ РєРµС€Рµ - РІРѕР·РІСЂР°С‰Р°РµРј РїРѕР·РёС†РёСЋ СЃ РЅРµРіРѕ
 	if ( it != uniforms.end() )
 		return it->second;
 	else
 	{
-		// В кеше не нашли, то тогда запрашиваем позицию в OpenGL'е
+		// Р’ РєРµС€Рµ РЅРµ РЅР°С€Р»Рё, С‚Рѕ С‚РѕРіРґР° Р·Р°РїСЂР°С€РёРІР°РµРј РїРѕР·РёС†РёСЋ РІ OpenGL'Рµ
 		int			location = glGetUniformLocation( programID, Name );
 		uniforms.insert( std::make_pair( Name, location ) );
 

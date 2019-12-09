@@ -8,10 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef ICONSOLESYSTEM_INTERNAL_H
-#define ICONSOLESYSTEM_INTERNAL_H
+#ifndef IRESOURCESYSTEM_INTERNAL_H
+#define IRESOURCESYSTEM_INTERNAL_H
 
-#include "engine/iconsolesystem.h"
+#include "engine/iresourcesystem.h"
 
 //---------------------------------------------------------------------//
 
@@ -23,10 +23,12 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class IConsoleSystemInternal : public IConsoleSystem
+	class IResourceSystemInternal : public IResourceSystem
 	{
 	public:
-		virtual void		Initialize() = 0;
+		virtual bool			Initialize( IEngine* Engine ) = 0;
+
+		virtual void			SetGameDir( const char* GameDir ) = 0;
 	};
 
 	//---------------------------------------------------------------------//
@@ -34,5 +36,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !ICONSOLESYSTEM_INTERNAL_H
+#endif // !IRESOURCESYSTEM_INTERNAL_H
 

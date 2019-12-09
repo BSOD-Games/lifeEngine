@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
+//			*** lifeEngine (Р”РІРёРіР°С‚РµР»СЊ Р¶РёР·РЅРё) ***
 //				Copyright (C) 2018-2019
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Р РµРїРѕР·РёС‚РѕСЂРёР№ РґРІРёР¶РєР°:  https://github.com/zombihello/lifeEngine
+// РђРІС‚РѕСЂС‹:				Р•РіРѕСЂ РџРѕРіСѓР»СЏРєР° (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -21,6 +21,18 @@ namespace le
 
 	struct Image
 	{
+		Image() :
+			data( nullptr ),
+			width( 0 ),
+			height( 0 ),
+			depth( 0 ),
+			pitch( 0 ),
+			rMask( 0 ),
+			gMask( 0 ),
+			bMask( 0 ),
+			aMask( 0 )
+		{}
+
 		UInt8_t*		data;
 		UInt32_t		width;
 		UInt32_t		height;

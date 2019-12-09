@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
+//			*** lifeEngine (Р”РІРёРіР°С‚РµР»СЊ Р¶РёР·РЅРё) ***
 //				Copyright (C) 2018-2019
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Р РµРїРѕР·РёС‚РѕСЂРёР№ РґРІРёР¶РєР°:  https://github.com/zombihello/lifeEngine
+// РђРІС‚РѕСЂС‹:				Р•РіРѕСЂ РџРѕРіСѓР»СЏРєР° (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -19,24 +19,31 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	struct Image;	
+	struct Image;
+	class ITexture;
+
 	typedef		void			( *LoadImageFn_t )( const char* Path, Image& Image, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels );
+	typedef		ITexture*		( *LoadTextureFn_t )( const char* Path, IFactory* StudioRenderFactory );
 
 	//---------------------------------------------------------------------//
 
 	class IResourceSystem
 	{
 	public:
-		// TODO: Не нравится интерфейс по работе с изображением, переделать
+		virtual void					RegisterParser_Image( const char* Format, LoadImageFn_t LoadImage ) = 0;
+		virtual void					RegisterParser_Texture( const char* Format, LoadTextureFn_t LoadTexture ) = 0;
+		virtual void					UnregisterParser_Image( const char* Format ) = 0;
+		virtual void					UnregisterParser_Texture( const char* Format ) = 0;
 
-		virtual void					RegisterParser( const char* Format, LoadImageFn_t LoadImage ) = 0;
-		virtual Image*					LoadImage( const char* Name, const char* Group, const char* Path, bool IsFlipVertical = false, bool IsSwitchRedAndBlueChannels = false ) = 0;
-		virtual void					DeleteImage( const char* Name, const char* Group ) = 0;
-		virtual void					DeleteImages( const char* Group ) = 0;
-		virtual void					DeleteImages() = 0;
-		virtual void					DeleteAll() = 0;
+		virtual Image					LoadImage( const char* Path, bool& IsError, bool IsFlipVertical = false, bool IsSwitchRedAndBlueChannels = false ) = 0;		
+		virtual ITexture*				LoadTexture( const char* Name, const char* Group, const char* Path ) = 0;
+		virtual void					UnloadImage( Image& Image ) = 0;
+		virtual void					UnloadTexture( const char* Name, const char* Group ) = 0;
+		virtual void					UnloadTextures( const char* Group ) = 0;
+		virtual void					UnloadTextures() = 0;
+		virtual void					UnloadAll() = 0;
 
-		virtual Image*					GetImage( const char* Name, const char* Group ) = 0;
+		virtual ITexture*				GetTexture( const char* Name, const char* Group ) const = 0;
 	};
 
 	//---------------------------------------------------------------------//

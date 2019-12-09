@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
+//			*** lifeEngine (Р”РІРёРіР°С‚РµР»СЊ Р¶РёР·РЅРё) ***
 //				Copyright (C) 2018-2019
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Р РµРїРѕР·РёС‚РѕСЂРёР№ РґРІРёР¶РєР°:  https://github.com/zombihello/lifeEngine
+// РђРІС‚РѕСЂС‹:				Р•РіРѕСЂ РџРѕРіСѓР»СЏРєР° (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -58,7 +58,7 @@ namespace le
 #		define PLATFORM_WINDOWS
 #	else
 #		error Unknown platform
-#	endif // _WIN32 или _WIN64
+#	endif // _WIN32 РёР»Рё _WIN64
 
 //---------------------------------------------------------------------//
 
@@ -109,15 +109,15 @@ namespace le
 #	if defined ( LIFEENGINE_DEBUG )
 #		define LIFEENGINE_ASSERT_MSG( X, File, Function, Line ) \
 			if ( le::g_criticalError ) \
-				le::g_criticalError( "*** LIFEENGINE_ASSERT ***" "\nFile: " File "\nFunction: " Function "\nLine: " TO_STRING(Line) "\n\nAssertion failed: " #X )
+				le::g_criticalError( "*** LIFEENGINE_ASSERT ***" "\nFile: " File "\nFunction: " Function "\nLine: " TO_STRING( Line ) "\n\nAssertion failed: " #X )
 
 #		define LIFEENGINE_ASSERT( X ) \
 			if ( !( X ) ) \
 			{ \
-				LIFEENGINE_ASSERT_MSG( X, __FILE__, __FUNCTION__, __LINE__, PrintMessage ); \
+				LIFEENGINE_ASSERT_MSG( X, __FILE__, __FUNCTION__, __LINE__ ); \
 			}		
 #	else
-#		define LIFEENGINE_ASSERT( X, MSG )
+#		define LIFEENGINE_ASSERT( X )
 #	endif // LIFEENGINE_DEBUG
 
 //---------------------------------------------------------------------//

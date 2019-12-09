@@ -1,48 +1,164 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
+//			*** lifeEngine (Р”РІРёРіР°С‚РµР»СЊ Р¶РёР·РЅРё) ***
 //				Copyright (C) 2018-2019
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Р РµРїРѕР·РёС‚РѕСЂРёР№ РґРІРёР¶РєР°:  https://github.com/zombihello/lifeEngine
+// РђРІС‚РѕСЂС‹:				Р•РіРѕСЂ РџРѕРіСѓР»СЏРєР° (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
 #include <exception>
+#include <FreeImage/FreeImage.h>
 
 #include "common/image.h"
 #include "engine/lifeengine.h"
+#include "engine/engine.h"
+#include "studiorender/istudiorender.h"
+#include "studiorender/itexture.h"
+
 #include "global.h"
 #include "consolesystem.h"
 #include "resourcesystem.h"
 
 // ------------------------------------------------------------------------------------ //
-// Зарегестрировать парсер картинок
+// Р—Р°РіСЂСѓР·РёС‚СЊ РёР·РѕР±СЂР°Р¶РµРЅРёРµ
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterParser( const char* Format, LoadImageFn_t LoadImage )
+void LE_LoadImage( const char* Path, le::Image& Image, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels )
+{
+	IsError = false;
+	FREE_IMAGE_FORMAT		imageFormat = FIF_UNKNOWN;
+	imageFormat = FreeImage_GetFileType( Path, 0 );
+
+	if ( imageFormat == FIF_UNKNOWN )
+		imageFormat = FreeImage_GetFIFFromFilename( Path );
+
+	FIBITMAP* bitmap = FreeImage_Load( imageFormat, Path, 0 );
+	if ( !bitmap )
+	{
+		IsError = true;
+		return;
+	}
+
+	if ( IsFlipVertical )				FreeImage_FlipVertical( bitmap );
+	if ( IsSwitchRedAndBlueChannels )
+	{
+		auto		red = FreeImage_GetChannel( bitmap, FREE_IMAGE_COLOR_CHANNEL::FICC_RED );
+		auto		blue = FreeImage_GetChannel( bitmap, FREE_IMAGE_COLOR_CHANNEL::FICC_BLUE );
+
+		FreeImage_SetChannel( bitmap, blue, FREE_IMAGE_COLOR_CHANNEL::FICC_RED );
+		FreeImage_SetChannel( bitmap, red, FREE_IMAGE_COLOR_CHANNEL::FICC_BLUE );
+
+		FreeImage_Unload( red );
+		FreeImage_Unload( blue );
+	}
+
+	le::UInt8_t* tempData = FreeImage_GetBits( bitmap );
+	Image.width = FreeImage_GetWidth( bitmap );
+	Image.height = FreeImage_GetHeight( bitmap );
+	Image.depth = FreeImage_GetBPP( bitmap );
+	Image.pitch = FreeImage_GetPitch( bitmap );
+
+	Image.data = ( le::UInt8_t* ) malloc( Image.pitch * Image.height );
+	memcpy( Image.data, tempData, Image.pitch * Image.height );
+
+	Image.rMask = 0x00ff0000;
+	Image.gMask = 0x0000ff00;
+	Image.bMask = 0x000000ff;
+	Image.aMask = ( Image.depth == 24 ) ? 0 : 0xff000000;
+
+	FreeImage_Unload( bitmap );
+	return;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Р—Р°РіСЂСѓР·РёС‚СЊ С‚РµРєСЃС‚СѓСЂСѓ
+// ------------------------------------------------------------------------------------ //
+le::ITexture* LE_LoadTexture( const char* Path, le::IFactory* StudioRenderFactory )
+{
+	bool				isError = false;
+	le::Image			image;
+
+	LE_LoadImage( Path, image, isError, false, true );
+	if ( isError )			return nullptr;
+
+	le::ITexture*		texture = ( le::ITexture* ) StudioRenderFactory->Create( TEXTURE_INTERFACE_VERSION );
+	if ( !texture )			return nullptr;
+
+	texture->Initialize( le::TT_2D, image.aMask > 0 ? le::IF_RGBA : le::IF_RGB, image.width, image.height );
+	texture->Bind();
+	texture->Append( image.data );
+	texture->GenerateMipmaps();
+	texture->Unbind();
+
+	delete[] image.data;
+	return texture;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Р—Р°СЂРµРіРµСЃС‚СЂРёСЂРѕРІР°С‚СЊ РїР°СЂСЃРµСЂ РєР°СЂС‚РёРЅРѕРє
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterParser_Image( const char* Format, LoadImageFn_t LoadImage )
 {
 	LIFEENGINE_ASSERT( Format );
+	LIFEENGINE_ASSERT( LoadImage );
 
-	g_consoleSystem->PrintInfo( "Parser for format [%s] registered", Format );
+	g_consoleSystem->PrintInfo( "Parser image for format [%s] registered", Format );
 	parserImages[ Format ] = LoadImage;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Загрузить картинку
+// Р—Р°СЂРµРіРµСЃС‚СЂРёСЂРѕРІР°С‚СЊ РїР°СЂСЃРµСЂ С‚РµРєСЃС‚СѓСЂ
 // ------------------------------------------------------------------------------------ //
-le::Image* le::ResourceSystem::LoadImage( const char* Name, const char* Group, const char* Path, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels )
+void le::ResourceSystem::RegisterParser_Texture( const char* Format, LoadTextureFn_t LoadTexture )
 {
-	LIFEENGINE_ASSERT( Name );
-	LIFEENGINE_ASSERT( Group );
+	LIFEENGINE_ASSERT( Format );
+	LIFEENGINE_ASSERT( LoadTexture );
+
+	g_consoleSystem->PrintInfo( "Parser texture for format [%s] registered", Format );
+	parserTextures[ Format ] = LoadTexture;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Р Р°Р·СЂРµРіРµСЃС‚СЂРёСЂРѕРІР°С‚СЊ РїР°СЂСЃРµСЂ РєР°СЂС‚РёРЅРѕРє
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnregisterParser_Image( const char* Format )
+{
+	LIFEENGINE_ASSERT( Format );
+
+	auto		it = parserImages.find( Format );
+	if ( it == parserImages.end() ) return;
+
+	parserImages.erase( it );
+	g_consoleSystem->PrintInfo( "Parser image for format [%s] unregistered", Format );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Р Р°Р·СЂРµРіРµСЃС‚СЂРёСЂРѕРІР°С‚СЊ РїР°СЂСЃРµСЂ С‚РµРєСЃС‚СѓСЂ
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnregisterParser_Texture( const char* Format )
+{
+	LIFEENGINE_ASSERT( Format );
+
+	auto		it = parserTextures.find( Format );
+	if ( it == parserTextures.end() ) return;
+
+	parserTextures.erase( it );
+	g_consoleSystem->PrintInfo( "Parser texture for format [%s] unregistered", Format );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Р—Р°РіСЂСѓР·РёС‚СЊ РєР°СЂС‚РёРЅРєСѓ
+// ------------------------------------------------------------------------------------ //
+le::Image le::ResourceSystem::LoadImage( const char* Path, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels )
+{
 	LIFEENGINE_ASSERT( Path );
+	IsError = false;
 
 	try
 	{
-		auto				group = images[ Group ];
-		if ( group.find( Name ) != group.end() )	return &group[ Name ];
 		if ( parserImages.empty() )					throw std::exception( "No image parsers" );
-
-		g_consoleSystem->PrintInfo( "Loading image [%s] with name [%s] in group [%s]", Path, Name, Group );
+		std::string			path = gameDir + "/" + Path;
 
 		const char* format = strchr( Path, '.' );
 		if ( !format )							throw std::exception( "In image format not found" );
@@ -50,103 +166,204 @@ le::Image* le::ResourceSystem::LoadImage( const char* Name, const char* Group, c
 		auto				parser = parserImages.find( format + 1 );
 		if ( parser == parserImages.end() )			throw std::exception( "Parser for format image not found" );
 
-		bool				isError = false;
-		Image				image;
+		Image				image;	
+		parser->second( path.c_str(), image, IsError, IsFlipVertical, IsSwitchRedAndBlueChannels );
+		if ( IsError )								throw std::exception( "Fail loading image" );		
 		
-		parser->second( Path, image, isError, IsFlipVertical, IsSwitchRedAndBlueChannels );
-		if ( isError )								throw std::exception( "Fail loading image" );
-
-		group.insert( std::make_pair( Path, image ) );
-		g_consoleSystem->PrintInfo( "Loaded image", Path, Name, Group );
-		
-		return &group[ Path ];
+		return image;
 	}
 	catch ( std::exception& Exception )
 	{
-		g_consoleSystem->PrintError( Exception.what() );
+		g_consoleSystem->PrintError( "Image [%s] not loaded: %s", Path, Exception.what() );
+		return Image();
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Р—Р°РіСЂСѓР·РёС‚СЊ С‚РµРєСЃС‚СѓСЂСѓ
+// ------------------------------------------------------------------------------------ //
+le::ITexture* le::ResourceSystem::LoadTexture( const char* Name, const char* Group, const char* Path )
+{
+	LIFEENGINE_ASSERT( Name );
+	LIFEENGINE_ASSERT( Group );
+	LIFEENGINE_ASSERT( Path );
+
+	try
+	{
+		if ( !studioRenderFactory )					throw std::exception( "Resource system not initialized" );
+
+		auto				group = textures[ Group ];
+		if ( group.find( Name ) != group.end() )	return group[ Name ];
+		if ( parserTextures.empty() )				throw std::exception( "No texture parsers" );
+
+		std::string			path = gameDir + "/" + Path;
+
+		g_consoleSystem->PrintInfo( "Loading texture [%s] with name [%s] in group [%s]", Path, Name, Group );
+
+		const char* format = strchr( Path, '.' );
+		if ( !format )								throw std::exception( "In texture format not found" );
+
+		auto				parser = parserTextures.find( format + 1 );
+		if ( parser == parserTextures.end() )		throw std::exception( "Parser for format texture not found" );
+
+		ITexture*			texture = parser->second( path.c_str(), studioRenderFactory );
+		if ( !texture )								throw std::exception( "Fail loading texture" );
+
+		group.insert( std::make_pair( Path, texture ) );
+		g_consoleSystem->PrintInfo( "Loaded texture [%s]", Name );
+
+		return texture;
+	}
+	catch ( std::exception& Exception )
+	{
+		g_consoleSystem->PrintError( "Texture [%s] not loaded: %s", Path, Exception.what() );
 		return nullptr;
 	}
 }
 
 // ------------------------------------------------------------------------------------ //
-// Удалить картинку
+// Р’С‹РіСЂСѓР·РёС‚СЊ РєР°СЂС‚РёРЅРєСѓ
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::DeleteImage( const char* Name, const char* Group )
+void le::ResourceSystem::UnloadImage( Image& Image )
+{
+	if ( !Image.data ) return;
+
+	delete[] Image.data;
+	Image.data = nullptr;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Р’С‹РіСЂСѓР·РёС‚СЊ С‚РµРєСЃС‚СѓСЂСѓ
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadTexture( const char* Name, const char* Group )
 {
 	LIFEENGINE_ASSERT( Name );
 	LIFEENGINE_ASSERT( Group );
 
-	auto				group = images[ Group ];
-	auto				it = group.find( Name );
-	
-	if ( it == group.end() )	return;
-	if ( it->second.data )		delete[] it->second.data;		// Не уверен, что так правильно удалять данные (в случае, если память была выделена в другой DLL)
+	if ( !studioRenderFactory )
+	{
+		g_consoleSystem->PrintError( "Resource system not initialized" );
+		return;
+	}
 
+	auto				group = textures[ Group ];
+	auto				it = group.find( Name );
+
+	if ( it == group.end() )	return;
+
+	studioRenderFactory->Delete( it->second );
 	group.erase( it );
-	g_consoleSystem->PrintInfo( "Deleted image [%s] in group [%s]", Name, Group );
+
+	g_consoleSystem->PrintInfo( "Unloaded texture [%s] in group [%s]", Name, Group );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Удалить все картинки
+// Р’С‹РіСЂСѓР·РёС‚СЊ РіСЂСѓРїРїСѓ С‚РµРєСЃС‚СѓСЂ
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::DeleteImages( const char* Group )
+void le::ResourceSystem::UnloadTextures( const char* Group )
 {
-	auto				group = images[ Group ];
+	if ( !studioRenderFactory )
+	{
+		g_consoleSystem->PrintError( "Resource system not initialized" );
+		return;
+	}
+
+	auto		group = textures[ Group ];
 	if ( group.empty() )		return;
 
 	for ( auto it = group.begin(), itEnd = group.end(); it != itEnd; ++it )
-		if ( it->second.data )		delete[] it->second.data;
+		studioRenderFactory->Delete( it->second );
 
-	group.clear();
-	g_consoleSystem->PrintInfo( "Deleted all images in group [%s]", Group );
+	if ( !group.empty() )		g_consoleSystem->PrintInfo( "Unloaded all textures in group [%s]", Group );
+	group.clear();	
 }
 
 // ------------------------------------------------------------------------------------ //
-// Удалить все картинки
+// Р’С‹РіСЂСѓР·РёС‚СЊ РІСЃРµ С‚РµРєСЃС‚СѓСЂС‹
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::DeleteImages()
+void le::ResourceSystem::UnloadTextures()
 {
-	for ( auto itGroup = images.begin(), itEndGroup = images.end(); itGroup != itEndGroup; ++itGroup )
-		for ( auto itImage = itGroup->second.begin(), itEndImage = itGroup->second.end(); itImage != itEndImage; ++itImage )
-			if ( itImage->second.data )		delete[] itImage->second.data;
+	if ( !studioRenderFactory )
+	{
+		g_consoleSystem->PrintError( "Resource system not initialized" );
+		return;
+	}
 
-	images.clear();
-	g_consoleSystem->PrintInfo( "Deleted all images" );
+	for ( auto itGroup = textures.begin(), itEndGroup = textures.end(); itGroup != itEndGroup; ++itGroup )
+		for ( auto itTexture = itGroup->second.begin(), itEndTexture = itGroup->second.end(); itTexture != itEndTexture; ++itTexture )
+			studioRenderFactory->Delete( itTexture->second );
+
+	if ( !textures.empty() )		g_consoleSystem->PrintInfo( "Unloaded all textures" );
+	textures.clear();	
 }
 
 // ------------------------------------------------------------------------------------ //
-// Удалить все ресурсы
+// Р’С‹РіСЂСѓР·РёС‚СЊ РІСЃРµ СЂРµСЃСѓСЂСЃС‹
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::DeleteAll()
+void le::ResourceSystem::UnloadAll()
 {
-	DeleteImages();
+	UnloadTextures();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить картинку
+//  РџРѕР»СѓС‡РёС‚СЊ С‚РµРєСЃС‚СѓСЂСѓ
 // ------------------------------------------------------------------------------------ //
-le::Image* le::ResourceSystem::GetImage( const char* Name, const char* Group )
+le::ITexture* le::ResourceSystem::GetTexture( const char* Name, const char* Group ) const
 {
 	LIFEENGINE_ASSERT( Name );
 	LIFEENGINE_ASSERT( Group );
 
-	auto				group = images[ Group ];
+	auto				group = textures.at( Group );
 	auto				it = group.find( Name );
-	if ( it != group.end() )		return &it->second;
+	if ( it != group.end() )		return it->second;
 
 	return nullptr;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Конструктор
+// РРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°С‚СЊ СЃРёСЃС‚РµРјСѓ СЂРµСЃСѓСЂСЃРѕРІ
 // ------------------------------------------------------------------------------------ //
-le::ResourceSystem::ResourceSystem()
+bool le::ResourceSystem::Initialize( IEngine* Engine )
+{
+	try
+	{
+		IStudioRender*			studioRender = Engine->GetStudioRender();
+		if ( !studioRender )	throw std::exception( "Resource system requared studiorender" );
+
+		studioRenderFactory = studioRender->GetFactory();
+
+		RegisterParser_Image( "png", LE_LoadImage );
+		RegisterParser_Image( "jpg", LE_LoadImage );
+		RegisterParser_Texture( "png", LE_LoadTexture );
+		RegisterParser_Texture( "jpg", LE_LoadTexture );
+	}
+	catch ( std::exception& Exception )
+	{
+		g_consoleSystem->PrintError( Exception.what() );
+		return false;
+	}
+	return true;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Р—Р°РґР°С‚СЊ РєР°С‚Р°Р»РѕРі РёРіСЂС‹
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::SetGameDir( const char* GameDir )
+{
+	gameDir = GameDir;
+}
+
+// ------------------------------------------------------------------------------------ //
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ
+// ------------------------------------------------------------------------------------ //
+le::ResourceSystem::ResourceSystem() :
+	studioRenderFactory( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //
-// Деструктор
+// Р”РµСЃС‚СЂСѓРєС‚РѕСЂ
 // ------------------------------------------------------------------------------------ //
 le::ResourceSystem::~ResourceSystem()
 {
-	DeleteAll();
+	UnloadAll();
 }

@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
+//			*** lifeEngine (Р”РІРёРіР°С‚РµР»СЊ Р¶РёР·РЅРё) ***
 //				Copyright (C) 2018-2019
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Р РµРїРѕР·РёС‚РѕСЂРёР№ РґРІРёР¶РєР°:  https://github.com/zombihello/lifeEngine
+// РђРІС‚РѕСЂС‹:				Р•РіРѕСЂ РџРѕРіСѓР»СЏРєР° (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -28,7 +28,7 @@ namespace le
 	{
 	public:
 		virtual void			ResizeViewport( UInt32_t X, UInt32_t Y, UInt32_t Width, UInt32_t Height ) = 0;
-		// TODO: добавить методы добавления геометрии на рендер кадра
+		// TODO: РґРѕР±Р°РІРёС‚СЊ РјРµС‚РѕРґС‹ РґРѕР±Р°РІР»РµРЅРёСЏ РіРµРѕРјРµС‚СЂРёРё РЅР° СЂРµРЅРґРµСЂ РєР°РґСЂР°
 		
 		virtual void			SetVerticalSyncEnabled( bool IsEnabled = true ) = 0;
 		virtual IFactory*		GetFactory() const = 0;

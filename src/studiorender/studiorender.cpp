@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
+//			*** lifeEngine (Р”РІРёРіР°С‚РµР»СЊ Р¶РёР·РЅРё) ***
 //				Copyright (C) 2018-2019
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Р РµРїРѕР·РёС‚РѕСЂРёР№ РґРІРёР¶РєР°:  https://github.com/zombihello/lifeEngine
+// РђРІС‚РѕСЂС‹:				Р•РіРѕСЂ РџРѕРіСѓР»СЏРєР° (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -17,15 +17,16 @@
 #include "engine/iconsolesystem.h"
 #include "settingscontext.h"
 #include "common/shaderdescriptor.h"
-
+#include "engine/iresourcesystem.h"
 #include "global.h"
 #include "studiorender.h"
 #include "gpuprogram.h"
+#include "texture.h"
 
 LIFEENGINE_STUDIORENDER_API( le::StudioRender );
 
 // ------------------------------------------------------------------------------------ //
-// Изменить размер вьюпорта
+// РР·РјРµРЅРёС‚СЊ СЂР°Р·РјРµСЂ РІСЊСЋРїРѕСЂС‚Р°
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::ResizeViewport( UInt32_t X, UInt32_t Y, UInt32_t Width, UInt32_t Height )
 {
@@ -34,7 +35,7 @@ void le::StudioRender::ResizeViewport( UInt32_t X, UInt32_t Y, UInt32_t Width, U
 }
 
 // ------------------------------------------------------------------------------------ //
-// Инициализировать рендер
+// РРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°С‚СЊ СЂРµРЅРґРµСЂ
 // ------------------------------------------------------------------------------------ //
 bool le::StudioRender::Initialize( IEngine* Engine )
 {
@@ -47,8 +48,8 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 		return false;
 	}
 
-	// Если в ядре окно не создано (указатель на IWindow nullptr) или
-	// заголовок окна nullptr, то выбрасываем ошибку
+	// Р•СЃР»Рё РІ СЏРґСЂРµ РѕРєРЅРѕ РЅРµ СЃРѕР·РґР°РЅРѕ (СѓРєР°Р·Р°С‚РµР»СЊ РЅР° IWindow nullptr) РёР»Рё
+	// Р·Р°РіРѕР»РѕРІРѕРє РѕРєРЅР° nullptr, С‚Рѕ РІС‹Р±СЂР°СЃС‹РІР°РµРј РѕС€РёР±РєСѓ
 
 	if ( !Engine->GetWindow() || !Engine->GetWindow()->GetHandle() )
 	{
@@ -56,7 +57,7 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 		return false;
 	}
 
-	// Создаем контекст OpenGL
+	// РЎРѕР·РґР°РµРј РєРѕРЅС‚РµРєСЃС‚ OpenGL
 
 	Configurations				configurations = Engine->GetConfigurations();
 	SettingsContext				settingsContext;
@@ -78,7 +79,7 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 
 	renderContext.SetVerticalSync( configurations.isVerticalSinc );
 
-	// Инициализируем OpenGL
+	// РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј OpenGL
 
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_CULL_FACE );
@@ -90,7 +91,7 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Отрисовать кадр
+// РћС‚СЂРёСЃРѕРІР°С‚СЊ РєР°РґСЂ
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::RenderFrame()
 {
@@ -101,7 +102,7 @@ void le::StudioRender::RenderFrame()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Включить вертикальную синхронизацию
+// Р’РєР»СЋС‡РёС‚СЊ РІРµСЂС‚РёРєР°Р»СЊРЅСѓСЋ СЃРёРЅС…СЂРѕРЅРёР·Р°С†РёСЋ
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::SetVerticalSyncEnabled( bool IsEnabled )
 {
@@ -110,7 +111,7 @@ void le::StudioRender::SetVerticalSyncEnabled( bool IsEnabled )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить фабрику системы рендера
+// РџРѕР»СѓС‡РёС‚СЊ С„Р°Р±СЂРёРєСѓ СЃРёСЃС‚РµРјС‹ СЂРµРЅРґРµСЂР°
 // ------------------------------------------------------------------------------------ //
 le::IFactory* le::StudioRender::GetFactory() const
 {
@@ -118,14 +119,17 @@ le::IFactory* le::StudioRender::GetFactory() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Конструктор
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ
 // ------------------------------------------------------------------------------------ //
 le::StudioRender::StudioRender() :
 	isInitialize( false )
-{}
+{
+	LIFEENGINE_ASSERT( !g_studioRender );
+	g_studioRender = this;
+}
 
 // ------------------------------------------------------------------------------------ //
-// Деструктор
+// Р”РµСЃС‚СЂСѓРєС‚РѕСЂ
 // ------------------------------------------------------------------------------------ //
 le::StudioRender::~StudioRender()
 {

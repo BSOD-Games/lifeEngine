@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
+//			*** lifeEngine (Р”РІРёРіР°С‚РµР»СЊ Р¶РёР·РЅРё) ***
 //				Copyright (C) 2018-2019
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Р РµРїРѕР·РёС‚РѕСЂРёР№ РґРІРёР¶РєР°:  https://github.com/zombihello/lifeEngine
+// РђРІС‚РѕСЂС‹:				Р•РіРѕСЂ РџРѕРіСѓР»СЏРєР° (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -23,7 +23,7 @@
 LIFEENGINE_MATERIALSYSTEM_API( le::MaterialSystem );
 
 // ------------------------------------------------------------------------------------ //
-// Инициализировать систему материалов
+// РРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°С‚СЊ СЃРёСЃС‚РµРјСѓ РјР°С‚РµСЂРёР°Р»РѕРІ
 // ------------------------------------------------------------------------------------ //
 bool le::MaterialSystem::Initialize( IEngine* Engine )
 {
@@ -48,13 +48,13 @@ bool le::MaterialSystem::Initialize( IEngine* Engine )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Загрузить библиотеку шейдеров
+// Р—Р°РіСЂСѓР·РёС‚СЊ Р±РёР±Р»РёРѕС‚РµРєСѓ С€РµР№РґРµСЂРѕРІ
 // ------------------------------------------------------------------------------------ //
 bool le::MaterialSystem::LoadShaderDLL( const char* FullPath )
 {
 	LIFEENGINE_ASSERT( FullPath );
 
-	// Проверяем, не загружена ли уже библиотеку шейдеров
+	// РџСЂРѕРІРµСЂСЏРµРј, РЅРµ Р·Р°РіСЂСѓР¶РµРЅР° Р»Рё СѓР¶Рµ Р±РёР±Р»РёРѕС‚РµРєСѓ С€РµР№РґРµСЂРѕРІ
 	for ( UInt32_t index, count = shaderLibs.size(); index < count; ++index )
 		if ( shaderLibs[ index ].fileName == FullPath )
 			return true;
@@ -65,17 +65,17 @@ bool le::MaterialSystem::LoadShaderDLL( const char* FullPath )
 	{
 		ShaderDLLDescriptor			shaderDLLDescriptor;
 
-		// Загружаем модуль
+		// Р—Р°РіСЂСѓР¶Р°РµРј РјРѕРґСѓР»СЊ
 		shaderDLLDescriptor.handle = SDL_LoadObject( FullPath );
 		if ( !shaderDLLDescriptor.handle )	throw std::exception( SDL_GetError() );
 
-		// Берем из модуля API для работы с ним
+		// Р‘РµСЂРµРј РёР· РјРѕРґСѓР»СЏ API РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РЅРёРј
 		shaderDLLDescriptor.LE_CreateShaderDLL = ( LE_CreateShaderDLLFn_t ) SDL_LoadFunction( shaderDLLDescriptor.handle, "LE_CreateShaderDLL" );
 		shaderDLLDescriptor.LE_DeleteShaderDLL = ( LE_DeleteShaderDLLFn_t ) SDL_LoadFunction( shaderDLLDescriptor.handle, "LE_DeleteShaderDLL" );
 		shaderDLLDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( shaderDLLDescriptor.handle, "LE_SetCriticalError" );
 		if ( !shaderDLLDescriptor.LE_CreateShaderDLL )	throw std::exception( "Function LE_CreateShaderDLL not found" );
 
-		// Создаем рендер
+		// РЎРѕР·РґР°РµРј СЂРµРЅРґРµСЂ
 		if ( shaderDLLDescriptor.LE_SetCriticalError )
 			shaderDLLDescriptor.LE_SetCriticalError( g_criticalError );
 
@@ -84,7 +84,7 @@ bool le::MaterialSystem::LoadShaderDLL( const char* FullPath )
 	
 		shaderDLLDescriptor.fileName = FullPath;
 
-		// Загружаем все шейдера из библиотеки
+		// Р—Р°РіСЂСѓР¶Р°РµРј РІСЃРµ С€РµР№РґРµСЂР° РёР· Р±РёР±Р»РёРѕС‚РµРєРё
 		for ( UInt32_t index = 0, count = shaderDLLDescriptor.shaderDLL->GetShaderCount(); index < count; ++index )
 		{
 			IShader*		shader = shaderDLLDescriptor.shaderDLL->GetShader( index );
@@ -94,7 +94,7 @@ bool le::MaterialSystem::LoadShaderDLL( const char* FullPath )
 			g_consoleSystem->PrintInfo( "Loaded shader [%s] from [%s]", shader->GetName(), FullPath );
 		}
 
-		// Регестрируем библиотеку шейдеров в системе
+		// Р РµРіРµСЃС‚СЂРёСЂСѓРµРј Р±РёР±Р»РёРѕС‚РµРєСѓ С€РµР№РґРµСЂРѕРІ РІ СЃРёСЃС‚РµРјРµ
 		shaderLibs.push_back( shaderDLLDescriptor );
 	}
 	catch ( std::exception& Exception )
@@ -108,7 +108,7 @@ bool le::MaterialSystem::LoadShaderDLL( const char* FullPath )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Выгрузить библиотеку шейдеров
+// Р’С‹РіСЂСѓР·РёС‚СЊ Р±РёР±Р»РёРѕС‚РµРєСѓ С€РµР№РґРµСЂРѕРІ
 // ------------------------------------------------------------------------------------ //
 void le::MaterialSystem::UnloadShaderDLL( const char* FullPath )
 {
@@ -124,7 +124,7 @@ void le::MaterialSystem::UnloadShaderDLL( const char* FullPath )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить фабрику системы материалов
+// РџРѕР»СѓС‡РёС‚СЊ С„Р°Р±СЂРёРєСѓ СЃРёСЃС‚РµРјС‹ РјР°С‚РµСЂРёР°Р»РѕРІ
 // ------------------------------------------------------------------------------------ //
 le::IFactory* le::MaterialSystem::GetFactory() const
 {
@@ -132,7 +132,7 @@ le::IFactory* le::MaterialSystem::GetFactory() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Конструктор
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ
 // ------------------------------------------------------------------------------------ //
 le::MaterialSystem::MaterialSystem()
 {
@@ -141,7 +141,7 @@ le::MaterialSystem::MaterialSystem()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Деструктор
+// Р”РµСЃС‚СЂСѓРєС‚РѕСЂ
 // ------------------------------------------------------------------------------------ //
 le::MaterialSystem::~MaterialSystem()
 {
@@ -150,7 +150,7 @@ le::MaterialSystem::~MaterialSystem()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Найти шейдер
+// РќР°Р№С‚Рё С€РµР№РґРµСЂ
 // ------------------------------------------------------------------------------------ //
 le::IShader* le::MaterialSystem::FindShader( const char* Name ) const
 {
@@ -166,14 +166,14 @@ le::IShader* le::MaterialSystem::FindShader( const char* Name ) const
 	}
 
 	// -------
-	// Я люблю Source Engine <3
+	// РЇ Р»СЋР±Р»СЋ Source Engine <3
 	// -------
 
 	return nullptr;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Выгрузить библиотеку шейдеров
+// Р’С‹РіСЂСѓР·РёС‚СЊ Р±РёР±Р»РёРѕС‚РµРєСѓ С€РµР№РґРµСЂРѕРІ
 // ------------------------------------------------------------------------------------ //
 void le::MaterialSystem::UnloadShaderDLL( const ShaderDLLDescriptor& ShaderDLLDescriptor )
 {

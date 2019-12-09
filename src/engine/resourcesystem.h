@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
+//			*** lifeEngine (Р”РІРёРіР°С‚РµР»СЊ Р¶РёР·РЅРё) ***
 //				Copyright (C) 2018-2019
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Р РµРїРѕР·РёС‚РѕСЂРёР№ РґРІРёР¶РєР°:  https://github.com/zombihello/lifeEngine
+// РђРІС‚РѕСЂС‹:				Р•РіРѕСЂ РџРѕРіСѓР»СЏРєР° (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -14,7 +14,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "engine/iresourcesystem.h"
+#include "engine/iresourcesysteminternal.h"
 
 //---------------------------------------------------------------------//
 
@@ -22,28 +22,47 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class ResourceSystem : public IResourceSystem
+	struct GameInfo;
+	class IFactory;
+
+	//---------------------------------------------------------------------//
+
+	class ResourceSystem : public IResourceSystemInternal
 	{
 	public:
 		// IResourceSystem
-		virtual void					RegisterParser( const char* Format, LoadImageFn_t LoadImage );
-		virtual Image*					LoadImage( const char* Name, const char* Group, const char* Path, bool IsFlipVertical = false, bool IsSwitchRedAndBlueChannels = false );
-		virtual void					DeleteImage( const char* Name, const char* Group );
-		virtual void					DeleteImages( const char* Group );
-		virtual void					DeleteImages();
-		virtual void					DeleteAll();
+		virtual void					RegisterParser_Image( const char* Format, LoadImageFn_t LoadImage );
+		virtual void					RegisterParser_Texture( const char* Format, LoadTextureFn_t LoadTexture );
+		virtual void					UnregisterParser_Image( const char* Format );
+		virtual void					UnregisterParser_Texture( const char* Format );
 
-		virtual Image*					GetImage( const char* Name, const char* Group );
+		virtual Image					LoadImage( const char* Path, bool& IsError, bool IsFlipVertical = false, bool IsSwitchRedAndBlueChannels = false );
+		virtual ITexture*				LoadTexture( const char* Name, const char* Group, const char* Path );
+		virtual void					UnloadImage( Image& Image );
+		virtual void					UnloadTexture( const char* Name, const char* Group );
+		virtual void					UnloadTextures( const char* Group );
+		virtual void					UnloadTextures();
+		virtual void					UnloadAll();
+
+		virtual ITexture*				GetTexture( const char* Name, const char* Group ) const;
+
+		// IResourceSystemInternal
+		virtual bool					Initialize( IEngine* Engine );
+
+		virtual void					SetGameDir( const char* GameDir );
 
 		// ResourceSystem
 		ResourceSystem();
 		~ResourceSystem();
 
 	private:
-		typedef			std::unordered_map< std::string, std::unordered_map< std::string, Image > >			ImageMap_t;
+		typedef			std::unordered_map< std::string, std::unordered_map< std::string, ITexture* > >			TextureMap_t;
 
+		IFactory*												studioRenderFactory;
+		std::string												gameDir;
 		std::unordered_map< std::string, LoadImageFn_t >		parserImages;
-		ImageMap_t												images;
+		std::unordered_map< std::string, LoadTextureFn_t >		parserTextures;
+		TextureMap_t											textures;
 	};
 
 	//---------------------------------------------------------------------//

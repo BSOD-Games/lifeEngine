@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
+//			*** lifeEngine (Р”РІРёРіР°С‚РµР»СЊ Р¶РёР·РЅРё) ***
 //				Copyright (C) 2018-2019
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Р РµРїРѕР·РёС‚РѕСЂРёР№ РґРІРёР¶РєР°:  https://github.com/zombihello/lifeEngine
+// РђРІС‚РѕСЂС‹:				Р•РіРѕСЂ РџРѕРіСѓР»СЏРєР° (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -16,7 +16,7 @@
 #include "engine/global.h"
 
 // ------------------------------------------------------------------------------------ //
-// Сбросить курсор
+// РЎР±СЂРѕСЃРёС‚СЊ РєСѓСЂСЃРѕСЂ
 // ------------------------------------------------------------------------------------ //
 void le::Window::ResetCursor()
 {
@@ -28,7 +28,7 @@ void le::Window::ResetCursor()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Задать название окна
+// Р—Р°РґР°С‚СЊ РЅР°Р·РІР°РЅРёРµ РѕРєРЅР°
 // ------------------------------------------------------------------------------------ //
 void le::Window::SetTitle( const char* Title )
 {
@@ -37,7 +37,7 @@ void le::Window::SetTitle( const char* Title )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Задать иконку
+// Р—Р°РґР°С‚СЊ РёРєРѕРЅРєСѓ
 // ------------------------------------------------------------------------------------ //
 void le::Window::SetIcon( const Image& Image )
 {
@@ -50,7 +50,7 @@ void le::Window::SetIcon( const Image& Image )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Задать курсор
+// Р—Р°РґР°С‚СЊ РєСѓСЂСЃРѕСЂ
 // ------------------------------------------------------------------------------------ //
 void le::Window::SetCursor( const Image& Image )
 {
@@ -66,7 +66,7 @@ void le::Window::SetCursor( const Image& Image )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Задать размер окна
+// Р—Р°РґР°С‚СЊ СЂР°Р·РјРµСЂ РѕРєРЅР°
 // ------------------------------------------------------------------------------------ //
 void le::Window::SetSize( int Width, int Height )
 {
@@ -77,7 +77,7 @@ void le::Window::SetSize( int Width, int Height )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Показывать ли курсор
+// РџРѕРєР°Р·С‹РІР°С‚СЊ Р»Рё РєСѓСЂСЃРѕСЂ
 // ------------------------------------------------------------------------------------ //
 void le::Window::SetShowCursor( bool IsShow )
 {
@@ -90,7 +90,7 @@ void le::Window::SetShowCursor( bool IsShow )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить размер окна
+// РџРѕР»СѓС‡РёС‚СЊ СЂР°Р·РјРµСЂ РѕРєРЅР°
 // ------------------------------------------------------------------------------------ //
 void le::Window::GetSize( int& Width, int& Height ) const
 {
@@ -99,7 +99,7 @@ void le::Window::GetSize( int& Width, int& Height ) const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Открыто ли окно
+// РћС‚РєСЂС‹С‚Рѕ Р»Рё РѕРєРЅРѕ
 // ------------------------------------------------------------------------------------ //
 bool le::Window::IsOpen() const
 {
@@ -107,7 +107,7 @@ bool le::Window::IsOpen() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить заголовок окна
+// РџРѕР»СѓС‡РёС‚СЊ Р·Р°РіРѕР»РѕРІРѕРє РѕРєРЅР°
 // ------------------------------------------------------------------------------------ //
 le::WindowHandle_t le::Window::GetHandle() const
 {
@@ -115,7 +115,7 @@ le::WindowHandle_t le::Window::GetHandle() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить событие из очереди событий
+// РџРѕР»СѓС‡РёС‚СЊ СЃРѕР±С‹С‚РёРµ РёР· РѕС‡РµСЂРµРґРё СЃРѕР±С‹С‚РёР№
 // ------------------------------------------------------------------------------------ //
 bool le::Window::PollEvent( Event& Event )
 {
@@ -126,14 +126,14 @@ bool le::Window::PollEvent( Event& Event )
 
 	switch ( sdlEvent.type )
 	{
-	// Событие ввода текста
+	// РЎРѕР±С‹С‚РёРµ РІРІРѕРґР° С‚РµРєСЃС‚Р°
 	case SDL_TEXTINPUT:
-		// TODO: Эта хуйня мне не нравится, шото не уверен в таком виде хранения введеной строки
+		// TODO: Р­С‚Р° С…СѓР№РЅСЏ РјРЅРµ РЅРµ РЅСЂР°РІРёС‚СЃСЏ, С€РѕС‚Рѕ РЅРµ СѓРІРµСЂРµРЅ РІ С‚Р°РєРѕРј РІРёРґРµ С…СЂР°РЅРµРЅРёСЏ РІРІРµРґРµРЅРѕР№ СЃС‚СЂРѕРєРё
 		Event.type = Event::ET_TEXT_INPUT;
 		Event.textInputEvent.text = sdlEvent.text.text;
 		break;
 
-	// Событие нажатия и отжатия клавиш
+	// РЎРѕР±С‹С‚РёРµ РЅР°Р¶Р°С‚РёСЏ Рё РѕС‚Р¶Р°С‚РёСЏ РєР»Р°РІРёС€
 	case SDL_KEYDOWN:
 	case SDL_KEYUP:
 		if ( sdlEvent.type == SDL_KEYUP )
@@ -150,7 +150,7 @@ bool le::Window::PollEvent( Event& Event )
 		Event.key.code = static_cast< KEYBOARD_KEY >( sdlEvent.key.keysym.scancode );
 		break;
 
-	// Событие нажатия и отжатия кнопок мыши
+	// РЎРѕР±С‹С‚РёРµ РЅР°Р¶Р°С‚РёСЏ Рё РѕС‚Р¶Р°С‚РёСЏ РєРЅРѕРїРѕРє РјС‹С€Рё
 	case SDL_MOUSEBUTTONDOWN:
 	case SDL_MOUSEBUTTONUP:
 		if ( sdlEvent.type == SDL_MOUSEBUTTONUP )
@@ -163,14 +163,14 @@ bool le::Window::PollEvent( Event& Event )
 		Event.mouseButton.y = sdlEvent.button.y;
 		break;
 
-	// Событие вращения колесика мыши
+	// РЎРѕР±С‹С‚РёРµ РІСЂР°С‰РµРЅРёСЏ РєРѕР»РµСЃРёРєР° РјС‹С€Рё
 	case SDL_MOUSEWHEEL:
 		Event.type = Event::ET_MOUSE_WHEEL;
 		Event.mouseWheel.x = sdlEvent.wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? sdlEvent.wheel.x * -1 : sdlEvent.wheel.x;
 		Event.mouseWheel.y = sdlEvent.wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? sdlEvent.wheel.y * -1 : sdlEvent.wheel.y;
 		break;
 
-	// Событие перемещения мышки
+	// РЎРѕР±С‹С‚РёРµ РїРµСЂРµРјРµС‰РµРЅРёСЏ РјС‹С€РєРё
 	case SDL_MOUSEMOTION:
 		Event.type = Event::ET_MOUSE_MOVE;
 		Event.mouseMove.x = sdlEvent.motion.x;
@@ -179,7 +179,7 @@ bool le::Window::PollEvent( Event& Event )
 		Event.mouseMove.yDirection = sdlEvent.motion.yrel;
 		break;
 
-	// События окна
+	// РЎРѕР±С‹С‚РёСЏ РѕРєРЅР°
 	case SDL_WINDOWEVENT:
 		if ( windowID != sdlEvent.window.windowID )
 		{
@@ -189,12 +189,12 @@ bool le::Window::PollEvent( Event& Event )
 
 		switch ( sdlEvent.window.event )
 		{
-		// Событие закрытия окна
+		// РЎРѕР±С‹С‚РёРµ Р·Р°РєСЂС‹С‚РёСЏ РѕРєРЅР°
 		case SDL_WINDOWEVENT_CLOSE:
 			Event.type = Event::ET_WINDOW_CLOSE;
 			break;
 
-		// Событие изменения размеров окна
+		// РЎРѕР±С‹С‚РёРµ РёР·РјРµРЅРµРЅРёСЏ СЂР°Р·РјРµСЂРѕРІ РѕРєРЅР°
 		case SDL_WINDOWEVENT_SIZE_CHANGED:
 		case SDL_WINDOWEVENT_RESIZED:
 			Event.type = Event::ET_WINDOW_RESIZE;
@@ -202,13 +202,13 @@ bool le::Window::PollEvent( Event& Event )
 			Event.windowResize.height = sdlEvent.window.data2;
 			break;
 
-		// Событие получения фокуса 
+		// РЎРѕР±С‹С‚РёРµ РїРѕР»СѓС‡РµРЅРёСЏ С„РѕРєСѓСЃР° 
 		case SDL_WINDOWEVENT_FOCUS_GAINED:
 			Event.type = Event::ET_WINDOW_FOCUS_GAINED;
 			if ( !isShowCursor ) SDL_SetRelativeMouseMode( SDL_TRUE );
 			break;
 
-		// Событие потери фокуса
+		// РЎРѕР±С‹С‚РёРµ РїРѕС‚РµСЂРё С„РѕРєСѓСЃР°
 		case SDL_WINDOWEVENT_FOCUS_LOST:
 			Event.type = Event::ET_WINDOW_FOCUS_LOST;
 			if ( !isShowCursor ) SDL_SetRelativeMouseMode( SDL_FALSE );
@@ -223,7 +223,7 @@ bool le::Window::PollEvent( Event& Event )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Создать окно
+// РЎРѕР·РґР°С‚СЊ РѕРєРЅРѕ
 // ------------------------------------------------------------------------------------ //
 bool le::Window::Create( const char* Title, int Width, int Heigt, STYLE_WINDOW Style )
 {
@@ -265,7 +265,7 @@ bool le::Window::Create( const char* Title, int Width, int Heigt, STYLE_WINDOW S
 }
 
 // ------------------------------------------------------------------------------------ //
-// Закрыть окно
+// Р—Р°РєСЂС‹С‚СЊ РѕРєРЅРѕ
 // ------------------------------------------------------------------------------------ //
 void le::Window::Close()
 {
@@ -287,7 +287,7 @@ void le::Window::Close()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Задать заголовок окна
+// Р—Р°РґР°С‚СЊ Р·Р°РіРѕР»РѕРІРѕРє РѕРєРЅР°
 // ------------------------------------------------------------------------------------ //
 void le::Window::SetHandle( WindowHandle_t WindowHandle )
 {
@@ -296,7 +296,7 @@ void le::Window::SetHandle( WindowHandle_t WindowHandle )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Конструктор
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ
 // ------------------------------------------------------------------------------------ //
 le::Window::Window() :
 	isShowCursor( true ),
@@ -308,7 +308,7 @@ le::Window::Window() :
 {}
 
 // ------------------------------------------------------------------------------------ //
-// Деструктор
+// Р”РµСЃС‚СЂСѓРєС‚РѕСЂ
 // ------------------------------------------------------------------------------------ //
 le::Window::~Window()
 {

@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
+//			*** lifeEngine (Р”РІРёРіР°С‚РµР»СЊ Р¶РёР·РЅРё) ***
 //				Copyright (C) 2018-2019
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Р РµРїРѕР·РёС‚РѕСЂРёР№ РґРІРёР¶РєР°:  https://github.com/zombihello/lifeEngine
+// РђРІС‚РѕСЂС‹:				Р•РіРѕСЂ РџРѕРіСѓР»СЏРєР° (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -16,25 +16,24 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 #include <SDL2/SDL.h>
-#include <FreeImage/FreeImage.h>
 
 #include "engine/lifeengine.h"
 #include "engine/paths.h"
 #include "engine/engine.h"
 #include "engine/window.h"
-#include "engine/istudiorenderinternal.h" // TODO: переместить в studiorender данный хедер
 #include "engine/igame.h"
 #include "engine/global.h"
 #include "engine/convar.h"
 #include "engine/concmd.h"
 #include "engine/buildnum.h"
 #include "engine/resourcesystem.h"
+#include "studiorender/istudiorenderinternal.h"
 #include "materialsystem/imaterialsysteminternal.h"
 
 LIFEENGINE_ENGINE_API( le::Engine );
 
 // ------------------------------------------------------------------------------------ //
-// Консольная команда выхода
+// РљРѕРЅСЃРѕР»СЊРЅР°СЏ РєРѕРјР°РЅРґР° РІС‹С…РѕРґР°
 // ------------------------------------------------------------------------------------ //
 void CMD_Exit( le::UInt32_t CountArguments, const char** Arguments )
 {
@@ -44,7 +43,7 @@ void CMD_Exit( le::UInt32_t CountArguments, const char** Arguments )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Консольная команда вывода версии движка
+// РљРѕРЅСЃРѕР»СЊРЅР°СЏ РєРѕРјР°РЅРґР° РІС‹РІРѕРґР° РІРµСЂСЃРёРё РґРІРёР¶РєР°
 // ------------------------------------------------------------------------------------ //
 void CMD_Version( le::UInt32_t CountArguments, const char** Arguments )
 {
@@ -53,57 +52,7 @@ void CMD_Version( le::UInt32_t CountArguments, const char** Arguments )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Загрузить изображение
-// ------------------------------------------------------------------------------------ //
-void LE_LoadImage( const char* Path, le::Image& Image, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels )
-{
-	IsError = false;
-	FREE_IMAGE_FORMAT		imageFormat = FIF_UNKNOWN;
-	imageFormat = FreeImage_GetFileType( Path, 0 );
-
-	if ( imageFormat == FIF_UNKNOWN )
-		imageFormat = FreeImage_GetFIFFromFilename( Path );
-
-	FIBITMAP* bitmap = FreeImage_Load( imageFormat, Path, 0 );
-	if ( !bitmap )
-	{
-		IsError = true;
-		return;
-	}
-
-	if ( IsFlipVertical )				FreeImage_FlipVertical( bitmap );
-	if ( IsSwitchRedAndBlueChannels )
-	{
-		auto		red = FreeImage_GetChannel( bitmap, FREE_IMAGE_COLOR_CHANNEL::FICC_RED );
-		auto		blue = FreeImage_GetChannel( bitmap, FREE_IMAGE_COLOR_CHANNEL::FICC_BLUE );
-
-		FreeImage_SetChannel( bitmap, blue, FREE_IMAGE_COLOR_CHANNEL::FICC_RED );
-		FreeImage_SetChannel( bitmap, red, FREE_IMAGE_COLOR_CHANNEL::FICC_BLUE );
-
-		FreeImage_Unload( red );
-		FreeImage_Unload( blue );
-	}
-
-	le::UInt8_t*		tempData = FreeImage_GetBits( bitmap );
-	Image.width = FreeImage_GetWidth( bitmap );
-	Image.height = FreeImage_GetHeight( bitmap );
-	Image.depth = FreeImage_GetBPP( bitmap );
-	Image.pitch = FreeImage_GetPitch( bitmap );
-
-	Image.data = ( le::UInt8_t* ) malloc( Image.pitch * Image.height );
-	memcpy( Image.data, tempData, Image.pitch * Image.height );
-
-	Image.rMask = 0x00ff0000;
-	Image.gMask = 0x0000ff00;
-	Image.bMask = 0x000000ff;
-	Image.aMask = ( Image.depth == 24 ) ? 0 : 0xff000000;
-
-	FreeImage_Unload( bitmap );
-	return;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Конструктор
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ
 // ------------------------------------------------------------------------------------ //
 le::Engine::Engine() :
 	isRunSimulation( false ),
@@ -136,19 +85,16 @@ le::Engine::Engine() :
 
 	consoleSystem.RegisterCommand( cmd_Exit );
 	consoleSystem.RegisterCommand( cmd_Version );
-
-	resourceSystem.RegisterParser( "png", LE_LoadImage );
-	resourceSystem.RegisterParser( "jpg", LE_LoadImage );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Деструктор
+// Р”РµСЃС‚СЂСѓРєС‚РѕСЂ
 // ------------------------------------------------------------------------------------ //
 le::Engine::~Engine()
 {
 	if ( game )				UnloadModule_Game();
 
-	resourceSystem.DeleteAll();
+	resourceSystem.UnloadAll();
 
 	if ( materialSystem )	UnloadModule_MaterialSystem();
 	if ( studioRender )		UnloadModule_StudioRender();	
@@ -168,28 +114,28 @@ le::Engine::~Engine()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Загрузить модуль рендера
+// Р—Р°РіСЂСѓР·РёС‚СЊ РјРѕРґСѓР»СЊ СЂРµРЅРґРµСЂР°
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::LoadModule_StudioRender( const char* PathDLL )
 {
-	// Если модуль ранее был загружен, то удаляем
+	// Р•СЃР»Рё РјРѕРґСѓР»СЊ СЂР°РЅРµРµ Р±С‹Р» Р·Р°РіСЂСѓР¶РµРЅ, С‚Рѕ СѓРґР°Р»СЏРµРј
 	if ( studioRenderDescriptor.handle ) UnloadModule_StudioRender();
 
 	consoleSystem.PrintInfo( "Loading studiorender [%s]", PathDLL );
 
 	try
 	{
-		// Загружаем модуль
+		// Р—Р°РіСЂСѓР¶Р°РµРј РјРѕРґСѓР»СЊ
 		studioRenderDescriptor.handle = SDL_LoadObject( PathDLL );
 		if ( !studioRenderDescriptor.handle )	throw std::exception( SDL_GetError() );
 
-		// Берем из модуля API для работы с ним
+		// Р‘РµСЂРµРј РёР· РјРѕРґСѓР»СЏ API РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РЅРёРј
 		studioRenderDescriptor.LE_CreateStudioRender = ( LE_CreateStudioRenderFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_CreateStudioRender" );
 		studioRenderDescriptor.LE_DeleteStudioRender = ( LE_DeleteStudioRenderFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_DeleteStudioRender" );
 		studioRenderDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_SetCriticalError" );
 		if ( !studioRenderDescriptor.LE_CreateStudioRender )	throw std::exception( "Function LE_CreateStudioRender not found" );
 
-		// Создаем рендер
+		// РЎРѕР·РґР°РµРј СЂРµРЅРґРµСЂ
 		if ( studioRenderDescriptor.LE_SetCriticalError )
 			studioRenderDescriptor.LE_SetCriticalError( g_criticalError );
 
@@ -207,7 +153,7 @@ bool le::Engine::LoadModule_StudioRender( const char* PathDLL )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Выгрузить модуль рендера
+// Р’С‹РіСЂСѓР·РёС‚СЊ РјРѕРґСѓР»СЊ СЂРµРЅРґРµСЂР°
 // ------------------------------------------------------------------------------------ //
 void le::Engine::UnloadModule_StudioRender()
 {
@@ -224,28 +170,28 @@ void le::Engine::UnloadModule_StudioRender()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Загрузить модуль системы материалов
+// Р—Р°РіСЂСѓР·РёС‚СЊ РјРѕРґСѓР»СЊ СЃРёСЃС‚РµРјС‹ РјР°С‚РµСЂРёР°Р»РѕРІ
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::LoadModule_MaterialSystem( const char* PathDLL )
 {
-	// Если модуль ранее был загружен, то удаляем
+	// Р•СЃР»Рё РјРѕРґСѓР»СЊ СЂР°РЅРµРµ Р±С‹Р» Р·Р°РіСЂСѓР¶РµРЅ, С‚Рѕ СѓРґР°Р»СЏРµРј
 	if ( materialSystemDescriptor.handle ) UnloadModule_MaterialSystem();
 
 	consoleSystem.PrintInfo( "Loading material system [%s]", PathDLL );
 
 	try
 	{
-		// Загружаем модуль
+		// Р—Р°РіСЂСѓР¶Р°РµРј РјРѕРґСѓР»СЊ
 		materialSystemDescriptor.handle = SDL_LoadObject( PathDLL );
 		if ( !materialSystemDescriptor.handle )	throw std::exception( SDL_GetError() );
 
-		// Берем из модуля API для работы с ним
+		// Р‘РµСЂРµРј РёР· РјРѕРґСѓР»СЏ API РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РЅРёРј
 		materialSystemDescriptor.LE_CreateMaterialSystem = ( LE_CreateMaterialSystemFn_t ) SDL_LoadFunction( materialSystemDescriptor.handle, "LE_CreateMaterialSystem" );
 		materialSystemDescriptor.LE_DeleteMaterialSystem = ( LE_DeleteMaterialSystemFn_t ) SDL_LoadFunction( materialSystemDescriptor.handle, "LE_DeleteMaterialSystem" );
 		materialSystemDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( materialSystemDescriptor.handle, "LE_SetCriticalError" );
 		if ( !materialSystemDescriptor.LE_CreateMaterialSystem )	throw std::exception( "Function LE_CreateMaterialSystem not found" );
 
-		// Создаем рендер
+		// РЎРѕР·РґР°РµРј СЂРµРЅРґРµСЂ
 		if ( materialSystemDescriptor.LE_SetCriticalError )
 			materialSystemDescriptor.LE_SetCriticalError( g_criticalError );
 
@@ -263,7 +209,7 @@ bool le::Engine::LoadModule_MaterialSystem( const char* PathDLL )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Выгрузить модуль системы материалов
+// Р’С‹РіСЂСѓР·РёС‚СЊ РјРѕРґСѓР»СЊ СЃРёСЃС‚РµРјС‹ РјР°С‚РµСЂРёР°Р»РѕРІ
 // ------------------------------------------------------------------------------------ //
 void le::Engine::UnloadModule_MaterialSystem()
 {
@@ -280,7 +226,7 @@ void le::Engine::UnloadModule_MaterialSystem()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Загрузить информацию об игре
+// Р—Р°РіСЂСѓР·РёС‚СЊ РёРЅС„РѕСЂРјР°С†РёСЋ РѕР± РёРіСЂРµ
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::LoadGameInfo( const char* DirGame )
 {
@@ -308,7 +254,7 @@ bool le::Engine::LoadGameInfo( const char* DirGame )
 
 	for ( auto it = document.MemberBegin(), itEnd = document.MemberEnd(); it != itEnd; ++it )
 	{
-		// Путь к модулю с игровой логикой
+		// РџСѓС‚СЊ Рє РјРѕРґСѓР»СЋ СЃ РёРіСЂРѕРІРѕР№ Р»РѕРіРёРєРѕР№
 		if ( strcmp( it->name.GetString(), "gameDLL" ) == 0 && it->value.IsString() )
 		{
 			stringLength = it->value.GetStringLength();
@@ -318,7 +264,7 @@ bool le::Engine::LoadGameInfo( const char* DirGame )
 			gameInfo.gameDLL[ stringLength ] = '\0';
 		}
 
-		// Путь к иконке
+		// РџСѓС‚СЊ Рє РёРєРѕРЅРєРµ
 		if ( strcmp( it->name.GetString(), "icon" ) == 0 && it->value.IsString() )
 		{
 			stringLength = it->value.GetStringLength();
@@ -328,7 +274,7 @@ bool le::Engine::LoadGameInfo( const char* DirGame )
 			gameInfo.icon[ stringLength ] = '\0';
 		}
 
-		// Заголовок игры	
+		// Р—Р°РіРѕР»РѕРІРѕРє РёРіСЂС‹	
 		if ( strcmp( it->name.GetString(), "title" ) == 0 && it->value.IsString() )
 		{
 			stringLength = it->value.GetStringLength();
@@ -349,28 +295,28 @@ bool le::Engine::LoadGameInfo( const char* DirGame )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Загрузить модуль игры
+// Р—Р°РіСЂСѓР·РёС‚СЊ РјРѕРґСѓР»СЊ РёРіСЂС‹
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::LoadModule_Game( const char* PathDLL )
 {
-	// Если модуль ранее был загружен, то удаляем
+	// Р•СЃР»Рё РјРѕРґСѓР»СЊ СЂР°РЅРµРµ Р±С‹Р» Р·Р°РіСЂСѓР¶РµРЅ, С‚Рѕ СѓРґР°Р»СЏРµРј
 	if ( gameDescriptor.handle ) UnloadModule_Game();
 
 	consoleSystem.PrintInfo( "Loading game [%s]", PathDLL );
 
 	try
 	{
-		// Загружаем модуль
+		// Р—Р°РіСЂСѓР¶Р°РµРј РјРѕРґСѓР»СЊ
 		gameDescriptor.handle = SDL_LoadObject( PathDLL );
 		if ( !gameDescriptor.handle )	throw std::exception( SDL_GetError() );
 
-		// Берем из модуля API для работы с ним
+		// Р‘РµСЂРµРј РёР· РјРѕРґСѓР»СЏ API РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РЅРёРј
 		gameDescriptor.LE_CreateGame = ( LE_CreateGameFn_t ) SDL_LoadFunction( gameDescriptor.handle, "LE_CreateGame" );
 		gameDescriptor.LE_DeleteGame = ( LE_DeleteGameFn_t ) SDL_LoadFunction( gameDescriptor.handle, "LE_DeleteGame" );
 		gameDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( gameDescriptor.handle, "LE_SetCriticalError" );
 		if ( !gameDescriptor.LE_CreateGame )	throw std::exception( "Function LE_CreateGame not found" );
 
-		// Создаем игровую логику
+		// РЎРѕР·РґР°РµРј РёРіСЂРѕРІСѓСЋ Р»РѕРіРёРєСѓ
 		if ( gameDescriptor.LE_SetCriticalError )
 			gameDescriptor.LE_SetCriticalError( g_criticalError );
 
@@ -388,7 +334,7 @@ bool le::Engine::LoadModule_Game( const char* PathDLL )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Выгрузить модуль игры
+// Р’С‹РіСЂСѓР·РёС‚СЊ РјРѕРґСѓР»СЊ РёРіСЂС‹
 // ------------------------------------------------------------------------------------ //
 void le::Engine::UnloadModule_Game()
 {
@@ -405,7 +351,7 @@ void le::Engine::UnloadModule_Game()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Загрузить конфиг
+// Р—Р°РіСЂСѓР·РёС‚СЊ РєРѕРЅС„РёРі
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::LoadConfig( const char* FilePath )
 {
@@ -435,30 +381,30 @@ bool le::Engine::LoadConfig( const char* FilePath )
 
 		for ( auto itObject = it->value.MemberBegin(), itObjectEnd = it->value.MemberEnd(); itObject != itObjectEnd; ++itObject )
 		{
-			// Общии параметры
+			// РћР±С‰РёРё РїР°СЂР°РјРµС‚СЂС‹
 			if ( strcmp( it->name.GetString(), "general" ) == 0 )
 			{
-				// Ширина окна
+				// РЁРёСЂРёРЅР° РѕРєРЅР°
 				if ( strcmp( itObject->name.GetString(), "width" ) == 0 && itObject->value.IsNumber() )
 					configurations.windowWidth = itObject->value.GetInt();
 
-				// Высота окна
+				// Р’С‹СЃРѕС‚Р° РѕРєРЅР°
 				else if ( strcmp( itObject->name.GetString(), "height" ) == 0 && itObject->value.IsNumber() )
 					configurations.windowHeight = itObject->value.GetInt();
 
-				// Полноэкраный ли режим
+				// РџРѕР»РЅРѕСЌРєСЂР°РЅС‹Р№ Р»Рё СЂРµР¶РёРј
 				else if ( strcmp( itObject->name.GetString(), "fullscreen" ) == 0 && itObject->value.IsBool() )
 					configurations.isFullscreen = itObject->value.GetBool();
 			}
 
-			// Параметры рендера
+			// РџР°СЂР°РјРµС‚СЂС‹ СЂРµРЅРґРµСЂР°
 			else if ( strcmp( it->name.GetString(), "studiorender" ) == 0 )
 			{
-				// Включена ли вертикальная синхронизация
+				// Р’РєР»СЋС‡РµРЅР° Р»Рё РІРµСЂС‚РёРєР°Р»СЊРЅР°СЏ СЃРёРЅС…СЂРѕРЅРёР·Р°С†РёСЏ
 				if ( strcmp( itObject->name.GetString(), "vsinc" ) == 0 && itObject->value.IsBool() )
 					configurations.isVerticalSinc = itObject->value.GetBool();
 
-				// Включена ли вертикальная синхронизация
+				// Р’РєР»СЋС‡РµРЅР° Р»Рё РІРµСЂС‚РёРєР°Р»СЊРЅР°СЏ СЃРёРЅС…СЂРѕРЅРёР·Р°С†РёСЏ
 				else if ( strcmp( itObject->name.GetString(), "fov" ) == 0 && itObject->value.IsNumber() )
 					configurations.fov = itObject->value.GetFloat();
 			}
@@ -470,7 +416,7 @@ bool le::Engine::LoadConfig( const char* FilePath )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Сохранить конфиг
+// РЎРѕС…СЂР°РЅРёС‚СЊ РєРѕРЅС„РёРі
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::SaveConfig( const char* FilePath )
 {
@@ -501,7 +447,7 @@ bool le::Engine::SaveConfig( const char* FilePath )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Запустить симуляцию
+// Р—Р°РїСѓСЃС‚РёС‚СЊ СЃРёРјСѓР»СЏС†РёСЋ
 // ------------------------------------------------------------------------------------ //
 void le::Engine::RunSimulation()
 {
@@ -523,7 +469,7 @@ void le::Engine::RunSimulation()
 
 	while ( isRunSimulation )
 	{
-		// TODO: добавить обработку событий окна
+		// TODO: РґРѕР±Р°РІРёС‚СЊ РѕР±СЂР°Р±РѕС‚РєСѓ СЃРѕР±С‹С‚РёР№ РѕРєРЅР°
 
 		while ( window.PollEvent( event ) )
 		{
@@ -567,7 +513,7 @@ void le::Engine::RunSimulation()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Остановить симуляцию
+// РћСЃС‚Р°РЅРѕРІРёС‚СЊ СЃРёРјСѓР»СЏС†РёСЋ
 // ------------------------------------------------------------------------------------ //
 void le::Engine::StopSimulation()
 {
@@ -575,7 +521,7 @@ void le::Engine::StopSimulation()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Задать конфигурации движка
+// Р—Р°РґР°С‚СЊ РєРѕРЅС„РёРіСѓСЂР°С†РёРё РґРІРёР¶РєР°
 // ------------------------------------------------------------------------------------ //
 void le::Engine::SetConfig( const Configurations& Configurations )
 {
@@ -583,7 +529,7 @@ void le::Engine::SetConfig( const Configurations& Configurations )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Запущена ли симуляция
+// Р—Р°РїСѓС‰РµРЅР° Р»Рё СЃРёРјСѓР»СЏС†РёСЏ
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::IsRunSimulation() const
 {
@@ -591,7 +537,7 @@ bool le::Engine::IsRunSimulation() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить систему консоли
+// РџРѕР»СѓС‡РёС‚СЊ СЃРёСЃС‚РµРјСѓ РєРѕРЅСЃРѕР»Рё
 // ------------------------------------------------------------------------------------ //
 le::IConsoleSystem* le::Engine::GetConsoleSystem() const
 {
@@ -599,15 +545,15 @@ le::IConsoleSystem* le::Engine::GetConsoleSystem() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить окно
+// РџРѕР»СѓС‡РёС‚СЊ РѕРєРЅРѕ
 // ------------------------------------------------------------------------------------ //
 le::IStudioRender* le::Engine::GetStudioRender() const
 {
-	return ( IStudioRender* ) &studioRender;
+	return studioRender;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить систему материалов
+// РџРѕР»СѓС‡РёС‚СЊ СЃРёСЃС‚РµРјСѓ РјР°С‚РµСЂРёР°Р»РѕРІ
 // ------------------------------------------------------------------------------------ //
 le::IMaterialSystem* le::Engine::GetMaterialSystem() const
 {
@@ -615,7 +561,7 @@ le::IMaterialSystem* le::Engine::GetMaterialSystem() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить окно
+// РџРѕР»СѓС‡РёС‚СЊ РѕРєРЅРѕ
 // ------------------------------------------------------------------------------------ //
 le::IResourceSystem* le::Engine::GetResourceSystem() const
 {
@@ -623,7 +569,7 @@ le::IResourceSystem* le::Engine::GetResourceSystem() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить окно
+// РџРѕР»СѓС‡РёС‚СЊ РѕРєРЅРѕ
 // ------------------------------------------------------------------------------------ //
 le::IWindow* le::Engine::GetWindow() const
 {
@@ -631,7 +577,7 @@ le::IWindow* le::Engine::GetWindow() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить фабрику движка
+// РџРѕР»СѓС‡РёС‚СЊ С„Р°Р±СЂРёРєСѓ РґРІРёР¶РєР°
 // ------------------------------------------------------------------------------------ //
 le::IFactory* le::Engine::GetFactory() const
 {
@@ -639,7 +585,7 @@ le::IFactory* le::Engine::GetFactory() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить конфигурации движка
+// РџРѕР»СѓС‡РёС‚СЊ РєРѕРЅС„РёРіСѓСЂР°С†РёРё РґРІРёР¶РєР°
 // ------------------------------------------------------------------------------------ //
 const le::Configurations& le::Engine::GetConfigurations() const
 {
@@ -647,7 +593,7 @@ const le::Configurations& le::Engine::GetConfigurations() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить версию движка
+// РџРѕР»СѓС‡РёС‚СЊ РІРµСЂСЃРёСЋ РґРІРёР¶РєР°
 // ------------------------------------------------------------------------------------ //
 const le::Version& le::Engine::GetVersion() const
 {
@@ -655,14 +601,14 @@ const le::Version& le::Engine::GetVersion() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Инициализировать движок
+// РРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°С‚СЊ РґРІРёР¶РѕРє
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::Initialize( WindowHandle_t WindowHandle )
 {
 	if ( isInit ) return true;
 	consoleSystem.PrintInfo( "Initialization lifeEngine" );
 
-	// Выводим системную информацию
+	// Р’С‹РІРѕРґРёРј СЃРёСЃС‚РµРјРЅСѓСЋ РёРЅС„РѕСЂРјР°С†РёСЋ
 	SDL_version		sdlVersion;
 	SDL_GetVersion( &sdlVersion );
 
@@ -690,8 +636,8 @@ bool le::Engine::Initialize( WindowHandle_t WindowHandle )
 
 	try
 	{
-		// Инициализируем окно приложения. Если заголовок на окно в аргументах пуст, 
-		// то создаем свое окно, иначе запоминаем его
+		// РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РѕРєРЅРѕ РїСЂРёР»РѕР¶РµРЅРёСЏ. Р•СЃР»Рё Р·Р°РіРѕР»РѕРІРѕРє РЅР° РѕРєРЅРѕ РІ Р°СЂРіСѓРјРµРЅС‚Р°С… РїСѓСЃС‚, 
+		// С‚Рѕ СЃРѕР·РґР°РµРј СЃРІРѕРµ РѕРєРЅРѕ, РёРЅР°С‡Рµ Р·Р°РїРѕРјРёРЅР°РµРј РµРіРѕ
 
 		if ( !WindowHandle )
 		{
@@ -701,12 +647,14 @@ bool le::Engine::Initialize( WindowHandle_t WindowHandle )
 		else 
 			window.SetHandle( WindowHandle );
 
-		// Загружаем и инициализируем подсистемы
+		// Р—Р°РіСЂСѓР¶Р°РµРј Рё РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РїРѕРґСЃРёСЃС‚РµРјС‹
 
 		if ( !LoadModule_StudioRender( LIFEENGINE_STUDIORENDER_DLL ) )		throw std::exception( "Failed loading studiorender" );
 		if ( !LoadModule_MaterialSystem( LIFEENGINE_MATERIALSYSTEM_DLL ) )	throw std::exception( "Failed loading materialsystem" );
 
 		if ( !materialSystem->LoadShaderDLL( LIFEENGINE_STDSHADERS_DLL ) )	throw std::exception( "Failed loading stdshaders" );
+
+		resourceSystem.Initialize( this );
 	}
 	catch ( const std::exception& Exception )
 	{
@@ -720,23 +668,31 @@ bool le::Engine::Initialize( WindowHandle_t WindowHandle )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Загрузить игру
+// Р—Р°РіСЂСѓР·РёС‚СЊ РёРіСЂСѓ
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::LoadGame( const char* DirGame )
 {
-	if ( !LoadGameInfo( DirGame ) || !LoadModule_Game( ( std::string( DirGame ) + "/" + gameInfo.gameDLL ).c_str() ) )
+	// Р—Р°РіСЂСѓР¶Р°РµРј РёРЅС„РѕСЂРјР°С†РёСЋ РѕР± РёРіСЂРµ
+	if ( !LoadGameInfo( DirGame ) )	
 		return false;
 
+	// Р—Р°РґР°РµРј РєР°С‚Р°Р»РѕРі РёРіСЂС‹ РґР»СЏ Р·Р°РіСЂСѓР·РєРё СЂРµСЃСѓСЂСЃРѕРІ
+	resourceSystem.SetGameDir( gameInfo.gameDir );
+
+	// Р—Р°РіСЂСѓР¶Р°РµРј РёРіСЂРѕРІСѓСЋ Р»РѕРіРёРєСѓ
+	if ( !LoadModule_Game( ( std::string( DirGame ) + "/" + gameInfo.gameDLL ).c_str() ) )
+		return false;
+
+	// Р•СЃР»Рё РµСЃС‚СЊ РёРєРѕРЅРєР° Сѓ РёРіСЂС‹ - РіСЂСѓР·РёРј РµРµ
 	if ( gameInfo.icon )
 	{
 		bool		isError = false;
-		Image		image;
-
-		LE_LoadImage( ( std::string( gameInfo.gameDir ) + "/" + gameInfo.icon ).c_str(), image, isError, true, false );
+		Image		image = resourceSystem.LoadImage( gameInfo.icon, isError, true, false );
+		
 		if ( !isError )
 		{
 			window.SetIcon( image );
-			delete[] image.data;
+			resourceSystem.UnloadImage( image );
 		}
 	}
 
@@ -745,12 +701,14 @@ bool le::Engine::LoadGame( const char* DirGame )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Выгрузить игру
+// Р’С‹РіСЂСѓР·РёС‚СЊ РёРіСЂСѓ
 // ------------------------------------------------------------------------------------ //
 void le::Engine::UnloadGame()
 {
 	StopSimulation();
 
 	gameInfo.Clear();
+	resourceSystem.SetGameDir( "" );
+
 	if ( game ) UnloadModule_Game();
 }

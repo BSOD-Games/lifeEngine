@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
+//			*** lifeEngine (Р”РІРёРіР°С‚РµР»СЊ Р¶РёР·РЅРё) ***
 //				Copyright (C) 2018-2019
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Р РµРїРѕР·РёС‚РѕСЂРёР№ РґРІРёР¶РєР°:  https://github.com/zombihello/lifeEngine
+// РђРІС‚РѕСЂС‹:				Р•РіРѕСЂ РџРѕРіСѓР»СЏРєР° (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -12,21 +12,23 @@
 
 #include "studiorenderfactory.h"
 #include "gpuprogram.h"
+#include "texture.h"
 
 // ------------------------------------------------------------------------------------ //
-// Создать объект
+// РЎРѕР·РґР°С‚СЊ РѕР±СЉРµРєС‚
 // ------------------------------------------------------------------------------------ //
 void* le::StudioRenderFactory::Create( const char* NameInterface )
 {
 	if ( strcmp( NameInterface, GPUPROGRAM_INTERFACE_VERSION ) == 0 )			return new GPUProgram();
+	else if ( strcmp( NameInterface, TEXTURE_INTERFACE_VERSION ) == 0 )			return new Texture();
 
 	return nullptr;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Удалить объект
+// РЈРґР°Р»РёС‚СЊ РѕР±СЉРµРєС‚
 // ------------------------------------------------------------------------------------ //
-void le::StudioRenderFactory::Delete( const char* NameInterface, void* Object )
+void le::StudioRenderFactory::Delete( void* Object )
 {
 	if ( !Object ) return;
 	delete Object;
