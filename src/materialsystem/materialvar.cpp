@@ -20,8 +20,8 @@ void le::MaterialVar::Clear()
 {
 	value_int = 0;
 	value_float = 0.f;
-	value_bool = false;
-	value_string = "";
+	value_shaderFlag = false;
+	value_texture = nullptr;
 	value_matrix4x4 = Matrix4x4_t( 0.f );
 	value_vector2D = Vector2D_t( 0.f );
 	value_vector3D = Vector3D_t( 0.f );
@@ -63,10 +63,10 @@ void le::MaterialVar::SetValueFloat( float Value )
 // ------------------------------------------------------------------------------------ //
 // Задать значение переменной
 // ------------------------------------------------------------------------------------ //
-void le::MaterialVar::SetValueBool( bool Value )
+void le::MaterialVar::SetValueShaderFlag( bool Value )
 {
-	type = MVT_BOOL;
-	value_bool = Value;
+	type = MVT_SHADER_FLAG;
+	value_shaderFlag = Value;
 
 	isDefined = true;
 }
@@ -118,10 +118,10 @@ void le::MaterialVar::SetValueMatrix( const Matrix4x4_t& Value )
 // ------------------------------------------------------------------------------------ //
 // Задать значение переменной
 // ------------------------------------------------------------------------------------ //
-void le::MaterialVar::SetValueString( const char* Value )
+void le::MaterialVar::SetValueTexture( ITexture* Value )
 {
-	type = MVT_STRING;
-	value_string = Value;
+	type = MVT_TEXTURE;
+	value_texture = Value;
 
 	isDefined = true;
 }
@@ -169,9 +169,9 @@ float le::MaterialVar::GetValueFloat() const
 // ------------------------------------------------------------------------------------ //
 // Получить значение переменной
 // ------------------------------------------------------------------------------------ //
-bool le::MaterialVar::GetValueBool() const
+bool le::MaterialVar::GetValueShaderFlag() const
 {
-	return value_bool;
+	return value_shaderFlag;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -209,9 +209,9 @@ const le::Matrix4x4_t& le::MaterialVar::GetValueMatrix() const
 // ------------------------------------------------------------------------------------ //
 // Получить значение переменной
 // ------------------------------------------------------------------------------------ //
-const char* le::MaterialVar::GetValueString() const
+le::ITexture* le::MaterialVar::GetValueTexture() const
 {
-	return value_string.c_str();
+	return value_texture;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -221,12 +221,12 @@ le::MaterialVar::MaterialVar() :
 	isDefined ( false ),
 	value_int( 0 ),
 	value_float( 0.f ),
-	value_bool( false ),
+	value_shaderFlag( false ),
 	value_matrix4x4( 0.f ),
 	value_vector2D( 0.f ),
 	value_vector3D( 0.f ),
 	value_vector4D( 0.f ),
-	value_string( "" )
+	value_texture( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //

@@ -19,8 +19,7 @@
 // ------------------------------------------------------------------------------------ //
 void* le::MaterialSystemFactory::Create( const char* NameInterface )
 {
-	if ( strcmp( NameInterface, MATERIALVAR_INTERFACE_VERSION ) == 0 )			return new MaterialVar();
-	else if ( strcmp( NameInterface, MATERIAL_INTERFACE_VERSION ) == 0 )		return new Material();
+	if ( strcmp( NameInterface, MATERIAL_INTERFACE_VERSION ) == 0 )		return new Material();
 
 	return nullptr;
 }

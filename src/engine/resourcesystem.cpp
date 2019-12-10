@@ -9,17 +9,112 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <exception>
+#include <fstream>
 #include <FreeImage/FreeImage.h>
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
 #include "common/image.h"
 #include "engine/lifeengine.h"
 #include "engine/engine.h"
+#include "materialsystem/imaterialsystem.h"
+#include "materialsystem/imaterial.h"
+#include "materialsystem/imaterialvar.h"
 #include "studiorender/istudiorender.h"
 #include "studiorender/itexture.h"
 
 #include "global.h"
 #include "consolesystem.h"
 #include "resourcesystem.h"
+
+// ------------------------------------------------------------------------------------ //
+// Преобразовать JSON массив в 2D вектор 
+// ------------------------------------------------------------------------------------ //
+inline le::Vector2D_t JsonArrayToVec2( rapidjson::Value::Array& Array )
+{
+	try
+	{
+		if ( Array.Size() < 2 ) throw;
+
+		for ( size_t index = 0, count = Array.Size(); index < count; ++index )
+			if ( !Array[ index ].IsNumber() )
+				throw;
+	}
+	catch ( ... )
+	{
+		return le::Vector2D_t( 0.f, 0.f );
+	}
+
+	return le::Vector2D_t( Array[ 0 ].GetFloat(), Array[ 1 ].GetFloat() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Преобразовать JSON массив в 3D вектор 
+// ------------------------------------------------------------------------------------ //
+inline le::Vector3D_t JsonArrayToVec3( rapidjson::Value::Array& Array )
+{
+	try
+	{
+		if ( Array.Size() < 3 ) throw;
+
+		for ( size_t index = 0, count = Array.Size(); index < count; ++index )
+			if ( !Array[ index ].IsNumber() )
+				throw;
+	}
+	catch ( ... )
+	{
+		return le::Vector3D_t( 0.f, 0.f, 0.f );
+	}
+
+	return le::Vector3D_t( Array[ 0 ].GetFloat(), Array[ 1 ].GetFloat(), Array[ 2 ].GetFloat() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Преобразовать JSON массив в 4D вектор 
+// ------------------------------------------------------------------------------------ //
+inline le::Vector4D_t JsonArrayToVec4( rapidjson::Value::Array& Array )
+{
+	try
+	{
+		if ( Array.Size() < 4 ) throw;
+
+		for ( size_t index = 0, count = Array.Size(); index < count; ++index )
+			if ( !Array[ index ].IsNumber() )
+				throw;
+	}
+	catch ( ... )
+	{
+		return le::Vector4D_t( 0.f, 0.f, 0.f, 0.f );
+	}
+
+	return le::Vector4D_t( Array[ 0 ].GetFloat(), Array[ 1 ].GetFloat(), Array[ 2 ].GetFloat(), Array[ 3 ].GetFloat() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Преобразовать JSON массив в матрицу 4х4
+// ------------------------------------------------------------------------------------ //
+inline le::Matrix4x4_t JsonArrayToMatrix( rapidjson::Value::Array& Array )
+{
+	try
+	{
+		if ( Array.Size() < 16 ) throw;
+
+		for ( size_t index = 0, count = Array.Size(); index < count; ++index )
+			if ( !Array[ index ].IsNumber() )
+				throw;
+	}
+	catch ( ... )
+	{
+		return le::Matrix4x4_t( 1.f );
+	}
+
+	return le::Matrix4x4_t( Array[ 0 ].GetFloat(), Array[ 1 ].GetFloat(), Array[ 2 ].GetFloat(), Array[ 3 ].GetFloat(),
+							Array[ 4 ].GetFloat(), Array[ 5 ].GetFloat(), Array[ 6 ].GetFloat(), Array[ 7 ].GetFloat(),
+							Array[ 8 ].GetFloat(), Array[ 9 ].GetFloat(), Array[ 10 ].GetFloat(), Array[ 11 ].GetFloat(),
+							Array[ 12 ].GetFloat(), Array[ 13 ].GetFloat(), Array[ 14 ].GetFloat(), Array[ 15 ].GetFloat() );
+}
 
 // ------------------------------------------------------------------------------------ //
 // Загрузить изображение
@@ -96,55 +191,164 @@ le::ITexture* LE_LoadTexture( const char* Path, le::IFactory* StudioRenderFactor
 }
 
 // ------------------------------------------------------------------------------------ //
-// Зарегестрировать парсер картинок
+// Загрузить материал
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterParser_Image( const char* Format, LoadImageFn_t LoadImage )
+le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceSystem, le::IFactory* MaterialSystemFactory )
+{
+	std::ifstream		file( Path );
+	if ( !file.is_open() )						return nullptr;
+
+	std::string					stringBuffer;
+	std::getline( file, stringBuffer, '\0' );
+
+	rapidjson::Document			document;
+	document.Parse( stringBuffer.c_str() );
+	if ( document.HasParseError() )				return nullptr;
+
+	std::unordered_map< std::string, rapidjson::Value >		materialVars;
+	std::unordered_map< std::string, rapidjson::Value >		shaderParams;
+
+	// Считываем все параметры материала в память
+	for ( auto it = document.MemberBegin(), itEnd = document.MemberEnd(); it != itEnd; ++it )
+	{
+		// Название поверхности
+		if ( strcmp( it->name.GetString(), "surface" ) == 0 && it->value.IsString() )
+			materialVars[ "surface" ] = it->value;
+
+		// Название шейдера
+		else if ( strcmp( it->name.GetString(), "shader" ) == 0 && it->value.IsString() )
+			materialVars[ "shader" ] = it->value;
+
+		// Параметры шейдера
+		else if ( it->value.IsObject() && strcmp( it->name.GetString(), "shader_parameters" ) == 0 )
+			for ( auto itObject = it->value.MemberBegin(), itObjectEnd = it->value.MemberEnd(); itObject != itObjectEnd; ++itObject )
+				shaderParams[ itObject->name.GetString() ] = itObject->value;
+	}
+
+	le::IMaterial*			material = ( le::IMaterial* ) MaterialSystemFactory->Create( MATERIAL_INTERFACE_VERSION );
+	if ( !material )							return nullptr;
+
+	// Записываем материалу параметры
+	for ( auto it = materialVars.begin(), itEnd = materialVars.end(); it != itEnd; ++it )
+	{
+		// Название поверхности
+		if ( it->first == "surface" && it->second.IsString() )
+			material->SetSurfaceName( it->second.GetString() );
+
+		// Название шейдера
+		else if ( it->first == "shader" && it->second.IsString() )
+			material->SetShader( it->second.GetString() );
+	}
+
+	// Записываем параметры шейдера
+	for ( auto it = shaderParams.begin(), itEnd = shaderParams.end(); it != itEnd; ++it )
+	{
+		le::IMaterialVar*		materialVar = material->FindVar( it->first.c_str() );
+		if ( !materialVar ) continue;
+
+		if ( it->second.IsString() )
+		{
+			le::ITexture*		texture = ResourceSystem->LoadTexture( it->second.GetString(), it->second.GetString() );
+			if ( !texture )	continue;
+
+			materialVar->SetValueTexture( texture );
+		}
+
+		else if ( it->second.IsArray() )
+		{
+			rapidjson::Value::Array				array = it->second.GetArray();
+
+			if ( array.Size() == 2 )			materialVar->SetValueVector2D( JsonArrayToVec2( array ) );
+			else if ( array.Size() == 3 )		materialVar->SetValueVector3D( JsonArrayToVec3( array ) );
+			else if ( array.Size() == 4 )		materialVar->SetValueVector4D( JsonArrayToVec4( array ) );
+			else if ( array.Size() == 16 )		materialVar->SetValueMatrix( JsonArrayToMatrix( array ) );
+		}
+
+		else if ( it->second.IsBool() )			materialVar->SetValueShaderFlag( it->second.GetBool() );
+		else if ( it->second.IsDouble() )		materialVar->SetValueFloat( it->second.GetDouble() );		
+		else if ( it->second.IsFloat() )		materialVar->SetValueFloat( it->second.GetFloat() );		
+		else if ( it->second.IsInt() )			materialVar->SetValueInt( it->second.GetInt() );
+	}
+
+	return material;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Зарегестрировать загрузчик картинок
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader_Image( const char* Format, LoadImageFn_t LoadImage )
 {
 	LIFEENGINE_ASSERT( Format );
 	LIFEENGINE_ASSERT( LoadImage );
 
-	g_consoleSystem->PrintInfo( "Parser image for format [%s] registered", Format );
-	parserImages[ Format ] = LoadImage;
+	g_consoleSystem->PrintInfo( "Loader image for format [%s] registered", Format );
+	loaderImages[ Format ] = LoadImage;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Зарегестрировать парсер текстур
+// Зарегестрировать загрузчик текстур
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterParser_Texture( const char* Format, LoadTextureFn_t LoadTexture )
+void le::ResourceSystem::RegisterLoader_Texture( const char* Format, LoadTextureFn_t LoadTexture )
 {
 	LIFEENGINE_ASSERT( Format );
 	LIFEENGINE_ASSERT( LoadTexture );
 
-	g_consoleSystem->PrintInfo( "Parser texture for format [%s] registered", Format );
-	parserTextures[ Format ] = LoadTexture;
+	g_consoleSystem->PrintInfo( "Loader texture for format [%s] registered", Format );
+	loaderTextures[ Format ] = LoadTexture;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Разрегестрировать парсер картинок
+// Зарегестрировать загрузчик материалов
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnregisterParser_Image( const char* Format )
+void le::ResourceSystem::RegisterLoader_Material( const char* Format, LoadMaterialFn_t LoadMaterial )
 {
 	LIFEENGINE_ASSERT( Format );
+	LIFEENGINE_ASSERT( LoadMaterial );
 
-	auto		it = parserImages.find( Format );
-	if ( it == parserImages.end() ) return;
-
-	parserImages.erase( it );
-	g_consoleSystem->PrintInfo( "Parser image for format [%s] unregistered", Format );
+	g_consoleSystem->PrintInfo( "Loader material for format [%s] registered", Format );
+	loaderMaterials[ Format ] = LoadMaterial;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Разрегестрировать парсер текстур
+// Разрегестрировать загрузчик картинок
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnregisterParser_Texture( const char* Format )
+void le::ResourceSystem::UnregisterLoader_Image( const char* Format )
 {
 	LIFEENGINE_ASSERT( Format );
 
-	auto		it = parserTextures.find( Format );
-	if ( it == parserTextures.end() ) return;
+	auto		it = loaderImages.find( Format );
+	if ( it == loaderImages.end() ) return;
 
-	parserTextures.erase( it );
-	g_consoleSystem->PrintInfo( "Parser texture for format [%s] unregistered", Format );
+	loaderImages.erase( it );
+	g_consoleSystem->PrintInfo( "Loader image for format [%s] unregistered", Format );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Разрегестрировать загрузчик текстур
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnregisterLoader_Texture( const char* Format )
+{
+	LIFEENGINE_ASSERT( Format );
+
+	auto		it = loaderTextures.find( Format );
+	if ( it == loaderTextures.end() ) return;
+
+	loaderTextures.erase( it );
+	g_consoleSystem->PrintInfo( "Loader texture for format [%s] unregistered", Format );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Разрегестрировать загрузчик материалов
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnregisterLoader_Material( const char* Format )
+{
+	LIFEENGINE_ASSERT( Format );
+
+	auto		it = loaderMaterials.find( Format );
+	if ( it == loaderMaterials.end() ) return;
+
+	loaderMaterials.erase( it );
+	g_consoleSystem->PrintInfo( "Loader material for format [%s] unregistered", Format );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -157,14 +361,14 @@ le::Image le::ResourceSystem::LoadImage( const char* Path, bool& IsError, bool I
 
 	try
 	{
-		if ( parserImages.empty() )					throw std::exception( "No image parsers" );
+		if ( loaderImages.empty() )					throw std::exception( "No image loaders" );
 		std::string			path = gameDir + "/" + Path;
 
 		const char* format = strchr( Path, '.' );
-		if ( !format )							throw std::exception( "In image format not found" );
+		if ( !format )								throw std::exception( "In image format not found" );
 
-		auto				parser = parserImages.find( format + 1 );
-		if ( parser == parserImages.end() )			throw std::exception( "Parser for format image not found" );
+		auto				parser = loaderImages.find( format + 1 );
+		if ( parser == loaderImages.end() )			throw std::exception( "Loader for format image not found" );
 
 		Image				image;	
 		parser->second( path.c_str(), image, IsError, IsFlipVertical, IsSwitchRedAndBlueChannels );
@@ -182,34 +386,32 @@ le::Image le::ResourceSystem::LoadImage( const char* Path, bool& IsError, bool I
 // ------------------------------------------------------------------------------------ //
 // Загрузить текстуру
 // ------------------------------------------------------------------------------------ //
-le::ITexture* le::ResourceSystem::LoadTexture( const char* Name, const char* Group, const char* Path )
+le::ITexture* le::ResourceSystem::LoadTexture( const char* Name, const char* Path )
 {
 	LIFEENGINE_ASSERT( Name );
-	LIFEENGINE_ASSERT( Group );
 	LIFEENGINE_ASSERT( Path );
 
 	try
 	{
-		if ( !studioRenderFactory )					throw std::exception( "Resource system not initialized" );
+		if ( !studioRenderFactory )							throw std::exception( "Resource system not initialized" );
 
-		auto				group = textures[ Group ];
-		if ( group.find( Name ) != group.end() )	return group[ Name ];
-		if ( parserTextures.empty() )				throw std::exception( "No texture parsers" );
+		if ( textures.find( Name ) != textures.end() )		return textures[ Name ];
+		if ( loaderTextures.empty() )						throw std::exception( "No texture loaders" );
 
 		std::string			path = gameDir + "/" + Path;
 
-		g_consoleSystem->PrintInfo( "Loading texture [%s] with name [%s] in group [%s]", Path, Name, Group );
+		g_consoleSystem->PrintInfo( "Loading texture [%s] with name [%s]", Path, Name );
 
 		const char* format = strchr( Path, '.' );
 		if ( !format )								throw std::exception( "In texture format not found" );
 
-		auto				parser = parserTextures.find( format + 1 );
-		if ( parser == parserTextures.end() )		throw std::exception( "Parser for format texture not found" );
+		auto				parser = loaderTextures.find( format + 1 );
+		if ( parser == loaderTextures.end() )		throw std::exception( "Loader for format texture not found" );
 
 		ITexture*			texture = parser->second( path.c_str(), studioRenderFactory );
 		if ( !texture )								throw std::exception( "Fail loading texture" );
 
-		group.insert( std::make_pair( Path, texture ) );
+		textures.insert( std::make_pair( Name, texture ) );
 		g_consoleSystem->PrintInfo( "Loaded texture [%s]", Name );
 
 		return texture;
@@ -217,6 +419,46 @@ le::ITexture* le::ResourceSystem::LoadTexture( const char* Name, const char* Gro
 	catch ( std::exception& Exception )
 	{
 		g_consoleSystem->PrintError( "Texture [%s] not loaded: %s", Path, Exception.what() );
+		return nullptr;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Загрузить материал
+// ------------------------------------------------------------------------------------ //
+le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* Path )
+{
+	LIFEENGINE_ASSERT( Name );
+	LIFEENGINE_ASSERT( Path );
+
+	try
+	{
+		if ( !materialSystemFactory )						throw std::exception( "Resource system not initialized" );
+
+		if ( materials.find( Name ) != materials.end() )	return materials[ Name ];
+		if ( loaderMaterials.empty() )						throw std::exception( "No material loaders" );
+
+		std::string			path = gameDir + "/" + Path;
+
+		g_consoleSystem->PrintInfo( "Loading material [%s] with name [%s]", Path, Name );
+
+		const char* format = strchr( Path, '.' );
+		if ( !format )								throw std::exception( "In material format not found" );
+
+		auto				parser = loaderMaterials.find( format + 1 );
+		if ( parser == loaderMaterials.end() )		throw std::exception( "Loader for format material not found" );
+
+		IMaterial*			material = parser->second( path.c_str(), this, materialSystemFactory );
+		if ( !material )							throw std::exception( "Fail loading material" );
+
+		materials.insert( std::make_pair( Name, material ) );
+		g_consoleSystem->PrintInfo( "Loaded material [%s]", Name );
+
+		return material;
+	}
+	catch ( std::exception& Exception )
+	{
+		g_consoleSystem->PrintError( "Material [%s] not loaded: %s", Path, Exception.what() );
 		return nullptr;
 	}
 }
@@ -235,10 +477,9 @@ void le::ResourceSystem::UnloadImage( Image& Image )
 // ------------------------------------------------------------------------------------ //
 // Выгрузить текстуру
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnloadTexture( const char* Name, const char* Group )
+void le::ResourceSystem::UnloadTexture( const char* Name )
 {
 	LIFEENGINE_ASSERT( Name );
-	LIFEENGINE_ASSERT( Group );
 
 	if ( !studioRenderFactory )
 	{
@@ -246,36 +487,55 @@ void le::ResourceSystem::UnloadTexture( const char* Name, const char* Group )
 		return;
 	}
 
-	auto				group = textures[ Group ];
-	auto				it = group.find( Name );
-
-	if ( it == group.end() )	return;
+	auto				it = textures.find( Name );
+	if ( it == textures.end() )	return;
 
 	studioRenderFactory->Delete( it->second );
-	group.erase( it );
+	textures.erase( it );
 
-	g_consoleSystem->PrintInfo( "Unloaded texture [%s] in group [%s]", Name, Group );
+	g_consoleSystem->PrintInfo( "Unloaded texture [%s]", Name );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Выгрузить группу текстур
+// Выгрузить материал
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnloadTextures( const char* Group )
+void le::ResourceSystem::UnloadMaterial( const char* Name )
 {
-	if ( !studioRenderFactory )
+	LIFEENGINE_ASSERT( Name );
+
+	if ( !materialSystemFactory )
 	{
 		g_consoleSystem->PrintError( "Resource system not initialized" );
 		return;
 	}
 
-	auto		group = textures[ Group ];
-	if ( group.empty() )		return;
+	auto				it = materials.find( Name );
+	if ( it == materials.end() )	return;
 
-	for ( auto it = group.begin(), itEnd = group.end(); it != itEnd; ++it )
-		studioRenderFactory->Delete( it->second );
+	materialSystemFactory->Delete( it->second );
+	materials.erase( it );
 
-	if ( !group.empty() )		g_consoleSystem->PrintInfo( "Unloaded all textures in group [%s]", Group );
-	group.clear();	
+	g_consoleSystem->PrintInfo( "Unloaded material [%s]", Name );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Выгрузить все материалы
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadMaterials()
+{
+	if ( materials.empty() ) return;
+
+	if ( !materialSystemFactory )
+	{
+		g_consoleSystem->PrintError( "Resource system not initialized" );
+		return;
+	}
+
+	for ( auto it = materials.begin(), itEnd = materials.end(); it != itEnd; ++it )
+			materialSystemFactory->Delete( it->second );
+
+	g_consoleSystem->PrintInfo( "Unloaded all materials" );
+	materials.clear();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -283,17 +543,18 @@ void le::ResourceSystem::UnloadTextures( const char* Group )
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadTextures()
 {
+	if ( textures.empty() ) return;
+
 	if ( !studioRenderFactory )
 	{
 		g_consoleSystem->PrintError( "Resource system not initialized" );
 		return;
 	}
 
-	for ( auto itGroup = textures.begin(), itEndGroup = textures.end(); itGroup != itEndGroup; ++itGroup )
-		for ( auto itTexture = itGroup->second.begin(), itEndTexture = itGroup->second.end(); itTexture != itEndTexture; ++itTexture )
-			studioRenderFactory->Delete( itTexture->second );
+	for ( auto it = textures.begin(), itEnd = textures.end(); it != itEnd; ++it )
+			studioRenderFactory->Delete( it->second );
 
-	if ( !textures.empty() )		g_consoleSystem->PrintInfo( "Unloaded all textures" );
+	g_consoleSystem->PrintInfo( "Unloaded all textures" );
 	textures.clear();	
 }
 
@@ -303,19 +564,31 @@ void le::ResourceSystem::UnloadTextures()
 void le::ResourceSystem::UnloadAll()
 {
 	UnloadTextures();
+	UnloadMaterials();
 }
 
 // ------------------------------------------------------------------------------------ //
 //  Получить текстуру
 // ------------------------------------------------------------------------------------ //
-le::ITexture* le::ResourceSystem::GetTexture( const char* Name, const char* Group ) const
+le::ITexture* le::ResourceSystem::GetTexture( const char* Name ) const
 {
 	LIFEENGINE_ASSERT( Name );
-	LIFEENGINE_ASSERT( Group );
 
-	auto				group = textures.at( Group );
-	auto				it = group.find( Name );
-	if ( it != group.end() )		return it->second;
+	auto	it = textures.find( Name );
+	if ( it != textures.end() )		return it->second;
+
+	return nullptr;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить материал
+// ------------------------------------------------------------------------------------ //
+le::IMaterial* le::ResourceSystem::GetMaterial( const char* Name ) const
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto	it = materials.find( Name );
+	if ( it != materials.end() )		return it->second;
 
 	return nullptr;
 }
@@ -330,12 +603,21 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 		IStudioRender*			studioRender = Engine->GetStudioRender();
 		if ( !studioRender )	throw std::exception( "Resource system requared studiorender" );
 
-		studioRenderFactory = studioRender->GetFactory();
+		IMaterialSystem*		materialSystem = Engine->GetMaterialSystem();
+		if ( !materialSystem )	throw std::exception( "Resource system requared material system" );
 
-		RegisterParser_Image( "png", LE_LoadImage );
-		RegisterParser_Image( "jpg", LE_LoadImage );
-		RegisterParser_Texture( "png", LE_LoadTexture );
-		RegisterParser_Texture( "jpg", LE_LoadTexture );
+		studioRenderFactory = studioRender->GetFactory();
+		materialSystemFactory = materialSystem->GetFactory();
+
+		RegisterLoader_Image( "png", LE_LoadImage );
+		RegisterLoader_Image( "jpg", LE_LoadImage );
+		RegisterLoader_Image( "tga", LE_LoadImage );
+
+		RegisterLoader_Texture( "png", LE_LoadTexture );
+		RegisterLoader_Texture( "jpg", LE_LoadTexture );
+		RegisterLoader_Texture( "tga", LE_LoadTexture );
+
+		RegisterLoader_Material( "lmt", LE_LoadMaterial );
 	}
 	catch ( std::exception& Exception )
 	{
@@ -357,7 +639,8 @@ void le::ResourceSystem::SetGameDir( const char* GameDir )
 // Конструктор
 // ------------------------------------------------------------------------------------ //
 le::ResourceSystem::ResourceSystem() :
-	studioRenderFactory( nullptr )
+	studioRenderFactory( nullptr ),
+	materialSystemFactory( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //

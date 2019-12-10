@@ -22,9 +22,7 @@ namespace le
 	struct ShaderParamInfo
 	{
 		const char*				name;
-		const char*				helpString;
-		const char*				defaultString;
-		MATERIAL_VAR_TYPE		typeValue;
+		MATERIAL_VAR_TYPE		type;
 	};
 
 	//---------------------------------------------------------------------//

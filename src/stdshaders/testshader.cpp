@@ -21,7 +21,7 @@ bool le::TestShader::InitInstance( UInt32_t CountParams, IMaterialVar** Material
 // ------------------------------------------------------------------------------------ //
 // Подготовка к отрисовке элементов
 // ------------------------------------------------------------------------------------ //
-void le::TestShader::OnDrawElements( UInt32_t CountParams, IMaterialVar** MaterialVars )
+void le::TestShader::OnBind( UInt32_t CountParams, IMaterialVar** MaterialVars )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -41,42 +41,6 @@ const char* le::TestShader::GetFallbackShader() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить название параметра
-// ------------------------------------------------------------------------------------ //
-const char* le::TestShader::GetParamName( UInt32_t Index ) const
-{
-	if ( Index >= shaderParams.size() )			return nullptr;
-	return shaderParams[ Index ].name;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить описание параметра
-// ------------------------------------------------------------------------------------ //
-const char* le::TestShader::GetParamHelp( UInt32_t Index ) const
-{
-	if ( Index >= shaderParams.size() )			return nullptr;
-	return shaderParams[ Index ].helpString;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить стандартное значение параметра
-// ------------------------------------------------------------------------------------ //
-const char* le::TestShader::GetParamDefault( UInt32_t Index ) const
-{
-	if ( Index >= shaderParams.size() )			return nullptr;
-	return shaderParams[ Index ].defaultString;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить тип параметра
-// ------------------------------------------------------------------------------------ //
-le::MATERIAL_VAR_TYPE le::TestShader::GetParamType( UInt32_t Index ) const
-{
-	if ( Index >= shaderParams.size() )			return MVT_INT;
-	return shaderParams[ Index ].typeValue;
-}
-
-// ------------------------------------------------------------------------------------ //
 // Получить количество параметров
 // ------------------------------------------------------------------------------------ //
 le::UInt32_t le::TestShader::GetCountParams() const
@@ -87,9 +51,9 @@ le::UInt32_t le::TestShader::GetCountParams() const
 // ------------------------------------------------------------------------------------ //
 // Получить массив параметров
 // ------------------------------------------------------------------------------------ //
-le::ShaderParamInfo** le::TestShader::GetParams() const
+le::ShaderParamInfo* le::TestShader::GetParams() const
 {
-	return nullptr;
+	return ( ShaderParamInfo* ) shaderParams.data();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -108,6 +72,7 @@ le::TestShader::TestShader()
 {
 	shaderParams =
 	{
-		{ "position", "position vertex", "0 0 0", MVT_VECTOR_3D }
+		{ "basetexture",	MVT_TEXTURE		},
+		{ "color",			MVT_VECTOR_4D	}
 	};
 }

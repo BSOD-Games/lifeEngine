@@ -10,31 +10,13 @@
 
 #include "engine/lifeengine.h"
 #include "engine/iconsolesystem.h"
+#include "common/shaderparaminfo.h"
 #include "stdshaders/ishader.h"
 
 #include "global.h"
 #include "materialsystem.h"
 #include "material.h"
 #include "materialvar.h"
-
-// ------------------------------------------------------------------------------------ //
-// Добавить переменную в материал
-// ------------------------------------------------------------------------------------ //
-void le::Material::AddVar( IMaterialVar* MaterialVar )
-{
-	LIFEENGINE_ASSERT( MaterialVar );
-	
-	std::string			varName = MaterialVar->GetName();
-
-	for ( UInt32_t index = 0, count = vars.size(); index < count; ++index )
-		if ( vars[ index ]->GetName() == varName )
-		{
-			g_consoleSystem->PrintError( "Material var [%s] already exist in material [%s]", varName.c_str(), name.c_str() );
-			return;
-		}
-
-	vars.push_back( ( le::MaterialVar* ) MaterialVar );
-}
 
 // ------------------------------------------------------------------------------------ //
 // Найти переменную
@@ -56,15 +38,12 @@ le::IMaterialVar* le::Material::FindVar( const char* Name )
 void le::Material::Clear()
 {
 	shader = nullptr;
-	vars.clear();
-}
+	surface = "unknow";
 
-// ------------------------------------------------------------------------------------ //
-// Задать название материала
-// ------------------------------------------------------------------------------------ //
-void le::Material::SetName( const char* Name )
-{
-	name = Name;
+	for ( UInt32_t index = 0, count = vars.size(); index < count; ++index )
+		delete vars[ index ];
+
+	vars.clear();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -72,18 +51,35 @@ void le::Material::SetName( const char* Name )
 // ------------------------------------------------------------------------------------ //
 void le::Material::SetShader( const char* Name )
 {
-	IShader*		tempShader = g_materialSystem->FindShader( Name );
-	if ( !tempShader ) return;
+	IShader*				tempShader = g_materialSystem->FindShader( Name );
+	if ( !tempShader )		return;
 
+	ShaderParamInfo*		shaderParams = tempShader->GetParams();
+	if ( !shaderParams )	return;
+
+	for ( UInt32_t index = 0, count = vars.size(); index < count; ++index )
+		delete vars[ index ];
+
+	vars.clear();
+
+	for ( UInt32_t index = 0, count = tempShader->GetCountParams(); index < count; ++index )
+	{
+		ShaderParamInfo&	shaderParam = shaderParams[ index ];	
+		MaterialVar*		materialVar = new MaterialVar();
+
+		materialVar->SetName( shaderParam.name );
+		vars.push_back( materialVar );
+	}
+	
 	shader = tempShader;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить название материала
+// Задать название поверхности
 // ------------------------------------------------------------------------------------ //
-const char* le::Material::GetName() const
+void le::Material::SetSurfaceName( const char* Name )
 {
-	return name.c_str();
+	surface = Name;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -92,6 +88,14 @@ const char* le::Material::GetName() const
 const char* le::Material::GetShaderName() const
 {
 	return shader ? shader->GetName() : "";
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить название поверхности
+// ------------------------------------------------------------------------------------ //
+const char* le::Material::GetSurfaceName() const
+{
+	return surface.c_str();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -123,6 +127,14 @@ le::IMaterialVar** le::Material::GetVars() const
 // Конструктор
 // ------------------------------------------------------------------------------------ //
 le::Material::Material() :
-	name( "unknow" ),
+	surface( "unknow" ),
 	shader( nullptr )
 {}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+le::Material::~Material()
+{
+	Clear();
+}
