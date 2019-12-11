@@ -8,30 +8,20 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#include <string.h>
-
-#include "studiorenderfactory.h"
-#include "gpuprogram.h"
-#include "texture.h"
-#include "mesh.h"
+#include "indexbufferobject.h"
 
 // ------------------------------------------------------------------------------------ //
-// Создать объект
+// Конструктор
 // ------------------------------------------------------------------------------------ //
-void* le::StudioRenderFactory::Create( const char* NameInterface )
+le::IndexBufferObject::IndexBufferObject( TYPE_USAGE_BUFFER TypeUsage ) :
+	typeUsage( TypeUsage ),
+	handle( 0 )
+{}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+le::IndexBufferObject::~IndexBufferObject()
 {
-	if ( strcmp( NameInterface, GPUPROGRAM_INTERFACE_VERSION ) == 0 )			return new GPUProgram();
-	else if ( strcmp( NameInterface, TEXTURE_INTERFACE_VERSION ) == 0 )			return new Texture();
-	else if ( strcmp( NameInterface, MESH_INTERFACE_VERSION ) == 0 )			return new Mesh();
-
-	return nullptr;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Удалить объект
-// ------------------------------------------------------------------------------------ //
-void le::StudioRenderFactory::Delete( void* Object )
-{
-	if ( !Object ) return;
-	delete Object;
+	Delete();
 }
