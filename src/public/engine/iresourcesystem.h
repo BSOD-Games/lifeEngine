@@ -22,10 +22,12 @@ namespace le
 	struct Image;
 	class ITexture;
 	class IMaterial;
+	class IMesh;
 
 	typedef		void			( *LoadImageFn_t )( const char* Path, Image& Image, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels );
 	typedef		ITexture*		( *LoadTextureFn_t )( const char* Path, IFactory* StudioRenderFactory );
 	typedef		IMaterial*		( *LoadMaterialFn_t )( const char* Path, IResourceSystem* ResourceSystem, IFactory* MaterialSystemFactory );
+	typedef		IMesh*			( *LoadMeshFn_t )( const char* Path, IResourceSystem* ResourceSystem, IFactory* StudioRenderFactory );
 
 	//---------------------------------------------------------------------//
 
@@ -35,22 +37,28 @@ namespace le
 		virtual void					RegisterLoader_Image( const char* Format, LoadImageFn_t LoadImage ) = 0;
 		virtual void					RegisterLoader_Texture( const char* Format, LoadTextureFn_t LoadTexture ) = 0;
 		virtual void					RegisterLoader_Material( const char* Format, LoadMaterialFn_t LoadMaterial ) = 0;
+		virtual void					RegisterLoader_Mesh( const char* Format, LoadMeshFn_t LoadMesh ) = 0;
 		virtual void					UnregisterLoader_Image( const char* Format ) = 0;
 		virtual void					UnregisterLoader_Texture( const char* Format ) = 0;
 		virtual void					UnregisterLoader_Material( const char* Format ) = 0;
+		virtual void					UnregisterLoader_Mesh( const char* Format ) = 0;
 
 		virtual Image					LoadImage( const char* Path, bool& IsError, bool IsFlipVertical = false, bool IsSwitchRedAndBlueChannels = false ) = 0;		
 		virtual ITexture*				LoadTexture( const char* Name, const char* Path ) = 0;
 		virtual IMaterial*				LoadMaterial( const char* Name, const char* Path ) = 0;
+		virtual IMesh*					LoadMesh( const char* Name, const char* Path ) = 0;
 		virtual void					UnloadImage( Image& Image ) = 0;
 		virtual void					UnloadTexture( const char* Name ) = 0;
 		virtual void					UnloadMaterial( const char* Name ) = 0;
-		virtual void					UnloadMaterials() = 0;
+		virtual void					UnloadMesh( const char* Name ) = 0;		
 		virtual void					UnloadTextures() = 0;
+		virtual void					UnloadMaterials() = 0;
+		virtual void					UnloadMeshes() = 0;
 		virtual void					UnloadAll() = 0;
 
 		virtual ITexture*				GetTexture( const char* Name ) const = 0;
 		virtual IMaterial*				GetMaterial( const char* Name ) const = 0;
+		virtual IMesh*					GetMesh( const char* Name ) const = 0;
 	};
 
 	//---------------------------------------------------------------------//
@@ -59,4 +67,3 @@ namespace le
 //---------------------------------------------------------------------//
 
 #endif // !IRESOURCESYSTEM_H
-

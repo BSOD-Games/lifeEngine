@@ -20,6 +20,10 @@
 // ------------------------------------------------------------------------------------ //
 void le::Mesh::Create( const MeshDescriptor& MeshDescriptor )
 {
+	if ( ( MeshDescriptor.sizeVerteces > 0 && !MeshDescriptor.verteces ) || 
+		( MeshDescriptor.countIndeces > 0 && !MeshDescriptor.indeces ) )
+		return;
+
 	if ( isCreated )		Delete();
 
 	// Запоминаем материалы
@@ -42,22 +46,22 @@ void le::Mesh::Create( const MeshDescriptor& MeshDescriptor )
 	indexBufferObject.Allocate( MeshDescriptor.indeces, MeshDescriptor.countIndeces * sizeof( UInt32_t ) );
 
 	VertexBufferLayout				vertexBufferLayout;
-	for ( UInt32_t index = 0; index < MeshDescriptor.vertexFormat.countElements; ++index )
-		switch ( MeshDescriptor.vertexFormat.elements[ index ].type )
+	for ( UInt32_t index = 0; index < MeshDescriptor.countVertexElements; ++index )
+		switch ( MeshDescriptor.vertexElements[ index ].type )
 		{
 		case VET_FLOAT:
-			vertexBufferLayout.PushFloat( MeshDescriptor.vertexFormat.elements[ index ].count );
+			vertexBufferLayout.PushFloat( MeshDescriptor.vertexElements[ index ].count );
 			break;
 
 		case VET_UNSIGNED_INT:
-			vertexBufferLayout.PushUInt( MeshDescriptor.vertexFormat.elements[ index ].count );
+			vertexBufferLayout.PushUInt( MeshDescriptor.vertexElements[ index ].count );
 			break;
 
 		case VET_UNSIGNED_BYTE:
-			vertexBufferLayout.PushUByte( MeshDescriptor.vertexFormat.elements[ index ].count );
+			vertexBufferLayout.PushUByte( MeshDescriptor.vertexElements[ index ].count );
 			break;
 		}
-
+	
 	vertexArrayObject.Bind();
 	vertexArrayObject.AddBuffer( vertexBufferObject, vertexBufferLayout );
 	vertexArrayObject.AddBuffer( indexBufferObject );

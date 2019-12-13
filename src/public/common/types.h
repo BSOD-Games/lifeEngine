@@ -12,6 +12,7 @@
 #define TYPES_H
 
 #include "mathlib/glm.hpp"
+#include "mathlib/gtx/quaternion.hpp"
 
 //---------------------------------------------------------------------//
 
@@ -31,6 +32,7 @@ namespace le
 	typedef		glm::vec2			Vector2D_t;
 	typedef		glm::vec3			Vector3D_t;
 	typedef		glm::vec4			Vector4D_t;
+	typedef		glm::quat			Quaternion_t;
 	typedef		glm::mat4			Matrix4x4_t;
 
 	//---------------------------------------------------------------------//

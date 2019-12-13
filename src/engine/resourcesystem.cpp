@@ -17,6 +17,8 @@
 #include <rapidjson/writer.h>
 
 #include "common/image.h"
+#include "common/meshsurface.h"
+#include "common/meshdescriptor.h"
 #include "engine/lifeengine.h"
 #include "engine/engine.h"
 #include "materialsystem/imaterialsystem.h"
@@ -24,10 +26,21 @@
 #include "materialsystem/imaterialvar.h"
 #include "studiorender/istudiorender.h"
 #include "studiorender/itexture.h"
+#include "studiorender/imesh.h"
+#include "studiorender/studiovertexelement.h"
 
 #include "global.h"
 #include "consolesystem.h"
 #include "resourcesystem.h"
+
+struct Vertex
+{
+	le::Vector3D_t			position;
+	le::Vector3D_t			normal;
+	le::Vector2D_t			texCoords;
+	le::Vector3D_t			tangent;
+	le::Vector3D_t			bitangent;
+};
 
 // ------------------------------------------------------------------------------------ //
 // Преобразовать JSON массив в 2D вектор 
@@ -274,6 +287,136 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 }
 
 // ------------------------------------------------------------------------------------ //
+// Загрузить меш
+// ------------------------------------------------------------------------------------ //
+le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, le::IFactory* StudioRenderFactory )
+{
+	std::ifstream				file( Path, std::ios::binary );
+	if ( !file.is_open() )		return nullptr;
+
+	// Читаем заголовок файла
+	char						strId[ 3 ];
+	le::UInt16_t				version = 0;
+
+	const char					loader_strId[ 3 ] = { 'L', 'M', 'D' };
+	const le::UInt16_t			loader_version = 2;
+
+	file.read( strId, 3 );
+	file.read( ( char* ) &version, sizeof( le::UInt16_t ) );
+	if ( strncmp( strId, loader_strId, 3 ) != 0 || version != loader_version )		return nullptr;
+
+	// Читаем все материалы модели
+	le::UInt32_t						sizeString = 0;
+	le::UInt32_t						sizeArrayMaterials = 0;
+	std::string*						routeMaterial = nullptr;
+	std::vector< std::string >			arrayRouteMaterials;
+	std::vector< le::IMaterial* >		arrayMaterials;
+
+	file.read( ( char* ) &sizeArrayMaterials, sizeof( le::UInt32_t ) );
+	arrayRouteMaterials.resize( sizeArrayMaterials );
+
+	for ( le::UInt32_t index = 0; index < sizeArrayMaterials; ++index )
+	{
+		routeMaterial = &arrayRouteMaterials[ index ];
+
+		file.read( ( char* ) &sizeString, sizeof( le::UInt32_t ) );
+		routeMaterial->resize( sizeString );
+		file.read( &( *routeMaterial )[ 0 ], sizeString );
+	}
+
+	// Загружаем материалы
+	for ( le::UInt32_t index = 0; index < sizeArrayMaterials; ++index )
+	{
+		le::IMaterial*			material = ResourceSystem->LoadMaterial( arrayRouteMaterials[ index ].c_str(), arrayRouteMaterials[ index ].c_str() );
+		if ( !material ) continue;
+
+		arrayMaterials.push_back( material );
+	}
+
+	// Читаем все вершины модели
+	le::UInt32_t						sizeArrayVerteces;
+	std::vector< Vertex >				arrayVerteces;
+
+	file.read( ( char* ) &sizeArrayVerteces, sizeof( le::UInt32_t ) );
+	arrayVerteces.resize( sizeArrayVerteces );
+	
+	if ( sizeArrayVerteces > 0 )
+		file.read( ( char* ) &arrayVerteces[ 0 ], sizeArrayVerteces * sizeof( Vertex ) );
+	else
+		return nullptr;
+
+	// Читаем все индексы модели
+	le::UInt32_t						sizeArrayIndices;
+	std::vector< le::UInt32_t >			arrayIndices;
+
+	file.read( ( char* ) &sizeArrayIndices, sizeof( le::UInt32_t ) );
+	arrayIndices.resize( sizeArrayIndices );
+
+	if ( sizeArrayIndices > 0 )
+		file.read( ( char* ) &arrayIndices[ 0 ], sizeArrayIndices * sizeof( le::UInt32_t ) );
+	else
+		return nullptr;
+
+	// Читаем все сетки модели
+	le::UInt32_t						sizeArraySurfaces;
+	std::vector< le::MeshSurface >		arraySurfaces;
+
+	file.read( ( char* ) &sizeArraySurfaces, sizeof( le::UInt32_t ) );
+	if ( sizeArraySurfaces == 0 )		return nullptr;
+
+	le::MeshSurface						surface;
+	for ( le::UInt32_t index = 0; index < sizeArraySurfaces; ++index )
+	{
+		file.read( ( char* ) &surface.materialID, sizeof( le::UInt32_t ) );
+		file.read( ( char* ) &surface.startIndex, sizeof( le::UInt32_t ) );
+		file.read( ( char* ) &surface.countIndeces, sizeof( le::UInt32_t ) );
+		arraySurfaces.push_back( surface );
+	}
+
+	if ( arraySurfaces.empty() )				return nullptr;
+
+	// Создаем сам меш
+	le::IMesh*				mesh = ( le::IMesh* ) StudioRenderFactory->Create( MESH_INTERFACE_VERSION );
+	if ( !mesh )				return nullptr;
+
+	// Создаем описание для формата вершин
+	std::vector< le::StudioVertexElement >			vertexElements =
+	{
+		{ 3, le::VET_FLOAT },
+		{ 3, le::VET_FLOAT },
+		{ 2, le::VET_FLOAT },
+		{ 3, le::VET_FLOAT },
+		{ 3, le::VET_FLOAT }
+	};
+
+	// Создаем описание меша для загрузки его в модуль рендера
+	le::MeshDescriptor				meshDescriptor;
+	meshDescriptor.countIndeces = arrayIndices.size();
+	meshDescriptor.countMaterials = arrayMaterials.size();
+	meshDescriptor.countSurfaces = arraySurfaces.size();
+	meshDescriptor.sizeVerteces = arrayVerteces.size() * sizeof( Vertex );
+
+	meshDescriptor.indeces = arrayIndices.data();
+	meshDescriptor.materials = arrayMaterials.data();
+	meshDescriptor.surfaces = arraySurfaces.data();
+	meshDescriptor.verteces = arrayVerteces.data();
+
+	meshDescriptor.primitiveType = le::PT_TRIANGLES;
+	meshDescriptor.countVertexElements = vertexElements.size();
+	meshDescriptor.vertexElements = vertexElements.data();
+
+	// Загружаем меш в GPU
+	mesh->Create( meshDescriptor );
+	if ( !mesh->IsCreated() )
+	{
+		StudioRenderFactory->Delete( mesh );
+		return nullptr;
+	}
+
+	return mesh;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Зарегестрировать загрузчик картинок
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::RegisterLoader_Image( const char* Format, LoadImageFn_t LoadImage )
@@ -307,6 +450,18 @@ void le::ResourceSystem::RegisterLoader_Material( const char* Format, LoadMateri
 
 	g_consoleSystem->PrintInfo( "Loader material for format [%s] registered", Format );
 	loaderMaterials[ Format ] = LoadMaterial;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Зарегестрировать загрузчик мешей
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader_Mesh( const char* Format, LoadMeshFn_t LoadMesh )
+{
+	LIFEENGINE_ASSERT( Format );
+	LIFEENGINE_ASSERT( LoadMesh );
+
+	g_consoleSystem->PrintInfo( "Loader mesh for format [%s] registered", Format );
+	loaderMeshes[ Format ] = LoadMesh;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -349,6 +504,20 @@ void le::ResourceSystem::UnregisterLoader_Material( const char* Format )
 
 	loaderMaterials.erase( it );
 	g_consoleSystem->PrintInfo( "Loader material for format [%s] unregistered", Format );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Разрегестрировать загрузчик мешей
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnregisterLoader_Mesh( const char* Format )
+{
+	LIFEENGINE_ASSERT( Format );
+
+	auto		it = loaderMeshes.find( Format );
+	if ( it == loaderMeshes.end() ) return;
+
+	loaderMeshes.erase( it );
+	g_consoleSystem->PrintInfo( "Loader mesh for format [%s] unregistered", Format );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -464,6 +633,46 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
 }
 
 // ------------------------------------------------------------------------------------ //
+// Загрузить меш
+// ------------------------------------------------------------------------------------ //
+le::IMesh* le::ResourceSystem::LoadMesh( const char* Name, const char* Path )
+{
+	LIFEENGINE_ASSERT( Name );
+	LIFEENGINE_ASSERT( Path );
+
+	try
+	{
+		if ( !studioRenderFactory )							throw std::exception( "Resource system not initialized" );
+
+		if ( meshes.find( Name ) != meshes.end() )			return meshes[ Name ];
+		if ( loaderMeshes.empty() )							throw std::exception( "No mesh loaders" );
+
+		std::string			path = gameDir + "/" + Path;
+
+		g_consoleSystem->PrintInfo( "Loading mesh [%s] with name [%s]", Path, Name );
+
+		const char* format = strchr( Path, '.' );
+		if ( !format )								throw std::exception( "In mesh format not found" );
+
+		auto				parser = loaderMeshes.find( format + 1 );
+		if ( parser == loaderMeshes.end() )		throw std::exception( "Loader for format material not found" );
+
+		IMesh*				mesh = parser->second( path.c_str(), this, studioRenderFactory );
+		if ( !mesh )							throw std::exception( "Fail loading mesh" );
+
+		meshes.insert( std::make_pair( Name, mesh ) );
+		g_consoleSystem->PrintInfo( "Loaded mesh [%s]", Name );
+
+		return mesh;
+	}
+	catch ( std::exception & Exception )
+	{
+		g_consoleSystem->PrintError( "Mesh [%s] not loaded: %s", Path, Exception.what() );
+		return nullptr;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
 // Выгрузить картинку
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadImage( Image& Image )
@@ -519,6 +728,28 @@ void le::ResourceSystem::UnloadMaterial( const char* Name )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Выгрузить меш
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadMesh( const char* Name )
+{
+	LIFEENGINE_ASSERT( Name );
+
+	if ( !studioRenderFactory )
+	{
+		g_consoleSystem->PrintError( "Resource system not initialized" );
+		return;
+	}
+
+	auto				it = meshes.find( Name );
+	if ( it == meshes.end() )	return;
+
+	studioRenderFactory->Delete( it->second );
+	meshes.erase( it );
+
+	g_consoleSystem->PrintInfo( "Unloaded mesh [%s]", Name );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Выгрузить все материалы
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadMaterials()
@@ -536,6 +767,26 @@ void le::ResourceSystem::UnloadMaterials()
 
 	g_consoleSystem->PrintInfo( "Unloaded all materials" );
 	materials.clear();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Выгрузить все мешы
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadMeshes()
+{
+	if ( meshes.empty() ) return;
+
+	if ( !studioRenderFactory )
+	{
+		g_consoleSystem->PrintError( "Resource system not initialized" );
+		return;
+	}
+
+	for ( auto it = meshes.begin(), itEnd = meshes.end(); it != itEnd; ++it )
+		studioRenderFactory->Delete( it->second );
+
+	g_consoleSystem->PrintInfo( "Unloaded all meshes" );
+	meshes.clear();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -563,8 +814,9 @@ void le::ResourceSystem::UnloadTextures()
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadAll()
 {
-	UnloadTextures();
+	UnloadMeshes();	
 	UnloadMaterials();
+	UnloadTextures();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -589,6 +841,18 @@ le::IMaterial* le::ResourceSystem::GetMaterial( const char* Name ) const
 
 	auto	it = materials.find( Name );
 	if ( it != materials.end() )		return it->second;
+
+	return nullptr;
+}
+// ------------------------------------------------------------------------------------ //
+// Получить меш
+// ------------------------------------------------------------------------------------ //
+le::IMesh* le::ResourceSystem::GetMesh( const char* Name ) const
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto	it = meshes.find( Name );
+	if ( it != meshes.end() )		return it->second;
 
 	return nullptr;
 }
@@ -618,6 +882,8 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 		RegisterLoader_Texture( "tga", LE_LoadTexture );
 
 		RegisterLoader_Material( "lmt", LE_LoadMaterial );
+
+		RegisterLoader_Mesh( "lmd", LE_LoadMesh );
 	}
 	catch ( std::exception& Exception )
 	{

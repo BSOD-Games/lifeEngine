@@ -12,7 +12,6 @@
 #define MESH_DESCRIPTOR_H
 
 #include "common/types.h"
-#include "studiorender/studiovertexformat.h"
 
 //---------------------------------------------------------------------//
 
@@ -21,6 +20,7 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	struct MeshSurface;
+	struct StudioVertexElement;
 	class IMaterial;
 	enum PRIMITIVE_TYPE;
 
@@ -36,7 +36,8 @@ namespace le
 		IMaterial**				materials;
 		UInt32_t				countSurfaces;
 		MeshSurface*			surfaces;
-		StudioVertexFormat		vertexFormat;
+		UInt32_t				countVertexElements;
+		StudioVertexElement*	vertexElements;
 		PRIMITIVE_TYPE			primitiveType;
 	};
 
