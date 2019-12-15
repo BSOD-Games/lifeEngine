@@ -11,7 +11,9 @@
 #include "engine/lifeengine.h"
 #include "engine/iengine.h"
 #include "engine/iconsolesystem.h"
+#include "studiorender/istudiorender.h"
 
+#include "global.h"
 #include "shaderdll.h"
 #include "testshader.h"
 
@@ -22,6 +24,11 @@ LIFEENGINE_STDSHADERS_API( le::ShaderDLL );
 // ------------------------------------------------------------------------------------ //
 bool le::ShaderDLL::Initialize( IEngine* Engine )
 {
+	IStudioRender*		studioRender = Engine->GetStudioRender();
+	if ( !studioRender )		return false;
+
+	g_studioRenderFactory = studioRender->GetFactory();
+
 	shaders.push_back( new TestShader() );
 
 	return true;

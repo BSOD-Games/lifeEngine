@@ -11,14 +11,16 @@
 #include <string.h>
 
 #include "enginefactory.h"
-#include "concmd.h"
-#include "convar.h"
+#include "camera.h"
+
 
 // ------------------------------------------------------------------------------------ //
 // Создать объект
 // ------------------------------------------------------------------------------------ //
 void* le::EngineFactory::Create( const char* NameInterface )
 {
+	if ( strcmp( NameInterface, CAMERA_INTERFACE_VERSION ) == 0 )				return new Camera();
+
 	return nullptr;
 }
 

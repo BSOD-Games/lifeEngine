@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-#include "materialsystem/imaterial.h"
+#include "materialsystem/imaterialinternal.h"
 
 //---------------------------------------------------------------------//
 
@@ -27,9 +27,12 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class Material : public IMaterial
+	class Material : public IMaterialInternal
 	{
 	public:
+		// IMaterialInternal
+		virtual void				OnDrawElements( const Matrix4x4_t& Transformation, ICamera* Camera );
+
 		// IMaterial
 		virtual IMaterialVar*		FindVar( const char* Name );
 		virtual void				Clear();
@@ -47,7 +50,12 @@ namespace le
 		Material();
 		~Material();
 
+		bool						Refrash();
+		void						SetNeadRefrash();
+
 	private:
+		bool								isNeadRefrash;
+
 		IShader*							shader;
 		std::string							surface;
 		std::vector< MaterialVar* >			vars;

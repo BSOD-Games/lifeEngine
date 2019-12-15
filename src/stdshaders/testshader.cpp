@@ -8,6 +8,12 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include "engine/ifactory.h"
+#include "engine/icamera.h"
+#include "studiorender/igpuprogram.h"
+#include "studiorender/itexture.h"
+
+#include "global.h"
 #include "testshader.h"
 
 // ------------------------------------------------------------------------------------ //
@@ -15,14 +21,61 @@
 // ------------------------------------------------------------------------------------ //
 bool le::TestShader::InitInstance( UInt32_t CountParams, IMaterialVar** MaterialVars )
 {
-	return false;
+	gpuProgram = ( IGPUProgram* ) g_studioRenderFactory->Create( GPUPROGRAM_INTERFACE_VERSION );
+	if ( !gpuProgram ) return false;
+
+	ShaderDescriptor			shaderDescriptor;
+	shaderDescriptor.vertexShaderSource = " \
+	#version 330 core\n \
+	\n \
+	layout( location = 0 ) 			in vec3 vertex_position; \n \
+	layout( location = 2 ) 			in vec2 vertex_texCoords; \n \
+	\n \
+		out vec2 				texCoords; \n \
+	\n \
+		uniform mat4    		matrix_Projection; \n \
+		uniform mat4			matrix_Transformation; \n \
+	\n \
+	void main() \n \
+	{\n \
+		texCoords = vertex_texCoords; \n \
+		gl_Position = matrix_Projection * matrix_Transformation * vec4( vertex_position, 1.f ); \n \
+	}";
+
+	shaderDescriptor.fragmentShaderSource = " \
+	#version 330 core\n\
+	\n\
+		in vec2 				texCoords;\n\
+		out vec4				color;\n\
+	\n\
+		uniform sampler2D		basetexture;\n\
+	\n\
+	void main()\n\
+	{\n\
+		color = texture2D( basetexture, texCoords );\n\
+	}\n";
+
+	if ( !gpuProgram->Compile( shaderDescriptor ) )
+	{
+		g_studioRenderFactory->Delete( gpuProgram );
+		return false;
+	}
+
+	return true;
 }
 
 // ------------------------------------------------------------------------------------ //
 // Подготовка к отрисовке элементов
 // ------------------------------------------------------------------------------------ //
-void le::TestShader::OnBind( UInt32_t CountParams, IMaterialVar** MaterialVars )
-{}
+void le::TestShader::OnDrawElements( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera )
+{
+	if ( !gpuProgram ) return;
+	MaterialVars[ 0 ]->GetValueTexture()->Bind();
+
+	gpuProgram->Bind();
+	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
+	gpuProgram->SetUniform( "matrix_Projection", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
+}
 
 // ------------------------------------------------------------------------------------ //
 // Получить название шейдера
@@ -68,11 +121,11 @@ le::ShaderParamInfo* le::TestShader::GetParam( UInt32_t Index ) const
 // ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
-le::TestShader::TestShader()
+le::TestShader::TestShader() :
+	gpuProgram( nullptr )
 {
 	shaderParams =
 	{
-		{ "basetexture",	MVT_TEXTURE		},
-		{ "color",			MVT_VECTOR_4D	}
+		{ "basetexture",	MVT_TEXTURE		}
 	};
 }

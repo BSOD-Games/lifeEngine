@@ -37,7 +37,7 @@ namespace le
 		virtual MeshSurface*					GetSurfaces() const;
 		virtual UInt32_t						GetCountMaterials() const;
 		virtual IMaterial*						GetMaterial( UInt32_t Index ) const;
-		virtual IMaterial*						GetMaterials() const;
+		virtual IMaterial**						GetMaterials() const;
 
 		// Mesh
 		Mesh();

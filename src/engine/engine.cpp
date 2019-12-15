@@ -499,6 +499,8 @@ void le::Engine::RunSimulation()
 
 		if ( isFocus )
 		{	
+			// TODO: Исправить счетчик прошедшего времени, не удобно с ним работать
+
 			startTime = SDL_GetTicks();
 
 			game->Update( deltaTime );

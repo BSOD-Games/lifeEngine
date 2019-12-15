@@ -16,8 +16,7 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	IConsoleSystem*				g_consoleSystem = nullptr;
-	StudioRender*				g_studioRender = nullptr;
+	IFactory*				g_studioRenderFactory = nullptr;
 
 	//---------------------------------------------------------------------//
 }

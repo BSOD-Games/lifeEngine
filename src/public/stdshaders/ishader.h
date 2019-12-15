@@ -12,7 +12,6 @@
 #define ISHADER_H
 
 #include "common/types.h"
-#include "materialsystem/imaterialvar.h"
 
 //---------------------------------------------------------------------//
 
@@ -21,6 +20,8 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	struct ShaderParamInfo;
+	class ICamera;
+	class IMaterialVar;
 
 	//---------------------------------------------------------------------//
 
@@ -28,7 +29,7 @@ namespace le
 	{
 	public:
 		virtual bool					InitInstance( UInt32_t CountParams, IMaterialVar** MaterialVars ) = 0;
-		virtual void					OnBind( UInt32_t CountParams, IMaterialVar** MaterialVars /*, ICamera* Camera */ ) = 0;
+		virtual void					OnDrawElements( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera ) = 0;
 
 		virtual const char*				GetName() const = 0;
 		virtual const char*				GetFallbackShader() const = 0;

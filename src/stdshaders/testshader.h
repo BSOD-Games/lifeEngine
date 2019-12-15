@@ -22,12 +22,16 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
+	class IGPUProgram;
+
+	//---------------------------------------------------------------------//
+
 	class TestShader : public IShader
 	{
 	public:
 		// IShader
 		virtual bool					InitInstance( UInt32_t CountParams, IMaterialVar** MaterialVars );
-		virtual void					OnBind( UInt32_t CountParams, IMaterialVar** MaterialVars /*, ICamera* Camera */ );
+		virtual void					OnDrawElements( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera );
 
 		virtual const char*				GetName() const;
 		virtual const char*				GetFallbackShader() const;
@@ -39,6 +43,7 @@ namespace le
 		TestShader();
 
 	private:
+		IGPUProgram*							gpuProgram;
 		std::vector< ShaderParamInfo >			shaderParams;
 	};
 

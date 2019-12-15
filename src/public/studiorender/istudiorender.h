@@ -21,6 +21,8 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	class IFactory;
+	class ICamera;
+	class IMesh;
 
 	//---------------------------------------------------------------------//
 
@@ -28,7 +30,7 @@ namespace le
 	{
 	public:
 		virtual void			ResizeViewport( UInt32_t X, UInt32_t Y, UInt32_t Width, UInt32_t Height ) = 0;
-		// TODO: добавить методы добавления геометрии на рендер кадра
+		virtual void			Draw( IMesh* Mesh, const Matrix4x4_t& Transformation, ICamera* Camera ) = 0;
 		
 		virtual void			SetVerticalSyncEnabled( bool IsEnabled = true ) = 0;
 		virtual IFactory*		GetFactory() const = 0;

@@ -18,12 +18,12 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	class IConsoleSystem;
-	extern IConsoleSystem*			g_consoleSystem;
+	extern IConsoleSystem*					g_consoleSystem;
 
 	//---------------------------------------------------------------------//
 
 	class StudioRender;
-	extern StudioRender*			g_studioRender;
+	extern StudioRender*					g_studioRender;
 
 	//---------------------------------------------------------------------//
 }

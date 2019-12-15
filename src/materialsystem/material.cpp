@@ -19,6 +19,22 @@
 #include "materialvar.h"
 
 // ------------------------------------------------------------------------------------ //
+// Приготовить материал к отрисовке геометрии
+// ------------------------------------------------------------------------------------ //
+void le::Material::OnDrawElements( const Matrix4x4_t& Transformation, ICamera* Camera )
+{
+	// TODO: Подправить систему материалов, она мне не нравится.
+	// 1. Не понятно как материалы сортировать по шейдерам, текстурам и т.д
+	// 2. Как-то криво происходит рендер геометрии
+	// 3. Убрать лишнии методы из публичных интерфейсов
+
+	LIFEENGINE_ASSERT( Camera );
+
+	if ( shader && ( !isNeadRefrash || Refrash() ) )
+		shader->OnDrawElements( vars.size(), ( IMaterialVar** ) vars.data(), Transformation, Camera );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Найти переменную
 // ------------------------------------------------------------------------------------ //
 le::IMaterialVar* le::Material::FindVar( const char* Name )
@@ -65,7 +81,7 @@ void le::Material::SetShader( const char* Name )
 	for ( UInt32_t index = 0, count = tempShader->GetCountParams(); index < count; ++index )
 	{
 		ShaderParamInfo&	shaderParam = shaderParams[ index ];	
-		MaterialVar*		materialVar = new MaterialVar();
+		MaterialVar*		materialVar = new MaterialVar( this );
 
 		materialVar->SetName( shaderParam.name );
 		vars.push_back( materialVar );
@@ -128,7 +144,8 @@ le::IMaterialVar** le::Material::GetVars() const
 // ------------------------------------------------------------------------------------ //
 le::Material::Material() :
 	surface( "unknow" ),
-	shader( nullptr )
+	shader( nullptr ),
+	isNeadRefrash( false )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -137,4 +154,38 @@ le::Material::Material() :
 le::Material::~Material()
 {
 	Clear();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Обновить материал
+// ------------------------------------------------------------------------------------ //
+bool le::Material::Refrash()
+{
+	try
+	{
+		if ( !shader )			throw;
+
+		while ( !shader->InitInstance( vars.size(), ( IMaterialVar** ) vars.data() ) )
+		{
+			const char*			fallbackShader = shader->GetFallbackShader();
+			if ( !fallbackShader || strcmp( fallbackShader, "" ) == 0 )		throw;
+
+			SetShader( fallbackShader );
+			if ( !shader )		throw;
+		}
+	}
+	catch ( ... )
+	{
+		return false;
+	}
+
+	return true;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Поставить метку на обновление материала
+// ------------------------------------------------------------------------------------ //
+void le::Material::SetNeadRefrash()
+{
+	isNeadRefrash = true;
 }

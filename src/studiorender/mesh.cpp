@@ -142,9 +142,9 @@ le::IMaterial* le::Mesh::GetMaterial( UInt32_t Index ) const
 // ------------------------------------------------------------------------------------ //
 // Получить массив материалов
 // ------------------------------------------------------------------------------------ //
-le::IMaterial* le::Mesh::GetMaterials() const
+le::IMaterial** le::Mesh::GetMaterials() const
 {
-	return ( IMaterial* ) materials.data();
+	return ( IMaterial** ) materials.data();
 }
 
 // ------------------------------------------------------------------------------------ //

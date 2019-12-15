@@ -11,6 +11,7 @@
 #include "engine/iconsolesystem.h"
 
 #include "global.h"
+#include "material.h"
 #include "materialvar.h"
 
 // ------------------------------------------------------------------------------------ //
@@ -56,6 +57,7 @@ void le::MaterialVar::SetValueFloat( float Value )
 {
 	type = MVT_FLOAT;
 	value_float = Value;
+	material->SetNeadRefrash();
 
 	isDefined = true;
 }
@@ -67,6 +69,7 @@ void le::MaterialVar::SetValueShaderFlag( bool Value )
 {
 	type = MVT_SHADER_FLAG;
 	value_shaderFlag = Value;
+	material->SetNeadRefrash();
 
 	isDefined = true;
 }
@@ -78,6 +81,7 @@ void le::MaterialVar::SetValueVector2D( const Vector2D_t& Value )
 {
 	type = MVT_VECTOR_2D;
 	value_vector2D = Value;
+	material->SetNeadRefrash();
 
 	isDefined = true;
 }
@@ -89,6 +93,7 @@ void le::MaterialVar::SetValueVector3D( const Vector3D_t& Value )
 {
 	type = MVT_VECTOR_3D;
 	value_vector3D = Value;
+	material->SetNeadRefrash();
 
 	isDefined = true;
 }
@@ -100,6 +105,7 @@ void le::MaterialVar::SetValueVector4D( const Vector4D_t& Value )
 {
 	type = MVT_VECTOR_4D;
 	value_vector4D = Value;
+	material->SetNeadRefrash();
 
 	isDefined = true;
 }
@@ -111,6 +117,7 @@ void le::MaterialVar::SetValueMatrix( const Matrix4x4_t& Value )
 {
 	type = MVT_MATRIX;
 	value_matrix4x4 = Value;
+	material->SetNeadRefrash();
 
 	isDefined = true;
 }
@@ -122,6 +129,7 @@ void le::MaterialVar::SetValueTexture( ITexture* Value )
 {
 	type = MVT_TEXTURE;
 	value_texture = Value;
+	material->SetNeadRefrash();
 
 	isDefined = true;
 }
@@ -217,7 +225,7 @@ le::ITexture* le::MaterialVar::GetValueTexture() const
 // ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
-le::MaterialVar::MaterialVar() :
+le::MaterialVar::MaterialVar( Material* Material ) :
 	isDefined ( false ),
 	value_int( 0 ),
 	value_float( 0.f ),
@@ -226,7 +234,8 @@ le::MaterialVar::MaterialVar() :
 	value_vector2D( 0.f ),
 	value_vector3D( 0.f ),
 	value_vector4D( 0.f ),
-	value_texture( nullptr )
+	value_texture( nullptr ),
+	material( Material )
 {}
 
 // ------------------------------------------------------------------------------------ //

@@ -8,7 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#include "global.h"
+#ifndef IMATERIAL_INTERNAL_H
+#define IMATERIAL_INTERNAL_H
+
+#include "materialsystem/imaterial.h"
 
 //---------------------------------------------------------------------//
 
@@ -16,10 +19,20 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	IConsoleSystem*				g_consoleSystem = nullptr;
-	StudioRender*				g_studioRender = nullptr;
+	class ICamera;
+
+	//---------------------------------------------------------------------//
+
+	class IMaterialInternal : public IMaterial
+	{
+	public:
+		virtual void			OnDrawElements( const Matrix4x4_t& Transformation, ICamera* Camera ) = 0;
+	};
 
 	//---------------------------------------------------------------------//
 }
 
 //---------------------------------------------------------------------//
+
+#endif // !IMATERIAL_INTERNAL_H
+

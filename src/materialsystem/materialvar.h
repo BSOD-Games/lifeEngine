@@ -21,6 +21,10 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
+	class Material;
+
+	//---------------------------------------------------------------------//
+
 	class MaterialVar : public IMaterialVar
 	{
 	public:
@@ -50,7 +54,7 @@ namespace le
 		virtual ITexture*				GetValueTexture() const;
 
 		// MaterialVar
-		MaterialVar();
+		MaterialVar( Material* Material );
 		~MaterialVar();
 
 	private:
@@ -58,6 +62,7 @@ namespace le
 
 		std::string				name;
 		MATERIAL_VAR_TYPE		type;
+		Material*				material;
 
 		union
 		{

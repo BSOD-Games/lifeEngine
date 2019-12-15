@@ -22,6 +22,7 @@ namespace le
 
 	class IGPUProgram
 	{
+	public:
 		virtual bool				Compile( const ShaderDescriptor& ShaderDescriptor, UInt32_t CountDefines = 0, const char** Defines = nullptr ) = 0;
 		virtual void				Bind() = 0;
 		virtual void				Unbind() = 0;
