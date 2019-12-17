@@ -76,7 +76,7 @@ le::Engine::Engine() :
 	configurations.fov = 75.f;
 	configurations.isFullscreen = false;
 	configurations.isVerticalSinc = false;
-	configurations.sensitivityMouse = 1.f;
+	configurations.sensitivityMouse = 0.15f;
 	configurations.windowWidth = 800;
 	configurations.windowHeight = 600;
 
@@ -396,6 +396,10 @@ bool le::Engine::LoadConfig( const char* FilePath )
 				// Полноэкраный ли режим
 				else if ( strcmp( itObject->name.GetString(), "fullscreen" ) == 0 && itObject->value.IsBool() )
 					configurations.isFullscreen = itObject->value.GetBool();
+
+				// Чувствительность мышки
+				else if ( strcmp( itObject->name.GetString(), "sensitivityMouse" ) == 0 && itObject->value.IsNumber() )
+					configurations.sensitivityMouse = itObject->value.GetFloat();
 			}
 
 			// Параметры рендера
@@ -434,7 +438,8 @@ bool le::Engine::SaveConfig( const char* FilePath )
 	\"general\": {\n\
 		\"width\": " << configurations.windowWidth << ",\n\
 		\"height\" : " << configurations.windowHeight << ",\n\
-		\"fullscreen\" : " << ( configurations.isFullscreen ? "true" : "false" ) << "\n\
+		\"fullscreen\" : " << ( configurations.isFullscreen ? "true" : "false" ) << ",\n\
+		\"sensitivityMouse\" : " << configurations.sensitivityMouse << ",\n\
 	},\n\
 \n\
 	\"studiorender\": {\n\
@@ -470,7 +475,7 @@ void le::Engine::RunSimulation()
 
 	while ( isRunSimulation )
 	{
-		// TODO: добавить обработку событий окна
+		inputSystem.Clear();
 
 		while ( window.PollEvent( event ) )
 		{
@@ -486,6 +491,16 @@ void le::Engine::RunSimulation()
 
 			case Event::ET_WINDOW_FOCUS_LOST:
 				isFocus = false;
+				break;
+
+			case Event::ET_KEY_PRESSED:
+			case Event::ET_KEY_RELEASED:
+			case Event::ET_MOUSE_MOVE:
+			case Event::ET_MOUSE_PRESSED:
+			case Event::ET_MOUSE_RELEASED:
+			case Event::ET_MOUSE_WHEEL:
+			case Event::ET_TEXT_INPUT:
+				inputSystem.ApplyEvent( event );
 				break;
 
 			case Event::ET_WINDOW_RESIZE:
@@ -571,6 +586,14 @@ le::IMaterialSystem* le::Engine::GetMaterialSystem() const
 le::IResourceSystem* le::Engine::GetResourceSystem() const
 {
 	return ( IResourceSystem* ) &resourceSystem;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить систему ввода
+// ------------------------------------------------------------------------------------ //
+le::IInputSystem* le::Engine::GetInputSystem() const
+{
+	return ( IInputSystem* ) &inputSystem;
 }
 
 // ------------------------------------------------------------------------------------ //
