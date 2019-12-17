@@ -29,21 +29,23 @@
 LIFEENGINE_STUDIORENDER_API( le::StudioRender );
 
 // ------------------------------------------------------------------------------------ //
-// Изменить размер вьюпорта
+// Начать отрисовку сцены
 // ------------------------------------------------------------------------------------ //
-void le::StudioRender::ResizeViewport( UInt32_t X, UInt32_t Y, UInt32_t Width, UInt32_t Height )
+void le::StudioRender::BeginScene( ICamera* Camera )
 {
-	if ( !renderContext.IsCreated() ) return;
-	glViewport( X, Y, Width, Height );
+	LIFEENGINE_ASSERT( Camera );
+
+	currentScene = scenes.size();
+	scenes.push_back( SceneDescriptor() );
+	scenes[ currentScene ].camera = Camera;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Добавить модель в очередь на отрисовку
+// Добавить меш в очередь на отрисовку
 // ------------------------------------------------------------------------------------ //
-void le::StudioRender::Draw( IMesh* Mesh, const Matrix4x4_t& Transformation, ICamera* Camera )
+void le::StudioRender::SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation )
 {
 	LIFEENGINE_ASSERT( Mesh );
-
 	if ( !Mesh->IsCreated() ) return;
 
 	le::Mesh*			mesh = ( le::Mesh* ) Mesh;
@@ -76,9 +78,15 @@ void le::StudioRender::Draw( IMesh* Mesh, const Matrix4x4_t& Transformation, ICa
 		renderObject.countIndeces = surface->countIndeces;
 		renderObject.material = ( IMaterialInternal* ) materials[ surface->materialID ];
 
-		renderObjects[ Camera ].push_back( renderObject );
+		scenes[ currentScene ].renderObjects.push_back( renderObject );
 	}
 }
+
+// ------------------------------------------------------------------------------------ //
+// Закончить отрисовку сцены
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::EndScene()
+{}
 
 // ------------------------------------------------------------------------------------ //
 // Инициализировать рендер
@@ -133,31 +141,55 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 	glEnable( GL_BLEND );
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
+	viewport.x = viewport.y = 0;
+	Engine->GetWindow()->GetSize( viewport.width, viewport.height );
+
 	return true;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Отрисовать кадр
+// Подготовить систему к отрисовке кадра
 // ------------------------------------------------------------------------------------ //
-void le::StudioRender::RenderFrame()
+void le::StudioRender::Begin()
 {
-	if ( !renderContext.IsCreated() ) return;
+	LIFEENGINE_ASSERT( renderContext.IsCreated() );
+	glViewport( viewport.x, viewport.y, viewport.width, viewport.height );
 
+	currentScene = 0;
+	scenes.clear();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Закончить отрисовку кадра
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::End()
+{
+	// TODO: Добавить сортировку по материалам
+}
+
+// ------------------------------------------------------------------------------------ //
+// Визуализировать кадр
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::Present()
+{
+	LIFEENGINE_ASSERT( renderContext.IsCreated() );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-	// TODO: Поменять метод отрисовки геометрии, ибо сейчас просадка FPS
-	for ( auto it = renderObjects.begin(), itEnd = renderObjects.end(); it != itEnd; ++it )
-		for ( UInt32_t index = 0, count = it->second.size(); index < count; ++index )
-		{
-			RenderObject* renderObject = &it->second[ index ];
+	for ( UInt32_t indexScene = 0, countScenes = scenes.size(); indexScene < countScenes; ++indexScene )
+	{
+		SceneDescriptor&			sceneDescriptor = scenes[ indexScene ];
 
-			renderObject->material->OnDrawElements( renderObject->transformation, it->first );
-			renderObject->vertexArrayObject->Bind();
-			glDrawElements( renderObject->primitiveType, renderObject->countIndeces, GL_UNSIGNED_INT, ( void* ) ( renderObject->startIndex * sizeof( UInt32_t ) ) );
+		for ( UInt32_t indexObject = 0, countObjects = sceneDescriptor.renderObjects.size(); indexObject < countObjects; ++indexObject )
+		{
+			RenderObject&			renderObject = sceneDescriptor.renderObjects[ indexObject ];
+
+			renderObject.material->OnDrawMesh( renderObject.transformation, sceneDescriptor.camera );
+			renderObject.vertexArrayObject->Bind();
+			glDrawElements( renderObject.primitiveType, renderObject.countIndeces, GL_UNSIGNED_INT, ( void* ) ( renderObject.startIndex * sizeof( UInt32_t ) ) );
 		}
+	}
 
 	renderContext.SwapBuffers();
-	renderObjects.clear();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -165,8 +197,16 @@ void le::StudioRender::RenderFrame()
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::SetVerticalSyncEnabled( bool IsEnabled )
 {
-	if ( !renderContext.IsCreated() ) return;
+	LIFEENGINE_ASSERT( renderContext.IsCreated() );
 	renderContext.SetVerticalSync( IsEnabled );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Задать порт вывода
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::SetViewport( const StudioRenderViewport& Viewport )
+{
+	viewport = Viewport;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -178,10 +218,19 @@ le::IFactory* le::StudioRender::GetFactory() const
 }
 
 // ------------------------------------------------------------------------------------ //
+// Получить порт вывода
+// ------------------------------------------------------------------------------------ //
+const le::StudioRenderViewport& le::StudioRender::GetViewport() const
+{
+	return viewport;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
 le::StudioRender::StudioRender() :
-	isInitialize( false )
+	isInitialize( false ),
+	currentScene( 0 )
 {
 	LIFEENGINE_ASSERT( !g_studioRender );
 	g_studioRender = this;

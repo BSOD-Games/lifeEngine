@@ -38,7 +38,7 @@ namespace le
 		virtual void				SetSize( int Width, int Height );
 		virtual void				SetShowCursor( bool IsShow = true );
 
-		virtual void				GetSize( int& Width, int& Height ) const;
+		virtual void				GetSize( UInt32_t& Width, UInt32_t& Height ) const;
 		virtual bool				IsOpen() const;
 		virtual WindowHandle_t		GetHandle() const;
 

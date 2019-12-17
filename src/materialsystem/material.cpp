@@ -21,17 +21,13 @@
 // ------------------------------------------------------------------------------------ //
 // Приготовить материал к отрисовке геометрии
 // ------------------------------------------------------------------------------------ //
-void le::Material::OnDrawElements( const Matrix4x4_t& Transformation, ICamera* Camera )
+void le::Material::OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera )
 {
 	// TODO: Подправить систему материалов, она мне не нравится.
-	// 1. Не понятно как материалы сортировать по шейдерам, текстурам и т.д
-	// 2. Как-то криво происходит рендер геометрии
-	// 3. Убрать лишнии методы из публичных интерфейсов
-
-	LIFEENGINE_ASSERT( Camera );
+	// Не понятно как материалы сортировать по шейдерам, текстурам и т.д
 
 	if ( shader && ( !isNeadRefrash || Refrash() ) )
-		shader->OnDrawElements( vars.size(), ( IMaterialVar** ) vars.data(), Transformation, Camera );
+		shader->OnDrawMesh( vars.size(), ( IMaterialVar** ) vars.data(), Transformation, Camera );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -179,6 +175,7 @@ bool le::Material::Refrash()
 		return false;
 	}
 
+	isNeadRefrash = false;
 	return true;
 }
 

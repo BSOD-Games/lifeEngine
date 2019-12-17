@@ -31,7 +31,7 @@ namespace le
 	public:
 		// IShader
 		virtual bool					InitInstance( UInt32_t CountParams, IMaterialVar** MaterialVars );
-		virtual void					OnDrawElements( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera );
+		virtual void					OnDrawMesh( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera );
 
 		virtual const char*				GetName() const;
 		virtual const char*				GetFallbackShader() const;

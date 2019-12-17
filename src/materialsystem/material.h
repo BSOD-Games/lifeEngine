@@ -31,7 +31,7 @@ namespace le
 	{
 	public:
 		// IMaterialInternal
-		virtual void				OnDrawElements( const Matrix4x4_t& Transformation, ICamera* Camera );
+		virtual void				OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera );
 
 		// IMaterial
 		virtual IMaterialVar*		FindVar( const char* Name );

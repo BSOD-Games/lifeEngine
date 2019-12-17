@@ -27,7 +27,9 @@ namespace le
 	{
 	public:
 		virtual bool			Initialize( IEngine* Engine ) = 0;
-		virtual void			RenderFrame() = 0;
+		virtual void			Begin() = 0;
+		virtual void			End() = 0;
+		virtual void			Present() = 0;
 	};
 
 	//---------------------------------------------------------------------//

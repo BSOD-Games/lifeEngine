@@ -67,7 +67,7 @@ bool le::TestShader::InitInstance( UInt32_t CountParams, IMaterialVar** Material
 // ------------------------------------------------------------------------------------ //
 // Подготовка к отрисовке элементов
 // ------------------------------------------------------------------------------------ //
-void le::TestShader::OnDrawElements( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera )
+void le::TestShader::OnDrawMesh( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera )
 {
 	if ( !gpuProgram ) return;
 	MaterialVars[ 0 ]->GetValueTexture()->Bind();

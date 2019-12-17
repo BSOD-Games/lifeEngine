@@ -8,8 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef ISHADER_H
-#define ISHADER_H
+#ifndef RENDER_OBJECT_H
+#define RENDE_ROBJECT_H
 
 #include "common/types.h"
 
@@ -19,23 +19,19 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	struct ShaderParamInfo;
-	class ICamera;
-	class IMaterialVar;
+	class VertexArrayObject;
+	class IMaterialInternal;
 
 	//---------------------------------------------------------------------//
 
-	class IShader
+	struct RenderObject
 	{
-	public:
-		virtual bool					InitInstance( UInt32_t CountParams, IMaterialVar** MaterialVars ) = 0;
-		virtual void					OnDrawMesh( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera ) = 0;
-
-		virtual const char*				GetName() const = 0;
-		virtual const char*				GetFallbackShader() const = 0;
-		virtual UInt32_t				GetCountParams() const = 0;
-		virtual ShaderParamInfo*		GetParam( UInt32_t Index ) const = 0;
-		virtual ShaderParamInfo*		GetParams() const = 0;
+		VertexArrayObject*		vertexArrayObject;
+		IMaterialInternal*		material;
+		UInt32_t				startIndex;
+		UInt32_t				countIndeces;
+		UInt32_t				primitiveType;
+		Matrix4x4_t				transformation;
 	};
 
 	//---------------------------------------------------------------------//
@@ -43,5 +39,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !ISHADER_H
-
+#endif // !RENDE_ROBJECT_H

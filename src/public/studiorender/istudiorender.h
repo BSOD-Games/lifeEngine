@@ -23,17 +23,22 @@ namespace le
 	class IFactory;
 	class ICamera;
 	class IMesh;
+	struct StudioRenderViewport;
 
 	//---------------------------------------------------------------------//
 
 	class IStudioRender
 	{
 	public:
-		virtual void			ResizeViewport( UInt32_t X, UInt32_t Y, UInt32_t Width, UInt32_t Height ) = 0;
-		virtual void			Draw( IMesh* Mesh, const Matrix4x4_t& Transformation, ICamera* Camera ) = 0;
-		
-		virtual void			SetVerticalSyncEnabled( bool IsEnabled = true ) = 0;
-		virtual IFactory*		GetFactory() const = 0;
+		virtual void							BeginScene( ICamera* Camera ) = 0;
+		virtual void							SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation ) = 0;
+		virtual void							EndScene() = 0;
+				
+		virtual void							SetVerticalSyncEnabled( bool IsEnabled = true ) = 0;
+		virtual void							SetViewport( const StudioRenderViewport& Viewport ) = 0;
+
+		virtual IFactory*						GetFactory() const = 0;
+		virtual const StudioRenderViewport&		GetViewport() const = 0;
 	};
 
 	//---------------------------------------------------------------------//

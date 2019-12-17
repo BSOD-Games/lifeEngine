@@ -8,8 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef ISHADER_H
-#define ISHADER_H
+#ifndef STUDIORENDER_VIEWPORT_H
+#define STUDIORENDER_VIEWPORT_H
 
 #include "common/types.h"
 
@@ -19,23 +19,12 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	struct ShaderParamInfo;
-	class ICamera;
-	class IMaterialVar;
-
-	//---------------------------------------------------------------------//
-
-	class IShader
+	struct StudioRenderViewport
 	{
-	public:
-		virtual bool					InitInstance( UInt32_t CountParams, IMaterialVar** MaterialVars ) = 0;
-		virtual void					OnDrawMesh( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera ) = 0;
-
-		virtual const char*				GetName() const = 0;
-		virtual const char*				GetFallbackShader() const = 0;
-		virtual UInt32_t				GetCountParams() const = 0;
-		virtual ShaderParamInfo*		GetParam( UInt32_t Index ) const = 0;
-		virtual ShaderParamInfo*		GetParams() const = 0;
+		UInt32_t			x;
+		UInt32_t			y;
+		UInt32_t			width;
+		UInt32_t			height;
 	};
 
 	//---------------------------------------------------------------------//
@@ -43,5 +32,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !ISHADER_H
-
+#endif // !STUDIORENDER_VIEWPORT_H

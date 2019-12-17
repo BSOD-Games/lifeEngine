@@ -11,6 +11,7 @@
 #include <GL/glew.h>
 
 #include "engine/lifeengine.h"
+#include "studiorender/studiorendersampler.h"
 #include "global.h"
 #include "texture.h"
 
@@ -24,6 +25,38 @@ inline le::UInt32_t ConvertEngineImageFormat_To_OpenGLPixelFormat( le::IMAGE_FOR
 	case le::IF_RGBA:		return GL_RGBA;
 	case le::IF_RGB:		return GL_RGB;
 	default:				return 0;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Конвертировать тип фильтра текстуры движка в формат OpenGL'a
+// ------------------------------------------------------------------------------------ //
+inline le::UInt32_t ConvertEngineSamplerFilter_To_OpenGLTextureFilter( le::SAMPLER_FILTER Filter )
+{
+	switch ( Filter )
+	{
+	case le::SF_LINEAR:						return GL_LINEAR;
+	case le::SF_NEAREST:					return GL_NEAREST;
+	case le::SF_NEAREST_MIPMAP_NEAREST:		return GL_NEAREST_MIPMAP_NEAREST;
+	case le::SF_NEAREST_MIPMAP_LINEAR:		return GL_NEAREST_MIPMAP_LINEAR;
+	case le::SF_LINEAR_MIPMAP_NEAREST:		return GL_LINEAR_MIPMAP_NEAREST;
+	case le::SF_LINEAR_MIPMAP_LINEAR:		return GL_LINEAR_MIPMAP_LINEAR;
+	default:								return 0;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Конвертировать режим адрессации в текстуре в формат OpenGL'a
+// ------------------------------------------------------------------------------------ //
+inline le::UInt32_t ConvertEngineSamplerAddressMode_To_OpenGLTextureAddressMode( le::SAMPLER_ADDRESS_MODE AddressMode )
+{
+	switch ( AddressMode )
+	{
+	case le::SAM_BORDER:					return GL_CLAMP_TO_BORDER;
+	case le::SAM_CLAMP:						return GL_CLAMP_TO_EDGE;
+	case le::SAM_MIRROR:					return GL_MIRRORED_REPEAT;
+	case le::SAM_REPEAT:					return GL_REPEAT;
+	default:								return 0;
 	}
 }
 
@@ -105,7 +138,7 @@ void le::Texture::Append( const UInt8_t* Data, UInt32_t MipmapLevel )
 	UInt32_t		format = ConvertEngineImageFormat_To_OpenGLPixelFormat( imageFormat );
 	UInt32_t		width = GetWidth( MipmapLevel );
 	UInt32_t		height = GetHeight( MipmapLevel );
-
+	
 	glTexImage2D( GL_TEXTURE_2D, MipmapLevel, format, width, height, 0, format, GL_UNSIGNED_BYTE, Data );
 }
 
@@ -119,6 +152,23 @@ void le::Texture::Update( UInt32_t X, UInt32_t Y, UInt32_t Width, UInt32_t Heigh
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );	
 	glTexSubImage2D( GL_TEXTURE_2D, MipmapLevel, X, Y, Width, Height, ConvertEngineImageFormat_To_OpenGLPixelFormat( imageFormat ), GL_UNSIGNED_BYTE, Data );
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Задать семплер текстуры
+// ------------------------------------------------------------------------------------ //
+void le::Texture::SetSampler( const StudioRenderSampler& Sampler )
+{
+	LIFEENGINE_ASSERT( handle && layer );
+
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, ConvertEngineSamplerAddressMode_To_OpenGLTextureAddressMode( Sampler.addressU ) );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, ConvertEngineSamplerAddressMode_To_OpenGLTextureAddressMode( Sampler.addressV ) );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, ConvertEngineSamplerAddressMode_To_OpenGLTextureAddressMode( Sampler.addressW ) );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, ConvertEngineSamplerFilter_To_OpenGLTextureFilter( Sampler.minFilter ) );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, ConvertEngineSamplerFilter_To_OpenGLTextureFilter( Sampler.magFilter ) );
+	glTexParameterfv( GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, Sampler.borderColor );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, Sampler.minLod );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, Sampler.maxLod );
 }
 
 // ------------------------------------------------------------------------------------ //

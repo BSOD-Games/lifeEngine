@@ -178,7 +178,7 @@ void LE_LoadImage( const char* Path, le::Image& Image, bool& IsError, bool IsFli
 	FreeImage_Unload( bitmap );
 	return;
 }
-
+#include "studiorender/studiorendersampler.h"
 // ------------------------------------------------------------------------------------ //
 // Загрузить текстуру
 // ------------------------------------------------------------------------------------ //
@@ -194,9 +194,15 @@ le::ITexture* LE_LoadTexture( const char* Path, le::IFactory* StudioRenderFactor
 	if ( !texture )			return nullptr;
 
 	texture->Initialize( le::TT_2D, image.aMask > 0 ? le::IF_RGBA : le::IF_RGB, image.width, image.height );
-	texture->Bind();
-	texture->Append( image.data );
+	texture->Bind(); 
+	texture->Append( image.data );	
 	texture->GenerateMipmaps();
+
+	le::StudioRenderSampler			sampler;
+	sampler.minFilter = le::SF_LINEAR_MIPMAP_LINEAR;
+	sampler.magFilter = le::SF_LINEAR;
+	texture->SetSampler( sampler );
+
 	texture->Unbind();
 
 	delete[] image.data;

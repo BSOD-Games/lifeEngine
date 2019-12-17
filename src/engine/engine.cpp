@@ -28,6 +28,7 @@
 #include "engine/buildnum.h"
 #include "engine/resourcesystem.h"
 #include "studiorender/istudiorenderinternal.h"
+#include "studiorender/studiorenderviewport.h"
 #include "materialsystem/imaterialsysteminternal.h"
 
 LIFEENGINE_ENGINE_API( le::Engine );
@@ -488,7 +489,7 @@ void le::Engine::RunSimulation()
 				break;
 
 			case Event::ET_WINDOW_RESIZE:
-				studioRender->ResizeViewport( 0, 0, event.windowResize.width, event.windowResize.height );
+				studioRender->SetViewport( { 0, 0, ( UInt32_t ) event.windowResize.width, ( UInt32_t ) event.windowResize.height } );
 				break;
 
 			default: break;
@@ -502,10 +503,12 @@ void le::Engine::RunSimulation()
 			// TODO: Исправить счетчик прошедшего времени, не удобно с ним работать
 
 			startTime = SDL_GetTicks();
+			studioRender->Begin();
 
 			game->Update( deltaTime );
-			studioRender->RenderFrame();
 
+			studioRender->End();
+			studioRender->Present();
 			deltaTime = ( SDL_GetTicks() - startTime );
 		}
 	}

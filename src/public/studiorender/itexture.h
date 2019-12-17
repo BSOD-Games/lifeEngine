@@ -19,6 +19,10 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
+	struct StudioRenderSampler;
+
+	//---------------------------------------------------------------------//
+
 	enum IMAGE_FORMAT
 	{
 		IF_RGBA,
@@ -34,6 +38,9 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
+
+	//---------------------------------------------------------------------//
+
 	class ITexture
 	{
 	public:
@@ -44,6 +51,8 @@ namespace le
 		virtual void				GenerateMipmaps() = 0;
 		virtual void				Append( const UInt8_t* Data, UInt32_t MipmapLevel = 0 ) = 0;
 		virtual void				Update( UInt32_t X, UInt32_t Y, UInt32_t Width, UInt32_t Height, const UInt8_t* Data, UInt32_t MipmapLevel = 0 ) = 0;
+
+		virtual void				SetSampler( const StudioRenderSampler& Sampler ) = 0;
 
 		virtual bool				IsCreated() const = 0;
 		virtual UInt32_t			GetWidth( UInt32_t MipmapLevel = 0 ) const = 0;

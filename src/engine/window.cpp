@@ -92,10 +92,10 @@ void le::Window::SetShowCursor( bool IsShow )
 // ------------------------------------------------------------------------------------ //
 // Получить размер окна
 // ------------------------------------------------------------------------------------ //
-void le::Window::GetSize( int& Width, int& Height ) const
+void le::Window::GetSize( UInt32_t& Width, UInt32_t& Height ) const
 {
 	if ( !window ) Width = Height = 0;
-	SDL_GetWindowSize( window, &Width, &Height );
+	SDL_GetWindowSize( window, ( int* ) &Width, ( int* ) &Height );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -181,12 +181,6 @@ bool le::Window::PollEvent( Event& Event )
 
 	// События окна
 	case SDL_WINDOWEVENT:
-		if ( windowID != sdlEvent.window.windowID )
-		{
-			SDL_PushEvent( &sdlEvent );
-			break;
-		}
-
 		switch ( sdlEvent.window.event )
 		{
 		// Событие закрытия окна
