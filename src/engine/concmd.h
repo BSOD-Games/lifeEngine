@@ -11,6 +11,7 @@
 #ifndef CONCMD_H
 #define CONCMD_H
 
+#include <string>
 #include "engine/iconcmd.h"
 
 //---------------------------------------------------------------------//
@@ -36,7 +37,7 @@ namespace le
 		~ConCmd();
 
 	private:
-		const char*					name;
+		std::string					name;
 		ExecCallbackFn_t			execCallback;
 	};
 

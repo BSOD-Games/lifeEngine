@@ -71,6 +71,7 @@ le::Engine::Engine() :
 	LIFEENGINE_ASSERT( !g_engine );
 
 	g_consoleSystem = &consoleSystem;
+	g_inputSystem = &inputSystem;
 	g_engine = this;
 
 	configurations.fov = 75.f;
@@ -81,6 +82,7 @@ le::Engine::Engine() :
 	configurations.windowHeight = 600;
 
 	consoleSystem.Initialize();
+	inputSystem.Initialize( this );
 	cmd_Exit->Initialize( "exit", CMD_Exit );
 	cmd_Version->Initialize( "version", CMD_Version );
 
@@ -520,6 +522,7 @@ void le::Engine::RunSimulation()
 			startTime = SDL_GetTicks();
 			studioRender->Begin();
 
+			inputSystem.Update();
 			game->Update( deltaTime );
 
 			studioRender->End();

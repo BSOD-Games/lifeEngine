@@ -11,6 +11,9 @@
 #ifndef INPUTSYSTEM_H
 #define INPUTSYSTEM_H
 
+#include <string>
+#include <vector>
+
 #include "common/event.h"
 #include "common/keyboardkey.h"
 #include "common/mousekey.h"
@@ -22,11 +25,32 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
+	template< typename T >
+	struct BindDescriptor
+	{
+		BindDescriptor()
+		{}
+
+		BindDescriptor( T KeyTrigger, Event::EVENT_TYPE EventTrigger, const std::string& Command ) :
+			keyTrigger( KeyTrigger ),
+			eventTrigger( EventTrigger ),
+			command( Command )
+		{}
+
+		Event::EVENT_TYPE			eventTrigger;
+		T							keyTrigger;
+		std::string					command;
+	};
+
+	//---------------------------------------------------------------------//
+
 	class InputSystem : public IInputSystemInternal
 	{
 	public:
 		// IInputSystemInternal
+		virtual bool				Initialize( IEngine* Engine );
 		virtual void				ApplyEvent( const Event& Event );
+		virtual void				Update();
 		virtual void				Clear();
 
 		// IInputSystem
@@ -44,13 +68,19 @@ namespace le
 		InputSystem();
 		~InputSystem();
 
-	private:
-		Event::EVENT_TYPE			keyboardKeyEvents[ KK_KEY_COUNT ];
-		Event::EVENT_TYPE			mouseButtonEvents[ MK_KEY_COUNT ];
+		friend void					CMD_Bind( le::UInt32_t CountArguments, const char** Arguments );
 
-		MOUSE_WHEEL					mouseWheel;
-		Vector2D_t					mousePosition;
-		Vector2D_t					mouseOffset;
+	private:
+		
+		Event::EVENT_TYPE									keyboardKeyEvents[ KK_KEY_COUNT ];
+		Event::EVENT_TYPE									mouseButtonEvents[ MK_KEY_COUNT ];
+
+		MOUSE_WHEEL											mouseWheel;
+		Vector2D_t											mousePosition;
+		Vector2D_t											mouseOffset;
+
+		std::vector< BindDescriptor< KEYBOARD_KEY > >		keyboardBind;
+		std::vector< BindDescriptor< MOUSE_KEY > >			mousedBind;
 	};	
 
 	//---------------------------------------------------------------------//

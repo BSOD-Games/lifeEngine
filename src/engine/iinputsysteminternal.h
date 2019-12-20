@@ -27,7 +27,9 @@ namespace le
 	class IInputSystemInternal : public IInputSystem
 	{
 	public:
+		virtual bool			Initialize( IEngine* Engine ) = 0;
 		virtual void			ApplyEvent( const Event& Event ) = 0;
+		virtual void			Update() = 0;
 		virtual void			Clear() = 0;
 	};
 

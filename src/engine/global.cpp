@@ -20,6 +20,7 @@ namespace le
 	Engine*					g_engine = nullptr;
 	IStudioRender*			g_studioRender = nullptr;
 	IWindow*				g_window = nullptr;
+	InputSystem*			g_inputSystem = nullptr;
 
 	//---------------------------------------------------------------------//
 }
