@@ -27,27 +27,16 @@ namespace le
 	{
 		if ( CountArguments < 2 || !Arguments )
 		{
-			le::g_consoleSystem->PrintInfo( "using command \"bind\": bind <key> <command> (down/up, deffault = down)" );
-			le::g_consoleSystem->PrintInfo( "example: bind q exit" );
+			le::g_consoleSystem->PrintInfo( "Using command \"bind\": bind <key> <command>" );
+			le::g_consoleSystem->PrintInfo( "Example: bind q exit" );
+			return;
 		}
 
 		std::string					strButtonTrigger = Arguments[ 0 ];
 		for ( UInt32_t index = 0, count = strButtonTrigger.size(); index < count; ++index )
 			strButtonTrigger[ index ] = tolower( strButtonTrigger[ index ] );
-		
-		Event::EVENT_TYPE			eventTrigger = Event::ET_KEY_PRESSED;
-		if ( CountArguments >= 3 )
-		{
-			std::string				strEventTrigger = Arguments[ 2 ];
-			for ( UInt32_t index = 0, count = strEventTrigger.size(); index < count; ++index )
-				strEventTrigger[ index ] = tolower( strEventTrigger[ index ] );
 
-			if ( CountArguments >= 2 && strcmp( "up", strEventTrigger.c_str() ) == 0 )
-				eventTrigger = Event::ET_KEY_RELEASED;
-		}
-
-		// TODO: Исправить баг с тригерным событием (работает только для клавиш клавиатуры)
-		le::g_inputSystem->binds.push_back( le::BindDescriptor( ButtonCode_StringToButtonCode( strButtonTrigger.c_str() ), eventTrigger, Arguments[ 1 ] ) );
+		le::g_inputSystem->binds.push_back( le::BindDescriptor( ButtonCode_StringToButtonCode( strButtonTrigger.c_str() ), Arguments[ 1 ] ) );
 	}
 }
 
@@ -72,15 +61,11 @@ void le::InputSystem::ApplyEvent( const Event& Event )
 {
 	switch ( Event.type )
 	{
-	case Event::ET_KEY_PRESSED:
-	case Event::ET_KEY_RELEASED:
-		buttonEvents[ Event.key.code ] = Event.type;
-		break;
+	case Event::ET_KEY_PRESSED:			buttonEvents[ Event.key.code ] = BE_PRESSED;			break;
+	case Event::ET_KEY_RELEASED:		buttonEvents[ Event.key.code ] = BE_RELEASED;			break;
 
-	case Event::ET_MOUSE_PRESSED:
-	case Event::ET_MOUSE_RELEASED:
-		buttonEvents[ Event.mouseButton.code ] = Event.type;
-		break;
+	case Event::ET_MOUSE_PRESSED:		buttonEvents[ Event.mouseButton.code ] = BE_PRESSED;	break;
+	case Event::ET_MOUSE_RELEASED:		buttonEvents[ Event.mouseButton.code ] = BE_RELEASED;	break;
 
 	case Event::ET_MOUSE_MOVE:
 		mouseOffset.x = Event.mouseMove.xDirection;
@@ -90,8 +75,10 @@ void le::InputSystem::ApplyEvent( const Event& Event )
 		break;
 
 	case Event::ET_MOUSE_WHEEL:
-		if ( Event.mouseWheel.y == 0 ) break;
-		buttonEvents[ Event.mouseWheel.y > 0 ? BC_MOUSE_WHEEL_UP : BC_MOUSE_WHEEL_DOWN ] = Event::ET_MOUSE_WHEEL;
+		if ( Event.mouseWheel.y == 0 )
+			buttonEvents[ BC_MOUSE_WHEEL_UP ] = buttonEvents[ BC_MOUSE_WHEEL_DOWN ] = BE_NONE;
+		else
+			buttonEvents[ Event.mouseWheel.y > 0 ? BC_MOUSE_WHEEL_UP : BC_MOUSE_WHEEL_DOWN ] = BE_SCROLLED;
 		break;
 
 	case Event::ET_TEXT_INPUT:
@@ -108,7 +95,7 @@ void le::InputSystem::Update()
 	for ( UInt32_t index = 0, count = binds.size(); index < count; ++index )
 	{
 		BindDescriptor&			bindDescriptor = binds[ index ];	
-		if ( buttonEvents[ bindDescriptor.buttonTrigger ] != bindDescriptor.eventTrigger ) 
+		if ( buttonEvents[ bindDescriptor.buttonTrigger ] == BE_NONE ) 
 			continue;
 
 		g_consoleSystem->Exec( bindDescriptor.command.c_str() );
@@ -121,10 +108,8 @@ void le::InputSystem::Update()
 void le::InputSystem::Clear()
 {
 	for ( uint32_t index = 0; index < BC_COUNT; ++index )
-		if ( buttonEvents[ index ] == Event::ET_KEY_RELEASED || 
-			 buttonEvents[ index ] == Event::ET_MOUSE_RELEASED ||
-			 buttonEvents[ index ] == Event::ET_MOUSE_WHEEL )
-			buttonEvents[ index ] = Event::ET_NONE;
+		if ( buttonEvents[ index ] == BE_RELEASED || buttonEvents[ index ] == BE_SCROLLED )
+			buttonEvents[ index ] = BE_NONE;
 
 	mouseOffset = Vector2D_t( 0.f );
 }
@@ -134,8 +119,10 @@ void le::InputSystem::Clear()
 // ------------------------------------------------------------------------------------ //
 bool le::InputSystem::IsKeyDown( BUTTON_CODE Key )
 {
-	if ( Key < BC_KEY_FIRST || Key > BC_KEY_LAST )			return false;
-	return buttonEvents[ Key ] == Event::ET_KEY_PRESSED;
+	if ( Key < BC_KEY_FIRST || Key > BC_KEY_LAST )			
+		return false;
+
+	return buttonEvents[ Key ] == BE_PRESSED;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -143,8 +130,10 @@ bool le::InputSystem::IsKeyDown( BUTTON_CODE Key )
 // ------------------------------------------------------------------------------------ //
 bool le::InputSystem::IsKeyUp( BUTTON_CODE Key )
 {
-	if ( Key < BC_KEY_FIRST || Key > BC_KEY_LAST )			return false;
-	return buttonEvents[ Key ] == Event::ET_KEY_RELEASED;
+	if ( Key < BC_KEY_FIRST || Key > BC_KEY_LAST )			
+		return false;
+
+	return buttonEvents[ Key ] == BE_RELEASED;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -152,8 +141,10 @@ bool le::InputSystem::IsKeyUp( BUTTON_CODE Key )
 // ------------------------------------------------------------------------------------ //
 bool le::InputSystem::IsMouseKeyDown( BUTTON_CODE Key )
 {
-	if ( Key < BC_MOUSE_FIRST || Key > BC_MOUSE_LAST )			return false;
-	return buttonEvents[ Key ] == Event::ET_MOUSE_PRESSED;
+	if ( Key < BC_MOUSE_FIRST || Key > BC_MOUSE_LAST )			
+		return false;
+
+	return buttonEvents[ Key ] == BE_PRESSED;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -161,8 +152,10 @@ bool le::InputSystem::IsMouseKeyDown( BUTTON_CODE Key )
 // ------------------------------------------------------------------------------------ //
 bool le::InputSystem::IsMouseKeyUp( BUTTON_CODE Key )
 {
-	if ( Key < BC_MOUSE_FIRST || Key > BC_MOUSE_LAST )			return false;
-	return buttonEvents[ Key ] == Event::ET_MOUSE_RELEASED;
+	if ( Key < BC_MOUSE_FIRST || Key > BC_MOUSE_LAST )					
+		return false;
+
+	return buttonEvents[ Key ] == BE_RELEASED;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -170,8 +163,10 @@ bool le::InputSystem::IsMouseKeyUp( BUTTON_CODE Key )
 // ------------------------------------------------------------------------------------ //
 bool le::InputSystem::IsMouseWheel( BUTTON_CODE Wheel )
 {
-	if ( Wheel != BC_MOUSE_WHEEL_UP && Wheel != BC_MOUSE_WHEEL_DOWN )		return false;
-	return buttonEvents[ Wheel ] == Event::ET_MOUSE_WHEEL;
+	if ( Wheel != BC_MOUSE_WHEEL_UP && Wheel != BC_MOUSE_WHEEL_DOWN )		
+		return false;
+
+	return buttonEvents[ Wheel ] == BE_SCROLLED;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -205,7 +200,7 @@ le::InputSystem::InputSystem() :
 	mousePosition( 0.f ),
 	mouseOffset( 0.f )
 {
-	memset( &buttonEvents, Event::ET_NONE, BC_COUNT * sizeof( Event::EVENT_TYPE ) );
+	memset( &buttonEvents, BE_NONE, BC_COUNT * sizeof( BUTTON_EVENTS ) );
 }
 
 // ------------------------------------------------------------------------------------ //

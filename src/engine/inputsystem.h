@@ -24,20 +24,28 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
+	enum BUTTON_EVENTS
+	{
+		BE_NONE,
+		BE_PRESSED,
+		BE_RELEASED,
+		BE_SCROLLED
+	};
+
+	//---------------------------------------------------------------------//
+
 	struct BindDescriptor
 	{
 		BindDescriptor()
 		{}
 
-		BindDescriptor( BUTTON_CODE ButtonTrigger, Event::EVENT_TYPE EventTrigger, const std::string& Command ) :
+		BindDescriptor( BUTTON_CODE ButtonTrigger, const std::string& Command ) :
 			buttonTrigger( ButtonTrigger ),
-			eventTrigger( EventTrigger ),
 			command( Command )
 		{}
 
-		Event::EVENT_TYPE			eventTrigger;
-		BUTTON_CODE					buttonTrigger;
-		std::string					command;
+		BUTTON_CODE				buttonTrigger;
+		std::string				command;
 	};
 
 	//---------------------------------------------------------------------//
@@ -69,8 +77,7 @@ namespace le
 		friend void					CMD_Bind( le::UInt32_t CountArguments, const char** Arguments );
 
 	private:
-	
-		Event::EVENT_TYPE					buttonEvents[ BC_COUNT ];
+		BUTTON_EVENTS						buttonEvents[ BC_COUNT ];
 		Vector2D_t							mousePosition;
 		Vector2D_t							mouseOffset;
 

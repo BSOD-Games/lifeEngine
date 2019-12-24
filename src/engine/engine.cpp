@@ -531,8 +531,7 @@ void le::Engine::RunSimulation()
 		}
 	}
 
-	isRunSimulation = false;
-	consoleSystem.PrintInfo( "*** Game logic end ***" );
+	StopSimulation();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -541,6 +540,7 @@ void le::Engine::RunSimulation()
 void le::Engine::StopSimulation()
 {
 	isRunSimulation = false;
+	consoleSystem.PrintInfo( "*** Game logic end ***" );
 }
 
 // ------------------------------------------------------------------------------------ //
