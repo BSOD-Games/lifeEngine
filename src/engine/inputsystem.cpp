@@ -14,12 +14,7 @@
 #include "global.h"
 #include "engine.h"
 #include "inputsystem.h"
-
-#define KEYBOARD_BIND( KeyTrigger ) \
-	le::g_inputSystem->keyboardBind.push_back( le::BindDescriptor< le::KEYBOARD_KEY >( KeyTrigger, eventTrigger, Arguments[ 1 ] ) )
-
-#define MOUSE_BIND( KeyTrigger ) \
-	le::g_inputSystem->mousedBind.push_back( le::BindDescriptor< le::MOUSE_KEY >( KeyTrigger, eventTrigger, Arguments[ 1 ] ) );
+#include "buttontranslation.h"
 
 le::ConCmd*					cmd_bind = nullptr;;
 
@@ -36,9 +31,9 @@ namespace le
 			le::g_consoleSystem->PrintInfo( "example: bind q exit" );
 		}
 
-		std::string					strKeyTrigger = Arguments[ 0 ];
-		for ( UInt32_t index = 0, count = strKeyTrigger.size(); index < count; ++index )
-			strKeyTrigger[ index ] = tolower( strKeyTrigger[ index ] );
+		std::string					strButtonTrigger = Arguments[ 0 ];
+		for ( UInt32_t index = 0, count = strButtonTrigger.size(); index < count; ++index )
+			strButtonTrigger[ index ] = tolower( strButtonTrigger[ index ] );
 		
 		Event::EVENT_TYPE			eventTrigger = Event::ET_KEY_PRESSED;
 		if ( CountArguments >= 3 )
@@ -51,54 +46,8 @@ namespace le
 				eventTrigger = Event::ET_KEY_RELEASED;
 		}
 
-		// TODO: УБРАТЬ ЭТОТ ЕБАННЫЙ ГОВНО КОДА И СДЕЛАЙ, СУКА, НОРМАЛЬНО!! *ГОВОРИТ ЕГОР СЕБЕ*
-
-		if ( strcmp( "q", strKeyTrigger.c_str() ) == 0 )				KEYBOARD_BIND( KK_Q );
-		else if ( strcmp( "w", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_W );
-		else if ( strcmp( "e", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_E );
-		else if ( strcmp( "r", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_R );
-		else if ( strcmp( "t", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_T );
-		else if ( strcmp( "y", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_Y );
-		else if ( strcmp( "u", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_U );
-		else if ( strcmp( "i", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_I );
-		else if ( strcmp( "o", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_O );
-		else if ( strcmp( "p", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_P );
-		else if ( strcmp( "[", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_LEFTBRACKET );
-		else if ( strcmp( "]", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_RIGHTBRACKET );
-		else if ( strcmp( "a", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_A );
-		else if ( strcmp( "s", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_S );
-		else if ( strcmp( "d", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_D );
-		else if ( strcmp( "f", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_F );
-		else if ( strcmp( "g", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_G );
-		else if ( strcmp( "h", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_H );
-		else if ( strcmp( "j", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_J );
-		else if ( strcmp( "k", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_K );
-		else if ( strcmp( "l", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_L );
-		else if ( strcmp( ";", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_SEMICOLON );
-		else if ( strcmp( "'", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_APOSTROPHE );
-		else if ( strcmp( "z", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_Z );
-		else if ( strcmp( "x", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_X );
-		else if ( strcmp( "c", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_C );
-		else if ( strcmp( "v", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_V );
-		else if ( strcmp( "b", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_B );
-		else if ( strcmp( "n", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_N );
-		else if ( strcmp( "m", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_M );
-		else if ( strcmp( ",", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_COMMA );
-		else if ( strcmp( ".", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_PERIOD );
-		else if ( strcmp( "/", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_SLASH );
-		else if ( strcmp( "`", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_GRAVE );
-		else if ( strcmp( "1", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_1 );
-		else if ( strcmp( "2", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_2 );
-		else if ( strcmp( "3", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_3 );
-		else if ( strcmp( "4", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_4 );
-		else if ( strcmp( "5", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_5 );
-		else if ( strcmp( "6", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_6 );
-		else if ( strcmp( "7", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_7 );
-		else if ( strcmp( "8", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_8 );
-		else if ( strcmp( "9", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_9 );
-		else if ( strcmp( "0", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_0 );
-		else if ( strcmp( "esc", strKeyTrigger.c_str() ) == 0 )			KEYBOARD_BIND( KK_ESCAPE );
-		else if ( strcmp( "space", strKeyTrigger.c_str() ) == 0 )		KEYBOARD_BIND( KK_SPACE );
+		// TODO: Исправить баг с тригерным событием (работает только для клавиш клавиатуры)
+		le::g_inputSystem->binds.push_back( le::BindDescriptor( ButtonCode_StringToButtonCode( strButtonTrigger.c_str() ), eventTrigger, Arguments[ 1 ] ) );
 	}
 }
 
@@ -125,12 +74,12 @@ void le::InputSystem::ApplyEvent( const Event& Event )
 	{
 	case Event::ET_KEY_PRESSED:
 	case Event::ET_KEY_RELEASED:
-		keyboardKeyEvents[ Event.key.code ] = Event.type;
+		buttonEvents[ Event.key.code ] = Event.type;
 		break;
 
 	case Event::ET_MOUSE_PRESSED:
 	case Event::ET_MOUSE_RELEASED:
-		mouseButtonEvents[ Event.mouseButton.code ] = Event.type;
+		buttonEvents[ Event.mouseButton.code ] = Event.type;
 		break;
 
 	case Event::ET_MOUSE_MOVE:
@@ -141,7 +90,8 @@ void le::InputSystem::ApplyEvent( const Event& Event )
 		break;
 
 	case Event::ET_MOUSE_WHEEL:
-		mouseWheel = Event.mouseWheel.y > 0 ? MW_UP : Event.mouseWheel.y < 0 ? MW_DOWN : MW_NONE;
+		if ( Event.mouseWheel.y == 0 ) break;
+		buttonEvents[ Event.mouseWheel.y > 0 ? BC_MOUSE_WHEEL_UP : BC_MOUSE_WHEEL_DOWN ] = Event::ET_MOUSE_WHEEL;
 		break;
 
 	case Event::ET_TEXT_INPUT:
@@ -155,19 +105,10 @@ void le::InputSystem::ApplyEvent( const Event& Event )
 // ------------------------------------------------------------------------------------ //
 void le::InputSystem::Update()
 {
-	for ( UInt32_t index = 0, count = keyboardBind.size(); index < count; ++index )
+	for ( UInt32_t index = 0, count = binds.size(); index < count; ++index )
 	{
-		BindDescriptor< KEYBOARD_KEY >&			bindDescriptor = keyboardBind[ index ];	
-		if ( keyboardKeyEvents[ bindDescriptor.keyTrigger ] != bindDescriptor.eventTrigger ) 
-			continue;
-
-		g_consoleSystem->Exec( bindDescriptor.command.c_str() );
-	}
-
-	for ( UInt32_t index = 0, count = mousedBind.size(); index < count; ++index )
-	{
-		BindDescriptor< MOUSE_KEY >&			bindDescriptor = mousedBind[ index ];
-		if ( mouseButtonEvents[ bindDescriptor.keyTrigger ] != bindDescriptor.eventTrigger )
+		BindDescriptor&			bindDescriptor = binds[ index ];	
+		if ( buttonEvents[ bindDescriptor.buttonTrigger ] != bindDescriptor.eventTrigger ) 
 			continue;
 
 		g_consoleSystem->Exec( bindDescriptor.command.c_str() );
@@ -179,56 +120,58 @@ void le::InputSystem::Update()
 // ------------------------------------------------------------------------------------ //
 void le::InputSystem::Clear()
 {
-	for ( uint32_t index = 0; index < KK_KEY_COUNT; ++index )
-		if ( keyboardKeyEvents[ index ] == Event::ET_KEY_RELEASED )
-			keyboardKeyEvents[ index ] = Event::ET_NONE;
+	for ( uint32_t index = 0; index < BC_COUNT; ++index )
+		if ( buttonEvents[ index ] == Event::ET_KEY_RELEASED || 
+			 buttonEvents[ index ] == Event::ET_MOUSE_RELEASED ||
+			 buttonEvents[ index ] == Event::ET_MOUSE_WHEEL )
+			buttonEvents[ index ] = Event::ET_NONE;
 
-	for ( uint32_t index = 0; index < MK_KEY_COUNT; ++index )
-		if ( mouseButtonEvents[ index ] == Event::ET_KEY_RELEASED )
-			mouseButtonEvents[ index ] = Event::ET_NONE;
-
-	mouseWheel = MW_NONE;
 	mouseOffset = Vector2D_t( 0.f );
 }
 
 // ------------------------------------------------------------------------------------ //
 // Нажата ли кнопка на клавиатуре
 // ------------------------------------------------------------------------------------ //
-bool le::InputSystem::IsKeyDown( KEYBOARD_KEY Key )
+bool le::InputSystem::IsKeyDown( BUTTON_CODE Key )
 {
-	return keyboardKeyEvents[ Key ] == Event::ET_KEY_PRESSED;
+	if ( Key < BC_KEY_FIRST || Key > BC_KEY_LAST )			return false;
+	return buttonEvents[ Key ] == Event::ET_KEY_PRESSED;
 }
 
 // ------------------------------------------------------------------------------------ //
 // Отпущена ли кнопка на клавиатуре
 // ------------------------------------------------------------------------------------ //
-bool le::InputSystem::IsKeyUp( KEYBOARD_KEY Key )
+bool le::InputSystem::IsKeyUp( BUTTON_CODE Key )
 {
-	return keyboardKeyEvents[ Key ] == Event::ET_KEY_RELEASED;
+	if ( Key < BC_KEY_FIRST || Key > BC_KEY_LAST )			return false;
+	return buttonEvents[ Key ] == Event::ET_KEY_RELEASED;
 }
 
 // ------------------------------------------------------------------------------------ //
 // Нажата ли кнопка мыши
 // ------------------------------------------------------------------------------------ //
-bool le::InputSystem::IsMouseKeyDown( MOUSE_KEY Key )
+bool le::InputSystem::IsMouseKeyDown( BUTTON_CODE Key )
 {
-	return mouseButtonEvents[ Key ] == Event::ET_MOUSE_PRESSED;
+	if ( Key < BC_MOUSE_FIRST || Key > BC_MOUSE_LAST )			return false;
+	return buttonEvents[ Key ] == Event::ET_MOUSE_PRESSED;
 }
 
 // ------------------------------------------------------------------------------------ //
 // Отпущена ли кнопка мыши
 // ------------------------------------------------------------------------------------ //
-bool le::InputSystem::IsMouseKeyUp( MOUSE_KEY Key )
+bool le::InputSystem::IsMouseKeyUp( BUTTON_CODE Key )
 {
-	return mouseButtonEvents[ Key ] == Event::ET_MOUSE_RELEASED;
+	if ( Key < BC_MOUSE_FIRST || Key > BC_MOUSE_LAST )			return false;
+	return buttonEvents[ Key ] == Event::ET_MOUSE_RELEASED;
 }
 
 // ------------------------------------------------------------------------------------ //
 // Крутится ли колесико мышки
 // ------------------------------------------------------------------------------------ //
-bool le::InputSystem::IsMouseWheel( MOUSE_WHEEL Wheel )
+bool le::InputSystem::IsMouseWheel( BUTTON_CODE Wheel )
 {
-	return mouseWheel == Wheel;
+	if ( Wheel != BC_MOUSE_WHEEL_UP && Wheel != BC_MOUSE_WHEEL_DOWN )		return false;
+	return buttonEvents[ Wheel ] == Event::ET_MOUSE_WHEEL;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -259,12 +202,10 @@ float le::InputSystem::GetMouseSensitivity() const
 // Конструктор
 // ------------------------------------------------------------------------------------ //
 le::InputSystem::InputSystem() :
-	mouseWheel( MW_NONE ),
 	mousePosition( 0.f ),
 	mouseOffset( 0.f )
 {
-	memset( &keyboardKeyEvents, Event::ET_NONE, KK_KEY_COUNT * sizeof( Event::EVENT_TYPE ) );
-	memset( &mouseButtonEvents, Event::ET_NONE, MK_KEY_COUNT * sizeof( Event::EVENT_TYPE ) );
+	memset( &buttonEvents, Event::ET_NONE, BC_COUNT * sizeof( Event::EVENT_TYPE ) );
 }
 
 // ------------------------------------------------------------------------------------ //

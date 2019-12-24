@@ -11,8 +11,7 @@
 #ifndef EVENT_H
 #define EVENT_H
 
-#include "keyboardkey.h"
-#include "mousekey.h"
+#include "common/buttoncode.h"
 
 //----------------------------------------------------------------------//
 
@@ -60,7 +59,7 @@ namespace le
 		struct KeyEvent
 		{
 			KeyEvent() : 
-				code( KK_UNKNOWN ), 
+				code( BC_NONE ), 
 				isAlt( false ), 
 				isControl( false ), 
 				isShift( false ), 
@@ -72,7 +71,7 @@ namespace le
 			~KeyEvent()
 			{}
 
-			KEYBOARD_KEY		code;			
+			BUTTON_CODE			code;
 			bool				isAlt;			
 			bool				isControl;		
 			bool				isShift;		
@@ -86,7 +85,7 @@ namespace le
 		struct MouseButtonEvent
 		{
 			MouseButtonEvent() : 
-				code( MK_UNKNOWN ), 
+				code( BC_NONE ), 
 				x( 0 ), 
 				y( 0 )
 			{}
@@ -94,7 +93,7 @@ namespace le
 			~MouseButtonEvent()
 			{}
 
-			MOUSE_KEY			code;		
+			BUTTON_CODE			code;
 			int					x;			
 			int					y;			
 		};

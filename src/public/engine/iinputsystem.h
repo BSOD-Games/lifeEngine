@@ -19,20 +19,18 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	enum KEYBOARD_KEY;
-	enum MOUSE_KEY;
-	enum MOUSE_WHEEL;
+	enum BUTTON_CODE;
 
 	//---------------------------------------------------------------------//
 
 	class IInputSystem
 	{
 	public:
-		virtual bool				IsKeyDown( KEYBOARD_KEY Key ) = 0;
-		virtual bool				IsKeyUp( KEYBOARD_KEY Key ) = 0;
-		virtual	bool				IsMouseKeyDown( MOUSE_KEY Key ) = 0;
-		virtual	bool				IsMouseKeyUp( MOUSE_KEY Key ) = 0;
-		virtual bool				IsMouseWheel( MOUSE_WHEEL Wheel ) = 0;
+		virtual bool				IsKeyDown( BUTTON_CODE Key ) = 0;
+		virtual bool				IsKeyUp( BUTTON_CODE Key ) = 0;
+		virtual	bool				IsMouseKeyDown( BUTTON_CODE Key ) = 0;
+		virtual	bool				IsMouseKeyUp( BUTTON_CODE Key ) = 0;
+		virtual bool				IsMouseWheel( BUTTON_CODE Wheel ) = 0;
 
 		virtual const Vector2D_t&	GetMousePosition() const = 0;
 		virtual const Vector2D_t&	GetMouseOffset() const = 0;

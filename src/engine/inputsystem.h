@@ -15,8 +15,7 @@
 #include <vector>
 
 #include "common/event.h"
-#include "common/keyboardkey.h"
-#include "common/mousekey.h"
+#include "common/buttoncode.h"
 #include "engine/iinputsysteminternal.h"
 
 //---------------------------------------------------------------------//
@@ -25,20 +24,19 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	template< typename T >
 	struct BindDescriptor
 	{
 		BindDescriptor()
 		{}
 
-		BindDescriptor( T KeyTrigger, Event::EVENT_TYPE EventTrigger, const std::string& Command ) :
-			keyTrigger( KeyTrigger ),
+		BindDescriptor( BUTTON_CODE ButtonTrigger, Event::EVENT_TYPE EventTrigger, const std::string& Command ) :
+			buttonTrigger( ButtonTrigger ),
 			eventTrigger( EventTrigger ),
 			command( Command )
 		{}
 
 		Event::EVENT_TYPE			eventTrigger;
-		T							keyTrigger;
+		BUTTON_CODE					buttonTrigger;
 		std::string					command;
 	};
 
@@ -54,11 +52,11 @@ namespace le
 		virtual void				Clear();
 
 		// IInputSystem
-		virtual bool				IsKeyDown( KEYBOARD_KEY Key );
-		virtual bool				IsKeyUp( KEYBOARD_KEY Key );
-		virtual	bool				IsMouseKeyDown( MOUSE_KEY Key );
-		virtual	bool				IsMouseKeyUp( MOUSE_KEY Key );
-		virtual bool				IsMouseWheel( MOUSE_WHEEL Wheel );
+		virtual bool				IsKeyDown( BUTTON_CODE Key );
+		virtual bool				IsKeyUp( BUTTON_CODE Key );
+		virtual	bool				IsMouseKeyDown( BUTTON_CODE Key );
+		virtual	bool				IsMouseKeyUp( BUTTON_CODE Key );
+		virtual bool				IsMouseWheel( BUTTON_CODE Wheel );
 
 		virtual const Vector2D_t&	GetMousePosition() const;
 		virtual const Vector2D_t&	GetMouseOffset() const;
@@ -71,16 +69,12 @@ namespace le
 		friend void					CMD_Bind( le::UInt32_t CountArguments, const char** Arguments );
 
 	private:
-		
-		Event::EVENT_TYPE									keyboardKeyEvents[ KK_KEY_COUNT ];
-		Event::EVENT_TYPE									mouseButtonEvents[ MK_KEY_COUNT ];
+	
+		Event::EVENT_TYPE					buttonEvents[ BC_COUNT ];
+		Vector2D_t							mousePosition;
+		Vector2D_t							mouseOffset;
 
-		MOUSE_WHEEL											mouseWheel;
-		Vector2D_t											mousePosition;
-		Vector2D_t											mouseOffset;
-
-		std::vector< BindDescriptor< KEYBOARD_KEY > >		keyboardBind;
-		std::vector< BindDescriptor< MOUSE_KEY > >			mousedBind;
+		std::vector< BindDescriptor >		binds;
 	};	
 
 	//---------------------------------------------------------------------//

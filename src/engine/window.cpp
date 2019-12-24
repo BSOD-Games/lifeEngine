@@ -14,6 +14,7 @@
 #include "engine/consolesystem.h"
 #include "engine/window.h"
 #include "engine/global.h"
+#include "engine/buttontranslation.h"
 
 // ------------------------------------------------------------------------------------ //
 // Сбросить курсор
@@ -147,7 +148,7 @@ bool le::Window::PollEvent( Event& Event )
 		Event.key.isNumLock = sdlEvent.key.keysym.mod & KMOD_NUM;
 		Event.key.isShift = sdlEvent.key.keysym.mod & KMOD_SHIFT;
 		Event.key.isSuper = sdlEvent.key.keysym.mod & KMOD_GUI;
-		Event.key.code = static_cast< KEYBOARD_KEY >( sdlEvent.key.keysym.scancode );
+		Event.key.code = ButtonCode_ScanCodeToButtonCode( sdlEvent.key.keysym.scancode );
 		break;
 
 	// Событие нажатия и отжатия кнопок мыши
@@ -158,7 +159,7 @@ bool le::Window::PollEvent( Event& Event )
 		else
 			Event.type = Event::ET_MOUSE_PRESSED;
 
-		Event.mouseButton.code = static_cast< MOUSE_KEY >( sdlEvent.button.button );
+		Event.mouseButton.code = ButtonCode_MouseButtonToButtonCode( sdlEvent.button.button );
 		Event.mouseButton.x = sdlEvent.button.x;
 		Event.mouseButton.y = sdlEvent.button.y;
 		break;
