@@ -21,6 +21,7 @@ namespace le
 	IStudioRender*			g_studioRender = nullptr;
 	IWindow*				g_window = nullptr;
 	InputSystem*			g_inputSystem = nullptr;
+	ResourceSystem*			g_resourceSystem = nullptr;
 
 	//---------------------------------------------------------------------//
 }

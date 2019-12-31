@@ -22,6 +22,7 @@ namespace le
 	struct MeshSurface;
 	struct StudioVertexElement;
 	class IMaterial;
+	class ITexture;
 	enum PRIMITIVE_TYPE;
 
 	//---------------------------------------------------------------------//
@@ -34,6 +35,8 @@ namespace le
 		UInt32_t*				indeces;
 		UInt32_t				countMaterials;
 		IMaterial**				materials;
+		UInt32_t				countLightmaps;
+		ITexture**				lightmaps;
 		UInt32_t				countSurfaces;
 		MeshSurface*			surfaces;
 		UInt32_t				countVertexElements;

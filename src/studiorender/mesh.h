@@ -38,6 +38,9 @@ namespace le
 		virtual UInt32_t						GetCountMaterials() const;
 		virtual IMaterial*						GetMaterial( UInt32_t Index ) const;
 		virtual IMaterial**						GetMaterials() const;
+		virtual UInt32_t						GetCountLightmaps() const;
+		virtual ITexture*						GetLightmap( UInt32_t Index ) const;
+		virtual ITexture**						GetLightmaps() const;
 
 		// Mesh
 		Mesh();
@@ -57,6 +60,7 @@ namespace le
 		IndexBufferObject				indexBufferObject;
 
 		std::vector< IMaterial* >		materials;
+		std::vector< ITexture* >		lightmaps;
 		std::vector< MeshSurface >		surfaces;
 	};
 

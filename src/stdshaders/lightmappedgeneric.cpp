@@ -8,30 +8,28 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#include "engine/ifactory.h"
 #include "engine/icamera.h"
 #include "studiorender/igpuprogram.h"
 #include "studiorender/itexture.h"
 
 #include "global.h"
-#include "testshader.h"
+#include "lightmappedgeneric.h"
 
 // ------------------------------------------------------------------------------------ //
 // Инициализировать экземпляр шейдера
 // ------------------------------------------------------------------------------------ //
-bool le::TestShader::InitInstance( UInt32_t CountParams, IMaterialVar** MaterialVars )
+bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IMaterialVar** MaterialVars )
 {
-	gpuProgram = ( IGPUProgram* ) g_studioRenderFactory->Create( GPUPROGRAM_INTERFACE_VERSION );
-	if ( !gpuProgram ) return false;
-
 	ShaderDescriptor			shaderDescriptor;
 	shaderDescriptor.vertexShaderSource = " \
 	#version 330 core\n \
 	\n \
 	layout( location = 0 ) 			in vec3 vertex_position; \n \
 	layout( location = 1 ) 			in vec2 vertex_texCoords; \n \
+	layout( location = 2 ) 			in vec2 vertex_lightmapCoords; \n \
 	\n \
 		out vec2 				texCoords; \n \
+		out vec2 				lightmapCoords; \n \
 	\n \
 		uniform mat4    		matrix_Projection; \n \
 		uniform mat4			matrix_Transformation; \n \
@@ -39,6 +37,7 @@ bool le::TestShader::InitInstance( UInt32_t CountParams, IMaterialVar** Material
 	void main() \n \
 	{\n \
 		texCoords = vertex_texCoords; \n \
+		lightmapCoords = vertex_lightmapCoords; \n \
 		gl_Position = matrix_Projection * matrix_Transformation * vec4( vertex_position, 1.f ); \n \
 	}";
 
@@ -46,20 +45,24 @@ bool le::TestShader::InitInstance( UInt32_t CountParams, IMaterialVar** Material
 	#version 330 core\n\
 	\n\
 		in vec2 				texCoords;\n\
+		in vec2 				lightmapCoords;\n\
 		out vec4				color;\n\
 	\n\
 		uniform sampler2D		basetexture;\n\
+		uniform sampler2D		lightmap;\n\
 	\n\
 	void main()\n\
 	{\n\
-		color = texture2D( basetexture, texCoords );\n\
+		color = texture2D( basetexture, texCoords ) * texture2D( lightmap, lightmapCoords );\n\
 	}\n";
 
-	if ( !gpuProgram->Compile( shaderDescriptor ) )
-	{
-		g_studioRenderFactory->Delete( gpuProgram );
+	if ( !LoadShader( shaderDescriptor ) )
 		return false;
-	}
+
+	gpuProgram->Bind();
+	gpuProgram->SetUniform( "basetexture", 0 );
+	gpuProgram->SetUniform( "lightmap", 1 );
+	gpuProgram->Unbind();
 
 	return true;
 }
@@ -67,10 +70,14 @@ bool le::TestShader::InitInstance( UInt32_t CountParams, IMaterialVar** Material
 // ------------------------------------------------------------------------------------ //
 // Подготовка к отрисовке элементов
 // ------------------------------------------------------------------------------------ //
-void le::TestShader::OnDrawMesh( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera )
+void le::LightmappedGeneric::OnDrawMesh( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
 	if ( !gpuProgram ) return;
-	MaterialVars[ 0 ]->GetValueTexture()->Bind();
+	if ( MaterialVars[ 0 ]->IsDefined() )
+		MaterialVars[ 0 ]->GetValueTexture()->Bind( 0 );
+
+	if ( Lightmap )
+		Lightmap->Bind( 1 );
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
@@ -80,49 +87,23 @@ void le::TestShader::OnDrawMesh( UInt32_t CountParams, IMaterialVar** MaterialVa
 // ------------------------------------------------------------------------------------ //
 // Получить название шейдера
 // ------------------------------------------------------------------------------------ //
-const char* le::TestShader::GetName() const
+const char* le::LightmappedGeneric::GetName() const
 {
-	return "testshader";
+	return "LightmappedGeneric";
 }
 
 // ------------------------------------------------------------------------------------ //
 // Получить запасной шейдер
 // ------------------------------------------------------------------------------------ //
-const char* le::TestShader::GetFallbackShader() const
+const char* le::LightmappedGeneric::GetFallbackShader() const
 {
 	return nullptr;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить количество параметров
-// ------------------------------------------------------------------------------------ //
-le::UInt32_t le::TestShader::GetCountParams() const
-{
-	return shaderParams.size();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить массив параметров
-// ------------------------------------------------------------------------------------ //
-le::ShaderParamInfo* le::TestShader::GetParams() const
-{
-	return ( ShaderParamInfo* ) shaderParams.data();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить параметр
-// ------------------------------------------------------------------------------------ //
-le::ShaderParamInfo* le::TestShader::GetParam( UInt32_t Index ) const
-{
-	if ( Index >= shaderParams.size() ) return nullptr;
-	return ( ShaderParamInfo* ) &shaderParams[ Index ];
-}
-
-// ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
-le::TestShader::TestShader() :
-	gpuProgram( nullptr )
+le::LightmappedGeneric::LightmappedGeneric()
 {
 	shaderParams =
 	{

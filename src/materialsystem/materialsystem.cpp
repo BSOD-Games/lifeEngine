@@ -156,12 +156,10 @@ le::IShader* le::MaterialSystem::FindShader( const char* Name ) const
 {
 	LIFEENGINE_ASSERT( Name );
 
-	for ( UInt32_t index = shaderLibs.size(); --index >= 0; )
+	for ( auto it = shaderLibs.rbegin(), itEnd = shaderLibs.rend(); it != itEnd; ++it )
 	{
-		const ShaderDLLDescriptor&			shaderDLLDescriptor = shaderLibs[ index ];
-		auto& itShader = shaderDLLDescriptor.shaders.find( Name );
-
-		if ( itShader != shaderDLLDescriptor.shaders.end() )
+		auto itShader = it->shaders.find( Name );	
+		if ( itShader != it->shaders.end() )
 			return itShader->second;
 	}
 

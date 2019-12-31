@@ -8,10 +8,13 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef ISHADER_H
-#define ISHADER_H
+#ifndef BASE_SHADER_H
+#define BASE_SHADER_H
 
-#include "common/types.h"
+#include <vector>
+
+#include "common/shaderparaminfo.h"
+#include "stdshaders/ishader.h"
 
 //---------------------------------------------------------------------//
 
@@ -19,24 +22,28 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	struct ShaderParamInfo;
-	class ICamera;
-	class IMaterialVar;
-	class ITexture;
+	class IGPUProgram;
+	struct ShaderDescriptor;
 
 	//---------------------------------------------------------------------//
 
-	class IShader
+	class BaseShader : public IShader
 	{
 	public:
-		virtual bool					InitInstance( UInt32_t CountParams, IMaterialVar** MaterialVars ) = 0;
-		virtual void					OnDrawMesh( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr ) = 0;
+		// IShader
+		virtual UInt32_t				GetCountParams() const;
+		virtual ShaderParamInfo*		GetParam( UInt32_t Index ) const;
+		virtual ShaderParamInfo*		GetParams() const;
 
-		virtual const char*				GetName() const = 0;
-		virtual const char*				GetFallbackShader() const = 0;
-		virtual UInt32_t				GetCountParams() const = 0;
-		virtual ShaderParamInfo*		GetParam( UInt32_t Index ) const = 0;
-		virtual ShaderParamInfo*		GetParams() const = 0;
+		// BaseShader
+		BaseShader();
+		virtual ~BaseShader();
+
+	protected:
+		bool							LoadShader( const ShaderDescriptor& ShaderDescriptor );
+
+		IGPUProgram*							gpuProgram;
+		std::vector< ShaderParamInfo >			shaderParams;
 	};
 
 	//---------------------------------------------------------------------//
@@ -44,5 +51,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !ISHADER_H
+#endif // !BASE_SHADER_H
 

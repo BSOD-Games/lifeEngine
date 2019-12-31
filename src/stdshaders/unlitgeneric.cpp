@@ -8,28 +8,24 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#include "engine/ifactory.h"
 #include "engine/icamera.h"
 #include "studiorender/igpuprogram.h"
 #include "studiorender/itexture.h"
 
 #include "global.h"
-#include "testshader.h"
+#include "unlitgeneric.h"
 
 // ------------------------------------------------------------------------------------ //
 // Инициализировать экземпляр шейдера
 // ------------------------------------------------------------------------------------ //
-bool le::TestShader::InitInstance( UInt32_t CountParams, IMaterialVar** MaterialVars )
+bool le::UnlitGeneric::InitInstance( UInt32_t CountParams, IMaterialVar** MaterialVars )
 {
-	gpuProgram = ( IGPUProgram* ) g_studioRenderFactory->Create( GPUPROGRAM_INTERFACE_VERSION );
-	if ( !gpuProgram ) return false;
-
 	ShaderDescriptor			shaderDescriptor;
 	shaderDescriptor.vertexShaderSource = " \
 	#version 330 core\n \
 	\n \
 	layout( location = 0 ) 			in vec3 vertex_position; \n \
-	layout( location = 1 ) 			in vec2 vertex_texCoords; \n \
+	layout( location = 2 ) 			in vec2 vertex_texCoords; \n \
 	\n \
 		out vec2 				texCoords; \n \
 	\n \
@@ -55,22 +51,17 @@ bool le::TestShader::InitInstance( UInt32_t CountParams, IMaterialVar** Material
 		color = texture2D( basetexture, texCoords );\n\
 	}\n";
 
-	if ( !gpuProgram->Compile( shaderDescriptor ) )
-	{
-		g_studioRenderFactory->Delete( gpuProgram );
-		return false;
-	}
-
-	return true;
+	return LoadShader( shaderDescriptor );
 }
 
 // ------------------------------------------------------------------------------------ //
 // Подготовка к отрисовке элементов
 // ------------------------------------------------------------------------------------ //
-void le::TestShader::OnDrawMesh( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera )
+void le::UnlitGeneric::OnDrawMesh( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
 	if ( !gpuProgram ) return;
-	MaterialVars[ 0 ]->GetValueTexture()->Bind();
+	if ( MaterialVars[ 0 ]->IsDefined() )
+		MaterialVars[ 0 ]->GetValueTexture()->Bind();
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
@@ -80,49 +71,23 @@ void le::TestShader::OnDrawMesh( UInt32_t CountParams, IMaterialVar** MaterialVa
 // ------------------------------------------------------------------------------------ //
 // Получить название шейдера
 // ------------------------------------------------------------------------------------ //
-const char* le::TestShader::GetName() const
+const char* le::UnlitGeneric::GetName() const
 {
-	return "testshader";
+	return "UnlitGeneric";
 }
 
 // ------------------------------------------------------------------------------------ //
 // Получить запасной шейдер
 // ------------------------------------------------------------------------------------ //
-const char* le::TestShader::GetFallbackShader() const
+const char* le::UnlitGeneric::GetFallbackShader() const
 {
 	return nullptr;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить количество параметров
-// ------------------------------------------------------------------------------------ //
-le::UInt32_t le::TestShader::GetCountParams() const
-{
-	return shaderParams.size();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить массив параметров
-// ------------------------------------------------------------------------------------ //
-le::ShaderParamInfo* le::TestShader::GetParams() const
-{
-	return ( ShaderParamInfo* ) shaderParams.data();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить параметр
-// ------------------------------------------------------------------------------------ //
-le::ShaderParamInfo* le::TestShader::GetParam( UInt32_t Index ) const
-{
-	if ( Index >= shaderParams.size() ) return nullptr;
-	return ( ShaderParamInfo* ) &shaderParams[ Index ];
-}
-
-// ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
-le::TestShader::TestShader() :
-	gpuProgram( nullptr )
+le::UnlitGeneric::UnlitGeneric()
 {
 	shaderParams =
 	{

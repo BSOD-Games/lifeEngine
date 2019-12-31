@@ -8,10 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef MESH_SURFACE_H
-#define MESH_SURFACE_H
+#ifndef UNLIT_GENERIC_H
+#define UNLIT_GENERIC_H
 
-#include "common/types.h"
+#include "baseshader.h"
 
 //---------------------------------------------------------------------//
 
@@ -19,13 +19,18 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	struct MeshSurface
+	class UnlitGeneric : public BaseShader
 	{
-		UInt32_t			materialID;
-		UInt32_t			lightmapID;
-		UInt32_t			startVertexIndex;
-		UInt32_t			startIndex;
-		UInt32_t			countIndeces;
+	public:
+		// IShader
+		virtual bool					InitInstance( UInt32_t CountParams, IMaterialVar** MaterialVars );
+		virtual void					OnDrawMesh( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr );
+
+		virtual const char*				GetName() const;
+		virtual const char*				GetFallbackShader() const;
+
+		// UnlitGeneric
+		UnlitGeneric();
 	};
 
 	//---------------------------------------------------------------------//
@@ -33,4 +38,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !MESH_SURFACE_H
+#endif // !UNLIT_GENERIC_H
+

@@ -40,6 +40,10 @@ namespace le
 		virtual void							SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation );
 		virtual void							EndScene();
 
+		virtual void							SetDepthTestEnabled( bool IsEnabled = true );
+		virtual void							SetCullFaceEnabled( bool IsEnabled = true );
+		virtual void							SetBlendEnabled( bool IsEnabled = true );
+		virtual void							SetCullFaceType( CULLFACE_TYPE CullFaceType );
 		virtual void							SetVerticalSyncEnabled( bool IsEnabled = true );
 		virtual void							SetViewport( const StudioRenderViewport& Viewport );
 
@@ -50,9 +54,12 @@ namespace le
 		StudioRender();
 		~StudioRender();
 
+		void									InitOpenGLStates( const OpenGLState& OpenGLState );
+
 	private:
 		bool								isInitialize;
 
+		OpenGLState							openGLState;
 		RenderContext						renderContext;
 		StudioRenderFactory					studioRenderFactory;
 		StudioRenderViewport				viewport;

@@ -29,10 +29,14 @@ namespace le
 	typedef		unsigned short		UInt16_t;
 	typedef		unsigned int		UInt32_t;
 	typedef		unsigned long long	UInt64_t;
+	typedef		unsigned char		Byte_t;
 
 	typedef		glm::vec2			Vector2D_t;
 	typedef		glm::vec3			Vector3D_t;
 	typedef		glm::vec4			Vector4D_t;
+	typedef		glm::ivec2			Vector2DInt_t;
+	typedef		glm::ivec3			Vector3DInt_t;
+	typedef		glm::ivec4			Vector4DInt_t;
 	typedef		glm::quat			Quaternion_t;
 	typedef		glm::mat4			Matrix4x4_t;
 

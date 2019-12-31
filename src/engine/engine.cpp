@@ -71,6 +71,7 @@ le::Engine::Engine() :
 	LIFEENGINE_ASSERT( !g_engine );
 
 	g_consoleSystem = &consoleSystem;
+	g_resourceSystem = &resourceSystem;
 	g_inputSystem = &inputSystem;
 	g_engine = this;
 
@@ -144,6 +145,7 @@ bool le::Engine::LoadModule_StudioRender( const char* PathDLL )
 
 		studioRender = ( IStudioRenderInternal* ) studioRenderDescriptor.LE_CreateStudioRender();
 		if ( !studioRender->Initialize( this ) )				throw std::exception( "Fail initialize studiorender" );
+		g_studioRender = studioRender;
 	}
 	catch ( std::exception& Exception )
 	{

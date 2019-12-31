@@ -21,13 +21,13 @@
 // ------------------------------------------------------------------------------------ //
 // Приготовить материал к отрисовке геометрии
 // ------------------------------------------------------------------------------------ //
-void le::Material::OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera )
+void le::Material::OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
-	// TODO: Подправить систему материалов, она мне не нравится.
-	// Не понятно как материалы сортировать по шейдерам, текстурам и т.д
+	// TODO: Подправить систему материалов, ибо костыльно приминяется
+	// лайтмап, а в будущем будет и shadowmaps
 
 	if ( shader && ( !isNeadRefrash || Refrash() ) )
-		shader->OnDrawMesh( vars.size(), ( IMaterialVar** ) vars.data(), Transformation, Camera );
+		shader->OnDrawMesh( vars.size(), ( IMaterialVar** ) vars.data(), Transformation, Camera, Lightmap );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -62,7 +62,7 @@ void le::Material::Clear()
 // Задать шейдер
 // ------------------------------------------------------------------------------------ //
 void le::Material::SetShader( const char* Name )
-{
+{	
 	IShader*				tempShader = g_materialSystem->FindShader( Name );
 	if ( !tempShader )		return;
 

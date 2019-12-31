@@ -12,8 +12,9 @@
 #define SCENE_DESCRIPTOR_H
 
 #include <vector>
+#include <unordered_map>
 
-#include "common/types.h"
+#include "openglstate.h"
 #include "renderobject.h"
 
 //---------------------------------------------------------------------//
@@ -28,8 +29,10 @@ namespace le
 
 	struct SceneDescriptor
 	{
-		ICamera*							camera;
-		std::vector< RenderObject >			renderObjects;
+		typedef		std::unordered_map< OpenGLState, std::vector< RenderObject >, Hash_OpenGLState >	MapRenderObjects_t;
+
+		ICamera*				camera;
+		MapRenderObjects_t		renderObjects;
 	};
 
 	//---------------------------------------------------------------------//

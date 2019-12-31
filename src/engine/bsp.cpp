@@ -8,58 +8,52 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#include "engine/lifeengine.h"
-#include "engine/iengine.h"
-#include "engine/iconsolesystem.h"
-#include "studiorender/istudiorender.h"
-
-#include "global.h"
-#include "shaderdll.h"
-#include "unlitgeneric.h"
-#include "lightmappedgeneric.h"
-
-LIFEENGINE_STDSHADERS_API( le::ShaderDLL );
+#include "bsp.h"
 
 // ------------------------------------------------------------------------------------ //
-// Инициализировать библиотеку шейдеров
+// Оператор сравнения
 // ------------------------------------------------------------------------------------ //
-bool le::ShaderDLL::Initialize( IEngine* Engine )
+bool le::BSPVertex::operator==( BSPVertex& Vertex )
 {
-	IStudioRender*		studioRender = Engine->GetStudioRender();
-	if ( !studioRender )		return false;
-
-	g_studioRenderFactory = studioRender->GetFactory();
-
-	shaders.push_back( new UnlitGeneric() );
-	shaders.push_back( new LightmappedGeneric() );
-
-	return true;
+	return
+		position == Vertex.position &&
+		textureCoord == Vertex.textureCoord &&
+		lightmapCoord == Vertex.lightmapCoord &&
+		normal == Vertex.normal &&
+		color[ 0 ] == Vertex.color[ 0 ] &&
+		color[ 1 ] == Vertex.color[ 1 ] &&
+		color[ 2 ] == Vertex.color[ 2 ] &&
+		color[ 3 ] == Vertex.color[ 3 ];
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить количество шейдеров
+// Конструктор
 // ------------------------------------------------------------------------------------ //
-le::UInt32_t le::ShaderDLL::GetShaderCount() const
-{
-	return shaders.size();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить шейдер
-// ------------------------------------------------------------------------------------ //
-le::IShader* le::ShaderDLL::GetShader( UInt32_t Index ) const
-{
-	if ( Index >= shaders.size() ) return nullptr;
-	return shaders[ Index ];
-}
+le::BSPVisData::BSPVisData() :
+	numOfClusters( 0 ),
+	bytesPerCluster( 0 ),
+	bitsets( nullptr )
+{}
 
 // ------------------------------------------------------------------------------------ //
 // Деструктор
 // ------------------------------------------------------------------------------------ //
-le::ShaderDLL::~ShaderDLL()
+le::BSPVisData::~BSPVisData()
 {
-	for ( UInt32_t index = 0, count = shaders.size(); index < count; ++index )
-		delete shaders[ index ];
+	if ( bitsets )		delete[] bitsets;
+}
 
-	shaders.clear();
+// ------------------------------------------------------------------------------------ //
+// Конструктор
+// ------------------------------------------------------------------------------------ //
+le::BSPEntities::BSPEntities() :
+	entitiesData( nullptr )
+{}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+le::BSPEntities::~BSPEntities()
+{
+	if ( entitiesData )		delete[] entitiesData;
 }

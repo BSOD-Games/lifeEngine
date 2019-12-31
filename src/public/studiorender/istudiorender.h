@@ -27,13 +27,25 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
+	enum CULLFACE_TYPE
+	{
+		CT_FRONT,
+		CT_BACK
+	};
+
+	//---------------------------------------------------------------------//
+
 	class IStudioRender
 	{
 	public:
 		virtual void							BeginScene( ICamera* Camera ) = 0;
 		virtual void							SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation ) = 0;
 		virtual void							EndScene() = 0;
-				
+		
+		virtual void							SetDepthTestEnabled( bool IsEnabled = true ) = 0;
+		virtual void							SetCullFaceEnabled( bool IsEnabled = true ) = 0;
+		virtual void							SetBlendEnabled( bool IsEnabled = true ) = 0;
+		virtual void							SetCullFaceType( CULLFACE_TYPE CullFaceType ) = 0;
 		virtual void							SetVerticalSyncEnabled( bool IsEnabled = true ) = 0;
 		virtual void							SetViewport( const StudioRenderViewport& Viewport ) = 0;
 

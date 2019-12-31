@@ -28,10 +28,12 @@
 #include "studiorender/itexture.h"
 #include "studiorender/imesh.h"
 #include "studiorender/studiovertexelement.h"
+#include "studiorender/studiorendersampler.h"
 
 #include "global.h"
 #include "consolesystem.h"
 #include "resourcesystem.h"
+#include "level.h"
 
 struct Vertex
 {
@@ -178,7 +180,7 @@ void LE_LoadImage( const char* Path, le::Image& Image, bool& IsError, bool IsFli
 	FreeImage_Unload( bitmap );
 	return;
 }
-#include "studiorender/studiorendersampler.h"
+
 // ------------------------------------------------------------------------------------ //
 // Загрузить текстуру
 // ------------------------------------------------------------------------------------ //
@@ -257,6 +259,12 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 		// Название шейдера
 		else if ( it->first == "shader" && it->second.IsString() )
 			material->SetShader( it->second.GetString() );
+	}
+
+	if ( material->GetShaderName() == "" )
+	{
+		MaterialSystemFactory->Delete( material );
+		return nullptr;
 	}
 
 	// Записываем параметры шейдера
@@ -371,6 +379,9 @@ le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, l
 	if ( sizeArraySurfaces == 0 )		return nullptr;
 
 	le::MeshSurface						surface;
+	surface.startVertexIndex = 0;
+	surface.lightmapID = 0;
+
 	for ( le::UInt32_t index = 0; index < sizeArraySurfaces; ++index )
 	{
 		file.read( ( char* ) &surface.materialID, sizeof( le::UInt32_t ) );
@@ -399,11 +410,13 @@ le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, l
 	le::MeshDescriptor				meshDescriptor;
 	meshDescriptor.countIndeces = arrayIndices.size();
 	meshDescriptor.countMaterials = arrayMaterials.size();
+	meshDescriptor.countLightmaps = 0;
 	meshDescriptor.countSurfaces = arraySurfaces.size();
 	meshDescriptor.sizeVerteces = arrayVerteces.size() * sizeof( Vertex );
 
 	meshDescriptor.indeces = arrayIndices.data();
 	meshDescriptor.materials = arrayMaterials.data();
+	meshDescriptor.lightmaps = nullptr;
 	meshDescriptor.surfaces = arraySurfaces.data();
 	meshDescriptor.verteces = arrayVerteces.data();
 
@@ -421,6 +434,21 @@ le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, l
 
 	return mesh;
 }
+
+// ------------------------------------------------------------------------------------ //
+// Загрузить уровень
+// ------------------------------------------------------------------------------------ //
+le::ILevel* LE_LoadLevel( const char* Path, le::IFactory* GameFactory )
+{
+	le::Level*			level = new le::Level();
+	if ( !level->Load( Path, GameFactory ) )
+	{
+		delete level;
+		return nullptr;
+	}
+
+	return level;
+};
 
 // ------------------------------------------------------------------------------------ //
 // Зарегестрировать загрузчик картинок
@@ -468,6 +496,18 @@ void le::ResourceSystem::RegisterLoader_Mesh( const char* Format, LoadMeshFn_t L
 
 	g_consoleSystem->PrintInfo( "Loader mesh for format [%s] registered", Format );
 	loaderMeshes[ Format ] = LoadMesh;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Зарегестрировать загрузчик уровней
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader_Level( const char* Format, LoadLevelFn_t LoadLevel )
+{
+	LIFEENGINE_ASSERT( Format );
+	LIFEENGINE_ASSERT( LoadLevel );
+
+	g_consoleSystem->PrintInfo( "Loader level for format [%s] registered", Format );
+	loaderLevels[ Format ] = LoadLevel;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -524,6 +564,20 @@ void le::ResourceSystem::UnregisterLoader_Mesh( const char* Format )
 
 	loaderMeshes.erase( it );
 	g_consoleSystem->PrintInfo( "Loader mesh for format [%s] unregistered", Format );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Разрегестрировать загрузчик уровней
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnregisterLoader_Level( const char* Format )
+{
+	LIFEENGINE_ASSERT( Format );
+
+	auto		it = loaderLevels.find( Format );
+	if ( it == loaderLevels.end() ) return;
+
+	loaderLevels.erase( it );
+	g_consoleSystem->PrintInfo( "Loader level for format [%s] unregistered", Format );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -624,7 +678,7 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
 		if ( parser == loaderMaterials.end() )		throw std::exception( "Loader for format material not found" );
 
 		IMaterial*			material = parser->second( path.c_str(), this, materialSystemFactory );
-		if ( !material )							throw std::exception( "Fail loading material" );
+		if ( !material )	throw std::exception( "Fail loading material" );
 
 		materials.insert( std::make_pair( Name, material ) );
 		g_consoleSystem->PrintInfo( "Loaded material [%s]", Name );
@@ -661,7 +715,7 @@ le::IMesh* le::ResourceSystem::LoadMesh( const char* Name, const char* Path )
 		if ( !format )								throw std::exception( "In mesh format not found" );
 
 		auto				parser = loaderMeshes.find( format + 1 );
-		if ( parser == loaderMeshes.end() )		throw std::exception( "Loader for format material not found" );
+		if ( parser == loaderMeshes.end() )		throw std::exception( "Loader for format mesh not found" );
 
 		IMesh*				mesh = parser->second( path.c_str(), this, studioRenderFactory );
 		if ( !mesh )							throw std::exception( "Fail loading mesh" );
@@ -674,6 +728,46 @@ le::IMesh* le::ResourceSystem::LoadMesh( const char* Name, const char* Path )
 	catch ( std::exception & Exception )
 	{
 		g_consoleSystem->PrintError( "Mesh [%s] not loaded: %s", Path, Exception.what() );
+		return nullptr;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Загрузить уровень
+// ------------------------------------------------------------------------------------ //
+le::ILevel* le::ResourceSystem::LoadLevel( const char* Name, const char* Path, IFactory* GameFactory )
+{
+	LIFEENGINE_ASSERT( Name );
+	LIFEENGINE_ASSERT( Path );
+
+	try
+	{
+		if ( !studioRenderFactory )							throw std::exception( "Resource system not initialized" );
+
+		if ( levels.find( Name ) != levels.end() )			return levels[ Name ];
+		if ( loaderLevels.empty() )							throw std::exception( "No level loaders" );
+
+		std::string			path = gameDir + "/" + Path;
+
+		g_consoleSystem->PrintInfo( "Loading level [%s] with name [%s]", Path, Name );
+
+		const char* format = strchr( Path, '.' );
+		if ( !format )								throw std::exception( "In level format not found" );
+
+		auto				parser = loaderLevels.find( format + 1 );
+		if ( parser == loaderLevels.end() )		throw std::exception( "Loader for format level not found" );
+
+		ILevel*				level = parser->second( path.c_str(), GameFactory );
+		if ( !level )							throw std::exception( "Fail loading level" );
+
+		levels.insert( std::make_pair( Name, level ) );
+		g_consoleSystem->PrintInfo( "Loaded level [%s]", Name );
+
+		return level;
+	}
+	catch ( std::exception& Exception )
+	{
+		g_consoleSystem->PrintError( "Level [%s] not loaded: %s", Path, Exception.what() );
 		return nullptr;
 	}
 }
@@ -756,6 +850,22 @@ void le::ResourceSystem::UnloadMesh( const char* Name )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Выгрузить уровень
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadLevel( const char* Name )
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto				it = levels.find( Name );
+	if ( it == levels.end() )	return;
+
+	delete it->second;
+	levels.erase( it );
+
+	g_consoleSystem->PrintInfo( "Unloaded level [%s]", Name );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Выгрузить все материалы
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadMaterials()
@@ -796,6 +906,20 @@ void le::ResourceSystem::UnloadMeshes()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Выгрузить все уровени
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadLevels()
+{
+	if ( levels.empty() ) return;
+
+	for ( auto it = levels.begin(), itEnd = levels.end(); it != itEnd; ++it )
+		delete it->second;
+
+	g_consoleSystem->PrintInfo( "Unloaded all levels" );
+	levels.clear();
+}
+
+// ------------------------------------------------------------------------------------ //
 // Выгрузить все текстуры
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadTextures()
@@ -820,6 +944,7 @@ void le::ResourceSystem::UnloadTextures()
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadAll()
 {
+	UnloadLevels();
 	UnloadMeshes();	
 	UnloadMaterials();
 	UnloadTextures();
@@ -864,6 +989,19 @@ le::IMesh* le::ResourceSystem::GetMesh( const char* Name ) const
 }
 
 // ------------------------------------------------------------------------------------ //
+// Получить уровень
+// ------------------------------------------------------------------------------------ //
+le::ILevel* le::ResourceSystem::GetLevel( const char* Name ) const
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto	it = levels.find( Name );
+	if ( it != levels.end() )		return it->second;
+
+	return nullptr;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Инициализировать систему ресурсов
 // ------------------------------------------------------------------------------------ //
 bool le::ResourceSystem::Initialize( IEngine* Engine )
@@ -882,14 +1020,12 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 		RegisterLoader_Image( "png", LE_LoadImage );
 		RegisterLoader_Image( "jpg", LE_LoadImage );
 		RegisterLoader_Image( "tga", LE_LoadImage );
-
 		RegisterLoader_Texture( "png", LE_LoadTexture );
 		RegisterLoader_Texture( "jpg", LE_LoadTexture );
 		RegisterLoader_Texture( "tga", LE_LoadTexture );
-
 		RegisterLoader_Material( "lmt", LE_LoadMaterial );
-
 		RegisterLoader_Mesh( "lmd", LE_LoadMesh );
+		RegisterLoader_Level( "bsp", LE_LoadLevel );
 	}
 	catch ( std::exception& Exception )
 	{

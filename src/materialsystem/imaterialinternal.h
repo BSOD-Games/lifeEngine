@@ -20,13 +20,14 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	class ICamera;
+	class ITexture;
 
 	//---------------------------------------------------------------------//
 
 	class IMaterialInternal : public IMaterial
 	{
 	public:
-		virtual void			OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera ) = 0;
+		virtual void			OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr ) = 0;
 	};
 
 	//---------------------------------------------------------------------//

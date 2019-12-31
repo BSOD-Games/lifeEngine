@@ -8,10 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef MESH_SURFACE_H
-#define MESH_SURFACE_H
+#ifndef OPENGL_STATE_H
+#define OPENGL_STATE_H
 
-#include "common/types.h"
+#include <cstddef>
 
 //---------------------------------------------------------------------//
 
@@ -19,18 +19,34 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	struct MeshSurface
+	enum CULLFACE_TYPE;
+
+	//---------------------------------------------------------------------//
+
+	struct OpenGLState
 	{
-		UInt32_t			materialID;
-		UInt32_t			lightmapID;
-		UInt32_t			startVertexIndex;
-		UInt32_t			startIndex;
-		UInt32_t			countIndeces;
+		bool			isDepthTest;
+		bool			isCullFace;
+		bool			isBlend;
+
+		CULLFACE_TYPE	cullFaceType;
 	};
+
+	//---------------------------------------------------------------------//
+
+	struct Hash_OpenGLState
+	{
+		std::size_t			operator()( const OpenGLState& Right ) const;
+	};
+
+	//---------------------------------------------------------------------//
+
+	bool					operator== ( const OpenGLState& Left, const OpenGLState& Right );
 
 	//---------------------------------------------------------------------//
 }
 
 //---------------------------------------------------------------------//
 
-#endif // !MESH_SURFACE_H
+#endif // !OPENGL_STATE_H
+

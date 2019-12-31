@@ -122,17 +122,38 @@ bool le::ConsoleSystem::Exec( const char* Command )
 
 	auto		itCommand = commands.find( name );
 	if ( itCommand != commands.end() )
-	{
-		std::stringstream				strStream( arguments );
+	{	
+		// Разбиваем строку на подстроки
+
+		bool							isFindApostrof = false;
+		bool							isEndSubstring = false;
 		std::string						tempString;
 		std::vector<const char*>		arrayArguments;
 
-		while ( !strStream.eof() )
+		for ( UInt32_t index = 0, count = arguments.size(); index < count; ++index )
 		{
-			strStream >> tempString;
-			arrayArguments.push_back( new char[ tempString.size() ] );
-			strcpy( ( char* ) arrayArguments[ arrayArguments.size() - 1 ], tempString.data() );
+			if ( arguments[ index ] == '\"' )
+			{
+				isFindApostrof = !isFindApostrof;
+
+				if ( isFindApostrof )	continue;
+				else					isEndSubstring = true;
+			}
+			else if ( !isFindApostrof && arguments[ index ] == ' ' && !tempString.empty() )
+				isEndSubstring = true;
+
+			if ( !isEndSubstring )		tempString += arguments[ index ];
+			if ( isEndSubstring || index + 1 >= count )
+			{
+				arrayArguments.push_back( new char[ tempString.size() ] );
+				strcpy( ( char* ) arrayArguments[ arrayArguments.size() - 1 ], tempString.data() );
+
+				tempString.clear();
+				isEndSubstring = false;
+			}
 		}
+
+		// Выполняем команду
 
 		itCommand->second->Exec( arrayArguments.size(), arrayArguments.data() );
 

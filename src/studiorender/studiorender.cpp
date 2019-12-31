@@ -15,6 +15,7 @@
 #include "engine/iengine.h"
 #include "engine/iwindow.h"
 #include "engine/iconsolesystem.h"
+#include "engine/iconvar.h"
 #include "materialsystem/imaterialinternal.h"
 #include "settingscontext.h"
 #include "common/shaderdescriptor.h"
@@ -27,6 +28,8 @@
 #include "mesh.h"
 
 LIFEENGINE_STUDIORENDER_API( le::StudioRender );
+
+le::IConVar*		r_wireframe = nullptr;
 
 // ------------------------------------------------------------------------------------ //
 // Начать отрисовку сцены
@@ -49,7 +52,6 @@ void le::StudioRender::SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformatio
 	if ( !Mesh->IsCreated() ) return;
 
 	le::Mesh*			mesh = ( le::Mesh* ) Mesh;
-	IMaterial**			materials = mesh->GetMaterials();
 	MeshSurface*		surfaces = mesh->GetSurfaces();
 	MeshSurface*		surface;
 
@@ -71,14 +73,15 @@ void le::StudioRender::SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformatio
 	for ( UInt32_t index = 0, countSurfaces = mesh->GetCountSurfaces(), countMaterials = mesh->GetCountMaterials(); index < countSurfaces; ++index )
 	{
 		surface = &surfaces[ index ];
-		if ( surface->materialID < 0 || surface->materialID > countMaterials )
-			continue;
-
+	
+		renderObject.startVertexIndex = surface->startVertexIndex;
 		renderObject.startIndex = surface->startIndex;
 		renderObject.countIndeces = surface->countIndeces;
-		renderObject.material = ( IMaterialInternal* ) materials[ surface->materialID ];
-
-		scenes[ currentScene ].renderObjects.push_back( renderObject );
+		renderObject.lightmap = ( Texture* ) mesh->GetLightmap( surface->lightmapID );
+		renderObject.material = ( IMaterialInternal* ) mesh->GetMaterial( surface->materialID );
+		
+		if ( !renderObject.material ) continue;
+		scenes[ currentScene ].renderObjects[ openGLState ].push_back( renderObject );
 	}
 }
 
@@ -87,6 +90,38 @@ void le::StudioRender::SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformatio
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::EndScene()
 {}
+
+// ------------------------------------------------------------------------------------ //
+// Включить ли тест глубины
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::SetDepthTestEnabled( bool IsEnabled )
+{
+	openGLState.isDepthTest = IsEnabled;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Включить ли отсечение граней
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::SetCullFaceEnabled( bool IsEnabled )
+{
+	openGLState.isCullFace = IsEnabled;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Включить ли смешивание
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::SetBlendEnabled( bool IsEnabled )
+{
+	openGLState.isBlend = IsEnabled;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Задать тип отсечения граней
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::SetCullFaceType( CULLFACE_TYPE CullFaceType )
+{
+	openGLState.cullFaceType = CullFaceType;
+}
 
 // ------------------------------------------------------------------------------------ //
 // Инициализировать рендер
@@ -135,14 +170,28 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 
 	// Инициализируем OpenGL
 
-	glEnable( GL_DEPTH_TEST );
-	glEnable( GL_CULL_FACE );
 	glEnable( GL_TEXTURE_2D );
-	glEnable( GL_BLEND );
+
+	openGLState.isDepthTest = true;
+	openGLState.isCullFace = true;
+	openGLState.isBlend = true;
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
 	viewport.x = viewport.y = 0;
 	Engine->GetWindow()->GetSize( viewport.width, viewport.height );
+
+	// Инициализируем консольные команды
+	r_wireframe = ( IConVar* ) g_consoleSystem->GetFactory()->Create( CONVAR_INTERFACE_VERSION );
+	r_wireframe->Initialize( "r_wireframe", "0", CVT_BOOL, "Enable wireframe mode", true, 0, true, 1,
+							 []( le::IConVar* Var )
+							 {
+								 if ( Var->GetValueBool() )
+									 glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+								 else
+									 glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+							 } );
+
+	g_consoleSystem->RegisterVar( r_wireframe );
 
 	return true;
 }
@@ -179,13 +228,18 @@ void le::StudioRender::Present()
 	{
 		SceneDescriptor&			sceneDescriptor = scenes[ indexScene ];
 
-		for ( UInt32_t indexObject = 0, countObjects = sceneDescriptor.renderObjects.size(); indexObject < countObjects; ++indexObject )
+		for ( auto itOGLState = sceneDescriptor.renderObjects.begin(), itOGLEnd = sceneDescriptor.renderObjects.end(); itOGLState != itOGLEnd; ++itOGLState )
 		{
-			RenderObject&			renderObject = sceneDescriptor.renderObjects[ indexObject ];
+			InitOpenGLStates( itOGLState->first );
 
-			renderObject.material->OnDrawMesh( renderObject.transformation, sceneDescriptor.camera );
-			renderObject.vertexArrayObject->Bind();
-			glDrawElements( renderObject.primitiveType, renderObject.countIndeces, GL_UNSIGNED_INT, ( void* ) ( renderObject.startIndex * sizeof( UInt32_t ) ) );
+			for ( UInt32_t indexObject = 0, countObjects = itOGLState->second.size(); indexObject < countObjects; ++indexObject )
+			{
+				RenderObject& renderObject = itOGLState->second.at( indexObject );
+
+				renderObject.material->OnDrawMesh( renderObject.transformation, sceneDescriptor.camera, renderObject.lightmap );
+				renderObject.vertexArrayObject->Bind();
+				glDrawRangeElementsBaseVertex( renderObject.primitiveType, 0, renderObject.countIndeces, renderObject.countIndeces, GL_UNSIGNED_INT, ( void* ) ( renderObject.startIndex * sizeof( UInt32_t ) ), renderObject.startVertexIndex );
+			}
 		}
 	}
 
@@ -242,4 +296,40 @@ le::StudioRender::StudioRender() :
 le::StudioRender::~StudioRender()
 {
 	if ( renderContext.IsCreated() )		renderContext.Destroy();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Инициализировать состояние OpenGL'a
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::InitOpenGLStates( const OpenGLState& OpenGLState )
+{
+	// TODO: Сделать инициализацию стейтов более элегантнее
+
+	if ( OpenGLState.isDepthTest )
+		glEnable( GL_DEPTH_TEST );
+	else
+		glDisable( GL_DEPTH_TEST );
+
+	if ( OpenGLState.isCullFace )
+	{
+		glEnable( GL_CULL_FACE );
+
+		switch ( OpenGLState.cullFaceType )
+		{
+		case CT_BACK:
+			glCullFace( GL_BACK );
+			break;
+
+		case CT_FRONT:
+			glCullFace( GL_FRONT );
+			break;
+		}
+	}
+	else
+		glDisable( GL_CULL_FACE );
+
+	if ( OpenGLState.isBlend )
+		glEnable( GL_BLEND );
+	else
+		glDisable( GL_BLEND );
 }

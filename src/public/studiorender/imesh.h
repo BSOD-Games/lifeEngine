@@ -20,6 +20,7 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	class IMaterial;
+	class ITexture;
 	struct MeshDescriptor;
 	struct MeshSurface;
 
@@ -33,7 +34,7 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class IMesh
+	class IMesh 
 	{
 	public:
 		virtual void					Create( const MeshDescriptor& MeshDescriptor ) = 0;
@@ -46,6 +47,9 @@ namespace le
 		virtual UInt32_t				GetCountMaterials() const = 0;
 		virtual IMaterial*				GetMaterial( UInt32_t Index ) const = 0;
 		virtual IMaterial**				GetMaterials() const = 0;
+		virtual UInt32_t				GetCountLightmaps() const = 0;
+		virtual ITexture*				GetLightmap( UInt32_t Index ) const = 0;
+		virtual ITexture**				GetLightmaps() const = 0;
 	};
 
 	//---------------------------------------------------------------------//

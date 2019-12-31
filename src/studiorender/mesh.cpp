@@ -30,6 +30,10 @@ void le::Mesh::Create( const MeshDescriptor& MeshDescriptor )
 	for ( UInt32_t index = 0; index < MeshDescriptor.countMaterials; ++index )
 		materials.push_back( MeshDescriptor.materials[ index ] );
 
+	// Запоминаем карты освещений
+	for ( UInt32_t index = 0; index < MeshDescriptor.countLightmaps; ++index )
+		lightmaps.push_back( MeshDescriptor.lightmaps[ index ] );
+
 	// Запоминаем поверхности
 	for ( UInt32_t index = 0; index < MeshDescriptor.countSurfaces; ++index )
 		surfaces.push_back( MeshDescriptor.surfaces[ index ] );
@@ -83,9 +87,11 @@ void le::Mesh::Delete()
 	vertexBufferObject.Delete();
 	indexBufferObject.Delete();
 
-	// TODO: Реализовать удаление материалов
+	// TODO: Реализовать удаление материалов и карт освещений
 
 	surfaces.clear();
+	materials.clear();
+	lightmaps.clear();
 	isCreated = false;
 }
 
@@ -145,6 +151,31 @@ le::IMaterial* le::Mesh::GetMaterial( UInt32_t Index ) const
 le::IMaterial** le::Mesh::GetMaterials() const
 {
 	return ( IMaterial** ) materials.data();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить количество карт освещения
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::Mesh::GetCountLightmaps() const
+{
+	return lightmaps.size();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить карту освещения
+// ------------------------------------------------------------------------------------ //
+le::ITexture* le::Mesh::GetLightmap( UInt32_t Index ) const
+{
+	if ( Index >= lightmaps.size() ) return nullptr;
+	return lightmaps[ Index ];
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить массив карт освещений
+// ------------------------------------------------------------------------------------ //
+le::ITexture** le::Mesh::GetLightmaps() const
+{
+	return ( ITexture** ) lightmaps.data();
 }
 
 // ------------------------------------------------------------------------------------ //

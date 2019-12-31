@@ -21,6 +21,7 @@ namespace le
 
 	class VertexArrayObject;
 	class IMaterialInternal;
+	class Texture;
 
 	//---------------------------------------------------------------------//
 
@@ -28,6 +29,8 @@ namespace le
 	{
 		VertexArrayObject*		vertexArrayObject;
 		IMaterialInternal*		material;
+		Texture*				lightmap;
+		UInt32_t				startVertexIndex;
 		UInt32_t				startIndex;
 		UInt32_t				countIndeces;
 		UInt32_t				primitiveType;
