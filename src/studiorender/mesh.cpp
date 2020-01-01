@@ -74,6 +74,8 @@ void le::Mesh::Create( const MeshDescriptor& MeshDescriptor )
 	vertexBufferObject.Unbind();
 	indexBufferObject.Unbind();
 
+	min = MeshDescriptor.min;
+	max = MeshDescriptor.max;
 	primitiveType = MeshDescriptor.primitiveType;
 	isCreated = true;
 }
@@ -176,6 +178,22 @@ le::ITexture* le::Mesh::GetLightmap( UInt32_t Index ) const
 le::ITexture** le::Mesh::GetLightmaps() const
 {
 	return ( ITexture** ) lightmaps.data();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить минимальную точку в меше
+// ------------------------------------------------------------------------------------ //
+const le::Vector3D_t& le::Mesh::GetMin() const
+{
+	return min;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить максимульную точку в меше
+// ------------------------------------------------------------------------------------ //
+const le::Vector3D_t& le::Mesh::GetMax() const
+{
+	return max;
 }
 
 // ------------------------------------------------------------------------------------ //

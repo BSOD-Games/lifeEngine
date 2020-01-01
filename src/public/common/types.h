@@ -13,6 +13,7 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "mathlib/glm.hpp"
+#include "mathlib/gtx/transform.hpp"
 #include "mathlib/gtx/quaternion.hpp"
 
 //---------------------------------------------------------------------//

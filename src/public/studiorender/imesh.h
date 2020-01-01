@@ -50,6 +50,8 @@ namespace le
 		virtual UInt32_t				GetCountLightmaps() const = 0;
 		virtual ITexture*				GetLightmap( UInt32_t Index ) const = 0;
 		virtual ITexture**				GetLightmaps() const = 0;
+		virtual const Vector3D_t&		GetMin() const = 0;
+		virtual const Vector3D_t&		GetMax() const = 0;
 	};
 
 	//---------------------------------------------------------------------//

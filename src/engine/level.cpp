@@ -326,6 +326,8 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		meshDescriptor.surfaces = arrayMeshSurfaces.data();
 		meshDescriptor.verteces = arrayVerteces.data();
 
+		meshDescriptor.min = arrayBspModels[ 0 ].min;
+		meshDescriptor.max = arrayBspModels[ 0 ].max;
 		meshDescriptor.primitiveType = le::PT_TRIANGLES;
 		meshDescriptor.countVertexElements = vertexElements.size();
 		meshDescriptor.vertexElements = vertexElements.data();

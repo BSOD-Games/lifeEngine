@@ -12,7 +12,7 @@
 
 #include "enginefactory.h"
 #include "camera.h"
-
+#include "model.h"
 
 // ------------------------------------------------------------------------------------ //
 // Создать объект
@@ -20,6 +20,7 @@
 void* le::EngineFactory::Create( const char* NameInterface )
 {
 	if ( strcmp( NameInterface, CAMERA_INTERFACE_VERSION ) == 0 )				return new Camera();
+	else if ( strcmp( NameInterface, MODEL_INTERFACE_VERSION ) == 0 )			return new Model();
 
 	return nullptr;
 }

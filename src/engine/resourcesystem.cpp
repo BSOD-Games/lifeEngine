@@ -392,6 +392,21 @@ le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, l
 
 	if ( arraySurfaces.empty() )				return nullptr;
 
+	// Находим минимальную и максимальную точку в меше
+	le::Vector3D_t			min = arrayVerteces[ 0 ].position;
+	le::Vector3D_t			max = arrayVerteces[ 0 ].position;
+
+	for ( uint32_t index = 0; index < sizeArrayVerteces; ++index )
+	{
+		min.x = glm::min( min.x, arrayVerteces[ index ].position.x );
+		min.y = glm::min( min.y, arrayVerteces[ index ].position.y );
+		min.z = glm::min( min.z, arrayVerteces[ index ].position.z );
+
+		max.x = glm::max( max.x, arrayVerteces[ index ].position.x );
+		max.y = glm::max( max.y, arrayVerteces[ index ].position.y );
+		max.z = glm::max( max.z, arrayVerteces[ index ].position.z );
+	}
+
 	// Создаем сам меш
 	le::IMesh*				mesh = ( le::IMesh* ) StudioRenderFactory->Create( MESH_INTERFACE_VERSION );
 	if ( !mesh )				return nullptr;
@@ -420,6 +435,8 @@ le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, l
 	meshDescriptor.surfaces = arraySurfaces.data();
 	meshDescriptor.verteces = arrayVerteces.data();
 
+	meshDescriptor.min = min;
+	meshDescriptor.max = max;
 	meshDescriptor.primitiveType = le::PT_TRIANGLES;
 	meshDescriptor.countVertexElements = vertexElements.size();
 	meshDescriptor.vertexElements = vertexElements.data();

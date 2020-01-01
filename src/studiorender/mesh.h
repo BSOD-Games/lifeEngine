@@ -41,6 +41,8 @@ namespace le
 		virtual UInt32_t						GetCountLightmaps() const;
 		virtual ITexture*						GetLightmap( UInt32_t Index ) const;
 		virtual ITexture**						GetLightmaps() const;
+		virtual const Vector3D_t&				GetMin() const;
+		virtual const Vector3D_t&				GetMax() const;
 
 		// Mesh
 		Mesh();
@@ -58,6 +60,8 @@ namespace le
 		VertexArrayObject				vertexArrayObject;
 		VertexBufferObject				vertexBufferObject;
 		IndexBufferObject				indexBufferObject;
+		Vector3D_t						min;
+		Vector3D_t						max;
 
 		std::vector< IMaterial* >		materials;
 		std::vector< ITexture* >		lightmaps;

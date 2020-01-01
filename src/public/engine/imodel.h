@@ -8,10 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef MESH_DESCRIPTOR_H
-#define MESH_DESCRIPTOR_H
+#ifndef IMODEL_H
+#define IMODEL_H
 
-#include "common/types.h"
+#include "engine/itransformable.h"
 
 //---------------------------------------------------------------------//
 
@@ -19,31 +19,20 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	struct MeshSurface;
-	struct StudioVertexElement;
-	class IMaterial;
-	class ITexture;
-	enum PRIMITIVE_TYPE;
+	class IMesh;
 
 	//---------------------------------------------------------------------//
 
-	struct MeshDescriptor
+	class IModel : public ITransformable
 	{
-		UInt32_t				sizeVerteces;
-		const void*				verteces;
-		UInt32_t				countIndeces;
-		UInt32_t*				indeces;
-		UInt32_t				countMaterials;
-		IMaterial**				materials;
-		UInt32_t				countLightmaps;
-		ITexture**				lightmaps;
-		UInt32_t				countSurfaces;
-		MeshSurface*			surfaces;
-		UInt32_t				countVertexElements;
-		Vector3D_t				min;
-		Vector3D_t				max;
-		StudioVertexElement*	vertexElements;
-		PRIMITIVE_TYPE			primitiveType;
+	public:
+		virtual void					SetMesh( IMesh* Mesh ) = 0;
+		virtual void					SetMin( const Vector3D_t& MinPosition ) = 0;
+		virtual void					SetMax( const Vector3D_t& MaxPosition ) = 0;
+
+		virtual IMesh*					GetMesh() const = 0;
+		virtual const Vector3D_t&		GetMin() const = 0;
+		virtual const Vector3D_t&		GetMax() const = 0;
 	};
 
 	//---------------------------------------------------------------------//
@@ -51,5 +40,8 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !MESH_DESCRIPTOR_H
+#define MODEL_INTERFACE_VERSION "LE_Model001"
 
+//---------------------------------------------------------------------//
+
+#endif // !IMODEL_H
