@@ -51,9 +51,28 @@ void le::StudioRender::SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformatio
 	LIFEENGINE_ASSERT( Mesh );
 	if ( !Mesh->IsCreated() ) return;
 
+	SubmitMesh( Mesh, Transformation, 0, Mesh->GetCountSurfaces() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Добавить меш в очередь на отрисовку
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation, UInt32_t StartSurface, UInt32_t CountSurface )
+{
+	LIFEENGINE_ASSERT( Mesh );
+	if ( !Mesh->IsCreated() )	
+		return;
+
 	le::Mesh*			mesh = ( le::Mesh* ) Mesh;
 	MeshSurface*		surfaces = mesh->GetSurfaces();
-	MeshSurface*		surface;
+	MeshSurface*		surface;	
+
+	if ( StartSurface + CountSurface > Mesh->GetCountSurfaces() )
+	{
+	//	g_consoleSystem->PrintInfo( "sssss" );
+		return;
+	//	CountSurface = Mesh->GetCountSurfaces() - StartSurface;
+	}
 
 	RenderObject		renderObject;
 	renderObject.vertexArrayObject = ( VertexArrayObject* ) &mesh->GetVertexArrayObject();
@@ -70,16 +89,16 @@ void le::StudioRender::SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformatio
 		break;
 	}
 
-	for ( UInt32_t index = 0, countSurfaces = mesh->GetCountSurfaces(), countMaterials = mesh->GetCountMaterials(); index < countSurfaces; ++index )
+	for ( UInt32_t index = StartSurface, countSurfaces = StartSurface + CountSurface, maxCountSurfaces = mesh->GetCountSurfaces(); index < countSurfaces && index < maxCountSurfaces; ++index )
 	{
 		surface = &surfaces[ index ];
-	
+
 		renderObject.startVertexIndex = surface->startVertexIndex;
 		renderObject.startIndex = surface->startIndex;
 		renderObject.countIndeces = surface->countIndeces;
 		renderObject.lightmap = ( Texture* ) mesh->GetLightmap( surface->lightmapID );
 		renderObject.material = ( IMaterialInternal* ) mesh->GetMaterial( surface->materialID );
-		
+
 		if ( !renderObject.material ) continue;
 		scenes[ currentScene ].renderObjects[ openGLState ].push_back( renderObject );
 	}

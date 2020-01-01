@@ -96,6 +96,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 	try
 	{
 		if ( !file.is_open() )		throw std::exception( "Level not found" );
+		if ( isLoaded )				Clear();
 
 		BSPHeader						bspHeader;
 		BSPLump							bspLumps[ BL_MAX_LUMPS ];
@@ -105,9 +106,10 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		std::vector< UInt32_t >			arrayIndices;
 		std::vector< BSPFace >			arrayFaces;
 		std::vector < BSPLightmap >		arrayBspLightmaps;
+		std::vector< BSPTexture >		arrayBspTextures;
 		std::vector< IMaterial* >		arrayMaterials;
-		std::vector< ITexture* >		arrayLightmaps;
 		std::vector< MeshSurface >		arrayMeshSurfaces;
+		std::vector< int >				buffer_arrayLeafsFaces;
 
 		// Читаем заголовок и куски файла
 		file.read( ( char* ) &bspHeader, sizeof( BSPHeader ) );
@@ -120,10 +122,15 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		bspEntities.entitiesData = new char[ bspLumps[ BL_ENTITIES ].length ];
 
 		arrayVerteces.resize( bspLumps[ BL_VERTICES ].length / sizeof( BSPVertex ) );
-		arrayIndices.resize( bspLumps[ BL_INDICES ].length / sizeof( UInt32_t ) );
-		arrayBspTextures.resize( bspLumps[ BL_TEXTURES ].length / sizeof( BSPTexture ) );
+		arrayIndices.resize( bspLumps[ BL_INDICES ].length / sizeof( UInt32_t ) );	
 		arrayFaces.resize( bspLumps[ BL_FACES ].length / sizeof( BSPFace ) );
 		arrayBspLightmaps.resize( bspLumps[ BL_LIGHT_MAPS ].length / sizeof( BSPLightmap ) );
+		buffer_arrayLeafsFaces.resize( bspLumps[ BL_LEAF_FACES ].length / sizeof( int ) );
+		arrayBspTextures.resize( bspLumps[ BL_TEXTURES ].length / sizeof( BSPTexture ) );
+		arrayBspLeafs.resize( bspLumps[ BL_LEAFS ].length / sizeof( BSPLeaf ) );
+		arrayBspNodes.resize( bspLumps[ BL_NODES ].length / sizeof( BSPNode ) );
+		arrayBspPlanes.resize( bspLumps[ BL_PLANES ].length / sizeof( BSPPlane ) );		
+		arrayBspModels.resize( bspLumps[ BL_MODELS ].length / sizeof( BSPModel ) );
 
 		// Считываем информацию энтити-объектов
 		file.seekg( bspLumps[ BL_ENTITIES ].offset, std::ios::beg );
@@ -131,20 +138,20 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 
 		// Считываем вершины
 		file.seekg( bspLumps[ BL_VERTICES ].offset, std::ios::beg );
+		file.read( ( char* ) &arrayVerteces[ 0 ], arrayVerteces.size() * sizeof( BSPVertex ) );
 
 		for ( UInt32_t index = 0, count = arrayVerteces.size(); index < count; ++index )
 		{
-			file.read( ( char* ) &arrayVerteces[ index ], sizeof( BSPVertex ) );
 			BSPVertex*			vertex = &arrayVerteces[ index ];
 
 			// Меняем значения Y и Z, и отрицаем новый Z, чтобы Y был вверх.
-			float Temp = vertex->position.y;
+			float temp = vertex->position.y;
 			vertex->position.y = vertex->position.z;
-			vertex->position.z = -Temp;
+			vertex->position.z = -temp;
 
-			Temp = vertex->normal.y;
+			temp = vertex->normal.y;
 			vertex->normal.y = vertex->normal.z;
-			vertex->normal.z = -Temp;
+			vertex->normal.z = -temp;
 
 			vertex->textureCoord.y = -vertex->textureCoord.y;
 		}
@@ -161,10 +168,104 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		file.seekg( bspLumps[ BL_FACES ].offset, std::ios::beg );
 		file.read( ( char* ) &arrayFaces[ 0 ], arrayFaces.size() * sizeof( BSPFace ) );
 
+		// Считываем информацию о ветках BSP дерева
+		file.seekg( bspLumps[ BL_NODES ].offset, std::ios::beg );
+		file.read( ( char* ) &arrayBspNodes[ 0 ], arrayBspNodes.size() * sizeof( BSPNode ) );
+
+		// Считываем информацию о моделях уровня 
+		file.seekg( bspLumps[ BL_MODELS ].offset, std::ios::beg );
+		file.read( ( char* ) &arrayBspModels[ 0 ], arrayBspModels.size() * sizeof( BSPModel ) );
+
+		for ( UInt32_t index = 0, count = arrayBspModels.size(); index < count; ++index )
+		{		
+			BSPModel*		bspModel = &arrayBspModels[ index ];
+
+			float			temp = bspModel->min.y;
+			bspModel->min.y = bspModel->min.z;
+			bspModel->min.z = -temp;
+
+			temp = bspModel->max.y;
+			bspModel->max.y = bspModel->max.z;
+			bspModel->max.z = -temp;
+		}
+
+		// Считываем информацию о листьях BSP дерева
+		file.seekg( bspLumps[ BL_LEAFS ].offset, std::ios::beg );
+		file.read( ( char* ) &arrayBspLeafs[ 0 ], arrayBspLeafs.size() * sizeof( BSPLeaf ) );
+
+		// Меняем ось Z и Y местами
+		for ( UInt32_t index = 0, count = arrayBspLeafs.size(); index < count; ++index )
+		{
+			BSPLeaf*	bspLeaf = &arrayBspLeafs[ index ];
+
+			int			temp = bspLeaf->min.y;
+			bspLeaf->min.y = bspLeaf->min.z;
+			bspLeaf->min.z = -temp;
+
+			temp = bspLeaf->max.y;
+			bspLeaf->max.y = bspLeaf->max.z;
+			bspLeaf->max.z = -temp;
+		}
+		
+		// Считываем информацию о ветках BSP дерева
+		file.seekg( bspLumps[ BL_LEAF_FACES ].offset, std::ios::beg );
+		file.read( ( char* ) &buffer_arrayLeafsFaces[ 0 ], buffer_arrayLeafsFaces.size() * sizeof( int ) );
+
+		// Убираем индексы фейсов относящиеся к движ. части уровня
+		int			faceStart = arrayBspModels[ 0 ].startFaceIndex;
+		int			faceEnd = arrayBspModels[ 0 ].startFaceIndex + arrayBspModels[ 0 ].numOfFaces - 1;
+	
+		for ( UInt32_t index = 0, count = arrayBspLeafs.size(); index < count; ++index )
+		{
+			BSPLeaf*			bspLeaf = &arrayBspLeafs[ index ];
+			int					leafFace = arrayBspLeafsFaces.size();
+
+			for ( int j = 0; j < bspLeaf->numOfLeafFaces; j++ )
+			{
+				int			faceIndex = buffer_arrayLeafsFaces[ bspLeaf->leafFace + j ];
+
+				if ( faceIndex >= faceStart && faceIndex <= faceEnd )
+					arrayBspLeafsFaces.push_back( faceIndex );
+			}
+
+			bspLeaf->leafFace = leafFace;
+			bspLeaf->numOfLeafFaces = arrayBspLeafsFaces.size() - leafFace;
+		}
+
+		// Считываем информацию о секущих плоскостях BSP дерева
+		file.seekg( bspLumps[ BL_PLANES ].offset, std::ios::beg );
+		file.read( ( char* ) &arrayBspPlanes[ 0 ], arrayBspPlanes.size() * sizeof( BSPPlane ) );
+
+		// Меняем ось Z и Y местами
+		for ( UInt32_t index = 0, count = arrayBspPlanes.size(); index < count; ++index )
+		{
+			BSPPlane*		Plane = &arrayBspPlanes[ index ];
+
+			float			temp = Plane->normal.y;
+			Plane->normal.y = Plane->normal.z;
+			Plane->normal.z = -temp;
+		}
+
+		// Считываем информацию о видимой геометрии
+		if ( bspLumps[ BL_VIS_DATA ].length )
+		{
+			file.seekg( bspLumps[ BL_VIS_DATA ].offset, std::ios::beg );
+			file.read( ( char* ) &visData.numOfClusters, sizeof( int ) );
+			file.read( ( char* ) &visData.bytesPerCluster, sizeof( int ) );
+
+			UInt32_t		size = visData.numOfClusters * visData.bytesPerCluster;
+			visData.bitsets = new Byte_t[ size ];
+
+			file.read( ( char* ) &visData.bitsets[ 0 ], size * sizeof( Byte_t ) );
+		}
+		else
+			visData.bitsets = nullptr;
+		
 		// Считываем карту освещения
 		if ( arrayBspLightmaps.size() == 0 )
 		{
-			arrayLightmaps.push_back( Lightmap_Create( nullptr, 1, 1 ) );
+			Byte_t				whiteLightmap[ 3 ] = { 255, 255,255 };
+			arrayLightmaps.push_back( Lightmap_Create( whiteLightmap, 1, 1 ) );
 
 			for ( UInt32_t index = 0, count = arrayFaces.size(); index < count; ++index )
 				arrayFaces[ index ].lightmapID = 0;
@@ -192,7 +293,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		{
 			BSPFace*		bspFace = &arrayFaces[ index ];
 			MeshSurface		meshSurface;
-		
+
 			meshSurface.materialID = bspFace->textureID;
 			meshSurface.lightmapID = bspFace->lightmapID;
 			meshSurface.startVertexIndex = bspFace->startVertIndex;
@@ -231,10 +332,12 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		
 		// Загружаем меш в GPU
 		mesh = ( le::IMesh* ) g_studioRender->GetFactory()->Create( MESH_INTERFACE_VERSION );
-		if ( !mesh )				std::exception( "Mesh interface version not found in factory studiorender" );
+		if ( !mesh )				std::exception( "Interfece mesh with required version not found in factory studiorender" );
 	
 		mesh->Create( meshDescriptor );
-		if ( !mesh->IsCreated() ) std::exception( "Mesh not created" );
+		if ( !mesh->IsCreated() ) std::exception( "Mesh level not created" );
+
+		facesDraw.Resize( arrayFaces.size() );
 	}
 	catch ( std::exception& Exception )
 	{
@@ -242,6 +345,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		return false;
 	}
 
+	isLoaded = true;
 	return true;
 }
 
@@ -250,29 +354,88 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 // ------------------------------------------------------------------------------------ //
 void le::Level::Update( UInt32_t DeltaTime )
 {
-	if ( !mainCamera || !mesh || !mesh->IsCreated() ) return;
+	for ( UInt32_t indexCamera = 0, countCameras = arrayCameras.size(); indexCamera < countCameras; ++indexCamera )
+	{
+		Camera*			camera = arrayCameras[ indexCamera ];
 
-	g_studioRender->BeginScene( mainCamera );
+		g_studioRender->BeginScene( camera );
 		g_studioRender->SetDepthTestEnabled( true );
 		g_studioRender->SetCullFaceEnabled( true );
 		g_studioRender->SetCullFaceType( CT_FRONT );
+	
+		// Определяем в каком кластере находится камера
+		int			currentCluster = arrayBspLeafs[ FindLeaf( camera ) ].cluster;
+		facesDraw.ClearAll();
 
-		g_studioRender->SubmitMesh( mesh, Matrix4x4_t( 1.f ) );
-	g_studioRender->EndScene();
+		// Посылаем на отрисовку видимые части статичной геометрии уровня
+		for ( UInt32_t indexLeaf = 0, countLeafs = arrayBspLeafs.size(); indexLeaf < countLeafs; ++indexLeaf )
+		{
+			BSPLeaf&		bspLeaf = arrayBspLeafs[ indexLeaf ];
+			if ( !IsClusterVisible( currentCluster, bspLeaf.cluster ) || !camera->IsVisible( bspLeaf.min, bspLeaf.max ) )
+				continue;
+
+			for ( UInt32_t indexFace = 0; indexFace < bspLeaf.numOfLeafFaces; ++indexFace )
+			{
+				int			faceIndex = arrayBspLeafsFaces[ bspLeaf.leafFace + indexFace ];
+				if ( !facesDraw.On( faceIndex ) )
+				{
+					facesDraw.Set( faceIndex );
+					g_studioRender->SubmitMesh( mesh, Matrix4x4_t( 1.f ), faceIndex, 1 );
+				}
+			}
+		}
+
+		// Посылаем на отрисовку видимые части динамической геометрии уровня
+		for ( UInt32_t index = 1, count = arrayBspModels.size(); index < count; ++index )
+		{
+			BSPModel&			bspModel = arrayBspModels[ index ];
+			int					cluster = arrayBspLeafs[ FindLeaf( ( bspModel.max + bspModel.min ) / 2.f ) ].cluster;
+
+			if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( bspModel.min, bspModel.max ) )
+				continue;
+
+			for ( UInt32_t indexFace = bspModel.startFaceIndex, countFace = bspModel.startFaceIndex + bspModel.numOfFaces; indexFace < countFace; ++indexFace )
+				if ( !facesDraw.On( indexFace ) )
+				{
+					facesDraw.Set( indexFace );
+					g_studioRender->SubmitMesh( mesh, Matrix4x4_t( 1.f ), indexFace, 1 );
+				}
+		}
+
+		g_studioRender->EndScene();
+	}
 }
 
 // ------------------------------------------------------------------------------------ //
 // Очистить уровень
 // ------------------------------------------------------------------------------------ //
 void le::Level::Clear()
-{}
+{
+	IFactory*		studioRenderFactory = g_studioRender->GetFactory();
+
+	for ( UInt32_t index = 0, count = arrayLightmaps.size(); index < count; ++index )
+		studioRenderFactory->Delete( arrayLightmaps[ index ] );
+
+	if ( !mesh )	studioRenderFactory->Delete( mesh );
+
+	arrayBspLeafs.clear();
+	arrayBspLeafsFaces.clear();
+	arrayBspModels.clear();
+	arrayBspNodes.clear();
+	arrayBspPlanes.clear();
+	arrayLightmaps.clear();
+	arrayCameras.clear();
+
+	mesh = nullptr;
+	isLoaded = false;
+}
 
 // ------------------------------------------------------------------------------------ //
 // Добавить камеру на уровень
 // ------------------------------------------------------------------------------------ //
 void le::Level::AddCamera( ICamera* Camera )
 {
-	mainCamera = ( le::Camera* ) Camera;
+	arrayCameras.push_back( ( le::Camera* ) Camera );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -280,7 +443,12 @@ void le::Level::AddCamera( ICamera* Camera )
 // ------------------------------------------------------------------------------------ //
 void le::Level::RemoveCamera( ICamera* Camera )
 {
-	mainCamera = nullptr;
+	for ( UInt32_t index = 0, count = arrayCameras.size(); index < count; ++index )
+		if ( arrayCameras[ index ] == Camera )
+		{
+			arrayCameras.erase( arrayCameras.begin() + index );
+			break;
+		}
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -288,7 +456,8 @@ void le::Level::RemoveCamera( ICamera* Camera )
 // ------------------------------------------------------------------------------------ //
 void le::Level::RemoveCamera( UInt32_t Index )
 {
-	mainCamera = nullptr;
+	if ( Index >= arrayCameras.size() ) return;
+	arrayCameras.erase( arrayCameras.begin() + Index );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -304,7 +473,7 @@ bool le::Level::IsLoaded() const
 // ------------------------------------------------------------------------------------ //
 const char* le::Level::GetNameFormat() const
 {
-	return nullptr;
+	return "IBSP v46";
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -312,7 +481,7 @@ const char* le::Level::GetNameFormat() const
 // ------------------------------------------------------------------------------------ //
 le::UInt32_t le::Level::GetCountCameras() const
 {
-	return mainCamera ? 1 : 0;
+	return arrayCameras.size();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -320,7 +489,10 @@ le::UInt32_t le::Level::GetCountCameras() const
 // ------------------------------------------------------------------------------------ //
 le::ICamera* le::Level::GetCamera( UInt32_t Index ) const
 {
-	return mainCamera;
+	if ( Index >= arrayCameras.size() )
+		return nullptr;
+
+	return arrayCameras[ Index ];
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -328,11 +500,56 @@ le::ICamera* le::Level::GetCamera( UInt32_t Index ) const
 // ------------------------------------------------------------------------------------ //
 le::Level::Level() :
 	mesh( nullptr ),
-	mainCamera( nullptr )
+	isLoaded( false )
 {}
 
 // ------------------------------------------------------------------------------------ //
 // Деструктор
 // ------------------------------------------------------------------------------------ //
 le::Level::~Level()
-{}
+{
+	Clear();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Найти лист в котором находится точка
+// ------------------------------------------------------------------------------------ //
+int le::Level::FindLeaf( const Vector3D_t& Position ) const
+{
+	if ( !isLoaded ) 
+		return -1;
+	
+	int			index = 0;
+	float		distance = 0.f;
+
+	while ( index >= 0 )
+	{
+		const BSPNode&			node = arrayBspNodes[ index ];
+		const BSPPlane&			plane = arrayBspPlanes[ node.plane ];
+
+		distance = glm::dot( plane.normal, Position ) - plane.distance;
+
+		if ( distance >= 0 )
+			index = node.front;
+		else
+			index = node.back;
+	}
+
+	return -index - 1;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Проверка на видимость кластера из другого кластера
+// ------------------------------------------------------------------------------------ //
+bool le::Level::IsClusterVisible( int CurrentCluster, int TestCluster ) const
+{
+	if ( !isLoaded || !visData.bitsets || CurrentCluster < 0 )
+		return true;
+
+	Byte_t		visSet = visData.bitsets[ CurrentCluster * visData.bytesPerCluster + ( TestCluster >> 3 ) ];
+
+	if ( !( visSet & ( 1 << ( TestCluster & 7 ) ) ) )
+		return false;
+
+	return true;
+}

@@ -18,6 +18,7 @@
 #include "studiorender/istudiorender.h"
 #include "studiorender/imesh.h"
 #include "bsp.h"
+#include "bitset.h"
 
 //---------------------------------------------------------------------//
 
@@ -45,10 +46,28 @@ namespace le
 		Level();
 		~Level();
 
+		int						FindLeaf( const Vector3D_t& Position ) const;
+		inline int				FindLeaf( Camera* Camera ) const
+		{
+			return FindLeaf( Camera->GetPosition() );
+		}
+
+		bool					IsClusterVisible( int CurrentCluster, int TestCluster ) const;
+
 	private:
-		std::vector< BSPTexture >			arrayBspTextures;
-		Camera*								mainCamera;
+		bool								isLoaded;
+		BSPVisData							visData;
+		Bitset								facesDraw;
 		IMesh*								mesh;
+	
+		std::vector< Camera* >				arrayCameras;
+		std::vector< ITexture* >			arrayLightmaps;
+		std::vector< BSPNode >				arrayBspNodes;
+		std::vector< BSPLeaf >				arrayBspLeafs;
+		std::vector< BSPPlane >				arrayBspPlanes;
+		std::vector< BSPModel >				arrayBspModels;
+		std::vector< int >					arrayBspLeafsFaces;
+
 	};
 
 	//---------------------------------------------------------------------//

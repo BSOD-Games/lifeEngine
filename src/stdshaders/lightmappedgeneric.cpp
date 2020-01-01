@@ -30,6 +30,7 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IMaterialVar** 
 	\n \
 		out vec2 				texCoords; \n \
 		out vec2 				lightmapCoords; \n \
+		out vec4 				pcolor; \n \
 	\n \
 		uniform mat4    		matrix_Projection; \n \
 		uniform mat4			matrix_Transformation; \n \

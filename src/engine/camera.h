@@ -12,6 +12,7 @@
 #define CAMERA_H
 
 #include "engine/icamera.h"
+#include "frustum.h"
 
 //---------------------------------------------------------------------//
 
@@ -37,6 +38,10 @@ namespace le
 		virtual void							SetTargetDirection( const Vector3D_t& TargetDirection );
 		virtual void							SetUp( const Vector3D_t& Up );
 
+		virtual bool							IsVisible( const Vector3D_t& MinPosition, const Vector3D_t& MaxPosition ) const;
+		virtual bool							IsVisible( const Vector3DInt_t& MinPosition, const Vector3DInt_t& MaxPosition ) const;
+		virtual bool							IsVisible( const Vector3DInt_t& Position, float Radius ) const;
+
 		virtual const Vector3D_t&				GetPosition() const;
 		virtual const Vector3D_t&				GetUp() const;
 		virtual const Vector3D_t&				GetRight() const;
@@ -50,6 +55,11 @@ namespace le
 		Camera();
 		~Camera();
 
+		inline const Frustum&					GetFrusrum() const
+		{
+			return frustum;
+		};
+
 	private:
 		bool				isUpdate;
 
@@ -59,7 +69,8 @@ namespace le
 		Vector3D_t			right;
 		Vector3D_t			eulerRotation;
 		Quaternion_t		quatRotation;
-
+		Frustum				frustum;
+			
 		Vector3D_t			localTargetDirection;
 		Vector3D_t			localUp;
 

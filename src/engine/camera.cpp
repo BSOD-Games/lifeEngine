@@ -212,6 +212,30 @@ void le::Camera::SetUp( const Vector3D_t& Up )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Попал ли паралеллепипед в фокус камеры
+// ------------------------------------------------------------------------------------ //
+bool le::Camera::IsVisible( const Vector3D_t& MinPosition, const Vector3D_t& MaxPosition ) const
+{
+	return frustum.IsVisible( MinPosition, MaxPosition );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Попал ли паралеллепипед в фокус камеры
+// ------------------------------------------------------------------------------------ //
+bool le::Camera::IsVisible( const Vector3DInt_t& MinPosition, const Vector3DInt_t& MaxPosition ) const
+{
+	return frustum.IsVisible( MinPosition, MaxPosition );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Попала ли сфера в фокус камеры
+// ------------------------------------------------------------------------------------ //
+bool le::Camera::IsVisible( const Vector3DInt_t& Position, float Radius ) const
+{
+	return frustum.IsVisible( Position, Radius );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Получить позицию
 // ------------------------------------------------------------------------------------ //
 const le::Vector3D_t& le::Camera::GetPosition() const
@@ -271,6 +295,7 @@ const le::Matrix4x4_t& le::Camera::GetViewMatrix()
 		right = glm::normalize( glm::cross( targetDirection, Vector3D_t( 0.f, 1.f, 0.f ) ) );
 		matrixView = glm::lookAt( position, position + targetDirection, up );
 
+		frustum.Update( matrixProjection, matrixView );
 		isUpdate = false;
 	}
 

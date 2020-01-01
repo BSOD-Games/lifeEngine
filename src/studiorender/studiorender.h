@@ -38,6 +38,7 @@ namespace le
 		// IStudioRender
 		virtual void							BeginScene( ICamera* Camera );
 		virtual void							SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation );
+		virtual void							SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation, UInt32_t StartSurface, UInt32_t CountSurface );
 		virtual void							EndScene();
 
 		virtual void							SetDepthTestEnabled( bool IsEnabled = true );
