@@ -8,10 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IMODEL_H
-#define IMODEL_H
+#ifndef IENTITY_H
+#define IENTITY_H
 
-#include "engine/itransformable.h"
+#include "common/types.h"
 
 //---------------------------------------------------------------------//
 
@@ -19,24 +19,21 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IMesh;
+	class ILevel;
 
 	//---------------------------------------------------------------------//
 
-	class IModel : public ITransformable
+	class IEntity
 	{
 	public:
-		virtual void					SetMesh( IMesh* Mesh ) = 0;
-		virtual void					SetMin( const Vector3D_t& MinPosition ) = 0;
-		virtual void					SetMax( const Vector3D_t& MaxPosition ) = 0;
-		virtual void					SetStartFace( UInt32_t StartFace ) = 0;
-		virtual void					SetCountFace( UInt32_t CountFace ) = 0;
+		virtual void				Update( UInt32_t DeltaTime ) = 0;
+		virtual void				KeyValue( const char* Key, const char* Value ) = 0;
 
-		virtual IMesh*					GetMesh() const = 0;
-		virtual const Vector3D_t&		GetMin() const = 0;
-		virtual const Vector3D_t&		GetMax() const = 0;
-		virtual UInt32_t				GetStartFace() const = 0;
-		virtual UInt32_t				GetCountFace() const = 0;
+		virtual void				SetLevel( ILevel* Level ) = 0;
+		virtual void				SetPosition( const Vector3D_t& Position ) = 0;
+
+		virtual ILevel*				GetLevel() const = 0;
+		virtual const Vector3D_t&	GetPosition() const = 0;
 	};
 
 	//---------------------------------------------------------------------//
@@ -44,8 +41,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#define MODEL_INTERFACE_VERSION "LE_Model002"
+#endif // !IENTITY_H
 
-//---------------------------------------------------------------------//
-
-#endif // !IMODEL_H

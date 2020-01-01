@@ -20,6 +20,7 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	struct Image;
+	class IFactory;
 	class ITexture;
 	class IMaterial;
 	class IMesh;

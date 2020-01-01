@@ -22,6 +22,10 @@ void le::Model::SetMesh( IMesh* Mesh )
 	{
 		localMin = mesh->GetMin();
 		localMax = mesh->GetMax();
+		min = ( localMin + position )  * scale;
+		max = ( localMax + position ) * scale;
+		countFace = mesh->GetCountSurfaces();
+		startFace = 0;
 	}
 }
 
@@ -41,6 +45,22 @@ void le::Model::SetMax( const Vector3D_t& MaxPosition )
 {
 	localMax = MaxPosition;
 	max = ( localMax + position ) * rotation * scale;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Задать начальный индекс поверхности модели
+// ------------------------------------------------------------------------------------ //
+void le::Model::SetStartFace( UInt32_t StartFace )
+{
+	startFace = StartFace;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Задать количество поверхностей модели
+// ------------------------------------------------------------------------------------ //
+void le::Model::SetCountFace( UInt32_t CountFace )
+{
+	countFace = CountFace;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -68,6 +88,22 @@ const le::Vector3D_t& le::Model::GetMax() const
 }
 
 // ------------------------------------------------------------------------------------ //
+// Получить начальный индекс поверхности модели
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::Model::GetStartFace() const
+{
+	return startFace;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить количество поверхностей модели
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::Model::GetCountFace() const
+{
+	return countFace;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Сместить
 // ------------------------------------------------------------------------------------ //
 void le::Model::Move( const Vector3D_t& FactorMove )
@@ -85,7 +121,7 @@ void le::Model::Rotate( const Vector3D_t& FactorRotate )
 {
 	Vector3D_t			axis( sin( FactorRotate.x / 2.f ), sin( FactorRotate.y / 2.f ), sin( FactorRotate.z / 2.f ) );
 	Vector3D_t			rotations( cos( FactorRotate.x / 2.f ), cos( FactorRotate.y / 2.f ), cos( FactorRotate.z / 2.f ) );
-	
+
 	rotation *= Quaternion_t( rotations.x, axis.x, 0, 0 ) * 
 		Quaternion_t( rotations.y, 0, axis.y, 0 ) * 
 		Quaternion_t( rotations.z, 0, 0, axis.z );
@@ -213,7 +249,9 @@ le::Model::Model() :
 	mesh( nullptr ), 
 	position( 0.f ),
 	rotation( 1.f, 0.f, 0.f, 0.f ),
-	scale( 1.f )
+	scale( 1.f ),
+	startFace( 0 ),
+	countFace( 0 )
 {}
 
 // ------------------------------------------------------------------------------------ //

@@ -69,7 +69,6 @@ void le::StudioRender::SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformatio
 
 	if ( StartSurface + CountSurface > Mesh->GetCountSurfaces() )
 	{
-	//	g_consoleSystem->PrintInfo( "sssss" );
 		return;
 	//	CountSurface = Mesh->GetCountSurfaces() - StartSurface;
 	}
@@ -241,7 +240,7 @@ void le::StudioRender::End()
 void le::StudioRender::Present()
 {
 	LIFEENGINE_ASSERT( renderContext.IsCreated() );
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	glClear( GL_DEPTH_BUFFER_BIT );
 
 	for ( UInt32_t indexScene = 0, countScenes = scenes.size(); indexScene < countScenes; ++indexScene )
 	{

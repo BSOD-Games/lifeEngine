@@ -53,9 +53,9 @@ namespace le
 		virtual void							SetTargetDirection( const Vector3D_t& TargetDirection ) = 0;
 		virtual void							SetUp( const Vector3D_t& Up ) = 0;
 
-		virtual bool							IsVisible( const Vector3D_t& MinPosition, const Vector3D_t& MaxPosition ) const = 0;
-		virtual bool							IsVisible( const Vector3DInt_t& MinPosition, const Vector3DInt_t& MaxPosition ) const = 0;
-		virtual bool							IsVisible( const Vector3DInt_t& Position, float Radius ) const = 0;
+		virtual bool							IsVisible( const Vector3D_t& MinPosition, const Vector3D_t& MaxPosition ) = 0;
+		virtual bool							IsVisible( const Vector3DInt_t& MinPosition, const Vector3DInt_t& MaxPosition ) = 0;
+		virtual bool							IsVisible( const Vector3DInt_t& Position, float Radius ) = 0;
 
 		virtual const Vector3D_t&				GetPosition() const = 0;
 		virtual const Vector3D_t&				GetUp() const = 0;
@@ -72,7 +72,7 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#define CAMERA_INTERFACE_VERSION "LE_Camera001"
+#define CAMERA_INTERFACE_VERSION "LE_Camera003"
 
 //---------------------------------------------------------------------//
 

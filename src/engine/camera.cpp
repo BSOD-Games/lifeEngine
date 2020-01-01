@@ -33,7 +33,7 @@ void le::Camera::InitProjection_Ortho( float Left, float Right, float Bottom, fl
 void le::Camera::Move( const Vector3D_t& FactorMove )
 {
 	position += FactorMove;
-	isUpdate = true;
+	isNeedUpdate = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -60,7 +60,7 @@ void le::Camera::Move( CAMERA_SIDE_MOVE SideMove, float MoveSpeed )
 		break;
 	}
 
-	isUpdate = true;
+	isNeedUpdate = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -96,7 +96,7 @@ void le::Camera::Rotate( const Vector3D_t& FactorRotate )
 		glm::angleAxis( eulerRotation.x, glm::vec3( 1.f, 0.f, 0.f ) ) *
 		glm::angleAxis( eulerRotation.y, glm::vec3( 0.f, 1.f, 0.f ) );
 
-	isUpdate = true;
+	isNeedUpdate = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -136,7 +136,7 @@ void le::Camera::RotateByMouse( const Vector2D_t& MouseOffset, float MouseSensit
 		glm::angleAxis( eulerRotation.x, glm::vec3( 1.f, 0.f, 0.f ) ) *
 		glm::angleAxis( eulerRotation.y, glm::vec3( 0.f, 1.f, 0.f ) );
 
-	isUpdate = true;
+	isNeedUpdate = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -164,7 +164,7 @@ le::Vector3D_t le::Camera::WorldToScreen( const Vector3D_t& Coords, const Vector
 void le::Camera::SetPosition( const Vector3D_t& Position )
 {
 	position = Position;
-	isUpdate = true;
+	isNeedUpdate = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -190,7 +190,7 @@ void le::Camera::SetRotation( const Vector3D_t& Rotation )
 		glm::angleAxis( eulerRotation.x, glm::vec3( 1.f, 0.f, 0.f ) ) *
 		glm::angleAxis( eulerRotation.y, glm::vec3( 0.f, 1.f, 0.f ) );
 
-	isUpdate = true;
+	isNeedUpdate = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -199,7 +199,7 @@ void le::Camera::SetRotation( const Vector3D_t& Rotation )
 void le::Camera::SetTargetDirection( const Vector3D_t& TargetDirection )
 {
 	localTargetDirection = TargetDirection;
-	isUpdate = true;
+	isNeedUpdate = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -208,30 +208,33 @@ void le::Camera::SetTargetDirection( const Vector3D_t& TargetDirection )
 void le::Camera::SetUp( const Vector3D_t& Up )
 {
 	up = Up;
-	isUpdate = true;
+	isNeedUpdate = true;
 }
 
 // ------------------------------------------------------------------------------------ //
 // Попал ли паралеллепипед в фокус камеры
 // ------------------------------------------------------------------------------------ //
-bool le::Camera::IsVisible( const Vector3D_t& MinPosition, const Vector3D_t& MaxPosition ) const
+bool le::Camera::IsVisible( const Vector3D_t& MinPosition, const Vector3D_t& MaxPosition )
 {
+	if ( isNeedUpdate )			Update();
 	return frustum.IsVisible( MinPosition, MaxPosition );
 }
 
 // ------------------------------------------------------------------------------------ //
 // Попал ли паралеллепипед в фокус камеры
 // ------------------------------------------------------------------------------------ //
-bool le::Camera::IsVisible( const Vector3DInt_t& MinPosition, const Vector3DInt_t& MaxPosition ) const
+bool le::Camera::IsVisible( const Vector3DInt_t& MinPosition, const Vector3DInt_t& MaxPosition )
 {
+	if ( isNeedUpdate )			Update();
 	return frustum.IsVisible( MinPosition, MaxPosition );
 }
 
 // ------------------------------------------------------------------------------------ //
 // Попала ли сфера в фокус камеры
 // ------------------------------------------------------------------------------------ //
-bool le::Camera::IsVisible( const Vector3DInt_t& Position, float Radius ) const
+bool le::Camera::IsVisible( const Vector3DInt_t& Position, float Radius )
 {
+	if ( isNeedUpdate )			Update();
 	return frustum.IsVisible( Position, Radius );
 }
 
@@ -288,17 +291,7 @@ const le::Vector3D_t& le::Camera::GetTargetDirection() const
 // ------------------------------------------------------------------------------------ //
 const le::Matrix4x4_t& le::Camera::GetViewMatrix()
 {
-	if ( isUpdate )
-	{
-		targetDirection = localTargetDirection * quatRotation;
-		up = localUp * quatRotation;
-		right = glm::normalize( glm::cross( targetDirection, Vector3D_t( 0.f, 1.f, 0.f ) ) );
-		matrixView = glm::lookAt( position, position + targetDirection, up );
-
-		frustum.Update( matrixProjection, matrixView );
-		isUpdate = false;
-	}
-
+	if ( isNeedUpdate )		Update();
 	return matrixView;
 }
 
@@ -314,7 +307,7 @@ const le::Matrix4x4_t& le::Camera::GetProjectionMatrix() const
 // Конструктор
 // ------------------------------------------------------------------------------------ //
 le::Camera::Camera() :
-	isUpdate( true ),
+	isNeedUpdate( true ),
 	up( 0.f, 1.f, 0.f ),
 	localUp( 0.f, 1.f, 0.f ),
 	position( 0.f, 0.f, 0.f ),
@@ -331,3 +324,19 @@ le::Camera::Camera() :
 // ------------------------------------------------------------------------------------ //
 le::Camera::~Camera()
 {}
+
+// ------------------------------------------------------------------------------------ //
+// Обновить камеру
+// ------------------------------------------------------------------------------------ //
+void le::Camera::Update()
+{
+	if ( !isNeedUpdate )		return;
+
+	targetDirection = localTargetDirection * quatRotation;
+	up = localUp * quatRotation;
+	right = glm::normalize( glm::cross( targetDirection, Vector3D_t( 0.f, 1.f, 0.f ) ) );
+	matrixView = glm::lookAt( position, position + targetDirection, up );
+	frustum.Update( matrixProjection, matrixView );
+
+	isNeedUpdate = false;
+}

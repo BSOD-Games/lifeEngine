@@ -38,9 +38,9 @@ namespace le
 		virtual void							SetTargetDirection( const Vector3D_t& TargetDirection );
 		virtual void							SetUp( const Vector3D_t& Up );
 
-		virtual bool							IsVisible( const Vector3D_t& MinPosition, const Vector3D_t& MaxPosition ) const;
-		virtual bool							IsVisible( const Vector3DInt_t& MinPosition, const Vector3DInt_t& MaxPosition ) const;
-		virtual bool							IsVisible( const Vector3DInt_t& Position, float Radius ) const;
+		virtual bool							IsVisible( const Vector3D_t& MinPosition, const Vector3D_t& MaxPosition );
+		virtual bool							IsVisible( const Vector3DInt_t& MinPosition, const Vector3DInt_t& MaxPosition );
+		virtual bool							IsVisible( const Vector3DInt_t& Position, float Radius );
 
 		virtual const Vector3D_t&				GetPosition() const;
 		virtual const Vector3D_t&				GetUp() const;
@@ -61,7 +61,9 @@ namespace le
 		};
 
 	private:
-		bool				isUpdate;
+		void									Update();
+
+		bool				isNeedUpdate;
 
 		Vector3D_t			position;
 		Vector3D_t			targetDirection;
