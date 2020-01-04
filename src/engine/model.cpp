@@ -280,8 +280,8 @@ void le::Model::UpdateBoundingBox()
 {
 	if ( !isNeedUpdateBoundingBox ) return;
 
-	Vector3D_t		min = ( rotation * localMin + position ) * scale;
-	Vector3D_t		max = ( rotation * localMax + position ) * scale;
+	Vector3D_t		min = ( rotation * localMin * scale ) + position;
+	Vector3D_t		max = ( rotation * localMax * scale ) + position;
 
 	this->min = Vector3D_t( glm::min( min.x, max.x ), glm::min( min.y, max.y ), glm::min( min.z, max.z ) );
 	this->max = Vector3D_t( glm::max( max.x, min.x ), glm::max( max.y, min.y ), glm::max( max.z, min.z ) );

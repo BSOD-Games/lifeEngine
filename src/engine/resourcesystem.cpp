@@ -610,10 +610,10 @@ le::Image le::ResourceSystem::LoadImage( const char* Path, bool& IsError, bool I
 		if ( loaderImages.empty() )					throw std::exception( "No image loaders" );
 		std::string			path = gameDir + "/" + Path;
 
-		const char* format = strchr( Path, '.' );
-		if ( !format )								throw std::exception( "In image format not found" );
+		std::string			format = GetFormatFile( path );
+		if ( format.empty() )						throw std::exception( "In image format not found" );
 
-		auto				parser = loaderImages.find( format + 1 );
+		auto				parser = loaderImages.find( format );
 		if ( parser == loaderImages.end() )			throw std::exception( "Loader for format image not found" );
 
 		Image				image;	
@@ -648,10 +648,10 @@ le::ITexture* le::ResourceSystem::LoadTexture( const char* Name, const char* Pat
 
 		g_consoleSystem->PrintInfo( "Loading texture [%s] with name [%s]", Path, Name );
 
-		const char* format = strchr( Path, '.' );
-		if ( !format )								throw std::exception( "In texture format not found" );
+		std::string			format = GetFormatFile( path );
+		if ( format.empty() )						throw std::exception( "In texture format not found" );
 
-		auto				parser = loaderTextures.find( format + 1 );
+		auto				parser = loaderTextures.find( format );
 		if ( parser == loaderTextures.end() )		throw std::exception( "Loader for format texture not found" );
 
 		ITexture*			texture = parser->second( path.c_str(), studioRenderFactory );
@@ -688,10 +688,10 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
 
 		g_consoleSystem->PrintInfo( "Loading material [%s] with name [%s]", Path, Name );
 
-		const char* format = strchr( Path, '.' );
-		if ( !format )								throw std::exception( "In material format not found" );
+		std::string			format = GetFormatFile( path );
+		if ( format.empty() )						throw std::exception( "In material format not found" );
 
-		auto				parser = loaderMaterials.find( format + 1 );
+		auto				parser = loaderMaterials.find( format );
 		if ( parser == loaderMaterials.end() )		throw std::exception( "Loader for format material not found" );
 
 		IMaterial*			material = parser->second( path.c_str(), this, materialSystemFactory );
@@ -728,10 +728,10 @@ le::IMesh* le::ResourceSystem::LoadMesh( const char* Name, const char* Path )
 
 		g_consoleSystem->PrintInfo( "Loading mesh [%s] with name [%s]", Path, Name );
 
-		const char* format = strchr( Path, '.' );
-		if ( !format )								throw std::exception( "In mesh format not found" );
+		std::string			format = GetFormatFile( path );
+		if ( format.empty() )						throw std::exception( "In mesh format not found" );
 
-		auto				parser = loaderMeshes.find( format + 1 );
+		auto				parser = loaderMeshes.find( format );
 		if ( parser == loaderMeshes.end() )		throw std::exception( "Loader for format mesh not found" );
 
 		IMesh*				mesh = parser->second( path.c_str(), this, studioRenderFactory );
@@ -768,10 +768,10 @@ le::ILevel* le::ResourceSystem::LoadLevel( const char* Name, const char* Path, I
 
 		g_consoleSystem->PrintInfo( "Loading level [%s] with name [%s]", Path, Name );
 
-		const char* format = strchr( Path, '.' );
-		if ( !format )								throw std::exception( "In level format not found" );
+		std::string			format = GetFormatFile( path );
+		if ( format.empty() )						throw std::exception( "In level format not found" );
 
-		auto				parser = loaderLevels.find( format + 1 );
+		auto				parser = loaderLevels.find( format );
 		if ( parser == loaderLevels.end() )		throw std::exception( "Loader for format level not found" );
 
 		ILevel*				level = parser->second( path.c_str(), GameFactory );
@@ -876,6 +876,7 @@ void le::ResourceSystem::UnloadLevel( const char* Name )
 	auto				it = levels.find( Name );
 	if ( it == levels.end() )	return;
 
+	// TODO: Сделать правильное удаление, ибо объект может быть создан в другом модуле
 	delete it->second;
 	levels.erase( it );
 

@@ -447,7 +447,6 @@ void le::Level::Update( UInt32_t DeltaTime )
 			ModelDescriptor&		modelDescriptor = arrayModels[ index ];
 			int						cluster = arrayBspLeafs[ FindLeaf( ( modelDescriptor.model->GetMax() + modelDescriptor.model->GetMin() ) / 2.f ) ].cluster;
 
-			// TODO: Исправить поворот точек BBox у модели
 			if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( modelDescriptor.model->GetMin(), modelDescriptor.model->GetMax() ) )
 				continue;
 

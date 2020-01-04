@@ -73,6 +73,20 @@ namespace le
 		~ResourceSystem();
 
 	private:
+		inline std::string						GetFormatFile( const std::string& Route )
+		{
+			UInt32_t		position = Route.find_last_of( '.' );
+			if ( position == std::string::npos )		
+				return "";
+			
+			// Если расширение есть, то переводим в малый регистр и возвращаем
+			std::string		format = Route.substr( position + 1, std::string::npos );
+			for ( UInt32_t index = 0, count = format.size(); index < count; ++index )
+				format[ index ] = tolower( format[ index ] );
+
+			return format;
+		}
+
 		typedef			std::unordered_map< std::string, LoadImageFn_t >			LoaderImageMap_t;
 		typedef			std::unordered_map< std::string, LoadTextureFn_t >			LoaderTextureMap_t;
 		typedef			std::unordered_map< std::string, LoadMaterialFn_t >			LoaderMaterialMap_t;
