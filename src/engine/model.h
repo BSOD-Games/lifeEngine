@@ -30,8 +30,8 @@ namespace le
 		virtual void					SetCountFace( UInt32_t CountFace );
 
 		virtual IMesh*					GetMesh() const;
-		virtual const Vector3D_t&		GetMin() const;
-		virtual const Vector3D_t&		GetMax() const;
+		virtual const Vector3D_t&		GetMin();
+		virtual const Vector3D_t&		GetMax();
 		virtual UInt32_t				GetStartFace() const;
 		virtual UInt32_t				GetCountFace() const;
 
@@ -56,7 +56,12 @@ namespace le
 		~Model();
 
 	private:
+		void							UpdateTransformation();
+		void							UpdateBoundingBox();
+
 		bool				isNeedUpdateTransformation;
+		bool				isNeedUpdateBoundingBox;
+
 		IMesh*				mesh;
 		Vector3D_t			localMin;
 		Vector3D_t			localMax;

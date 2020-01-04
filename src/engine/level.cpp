@@ -15,7 +15,6 @@
 
 #include "common/meshsurface.h"
 #include "common/meshdescriptor.h"
-#include "common/entitydescriptor.h"
 #include "engine/ifactory.h"
 #include "engine/ientity.h"
 #include "engine/ientity.h"
@@ -115,7 +114,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		std::vector< BSPModel >			arrayBspModels;
 		std::vector< IMaterial* >		arrayMaterials;
 		std::vector< MeshSurface >		arrayMeshSurfaces;
-		std::vector< int >				buffer_arrayLeafsFaces;
+		std::vector< int >				arrayLeafsFaces;
 
 		// Читаем заголовок и куски файла
 		file.read( ( char* ) &bspHeader, sizeof( BSPHeader ) );
@@ -131,7 +130,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		arrayIndices.resize( bspLumps[ BL_INDICES ].length / sizeof( UInt32_t ) );
 		arrayFaces.resize( bspLumps[ BL_FACES ].length / sizeof( BSPFace ) );
 		arrayBspLightmaps.resize( bspLumps[ BL_LIGHT_MAPS ].length / sizeof( BSPLightmap ) );
-		buffer_arrayLeafsFaces.resize( bspLumps[ BL_LEAF_FACES ].length / sizeof( int ) );
+		arrayLeafsFaces.resize( bspLumps[ BL_LEAF_FACES ].length / sizeof( int ) );
 		arrayBspTextures.resize( bspLumps[ BL_TEXTURES ].length / sizeof( BSPTexture ) );
 		arrayBspModels.resize( bspLumps[ BL_MODELS ].length / sizeof( BSPModel ) );
 		arrayBspLeafs.resize( bspLumps[ BL_LEAFS ].length / sizeof( BSPLeaf ) );
@@ -215,7 +214,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 
 		// Считываем информацию о ветках BSP дерева
 		file.seekg( bspLumps[ BL_LEAF_FACES ].offset, std::ios::beg );
-		file.read( ( char* ) &buffer_arrayLeafsFaces[ 0 ], buffer_arrayLeafsFaces.size() * sizeof( int ) );
+		file.read( ( char* ) &arrayLeafsFaces[ 0 ], arrayLeafsFaces.size() * sizeof( int ) );
 
 		// Убираем индексы фейсов относящиеся к движ. части уровня
 		int			faceStart = arrayBspModels[ 0 ].startFaceIndex;
@@ -228,7 +227,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 
 			for ( int j = 0; j < bspLeaf->numOfLeafFaces; j++ )
 			{
-				int			faceIndex = buffer_arrayLeafsFaces[ bspLeaf->leafFace + j ];
+				int			faceIndex = arrayLeafsFaces[ bspLeaf->leafFace + j ];
 
 				if ( faceIndex >= faceStart && faceIndex <= faceEnd )
 					arrayBspLeafsFaces.push_back( faceIndex );
@@ -449,8 +448,8 @@ void le::Level::Update( UInt32_t DeltaTime )
 			int						cluster = arrayBspLeafs[ FindLeaf( ( modelDescriptor.model->GetMax() + modelDescriptor.model->GetMin() ) / 2.f ) ].cluster;
 
 			// TODO: Исправить поворот точек BBox у модели
-			//if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( modelDescriptor.model->GetMin(), modelDescriptor.model->GetMax() ) )
-			//	continue;
+			if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( modelDescriptor.model->GetMin(), modelDescriptor.model->GetMax() ) )
+				continue;
 
 			if ( !modelDescriptor.isBspModel )
 			{

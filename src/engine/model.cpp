@@ -22,10 +22,10 @@ void le::Model::SetMesh( IMesh* Mesh )
 	{
 		localMin = mesh->GetMin();
 		localMax = mesh->GetMax();
-		min = ( localMin + position )  * scale;
-		max = ( localMax + position ) * scale;
 		countFace = mesh->GetCountSurfaces();
 		startFace = 0;
+
+		isNeedUpdateBoundingBox = true;
 	}
 }
 
@@ -35,7 +35,7 @@ void le::Model::SetMesh( IMesh* Mesh )
 void le::Model::SetMin( const Vector3D_t& MinPosition )
 {
 	localMin = MinPosition;
-	min = ( localMin + position ) * rotation * scale;
+	isNeedUpdateBoundingBox = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -44,7 +44,7 @@ void le::Model::SetMin( const Vector3D_t& MinPosition )
 void le::Model::SetMax( const Vector3D_t& MaxPosition )
 {
 	localMax = MaxPosition;
-	max = ( localMax + position ) * rotation * scale;
+	isNeedUpdateBoundingBox = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -74,16 +74,22 @@ le::IMesh* le::Model::GetMesh() const
 // ------------------------------------------------------------------------------------ //
 // Получить минимальную точку в модели 
 // ------------------------------------------------------------------------------------ //
-const le::Vector3D_t& le::Model::GetMin() const
+const le::Vector3D_t& le::Model::GetMin()
 {
+	if ( isNeedUpdateBoundingBox )
+		UpdateBoundingBox();
+
 	return min;
 }
 
 // ------------------------------------------------------------------------------------ //
 // Получить максимальную точку в модели
 // ------------------------------------------------------------------------------------ //
-const le::Vector3D_t& le::Model::GetMax() const
+const le::Vector3D_t& le::Model::GetMax()
 {
+	if ( isNeedUpdateBoundingBox )
+		UpdateBoundingBox();
+
 	return max;
 }
 
@@ -109,8 +115,8 @@ le::UInt32_t le::Model::GetCountFace() const
 void le::Model::Move( const Vector3D_t& FactorMove )
 {
 	position += FactorMove;
-	min += FactorMove;
-	max += FactorMove;
+
+	isNeedUpdateBoundingBox = true;
 	isNeedUpdateTransformation = true;
 }
 
@@ -126,8 +132,7 @@ void le::Model::Rotate( const Vector3D_t& FactorRotate )
 		Quaternion_t( rotations.y, 0, axis.y, 0 ) * 
 		Quaternion_t( rotations.z, 0, 0, axis.z );
 
-	min = rotation * min;
-	max = rotation * max;
+	isNeedUpdateBoundingBox = true;
 	isNeedUpdateTransformation = true;
 }
 
@@ -137,8 +142,8 @@ void le::Model::Rotate( const Vector3D_t& FactorRotate )
 void le::Model::Rotate( const Quaternion_t& FactorRotate )
 {
 	rotation *= FactorRotate;
-	min = rotation * min;
-	max = rotation * max;
+
+	isNeedUpdateBoundingBox = true;
 	isNeedUpdateTransformation = true;
 }
 
@@ -148,8 +153,8 @@ void le::Model::Rotate( const Quaternion_t& FactorRotate )
 void le::Model::Scale( const Vector3D_t& FactorScale )
 {
 	scale += FactorScale;
-	min *= FactorScale;
-	max *= FactorScale;
+
+	isNeedUpdateBoundingBox = true;
 	isNeedUpdateTransformation = true;
 }
 
@@ -159,8 +164,8 @@ void le::Model::Scale( const Vector3D_t& FactorScale )
 void le::Model::SetPosition( const Vector3D_t& Position )
 {
 	position = Position;
-	min = ( localMin + position ) * rotation * scale;
-	max = ( localMax + position ) * rotation * scale;
+
+	isNeedUpdateBoundingBox = true;
 	isNeedUpdateTransformation = true;
 }
 
@@ -176,8 +181,7 @@ void le::Model::SetRotation( const Vector3D_t& Rotation )
 		Quaternion_t( rotations.y, 0, axis.y, 0 ) *
 		Quaternion_t( rotations.z, 0, 0, axis.z );
 
-	min = ( localMin + position ) * rotation * scale;
-	max = ( localMax + position ) * rotation * scale;
+	isNeedUpdateBoundingBox = true;
 	isNeedUpdateTransformation = true;
 }
 
@@ -187,8 +191,8 @@ void le::Model::SetRotation( const Vector3D_t& Rotation )
 void le::Model::SetRotation( const Quaternion_t& Rotation )
 {
 	rotation = Rotation;
-	min = ( localMin + position ) * rotation * scale;
-	max = ( localMax + position ) * rotation * scale;
+
+	isNeedUpdateBoundingBox = true;
 	isNeedUpdateTransformation = true;
 }
 
@@ -198,8 +202,8 @@ void le::Model::SetRotation( const Quaternion_t& Rotation )
 void le::Model::SetScale( const Vector3D_t& Scale )
 {
 	scale = Scale;
-	min = ( localMin + position ) * rotation * scale;
-	max = ( localMax + position ) * rotation * scale;
+
+	isNeedUpdateBoundingBox = true;
 	isNeedUpdateTransformation = true;
 }
 
@@ -232,11 +236,8 @@ const le::Vector3D_t& le::Model::GetScale() const
 // ------------------------------------------------------------------------------------ //
 const le::Matrix4x4_t& le::Model::GetTransformation()
 {
-	if ( isNeedUpdateTransformation )
-	{
-		transformation = glm::translate( position ) * glm::mat4_cast( rotation ) * glm::scale( scale );
-		isNeedUpdateTransformation = false;
-	}
+	if ( isNeedUpdateTransformation )	
+		UpdateTransformation();
 
 	return transformation;
 }
@@ -246,6 +247,7 @@ const le::Matrix4x4_t& le::Model::GetTransformation()
 // ------------------------------------------------------------------------------------ //
 le::Model::Model() :
 	isNeedUpdateTransformation( true ),
+	isNeedUpdateBoundingBox( true ),
 	mesh( nullptr ), 
 	position( 0.f ),
 	rotation( 1.f, 0.f, 0.f, 0.f ),
@@ -259,3 +261,30 @@ le::Model::Model() :
 // ------------------------------------------------------------------------------------ //
 le::Model::~Model()
 {}
+
+// ------------------------------------------------------------------------------------ //
+// Обновить матрицу трансформации
+// ------------------------------------------------------------------------------------ //
+void le::Model::UpdateTransformation()
+{
+	if ( !isNeedUpdateTransformation ) return;
+
+	transformation = glm::translate( position ) * glm::mat4_cast( rotation ) * glm::scale( scale );
+	isNeedUpdateTransformation = false;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Обновить BBox
+// ------------------------------------------------------------------------------------ //
+void le::Model::UpdateBoundingBox()
+{
+	if ( !isNeedUpdateBoundingBox ) return;
+
+	Vector3D_t		min = ( rotation * localMin + position ) * scale;
+	Vector3D_t		max = ( rotation * localMax + position ) * scale;
+
+	this->min = Vector3D_t( glm::min( min.x, max.x ), glm::min( min.y, max.y ), glm::min( min.z, max.z ) );
+	this->max = Vector3D_t( glm::max( max.x, min.x ), glm::max( max.y, min.y ), glm::max( max.z, min.z ) );
+
+	isNeedUpdateBoundingBox = false;
+}

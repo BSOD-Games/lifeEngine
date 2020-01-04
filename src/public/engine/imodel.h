@@ -33,8 +33,8 @@ namespace le
 		virtual void					SetCountFace( UInt32_t CountFace ) = 0;
 
 		virtual IMesh*					GetMesh() const = 0;
-		virtual const Vector3D_t&		GetMin() const = 0;
-		virtual const Vector3D_t&		GetMax() const = 0;
+		virtual const Vector3D_t&		GetMin() = 0;
+		virtual const Vector3D_t&		GetMax() = 0;
 		virtual UInt32_t				GetStartFace() const = 0;
 		virtual UInt32_t				GetCountFace() const = 0;
 	};
@@ -44,7 +44,7 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#define MODEL_INTERFACE_VERSION "LE_Model002"
+#define MODEL_INTERFACE_VERSION "LE_Model003"
 
 //---------------------------------------------------------------------//
 

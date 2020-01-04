@@ -27,10 +27,11 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IMaterialVar** 
 	layout( location = 0 ) 			in vec3 vertex_position; \n \
 	layout( location = 1 ) 			in vec2 vertex_texCoords; \n \
 	layout( location = 2 ) 			in vec2 vertex_lightmapCoords; \n \
+	layout( location = 4 ) 			in vec4 vertex_color; \n \
 	\n \
 		out vec2 				texCoords; \n \
 		out vec2 				lightmapCoords; \n \
-		out vec4 				pcolor; \n \
+		out vec4 				vertexColor; \n \
 	\n \
 		uniform mat4    		matrix_Projection; \n \
 		uniform mat4			matrix_Transformation; \n \
@@ -39,6 +40,7 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IMaterialVar** 
 	{\n \
 		texCoords = vertex_texCoords; \n \
 		lightmapCoords = vertex_lightmapCoords; \n \
+		vertexColor = vertex_color; \n \
 		gl_Position = matrix_Projection * matrix_Transformation * vec4( vertex_position, 1.f ); \n \
 	}";
 
@@ -47,6 +49,7 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IMaterialVar** 
 	\n\
 		in vec2 				texCoords;\n\
 		in vec2 				lightmapCoords;\n\
+		in vec4 				vertexColor; \n \
 		out vec4				color;\n\
 	\n\
 		uniform sampler2D		basetexture;\n\
@@ -54,7 +57,7 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IMaterialVar** 
 	\n\
 	void main()\n\
 	{\n\
-		color = texture2D( basetexture, texCoords ) * texture2D( lightmap, lightmapCoords );\n\
+		color = texture2D( basetexture, texCoords ) * texture2D( lightmap, lightmapCoords ) * vertexColor;\n\
 	}\n";
 
 	if ( !LoadShader( shaderDescriptor ) )
@@ -74,11 +77,9 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IMaterialVar** 
 void le::LightmappedGeneric::OnDrawMesh( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
 	if ( !gpuProgram ) return;
-	if ( MaterialVars[ 0 ]->IsDefined() )
-		MaterialVars[ 0 ]->GetValueTexture()->Bind( 0 );
 
-	if ( Lightmap )
-		Lightmap->Bind( 1 );
+	if ( MaterialVars[ 0 ]->IsDefined() )		MaterialVars[ 0 ]->GetValueTexture()->Bind( 0 );
+	if ( Lightmap )			Lightmap->Bind( 1 );
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
