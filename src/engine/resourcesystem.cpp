@@ -21,19 +21,24 @@
 #include "common/meshdescriptor.h"
 #include "engine/lifeengine.h"
 #include "engine/engine.h"
-#include "materialsystem/imaterialsystem.h"
-#include "materialsystem/imaterial.h"
-#include "materialsystem/imaterialvar.h"
+#include "engine/material.h"
 #include "studiorender/istudiorender.h"
 #include "studiorender/itexture.h"
 #include "studiorender/imesh.h"
 #include "studiorender/studiovertexelement.h"
 #include "studiorender/studiorendersampler.h"
+#include "studiorender/istudiorendertechnique.h"
+#include "studiorender/istudiorenderpass.h"
+#include "studiorender/ishaderparameter.h"
 
 #include "global.h"
 #include "consolesystem.h"
 #include "resourcesystem.h"
 #include "level.h"
+
+#define LMD_ID			"LMD"
+#define LMD_VERSION		2
+#define LMT_VERSION		2
 
 struct Vertex
 {
@@ -42,6 +47,18 @@ struct Vertex
 	le::Vector2D_t			texCoords;
 	le::Vector3D_t			tangent;
 	le::Vector3D_t			bitangent;
+};
+
+struct MaterialPass
+{
+	std::string													shader;
+	std::unordered_map< std::string, rapidjson::Value* >		parameters;
+};
+
+struct MaterialTechnique
+{
+	std::string						type;
+	std::vector< MaterialPass >		passes;
 };
 
 // ------------------------------------------------------------------------------------ //
@@ -132,6 +149,17 @@ inline le::Matrix4x4_t JsonArrayToMatrix( rapidjson::Value::Array& Array )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Преобразовать строку в перечисление техник рендера
+// ------------------------------------------------------------------------------------ //
+inline le::RENDER_TECHNIQUE RenderTechnique_StringToEnum( const char* Type )
+{
+	if ( !Type || Type == "" ) return le::RENDER_TECHNIQUE();
+
+	if ( strcmp( Type, "deffered_shading" ) == 0 )		return le::RT_DEFFERED_SHADING;
+	else												return le::RENDER_TECHNIQUE();
+}
+
+// ------------------------------------------------------------------------------------ //
 // Загрузить изображение
 // ------------------------------------------------------------------------------------ //
 void LE_LoadImage( const char* Path, le::Image& Image, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels )
@@ -214,7 +242,7 @@ le::ITexture* LE_LoadTexture( const char* Path, le::IFactory* StudioRenderFactor
 // ------------------------------------------------------------------------------------ //
 // Загрузить материал
 // ------------------------------------------------------------------------------------ //
-le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceSystem, le::IFactory* MaterialSystemFactory )
+le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceSystem, le::IFactory* StudioRenderFactory )
 {
 	std::ifstream		file( Path );
 	if ( !file.is_open() )						return nullptr;
@@ -225,76 +253,112 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 	rapidjson::Document			document;
 	document.Parse( stringBuffer.c_str() );
 	if ( document.HasParseError() )				return nullptr;
+		
+	if ( document.FindMember( "version" ) == document.MemberEnd() ||
+		 !document[ "version" ].IsNumber() || document[ "version" ].GetInt() != LMT_VERSION )
+		return nullptr;
 
-	std::unordered_map< std::string, rapidjson::Value >		materialVars;
-	std::unordered_map< std::string, rapidjson::Value >		shaderParams;
+	std::string													surface;
+	std::unordered_map< std::string, MaterialTechnique >		techniques;
 
 	// Считываем все параметры материала в память
-	for ( auto it = document.MemberBegin(), itEnd = document.MemberEnd(); it != itEnd; ++it )
+	for ( auto itRoot = document.MemberBegin(), itRootEnd = document.MemberEnd(); itRoot != itRootEnd; ++itRoot )
 	{
 		// Название поверхности
-		if ( strcmp( it->name.GetString(), "surface" ) == 0 && it->value.IsString() )
-			materialVars[ "surface" ] = it->value;
+		if ( strcmp( itRoot->name.GetString(), "surface" ) == 0 && itRoot->value.IsString() )
+			surface = itRoot->value.GetString();
 
-		// Название шейдера
-		else if ( strcmp( it->name.GetString(), "shader" ) == 0 && it->value.IsString() )
-			materialVars[ "shader" ] = it->value;
-
-		// Параметры шейдера
-		else if ( it->value.IsObject() && strcmp( it->name.GetString(), "shader_parameters" ) == 0 )
-			for ( auto itObject = it->value.MemberBegin(), itObjectEnd = it->value.MemberEnd(); itObject != itObjectEnd; ++itObject )
-				shaderParams[ itObject->name.GetString() ] = itObject->value;
-	}
-
-	le::IMaterial*			material = ( le::IMaterial* ) MaterialSystemFactory->Create( MATERIAL_INTERFACE_VERSION );
-	if ( !material )							return nullptr;
-
-	// Записываем материалу параметры
-	for ( auto it = materialVars.begin(), itEnd = materialVars.end(); it != itEnd; ++it )
-	{
-		// Название поверхности
-		if ( it->first == "surface" && it->second.IsString() )
-			material->SetSurfaceName( it->second.GetString() );
-
-		// Название шейдера
-		else if ( it->first == "shader" && it->second.IsString() )
-			material->SetShader( it->second.GetString() );
-	}
-
-	if ( material->GetShaderName() == "" )
-	{
-		MaterialSystemFactory->Delete( material );
-		return nullptr;
-	}
-
-	// Записываем параметры шейдера
-	for ( auto it = shaderParams.begin(), itEnd = shaderParams.end(); it != itEnd; ++it )
-	{
-		le::IMaterialVar*		materialVar = material->FindVar( it->first.c_str() );
-		if ( !materialVar ) continue;
-
-		if ( it->second.IsString() )
+		// Считываем техники визуализации
+		else if ( strcmp( itRoot->name.GetString(), "technique" ) == 0 && itRoot->value.IsObject() )
 		{
-			le::ITexture*		texture = ResourceSystem->LoadTexture( it->second.GetString(), it->second.GetString() );
-			if ( !texture )	continue;
+			MaterialTechnique			technique;
+			for ( auto itTechnique = itRoot->value.GetObject().MemberBegin(), itTechniqueEnd = itRoot->value.GetObject().MemberEnd(); itTechnique != itTechniqueEnd; ++itTechnique )
+			{
+				// Тип техники
+				if ( strcmp( itTechnique->name.GetString(), "type" ) == 0 && itTechnique->value.IsString() )
+					technique.type = itTechnique->value.GetString();
 
-			materialVar->SetValueTexture( texture );
+				// Проходы
+				else if ( strcmp( itTechnique->name.GetString(), "pass" ) == 0 && itTechnique->value.IsObject() )
+				{
+					MaterialPass			pass;
+					for ( auto itPass = itTechnique->value.GetObject().MemberBegin(), itPassEnd = itTechnique->value.GetObject().MemberEnd(); itPass != itPassEnd; ++itPass )
+					{
+						// Шейдер
+						if ( strcmp( itPass->name.GetString(), "shader" ) == 0 && itPass->value.IsString() )
+							pass.shader = itPass->value.GetString();
+
+						// Параметры шейдера
+						else if ( strcmp( itPass->name.GetString(), "parameters" ) == 0 && itPass->value.IsObject() )
+							for ( auto itParameter = itPass->value.GetObject().MemberBegin(), itParameterEnd = itPass->value.GetObject().MemberEnd(); itParameter != itParameterEnd; ++itParameter )
+									pass.parameters[ itParameter->name.GetString() ] = &itParameter->value;
+					}
+
+					technique.passes.push_back( pass );
+				}
+			}
+
+			if ( !technique.type.empty() && techniques.find( technique.type ) == techniques.end() )
+				techniques[ technique.type ] = technique;
+		}
+	}
+
+	if ( techniques.empty() )			return nullptr;
+
+	le::Material*				material = new le::Material();
+	if ( !surface.empty() )		material->SetSurfaceName( surface.c_str() );
+
+	for ( auto itTechnique = techniques.begin(), itTechniqueEnd = techniques.end(); itTechnique != itTechniqueEnd; ++itTechnique )
+	{
+		le::IStudioRenderTechnique*			technique = ( le::IStudioRenderTechnique* ) StudioRenderFactory->Create( TECHNIQUE_INTERFACE_VERSION );
+		if ( !technique )		return nullptr;
+
+		technique->SetType( RenderTechnique_StringToEnum( itTechnique->first.c_str() ) );
+		for ( le::UInt32_t indexPass = 0, countPasses = itTechnique->second.passes.size(); indexPass < countPasses; ++indexPass )
+		{
+			auto&							materialPass = itTechnique->second.passes[ indexPass ];
+			le::IStudioRenderPass*			pass = ( le::IStudioRenderPass* ) StudioRenderFactory->Create( PASS_INTERFACE_VERSION );
+			if ( !pass )		return nullptr;
+
+			pass->SetShader( materialPass.shader.c_str() );
+			for ( auto itParameters = materialPass.parameters.begin(), itParametersEnd = materialPass.parameters.end(); itParameters != itParametersEnd; ++itParameters )
+			{
+				auto&						value = itParameters->second;
+				le::IShaderParameter*		parameter = ( le::IShaderParameter* ) StudioRenderFactory->Create( SHADERPARAMETER_INTERFACE_VERSION );
+				if ( !parameter )		return nullptr;
+
+				parameter->SetName( itParameters->first.c_str() );
+
+				if ( itParameters->second->IsString() )
+				{
+					le::ITexture*		texture = ResourceSystem->LoadTexture( itParameters->second->GetString(), itParameters->second->GetString() );
+					if ( !texture )	continue;
+
+					parameter->SetValueTexture( texture );
+				}
+
+				else if ( itParameters->second->IsArray() )
+				{
+					rapidjson::Value::Array				array = itParameters->second->GetArray();
+
+					if ( array.Size() == 2 )			parameter->SetValueVector2D( JsonArrayToVec2( array ) );
+					else if ( array.Size() == 3 )		parameter->SetValueVector3D( JsonArrayToVec3( array ) );
+					else if ( array.Size() == 4 )		parameter->SetValueVector4D( JsonArrayToVec4( array ) );
+					else if ( array.Size() == 16 )		parameter->SetValueMatrix( JsonArrayToMatrix( array ) );
+				}
+
+				else if ( itParameters->second->IsBool() )		parameter->SetValueShaderFlag( itParameters->second->GetBool() );
+				else if ( itParameters->second->IsDouble() )	parameter->SetValueFloat( itParameters->second->GetDouble() );
+				else if ( itParameters->second->IsFloat() )		parameter->SetValueFloat( itParameters->second->GetFloat() );
+				else if ( itParameters->second->IsInt() )		parameter->SetValueInt( itParameters->second->GetInt() );
+			
+				pass->AddParameter( parameter );
+			}
+
+			technique->AddPass( pass );
 		}
 
-		else if ( it->second.IsArray() )
-		{
-			rapidjson::Value::Array				array = it->second.GetArray();
-
-			if ( array.Size() == 2 )			materialVar->SetValueVector2D( JsonArrayToVec2( array ) );
-			else if ( array.Size() == 3 )		materialVar->SetValueVector3D( JsonArrayToVec3( array ) );
-			else if ( array.Size() == 4 )		materialVar->SetValueVector4D( JsonArrayToVec4( array ) );
-			else if ( array.Size() == 16 )		materialVar->SetValueMatrix( JsonArrayToMatrix( array ) );
-		}
-
-		else if ( it->second.IsBool() )			materialVar->SetValueShaderFlag( it->second.GetBool() );
-		else if ( it->second.IsDouble() )		materialVar->SetValueFloat( it->second.GetDouble() );		
-		else if ( it->second.IsFloat() )		materialVar->SetValueFloat( it->second.GetFloat() );		
-		else if ( it->second.IsInt() )			materialVar->SetValueInt( it->second.GetInt() );
+		material->AddTechnique( technique );
 	}
 
 	return material;
@@ -312,12 +376,9 @@ le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, l
 	char						strId[ 3 ];
 	le::UInt16_t				version = 0;
 
-	const char					loader_strId[ 3 ] = { 'L', 'M', 'D' };
-	const le::UInt16_t			loader_version = 2;
-
 	file.read( strId, 3 );
 	file.read( ( char* ) &version, sizeof( le::UInt16_t ) );
-	if ( strncmp( strId, loader_strId, 3 ) != 0 || version != loader_version )		return nullptr;
+	if ( strncmp( strId, LMD_ID, 3 ) != 0 || version != LMD_VERSION )		return nullptr;
 
 	// Читаем все материалы модели
 	le::UInt32_t						sizeString = 0;
@@ -679,7 +740,7 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
 
 	try
 	{
-		if ( !materialSystemFactory )						throw std::exception( "Resource system not initialized" );
+		if ( !studioRenderFactory )							throw std::exception( "Resource system not initialized" );
 
 		if ( materials.find( Name ) != materials.end() )	return materials[ Name ];
 		if ( loaderMaterials.empty() )						throw std::exception( "No material loaders" );
@@ -694,7 +755,7 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
 		auto				parser = loaderMaterials.find( format );
 		if ( parser == loaderMaterials.end() )		throw std::exception( "Loader for format material not found" );
 
-		IMaterial*			material = parser->second( path.c_str(), this, materialSystemFactory );
+		IMaterial*			material = parser->second( path.c_str(), this, studioRenderFactory );
 		if ( !material )	throw std::exception( "Fail loading material" );
 
 		materials.insert( std::make_pair( Name, material ) );
@@ -829,16 +890,10 @@ void le::ResourceSystem::UnloadMaterial( const char* Name )
 {
 	LIFEENGINE_ASSERT( Name );
 
-	if ( !materialSystemFactory )
-	{
-		g_consoleSystem->PrintError( "Resource system not initialized" );
-		return;
-	}
-
 	auto				it = materials.find( Name );
 	if ( it == materials.end() )	return;
 
-	materialSystemFactory->Delete( it->second );
+	delete it->second;
 	materials.erase( it );
 
 	g_consoleSystem->PrintInfo( "Unloaded material [%s]", Name );
@@ -890,14 +945,8 @@ void le::ResourceSystem::UnloadMaterials()
 {
 	if ( materials.empty() ) return;
 
-	if ( !materialSystemFactory )
-	{
-		g_consoleSystem->PrintError( "Resource system not initialized" );
-		return;
-	}
-
 	for ( auto it = materials.begin(), itEnd = materials.end(); it != itEnd; ++it )
-			materialSystemFactory->Delete( it->second );
+			delete it->second;
 
 	g_consoleSystem->PrintInfo( "Unloaded all materials" );
 	materials.clear();
@@ -1029,11 +1078,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 		IStudioRender*			studioRender = Engine->GetStudioRender();
 		if ( !studioRender )	throw std::exception( "Resource system requared studiorender" );
 
-		IMaterialSystem*		materialSystem = Engine->GetMaterialSystem();
-		if ( !materialSystem )	throw std::exception( "Resource system requared material system" );
-
 		studioRenderFactory = studioRender->GetFactory();
-		materialSystemFactory = materialSystem->GetFactory();
 
 		RegisterLoader_Image( "png", LE_LoadImage );
 		RegisterLoader_Image( "jpg", LE_LoadImage );
@@ -1065,8 +1110,7 @@ void le::ResourceSystem::SetGameDir( const char* GameDir )
 // Конструктор
 // ------------------------------------------------------------------------------------ //
 le::ResourceSystem::ResourceSystem() :
-	studioRenderFactory( nullptr ),
-	materialSystemFactory( nullptr )
+	studioRenderFactory( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //

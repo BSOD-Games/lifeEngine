@@ -23,7 +23,6 @@ namespace le
 	class IStudioRender;
 	class IWindow;
 	class IFactory;
-	class IMaterialSystem;
 	class IResourceSystem;
 	class IInputSystem;
 
@@ -42,7 +41,6 @@ namespace le
 		virtual bool					IsRunSimulation() const = 0;
 		virtual IConsoleSystem*			GetConsoleSystem() const = 0;
 		virtual IStudioRender*			GetStudioRender() const = 0;
-		virtual IMaterialSystem*		GetMaterialSystem() const = 0;
 		virtual IResourceSystem*		GetResourceSystem() const = 0;
 		virtual IInputSystem*			GetInputSystem() const = 0;
 		virtual IWindow*				GetWindow() const = 0;

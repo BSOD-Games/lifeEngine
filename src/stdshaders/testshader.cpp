@@ -19,7 +19,7 @@
 // ------------------------------------------------------------------------------------ //
 // Инициализировать экземпляр шейдера
 // ------------------------------------------------------------------------------------ //
-bool le::TestShader::InitInstance( UInt32_t CountParams, IMaterialVar** MaterialVars )
+bool le::TestShader::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
 	gpuProgram = ( IGPUProgram* ) g_studioRenderFactory->Create( GPUPROGRAM_INTERFACE_VERSION );
 	if ( !gpuProgram ) return false;
@@ -67,10 +67,10 @@ bool le::TestShader::InitInstance( UInt32_t CountParams, IMaterialVar** Material
 // ------------------------------------------------------------------------------------ //
 // Подготовка к отрисовке элементов
 // ------------------------------------------------------------------------------------ //
-void le::TestShader::OnDrawMesh( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera )
+void le::TestShader::OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera )
 {
 	if ( !gpuProgram ) return;
-	MaterialVars[ 0 ]->GetValueTexture()->Bind();
+	ShaderParameters[ 0 ]->GetValueTexture()->Bind();
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
@@ -126,6 +126,6 @@ le::TestShader::TestShader() :
 {
 	shaderParams =
 	{
-		{ "basetexture",	MVT_TEXTURE		}
+		{ "basetexture",	SPT_TEXTURE		}
 	};
 }

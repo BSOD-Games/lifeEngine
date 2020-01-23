@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////
 //
 //			*** lifeEngine (Двигатель жизни) ***
-//				Copyright (C) 2018-2019
+//				Copyright (C) 2018-2020
 //
 // Репозиторий движка:  https://github.com/zombihello/lifeEngine
 // Авторы:				Егор Погуляка (zombiHello)
@@ -11,13 +11,13 @@
 #include "engine/iconsolesystem.h"
 
 #include "global.h"
-#include "material.h"
-#include "materialvar.h"
+#include "studiorenderpass.h"
+#include "shaderparameter.h"
 
 // ------------------------------------------------------------------------------------ //
 // Очистить переменную
 // ------------------------------------------------------------------------------------ //
-void le::MaterialVar::Clear()
+void le::ShaderParameter::Clear()
 {
 	value_int = 0;
 	value_float = 0.f;
@@ -34,7 +34,7 @@ void le::MaterialVar::Clear()
 // ------------------------------------------------------------------------------------ //
 // Задать название переменной
 // ------------------------------------------------------------------------------------ //
-void le::MaterialVar::SetName( const char* Name )
+void le::ShaderParameter::SetName( const char* Name )
 {
 	name = Name;
 }
@@ -42,10 +42,11 @@ void le::MaterialVar::SetName( const char* Name )
 // ------------------------------------------------------------------------------------ //
 // Задать значение переменной
 // ------------------------------------------------------------------------------------ //
-void le::MaterialVar::SetValueInt( int Value )
+void le::ShaderParameter::SetValueInt( int Value )
 {
-	type = MVT_INT;
+	type = SPT_INT;
 	value_int = Value;
+	if ( studioRenderPass )		studioRenderPass->NeadRefrash();
 
 	isDefined = true;
 }
@@ -53,11 +54,11 @@ void le::MaterialVar::SetValueInt( int Value )
 // ------------------------------------------------------------------------------------ //
 // Задать значение переменной
 // ------------------------------------------------------------------------------------ //
-void le::MaterialVar::SetValueFloat( float Value )
+void le::ShaderParameter::SetValueFloat( float Value )
 {
-	type = MVT_FLOAT;
+	type = SPT_FLOAT;
 	value_float = Value;
-	material->SetNeadRefrash();
+	if ( studioRenderPass )		studioRenderPass->NeadRefrash();
 
 	isDefined = true;
 }
@@ -65,11 +66,11 @@ void le::MaterialVar::SetValueFloat( float Value )
 // ------------------------------------------------------------------------------------ //
 // Задать значение переменной
 // ------------------------------------------------------------------------------------ //
-void le::MaterialVar::SetValueShaderFlag( bool Value )
+void le::ShaderParameter::SetValueShaderFlag( bool Value )
 {
-	type = MVT_SHADER_FLAG;
+	type = SPT_SHADER_FLAG;
 	value_shaderFlag = Value;
-	material->SetNeadRefrash();
+	if ( studioRenderPass )		studioRenderPass->NeadRefrash();
 
 	isDefined = true;
 }
@@ -77,11 +78,11 @@ void le::MaterialVar::SetValueShaderFlag( bool Value )
 // ------------------------------------------------------------------------------------ //
 // Задать значение переменной
 // ------------------------------------------------------------------------------------ //
-void le::MaterialVar::SetValueVector2D( const Vector2D_t& Value )
+void le::ShaderParameter::SetValueVector2D( const Vector2D_t& Value )
 {
-	type = MVT_VECTOR_2D;
+	type = SPT_VECTOR_2D;
 	value_vector2D = Value;
-	material->SetNeadRefrash();
+	if ( studioRenderPass )		studioRenderPass->NeadRefrash();
 
 	isDefined = true;
 }
@@ -89,11 +90,11 @@ void le::MaterialVar::SetValueVector2D( const Vector2D_t& Value )
 // ------------------------------------------------------------------------------------ //
 // Задать значение переменной
 // ------------------------------------------------------------------------------------ //
-void le::MaterialVar::SetValueVector3D( const Vector3D_t& Value )
+void le::ShaderParameter::SetValueVector3D( const Vector3D_t& Value )
 {
-	type = MVT_VECTOR_3D;
+	type = SPT_VECTOR_3D;
 	value_vector3D = Value;
-	material->SetNeadRefrash();
+	if ( studioRenderPass )		studioRenderPass->NeadRefrash();
 
 	isDefined = true;
 }
@@ -101,11 +102,11 @@ void le::MaterialVar::SetValueVector3D( const Vector3D_t& Value )
 // ------------------------------------------------------------------------------------ //
 // Задать значение переменной
 // ------------------------------------------------------------------------------------ //
-void le::MaterialVar::SetValueVector4D( const Vector4D_t& Value )
+void le::ShaderParameter::SetValueVector4D( const Vector4D_t& Value )
 {
-	type = MVT_VECTOR_4D;
+	type = SPT_VECTOR_4D;
 	value_vector4D = Value;
-	material->SetNeadRefrash();
+	if ( studioRenderPass )		studioRenderPass->NeadRefrash();
 
 	isDefined = true;
 }
@@ -113,11 +114,11 @@ void le::MaterialVar::SetValueVector4D( const Vector4D_t& Value )
 // ------------------------------------------------------------------------------------ //
 // Задать значение переменной
 // ------------------------------------------------------------------------------------ //
-void le::MaterialVar::SetValueMatrix( const Matrix4x4_t& Value )
+void le::ShaderParameter::SetValueMatrix( const Matrix4x4_t& Value )
 {
-	type = MVT_MATRIX;
+	type = SPT_MATRIX;
 	value_matrix4x4 = Value;
-	material->SetNeadRefrash();
+	if ( studioRenderPass )		studioRenderPass->NeadRefrash();
 
 	isDefined = true;
 }
@@ -125,11 +126,11 @@ void le::MaterialVar::SetValueMatrix( const Matrix4x4_t& Value )
 // ------------------------------------------------------------------------------------ //
 // Задать значение переменной
 // ------------------------------------------------------------------------------------ //
-void le::MaterialVar::SetValueTexture( ITexture* Value )
+void le::ShaderParameter::SetValueTexture( ITexture* Value )
 {
-	type = MVT_TEXTURE;
+	type = SPT_TEXTURE;
 	value_texture = Value;
-	material->SetNeadRefrash();
+	if ( studioRenderPass )		studioRenderPass->NeadRefrash();
 
 	isDefined = true;
 }
@@ -137,7 +138,7 @@ void le::MaterialVar::SetValueTexture( ITexture* Value )
 // ------------------------------------------------------------------------------------ //
 // Определена ли переменная
 // ------------------------------------------------------------------------------------ //
-bool le::MaterialVar::IsDefined() const
+bool le::ShaderParameter::IsDefined() const
 {
 	return isDefined;
 }
@@ -145,7 +146,7 @@ bool le::MaterialVar::IsDefined() const
 // ------------------------------------------------------------------------------------ //
 // Получить название переменной
 // ------------------------------------------------------------------------------------ //
-const char* le::MaterialVar::GetName() const
+const char* le::ShaderParameter::GetName() const
 {
 	return name.c_str();
 }
@@ -153,7 +154,7 @@ const char* le::MaterialVar::GetName() const
 // ------------------------------------------------------------------------------------ //
 // Получить тип переменной
 // ------------------------------------------------------------------------------------ //
-le::MATERIAL_VAR_TYPE le::MaterialVar::GetType() const
+le::SHADER_PARAMETER_TYPE le::ShaderParameter::GetType() const
 {
 	return type;
 }
@@ -161,7 +162,7 @@ le::MATERIAL_VAR_TYPE le::MaterialVar::GetType() const
 // ------------------------------------------------------------------------------------ //
 // Получить значение переменной
 // ------------------------------------------------------------------------------------ //
-int le::MaterialVar::GetValueInt() const
+int le::ShaderParameter::GetValueInt() const
 {
 	return value_int;
 }
@@ -169,7 +170,7 @@ int le::MaterialVar::GetValueInt() const
 // ------------------------------------------------------------------------------------ //
 // Получить значение переменной
 // ------------------------------------------------------------------------------------ //
-float le::MaterialVar::GetValueFloat() const
+float le::ShaderParameter::GetValueFloat() const
 {
 	return value_float;
 }
@@ -177,7 +178,7 @@ float le::MaterialVar::GetValueFloat() const
 // ------------------------------------------------------------------------------------ //
 // Получить значение переменной
 // ------------------------------------------------------------------------------------ //
-bool le::MaterialVar::GetValueShaderFlag() const
+bool le::ShaderParameter::GetValueShaderFlag() const
 {
 	return value_shaderFlag;
 }
@@ -185,7 +186,7 @@ bool le::MaterialVar::GetValueShaderFlag() const
 // ------------------------------------------------------------------------------------ //
 // Получить значение переменной
 // ------------------------------------------------------------------------------------ //
-const le::Vector2D_t& le::MaterialVar::GetValueVector2D() const
+const le::Vector2D_t& le::ShaderParameter::GetValueVector2D() const
 {
 	return value_vector2D;
 }
@@ -193,7 +194,7 @@ const le::Vector2D_t& le::MaterialVar::GetValueVector2D() const
 // ------------------------------------------------------------------------------------ //
 // Получить значение переменной
 // ------------------------------------------------------------------------------------ //
-const le::Vector3D_t& le::MaterialVar::GetValueVector3D() const
+const le::Vector3D_t& le::ShaderParameter::GetValueVector3D() const
 {
 	return value_vector3D;
 }
@@ -201,7 +202,7 @@ const le::Vector3D_t& le::MaterialVar::GetValueVector3D() const
 // ------------------------------------------------------------------------------------ //
 // Получить значение переменной
 // ------------------------------------------------------------------------------------ //
-const le::Vector4D_t& le::MaterialVar::GetValueVector4D() const
+const le::Vector4D_t& le::ShaderParameter::GetValueVector4D() const
 {
 	return value_vector4D;
 }
@@ -209,7 +210,7 @@ const le::Vector4D_t& le::MaterialVar::GetValueVector4D() const
 // ------------------------------------------------------------------------------------ //
 // Получить значение переменной
 // ------------------------------------------------------------------------------------ //
-const le::Matrix4x4_t& le::MaterialVar::GetValueMatrix() const
+const le::Matrix4x4_t& le::ShaderParameter::GetValueMatrix() const
 {
 	return value_matrix4x4;
 }
@@ -217,7 +218,7 @@ const le::Matrix4x4_t& le::MaterialVar::GetValueMatrix() const
 // ------------------------------------------------------------------------------------ //
 // Получить значение переменной
 // ------------------------------------------------------------------------------------ //
-le::ITexture* le::MaterialVar::GetValueTexture() const
+le::ITexture* le::ShaderParameter::GetValueTexture() const
 {
 	return value_texture;
 }
@@ -225,8 +226,8 @@ le::ITexture* le::MaterialVar::GetValueTexture() const
 // ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
-le::MaterialVar::MaterialVar( Material* Material ) :
-	isDefined ( false ),
+le::ShaderParameter::ShaderParameter() :
+	isDefined( false ),
 	value_int( 0 ),
 	value_float( 0.f ),
 	value_shaderFlag( false ),
@@ -235,11 +236,11 @@ le::MaterialVar::MaterialVar( Material* Material ) :
 	value_vector3D( 0.f ),
 	value_vector4D( 0.f ),
 	value_texture( nullptr ),
-	material( Material )
+	studioRenderPass( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //
 // Деструктор
 // ------------------------------------------------------------------------------------ //
-le::MaterialVar::~MaterialVar()
+le::ShaderParameter::~ShaderParameter()
 {}

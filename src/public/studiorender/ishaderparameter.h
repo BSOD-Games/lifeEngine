@@ -8,8 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IMATERIALVAR_H
-#define IMATERIALVAR_H
+#ifndef ISHADERPARAMETER_H
+#define ISHADERPARAMETER_H
 
 #include "common/types.h"
 
@@ -23,21 +23,21 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	enum MATERIAL_VAR_TYPE
+	enum SHADER_PARAMETER_TYPE
 	{
-		MVT_TEXTURE,
-		MVT_FLOAT,
-		MVT_INT,
-		MVT_SHADER_FLAG,
-		MVT_VECTOR_2D,
-		MVT_VECTOR_3D,
-		MVT_VECTOR_4D,
-		MVT_MATRIX
+		SPT_TEXTURE,
+		SPT_FLOAT,
+		SPT_INT,
+		SPT_SHADER_FLAG,
+		SPT_VECTOR_2D,
+		SPT_VECTOR_3D,
+		SPT_VECTOR_4D,
+		SPT_MATRIX
 	};
 
 	//---------------------------------------------------------------------//
 
-	class IMaterialVar
+	class IShaderParameter
 	{
 	public:
 		virtual void					Clear() = 0;
@@ -54,7 +54,7 @@ namespace le
 
 		virtual bool					IsDefined() const = 0;
 		virtual const char*				GetName() const = 0;
-		virtual MATERIAL_VAR_TYPE		GetType() const = 0;
+		virtual SHADER_PARAMETER_TYPE	GetType() const = 0;
 		virtual int						GetValueInt() const = 0;
 		virtual float					GetValueFloat() const = 0;
 		virtual bool					GetValueShaderFlag() const = 0;
@@ -70,5 +70,9 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !IMATERIALVAR_H
+#define SHADERPARAMETER_INTERFACE_VERSION "LE_ShaderParameter001"
+
+//---------------------------------------------------------------------//
+
+#endif // !ISHADERPARAMETER_H
 

@@ -23,6 +23,7 @@ namespace le
 	class IFactory;
 	class ICamera;
 	class IMesh;
+	class IShaderManager;
 	struct StudioRenderViewport;
 
 	//---------------------------------------------------------------------//
@@ -51,6 +52,7 @@ namespace le
 		virtual void							SetViewport( const StudioRenderViewport& Viewport ) = 0;
 
 		virtual IFactory*						GetFactory() const = 0;
+		virtual IShaderManager*					GetShaderManager() const = 0;
 		virtual const StudioRenderViewport&		GetViewport() const = 0;
 	};
 

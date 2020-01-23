@@ -8,8 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#ifndef ISHADERMANAGER_H
+#define ISHADERMANAGER_H
+
+#include "common/types.h"
 
 //---------------------------------------------------------------------//
 
@@ -17,27 +19,22 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IConsoleSystem;
-	extern IConsoleSystem*		g_consoleSystem;
+	class IShader;
 
 	//---------------------------------------------------------------------//
 
-	class IEngine;
-	extern IEngine*				g_engine;
-
-	//---------------------------------------------------------------------//
-
-	class IStudioRender;
-	extern IStudioRender*		g_studioRender;
-
-	//---------------------------------------------------------------------//
-
-	class MaterialSystem;
-	extern MaterialSystem*		g_materialSystem;
+	class IShaderManager
+	{
+	public:
+		virtual ~IShaderManager() {}
+		virtual bool			LoadShaderDLL( const char* FullPath ) = 0;
+		virtual void			UnloadShaderDLL( const char* FullPath ) = 0;
+	};
 
 	//---------------------------------------------------------------------//
 }
 
 //---------------------------------------------------------------------//
 
-#endif // !GLOBAL_H
+#endif // !ISHADERMANAGER_H
+

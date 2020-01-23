@@ -8,8 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IMATERIAL_H
-#define IMATERIAL_H
+#ifndef ISTUDIORENDERTECHNIQUE_H
+#define ISTUDIORENDERTECHNIQUE_H
 
 #include "common/types.h"
 
@@ -18,25 +18,31 @@
 namespace le
 {
 	//---------------------------------------------------------------------//
-
-	class IMaterialVar;
+	
+	class IStudioRenderPass;
+	
+	enum RENDER_TECHNIQUE
+	{
+		RT_UNKNOW,
+		RT_DEFFERED_SHADING
+	};
 
 	//---------------------------------------------------------------------//
 
-	class IMaterial
+	class IStudioRenderTechnique
 	{
 	public:
-		virtual IMaterialVar*		FindVar( const char* Name ) = 0;
-		virtual void				Clear() = 0;
+		virtual ~IStudioRenderTechnique() {}
+		virtual void					AddPass( IStudioRenderPass* Pass ) = 0;
+		virtual void					RemovePass( UInt32_t Index ) = 0;
+		virtual void					Clear() = 0;
 
-		virtual void				SetShader( const char* Name ) = 0;
-		virtual void				SetSurfaceName( const char* Name ) = 0;
+		virtual void					SetType( RENDER_TECHNIQUE Technique ) = 0;		
 
-		virtual const char*			GetShaderName() const = 0;
-		virtual const char*			GetSurfaceName() const = 0;
-		virtual UInt32_t			GetCountVars() const = 0;
-		virtual IMaterialVar*		GetVar( UInt32_t Index ) const = 0;
-		virtual IMaterialVar**		GetVars() const = 0;
+		virtual RENDER_TECHNIQUE		GetType() const = 0;
+		virtual UInt32_t				GetCountPasses() const = 0;
+		virtual IStudioRenderPass**		GetPasses() const = 0;
+		virtual IStudioRenderPass*		GetPass( UInt32_t Index ) const = 0;
 	};
 
 	//---------------------------------------------------------------------//
@@ -44,9 +50,9 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#define MATERIAL_INTERFACE_VERSION "LE_Material002"
+#define TECHNIQUE_INTERFACE_VERSION "LE_Technique001"
 
 //---------------------------------------------------------------------//
 
-#endif // !IMATERIAL_H
+#endif // !ISTUDIORENDERTECHNIQUE_H
 

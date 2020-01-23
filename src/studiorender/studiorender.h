@@ -19,6 +19,7 @@
 #include "studiorender/rendercontext.h"
 #include "studiorender/studiorenderfactory.h"
 #include "studiorender/scenedescriptor.h"
+#include "studiorender/shadermanager.h"
 
 //---------------------------------------------------------------------//
 
@@ -49,6 +50,7 @@ namespace le
 		virtual void							SetViewport( const StudioRenderViewport& Viewport );
 
 		virtual IFactory*						GetFactory() const;
+		virtual IShaderManager*					GetShaderManager() const;
 		virtual const StudioRenderViewport&		GetViewport() const;
 		
 		// StudioRender
@@ -64,6 +66,7 @@ namespace le
 		RenderContext						renderContext;
 		StudioRenderFactory					studioRenderFactory;
 		StudioRenderViewport				viewport;
+		ShaderManager						shaderManager;
 
 		UInt32_t							currentScene;
 		std::vector< SceneDescriptor >		scenes;

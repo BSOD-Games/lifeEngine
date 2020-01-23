@@ -1,23 +1,22 @@
 //////////////////////////////////////////////////////////////////////////
 //
 //			*** lifeEngine (Двигатель жизни) ***
-//				Copyright (C) 2018-2019
+//				Copyright (C) 2018-2020
 //
 // Репозиторий движка:  https://github.com/zombihello/lifeEngine
 // Авторы:				Егор Погуляка (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef MATERIALSYSTEM_H
-#define MATERIALSYSTEM_H
+#ifndef SHADERMANAGER_H
+#define SHADERMANAGER_H
 
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "engine/lifeengine.h"
-#include "materialsystem/imaterialsysteminternal.h"
-#include "materialsystem/materialsystemfactory.h"
+#include "studiorender/ishadermanager.h"
 
 //---------------------------------------------------------------------//
 
@@ -51,30 +50,23 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class MaterialSystem : public IMaterialSystemInternal
+	class ShaderManager : public IShaderManager
 	{
 	public:
-		// IMaterialSystemInternal
-		virtual bool			Initialize( IEngine* Engine );
-
-		// IMaterialSystem
+		// IShaderSystem
 		virtual bool			LoadShaderDLL( const char* FullPath );
 		virtual void			UnloadShaderDLL( const char* FullPath );
+		
+		// ShaderSystem
+		ShaderManager();
+		~ShaderManager();
 
-		virtual IFactory*		GetFactory() const;
-
-		// MaterialSystem
-		MaterialSystem();
-		~MaterialSystem();
-
-		IShader*				FindShader( const char* Name ) const;
+		IShader*				FindShader( const char* ShaderName ) const;
 
 	private:
-		// MaterialSystem
 		void					UnloadShaderDLL( const ShaderDLLDescriptor& ShaderDLLDescriptor );
 
-		MaterialSystemFactory					materialSystemFactory;
-		std::vector<ShaderDLLDescriptor>		shaderLibs;
+		std::vector< ShaderDLLDescriptor >		shaderLibs;
 	};
 
 	//---------------------------------------------------------------------//
@@ -82,5 +74,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !MATERIALSYSTEM_H
+#endif // !SHADERMANAGER_H
 

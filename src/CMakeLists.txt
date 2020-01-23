@@ -9,7 +9,6 @@ set( PROJECT_LAUNCHER launcher )
 set( PROJECT_ENGINE engine )
 set( PROJECT_STUDIORENDER studiorender )
 set( PROJECT_STDSHADERS stdshaders )
-set( PROJECT_MATERIALSYSTEM materialsystem )
 
 #
 #   --- Настройки сборки ---
@@ -22,7 +21,6 @@ option( BUILD_LAUNCHER "Build launcher engine" OFF )
 option( BUILD_ENGINE "Build engine" OFF )
 option( BUILD_STUDIORENDER "Build studiorender" OFF )
 option( BUILD_STDSHADERS "Build stdshaders" OFF )
-option( BUILD_MATERIALSYSTEM "Build materialsystem" OFF )
 
 if( LIFEENGINE_DEBUG )
 	message( STATUS "Debug mode enabled" )
@@ -57,8 +55,4 @@ endif()
 
 if ( BUILD_STDSHADERS )
 	add_subdirectory( ${PROJECT_STDSHADERS} )
-endif()
-
-if ( BUILD_MATERIALSYSTEM )
-	add_subdirectory( ${PROJECT_MATERIALSYSTEM} )
 endif()

@@ -18,7 +18,7 @@
 // ------------------------------------------------------------------------------------ //
 // Инициализировать экземпляр шейдера
 // ------------------------------------------------------------------------------------ //
-bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IMaterialVar** MaterialVars )
+bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
 	ShaderDescriptor			shaderDescriptor;
 	shaderDescriptor.vertexShaderSource = " \
@@ -74,11 +74,11 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IMaterialVar** 
 // ------------------------------------------------------------------------------------ //
 // Подготовка к отрисовке элементов
 // ------------------------------------------------------------------------------------ //
-void le::LightmappedGeneric::OnDrawMesh( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+void le::LightmappedGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
 	if ( !gpuProgram ) return;
 
-	if ( MaterialVars[ 0 ]->IsDefined() )		MaterialVars[ 0 ]->GetValueTexture()->Bind( 0 );
+	if ( ShaderParameters[ 0 ]->IsDefined() )		ShaderParameters[ 0 ]->GetValueTexture()->Bind( 0 );
 	if ( Lightmap )			Lightmap->Bind( 1 );
 
 	gpuProgram->Bind();
@@ -109,6 +109,6 @@ le::LightmappedGeneric::LightmappedGeneric()
 {
 	shaderParams =
 	{
-		{ "basetexture",	MVT_TEXTURE		}
+		{ "basetexture",	SPT_TEXTURE		}
 	};
 }

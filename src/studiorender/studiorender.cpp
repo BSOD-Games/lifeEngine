@@ -16,7 +16,7 @@
 #include "engine/iwindow.h"
 #include "engine/iconsolesystem.h"
 #include "engine/iconvar.h"
-#include "materialsystem/imaterialinternal.h"
+#include "engine/imaterial.h"
 #include "settingscontext.h"
 #include "common/shaderdescriptor.h"
 #include "common/meshsurface.h"
@@ -26,6 +26,8 @@
 #include "gpuprogram.h"
 #include "texture.h"
 #include "mesh.h"
+#include "studiorendertechnique.h"
+#include "studiorenderpass.h"
 
 LIFEENGINE_STUDIORENDER_API( le::StudioRender );
 
@@ -96,7 +98,7 @@ void le::StudioRender::SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformatio
 		renderObject.startIndex = surface->startIndex;
 		renderObject.countIndeces = surface->countIndeces;
 		renderObject.lightmap = ( Texture* ) mesh->GetLightmap( surface->lightmapID );
-		renderObject.material = ( IMaterialInternal* ) mesh->GetMaterial( surface->materialID );
+		renderObject.material = mesh->GetMaterial( surface->materialID );
 
 		if ( !renderObject.material ) continue;
 		scenes[ currentScene ].renderObjects[ openGLState ].push_back( renderObject );
@@ -210,6 +212,7 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 							 } );
 
 	g_consoleSystem->RegisterVar( r_wireframe );
+	g_engine = Engine;
 
 	return true;
 }
@@ -240,7 +243,9 @@ void le::StudioRender::End()
 void le::StudioRender::Present()
 {
 	LIFEENGINE_ASSERT( renderContext.IsCreated() );
-	glClear( GL_DEPTH_BUFFER_BIT );
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+	// TODO: Реализовать многопроходный рендер
 
 	for ( UInt32_t indexScene = 0, countScenes = scenes.size(); indexScene < countScenes; ++indexScene )
 	{
@@ -252,9 +257,10 @@ void le::StudioRender::Present()
 
 			for ( UInt32_t indexObject = 0, countObjects = itOGLState->second.size(); indexObject < countObjects; ++indexObject )
 			{
-				RenderObject& renderObject = itOGLState->second.at( indexObject );
+				RenderObject&		renderObject = itOGLState->second.at( indexObject );
+				auto*				pass = ( StudioRenderPass* ) renderObject.material->GetTechnique( RT_DEFFERED_SHADING )->GetPass( 0 );
 
-				renderObject.material->OnDrawMesh( renderObject.transformation, sceneDescriptor.camera, renderObject.lightmap );
+				pass->Apply( renderObject.transformation, sceneDescriptor.camera, renderObject.lightmap );
 				renderObject.vertexArrayObject->Bind();
 				glDrawRangeElementsBaseVertex( renderObject.primitiveType, 0, renderObject.countIndeces, renderObject.countIndeces, GL_UNSIGNED_INT, ( void* ) ( renderObject.startIndex * sizeof( UInt32_t ) ), renderObject.startVertexIndex );
 			}
@@ -287,6 +293,14 @@ void le::StudioRender::SetViewport( const StudioRenderViewport& Viewport )
 le::IFactory* le::StudioRender::GetFactory() const
 {
 	return ( IFactory* ) &studioRenderFactory;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить менеджер шейдеров
+// ------------------------------------------------------------------------------------ //
+le::IShaderManager* le::StudioRender::GetShaderManager() const
+{
+	return ( IShaderManager* ) &shaderManager;
 }
 
 // ------------------------------------------------------------------------------------ //

@@ -8,43 +8,45 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef TESTSHADER_H
-#define TESTSHADER_H
+#ifndef STUDIORENDERTECHNIQUE_H
+#define STUDIORENDERTECHNIQUE_H
 
 #include <vector>
 
-#include "common/shaderparaminfo.h"
-#include "stdshaders/ishader.h"
+#include "studiorender/istudiorendertechnique.h"
 
 //---------------------------------------------------------------------//
 
 namespace le
 {
 	//---------------------------------------------------------------------//
-
-	class IGPUProgram;
+	
+	class StudioRenderPass;
 
 	//---------------------------------------------------------------------//
 
-	class TestShader : public IShader
+	class StudioRenderTechnique : public IStudioRenderTechnique
 	{
 	public:
-		// IShader
-		virtual bool					InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters );
-		virtual void					OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera );
+		// IStudioRenderTechnique
+		virtual void					AddPass( IStudioRenderPass* Pass );
+		virtual void					RemovePass( UInt32_t Index );
+		virtual void					Clear(); 
+		
+		virtual void					SetType( RENDER_TECHNIQUE Technique );
 
-		virtual const char*				GetName() const;
-		virtual const char*				GetFallbackShader() const;
-		virtual UInt32_t				GetCountParams() const;
-		virtual ShaderParamInfo*		GetParam( UInt32_t Index ) const;
-		virtual ShaderParamInfo*		GetParams() const;
+		virtual RENDER_TECHNIQUE		GetType() const ;
+		virtual UInt32_t				GetCountPasses() const;
+		virtual IStudioRenderPass**		GetPasses() const;
+		virtual IStudioRenderPass*		GetPass( UInt32_t Index ) const;
 
-		// TestShader
-		TestShader();
+		// StudioRenderTechnique
+		StudioRenderTechnique();
+		~StudioRenderTechnique();
 
 	private:
-		IGPUProgram*							gpuProgram;
-		std::vector< ShaderParamInfo >			shaderParams;
+		RENDER_TECHNIQUE						type;
+		std::vector< StudioRenderPass* >		passes;
 	};
 
 	//---------------------------------------------------------------------//
@@ -52,5 +54,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !SHADERDLL_H
+#endif // !STUDIORENDERTECHNIQUE_H
 

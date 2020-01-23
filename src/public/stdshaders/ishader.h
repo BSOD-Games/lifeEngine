@@ -21,7 +21,7 @@ namespace le
 
 	struct ShaderParamInfo;
 	class ICamera;
-	class IMaterialVar;
+	class IShaderParameter;
 	class ITexture;
 
 	//---------------------------------------------------------------------//
@@ -29,8 +29,8 @@ namespace le
 	class IShader
 	{
 	public:
-		virtual bool					InitInstance( UInt32_t CountParams, IMaterialVar** MaterialVars ) = 0;
-		virtual void					OnDrawMesh( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr ) = 0;
+		virtual bool					InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters ) = 0;
+		virtual void					OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr ) = 0;
 
 		virtual const char*				GetName() const = 0;
 		virtual const char*				GetFallbackShader() const = 0;

@@ -11,7 +11,7 @@
 #ifndef SHADERPARAMINFO_H
 #define SHADERPARAMINFO_H
 
-#include "materialsystem/imaterialvar.h"
+#include "studiorender/ishaderparameter.h"
 
 //---------------------------------------------------------------------//
 
@@ -21,8 +21,8 @@ namespace le
 
 	struct ShaderParamInfo
 	{
-		const char*				name;
-		MATERIAL_VAR_TYPE		type;
+		const char*					name;
+		SHADER_PARAMETER_TYPE		type;
 	};
 
 	//---------------------------------------------------------------------//

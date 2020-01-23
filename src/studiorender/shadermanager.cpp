@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////
 //
 //			*** lifeEngine (Двигатель жизни) ***
-//				Copyright (C) 2018-2019
+//				Copyright (C) 2018-2020
 //
 // Репозиторий движка:  https://github.com/zombihello/lifeEngine
 // Авторы:				Егор Погуляка (zombiHello)
@@ -12,45 +12,17 @@
 #include <SDL2/SDL.h>
 
 #include "engine/lifeengine.h"
-#include "engine/iengine.h"
 #include "engine/iconsolesystem.h"
 #include "stdshaders/ishaderdll.h"
 #include "stdshaders/ishader.h"
 
 #include "global.h"
-#include "materialsystem.h"
-
-LIFEENGINE_MATERIALSYSTEM_API( le::MaterialSystem );
-
-// ------------------------------------------------------------------------------------ //
-// Инициализировать систему материалов
-// ------------------------------------------------------------------------------------ //
-bool le::MaterialSystem::Initialize( IEngine* Engine )
-{
-	try
-	{
-		if ( !Engine )					throw std::exception( "Material system requared engine api" );
-		g_engine = Engine;
-
-		g_consoleSystem = Engine->GetConsoleSystem();
-		if ( !g_consoleSystem )			throw std::exception( "Material system requared console system" );
-
-		g_studioRender = Engine->GetStudioRender();
-		if ( !g_studioRender )			throw std::exception( "Material system requared studiorender" );
-	}
-	catch ( std::exception& Exception )
-	{
-		if ( g_consoleSystem ) g_consoleSystem->PrintError( Exception.what() );
-		return false;
-	}
-
-	return true;
-}
+#include "shadermanager.h"
 
 // ------------------------------------------------------------------------------------ //
 // Загрузить библиотеку шейдеров
 // ------------------------------------------------------------------------------------ //
-bool le::MaterialSystem::LoadShaderDLL( const char* FullPath )
+bool le::ShaderManager::LoadShaderDLL( const char* FullPath )
 {
 	LIFEENGINE_ASSERT( FullPath );
 
@@ -81,13 +53,13 @@ bool le::MaterialSystem::LoadShaderDLL( const char* FullPath )
 
 		shaderDLLDescriptor.shaderDLL = ( IShaderDLL* ) shaderDLLDescriptor.LE_CreateShaderDLL();
 		if ( !shaderDLLDescriptor.shaderDLL->Initialize( g_engine ) )				throw std::exception( "Fail initialize shader dll" );
-	
+
 		shaderDLLDescriptor.fileName = FullPath;
 
 		// Загружаем все шейдера из библиотеки
 		for ( UInt32_t index = 0, count = shaderDLLDescriptor.shaderDLL->GetShaderCount(); index < count; ++index )
 		{
-			IShader*		shader = shaderDLLDescriptor.shaderDLL->GetShader( index );
+			IShader* shader = shaderDLLDescriptor.shaderDLL->GetShader( index );
 			if ( !shader ) continue;
 
 			shaderDLLDescriptor.shaders.insert( std::make_pair( shader->GetName(), shader ) );
@@ -110,7 +82,7 @@ bool le::MaterialSystem::LoadShaderDLL( const char* FullPath )
 // ------------------------------------------------------------------------------------ //
 // Выгрузить библиотеку шейдеров
 // ------------------------------------------------------------------------------------ //
-void le::MaterialSystem::UnloadShaderDLL( const char* FullPath )
+void le::ShaderManager::UnloadShaderDLL( const char* FullPath )
 {
 	LIFEENGINE_ASSERT( FullPath );
 
@@ -124,26 +96,15 @@ void le::MaterialSystem::UnloadShaderDLL( const char* FullPath )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить фабрику системы материалов
-// ------------------------------------------------------------------------------------ //
-le::IFactory* le::MaterialSystem::GetFactory() const
-{
-	return ( IFactory* ) &materialSystemFactory;
-}
-
-// ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
-le::MaterialSystem::MaterialSystem()
-{
-	LIFEENGINE_ASSERT( !g_materialSystem );
-	g_materialSystem = this;
-}
+le::ShaderManager::ShaderManager()
+{}
 
 // ------------------------------------------------------------------------------------ //
 // Деструктор
 // ------------------------------------------------------------------------------------ //
-le::MaterialSystem::~MaterialSystem()
+le::ShaderManager::~ShaderManager()
 {
 	for ( auto it = shaderLibs.begin(); it != shaderLibs.end(); ++it )
 		UnloadShaderDLL( *it );
@@ -152,13 +113,13 @@ le::MaterialSystem::~MaterialSystem()
 // ------------------------------------------------------------------------------------ //
 // Найти шейдер
 // ------------------------------------------------------------------------------------ //
-le::IShader* le::MaterialSystem::FindShader( const char* Name ) const
+le::IShader* le::ShaderManager::FindShader( const char* ShaderName ) const
 {
-	LIFEENGINE_ASSERT( Name );
+	LIFEENGINE_ASSERT( ShaderName );
 
 	for ( auto it = shaderLibs.rbegin(), itEnd = shaderLibs.rend(); it != itEnd; ++it )
 	{
-		auto itShader = it->shaders.find( Name );	
+		auto itShader = it->shaders.find( ShaderName );
 		if ( itShader != it->shaders.end() )
 			return itShader->second;
 	}
@@ -173,7 +134,7 @@ le::IShader* le::MaterialSystem::FindShader( const char* Name ) const
 // ------------------------------------------------------------------------------------ //
 // Выгрузить библиотеку шейдеров
 // ------------------------------------------------------------------------------------ //
-void le::MaterialSystem::UnloadShaderDLL( const ShaderDLLDescriptor& ShaderDLLDescriptor )
+void le::ShaderManager::UnloadShaderDLL( const ShaderDLLDescriptor& ShaderDLLDescriptor )
 {
 	if ( ShaderDLLDescriptor.LE_DeleteShaderDLL )
 		ShaderDLLDescriptor.LE_DeleteShaderDLL( ShaderDLLDescriptor.shaderDLL );

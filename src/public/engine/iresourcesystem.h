@@ -29,7 +29,7 @@ namespace le
 
 	typedef		void			( *LoadImageFn_t )( const char* Path, Image& Image, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels );
 	typedef		ITexture*		( *LoadTextureFn_t )( const char* Path, IFactory* StudioRenderFactory );
-	typedef		IMaterial*		( *LoadMaterialFn_t )( const char* Path, IResourceSystem* ResourceSystem, IFactory* MaterialSystemFactory );
+	typedef		IMaterial*		( *LoadMaterialFn_t )( const char* Path, IResourceSystem* ResourceSystem, IFactory* StudioRenderFactory );
 	typedef		IMesh*			( *LoadMeshFn_t )( const char* Path, IResourceSystem* ResourceSystem, IFactory* StudioRenderFactory );
 	typedef		ILevel*			( *LoadLevelFn_t )( const char* Path, IFactory* GameFactory );
 

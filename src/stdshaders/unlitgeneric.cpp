@@ -18,7 +18,7 @@
 // ------------------------------------------------------------------------------------ //
 // Инициализировать экземпляр шейдера
 // ------------------------------------------------------------------------------------ //
-bool le::UnlitGeneric::InitInstance( UInt32_t CountParams, IMaterialVar** MaterialVars )
+bool le::UnlitGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
 	ShaderDescriptor			shaderDescriptor;
 	shaderDescriptor.vertexShaderSource = " \
@@ -57,11 +57,11 @@ bool le::UnlitGeneric::InitInstance( UInt32_t CountParams, IMaterialVar** Materi
 // ------------------------------------------------------------------------------------ //
 // Подготовка к отрисовке элементов
 // ------------------------------------------------------------------------------------ //
-void le::UnlitGeneric::OnDrawMesh( UInt32_t CountParams, IMaterialVar** MaterialVars, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+void le::UnlitGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
 	if ( !gpuProgram ) return;
-	if ( MaterialVars[ 0 ]->IsDefined() )
-		MaterialVars[ 0 ]->GetValueTexture()->Bind();
+	if ( ShaderParameters[ 0 ]->IsDefined() )
+		ShaderParameters[ 0 ]->GetValueTexture()->Bind();
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
@@ -91,6 +91,6 @@ le::UnlitGeneric::UnlitGeneric()
 {
 	shaderParams =
 	{
-		{ "basetexture",	MVT_TEXTURE		}
+		{ "basetexture",	SPT_TEXTURE		}
 	};
 }

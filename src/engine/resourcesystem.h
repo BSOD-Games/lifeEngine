@@ -98,7 +98,6 @@ namespace le
 		typedef			std::unordered_map< std::string, ILevel* >					LevelMap_t;
 
 		IFactory*					studioRenderFactory;
-		IFactory*					materialSystemFactory;
 
 		std::string					gameDir;
 		LoaderImageMap_t			loaderImages;

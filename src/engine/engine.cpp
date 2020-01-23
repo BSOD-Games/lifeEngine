@@ -29,7 +29,7 @@
 #include "engine/resourcesystem.h"
 #include "studiorender/istudiorenderinternal.h"
 #include "studiorender/studiorenderviewport.h"
-#include "materialsystem/imaterialsysteminternal.h"
+#include "studiorender/ishadermanager.h"
 
 LIFEENGINE_ENGINE_API( le::Engine );
 
@@ -60,8 +60,6 @@ le::Engine::Engine() :
 	isInit( false ),
 	studioRender( nullptr ),
 	studioRenderDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
-	materialSystem( nullptr ),
-	materialSystemDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
 	game( nullptr ),
 	gameDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
 	criticalError( nullptr ),
@@ -100,7 +98,6 @@ le::Engine::~Engine()
 
 	resourceSystem.UnloadAll();
 
-	if ( materialSystem )	UnloadModule_MaterialSystem();
 	if ( studioRender )		UnloadModule_StudioRender();	
 	if ( window.IsOpen() )	window.Close();
 
@@ -172,62 +169,6 @@ void le::Engine::UnloadModule_StudioRender()
 	studioRenderDescriptor = { nullptr, nullptr, nullptr, nullptr };
 
 	consoleSystem.PrintInfo( "Unloaded studiorender" );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Загрузить модуль системы материалов
-// ------------------------------------------------------------------------------------ //
-bool le::Engine::LoadModule_MaterialSystem( const char* PathDLL )
-{
-	// Если модуль ранее был загружен, то удаляем
-	if ( materialSystemDescriptor.handle ) UnloadModule_MaterialSystem();
-
-	consoleSystem.PrintInfo( "Loading material system [%s]", PathDLL );
-
-	try
-	{
-		// Загружаем модуль
-		materialSystemDescriptor.handle = SDL_LoadObject( PathDLL );
-		if ( !materialSystemDescriptor.handle )	throw std::exception( SDL_GetError() );
-
-		// Берем из модуля API для работы с ним
-		materialSystemDescriptor.LE_CreateMaterialSystem = ( LE_CreateMaterialSystemFn_t ) SDL_LoadFunction( materialSystemDescriptor.handle, "LE_CreateMaterialSystem" );
-		materialSystemDescriptor.LE_DeleteMaterialSystem = ( LE_DeleteMaterialSystemFn_t ) SDL_LoadFunction( materialSystemDescriptor.handle, "LE_DeleteMaterialSystem" );
-		materialSystemDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( materialSystemDescriptor.handle, "LE_SetCriticalError" );
-		if ( !materialSystemDescriptor.LE_CreateMaterialSystem )	throw std::exception( "Function LE_CreateMaterialSystem not found" );
-
-		// Создаем рендер
-		if ( materialSystemDescriptor.LE_SetCriticalError )
-			materialSystemDescriptor.LE_SetCriticalError( g_criticalError );
-
-		materialSystem = ( IMaterialSystemInternal* ) materialSystemDescriptor.LE_CreateMaterialSystem();
-		if ( !materialSystem->Initialize( this ) )				throw std::exception( "Fail initialize material system" );
-	}
-	catch ( std::exception& Exception )
-	{
-		consoleSystem.PrintError( Exception.what() );
-		return false;
-	}
-
-	consoleSystem.PrintInfo( "Loaded material system [%s]", PathDLL );
-	return true;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Выгрузить модуль системы материалов
-// ------------------------------------------------------------------------------------ //
-void le::Engine::UnloadModule_MaterialSystem()
-{
-	if ( !materialSystem ) return;
-
-	if ( materialSystemDescriptor.LE_DeleteMaterialSystem )
-		materialSystemDescriptor.LE_DeleteMaterialSystem( materialSystem );
-
-	SDL_UnloadObject( materialSystemDescriptor.handle );
-	materialSystem = nullptr;
-	materialSystemDescriptor = { nullptr, nullptr, nullptr, nullptr };
-
-	consoleSystem.PrintInfo( "Unloaded material system" );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -578,14 +519,6 @@ le::IStudioRender* le::Engine::GetStudioRender() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить систему материалов
-// ------------------------------------------------------------------------------------ //
-le::IMaterialSystem* le::Engine::GetMaterialSystem() const
-{
-	return materialSystem;
-}
-
-// ------------------------------------------------------------------------------------ //
 // Получить окно
 // ------------------------------------------------------------------------------------ //
 le::IResourceSystem* le::Engine::GetResourceSystem() const
@@ -683,9 +616,10 @@ bool le::Engine::Initialize( WindowHandle_t WindowHandle )
 		// Загружаем и инициализируем подсистемы
 
 		if ( !LoadModule_StudioRender( LIFEENGINE_STUDIORENDER_DLL ) )		throw std::exception( "Failed loading studiorender" );
-		if ( !LoadModule_MaterialSystem( LIFEENGINE_MATERIALSYSTEM_DLL ) )	throw std::exception( "Failed loading materialsystem" );
-
-		if ( !materialSystem->LoadShaderDLL( LIFEENGINE_STDSHADERS_DLL ) )	throw std::exception( "Failed loading stdshaders" );
+	
+		auto*		shaderManager = studioRender->GetShaderManager();
+		if ( !shaderManager )		throw std::exception( "In studiorender not exist shader manager" );
+		if ( !shaderManager->LoadShaderDLL( LIFEENGINE_STDSHADERS_DLL ) )	throw std::exception( "Failed loading stdshaders" );
 
 		resourceSystem.Initialize( this );
 	}

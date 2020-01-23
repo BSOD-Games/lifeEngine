@@ -8,12 +8,12 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef MATERIALVAR_H
-#define MATERIALVAR_H
+#ifndef SHADERPARAMETER_H
+#define SHADERPARAMETER_H
 
 #include <string>
 
-#include "materialsystem/imaterialvar.h"
+#include "studiorender/ishaderparameter.h"
 
 //---------------------------------------------------------------------//
 
@@ -21,14 +21,14 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class Material;
+	class StudioRenderPass;
 
 	//---------------------------------------------------------------------//
 
-	class MaterialVar : public IMaterialVar
+	class ShaderParameter : public IShaderParameter
 	{
 	public:
-		// IMaterialVar
+		// IShaderParameter
 		virtual void					Clear();
 
 		virtual void					SetName( const char* Name );
@@ -43,7 +43,7 @@ namespace le
 
 		virtual bool					IsDefined() const;
 		virtual const char*				GetName() const;
-		virtual MATERIAL_VAR_TYPE		GetType() const;
+		virtual SHADER_PARAMETER_TYPE	GetType() const;
 		virtual int						GetValueInt() const;
 		virtual float					GetValueFloat() const;
 		virtual bool					GetValueShaderFlag() const;
@@ -53,16 +53,21 @@ namespace le
 		virtual const Matrix4x4_t&		GetValueMatrix() const;
 		virtual ITexture*				GetValueTexture() const;
 
-		// MaterialVar
-		MaterialVar( Material* Material );
-		~MaterialVar();
+		// ShaderParameter
+		ShaderParameter();
+		~ShaderParameter();
+
+		inline void							SetPass( StudioRenderPass* Pass )
+		{
+			studioRenderPass = Pass;
+		}
 
 	private:
 		bool					isDefined;
 
 		std::string				name;
-		MATERIAL_VAR_TYPE		type;
-		Material*				material;
+		SHADER_PARAMETER_TYPE	type;
+		StudioRenderPass*		studioRenderPass;
 
 		union
 		{
@@ -82,5 +87,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !IMATERIALVAR_H
-
+#endif // !SHADERPARAMETER_H

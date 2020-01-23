@@ -20,7 +20,7 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	class VertexArrayObject;
-	class IMaterialInternal;
+	class IMaterial;
 	class Texture;
 
 	//---------------------------------------------------------------------//
@@ -28,7 +28,7 @@ namespace le
 	struct RenderObject
 	{
 		VertexArrayObject*		vertexArrayObject;
-		IMaterialInternal*		material;
+		IMaterial*				material;
 		Texture*				lightmap;
 		UInt32_t				startVertexIndex;
 		UInt32_t				startIndex;

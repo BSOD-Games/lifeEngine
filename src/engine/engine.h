@@ -29,7 +29,6 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	class IStudioRenderInternal;
-	class IMaterialSystemInternal;
 	class IConCmd;
 
 	//---------------------------------------------------------------------//
@@ -39,16 +38,6 @@ namespace le
 		void*								handle;
 		LE_CreateStudioRenderFn_t			LE_CreateStudioRender;
 		LE_DeleteStudioRenderFn_t			LE_DeleteStudioRender;
-		LE_SetCriticalErrorFn_t				LE_SetCriticalError;
-	};
-
-	//---------------------------------------------------------------------//
-
-	struct MaterialSystemDescriptor
-	{
-		void*								handle;
-		LE_CreateMaterialSystemFn_t			LE_CreateMaterialSystem;
-		LE_DeleteMaterialSystemFn_t			LE_DeleteMaterialSystem;
 		LE_SetCriticalErrorFn_t				LE_SetCriticalError;
 	};
 
@@ -78,7 +67,6 @@ namespace le
 		virtual bool					IsRunSimulation() const;
 		virtual IConsoleSystem*			GetConsoleSystem() const;
 		virtual IStudioRender*			GetStudioRender() const;
-		virtual IMaterialSystem*		GetMaterialSystem() const;
 		virtual IResourceSystem*		GetResourceSystem() const;
 		virtual IInputSystem*			GetInputSystem() const;
 		virtual IWindow*				GetWindow() const;
@@ -100,8 +88,6 @@ namespace le
 	private:
 		bool							LoadModule_StudioRender( const char* PathDLL );
 		void							UnloadModule_StudioRender();
-		bool							LoadModule_MaterialSystem( const char* PathDLL );
-		void							UnloadModule_MaterialSystem();
 		bool							LoadGameInfo( const char* GameDir );
 		bool							LoadModule_Game( const char* PathDLL );
 		void							UnloadModule_Game();
@@ -114,9 +100,6 @@ namespace le
 
 		IStudioRenderInternal*			studioRender;
 		StudioRenderDescriptor			studioRenderDescriptor;
-
-		IMaterialSystemInternal*		materialSystem;
-		MaterialSystemDescriptor		materialSystemDescriptor;
 
 		IGame*							game;
 		GameDescriptor					gameDescriptor;
