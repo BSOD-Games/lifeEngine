@@ -32,10 +32,20 @@ namespace le
 		// IStudioRenderPass
 		virtual void				AddParameter( IShaderParameter* Parameter );
 		virtual void				RemoveParameter( UInt32_t Index );
-		virtual void				Clear(); 
-		
+		virtual void				Clear(); 			
+		virtual void				EnableDepthTest( bool Enable = true );
+		virtual void				EnableDepthWrite( bool Enable = true );
+		virtual void				EnableBlend( bool Enable = true );
+		virtual void				EnableCullFace( bool Enable = true );
+
 		virtual void				SetShader( const char* NameShader );
-	
+		virtual void				SetCullFaceType( CULLFACE_TYPE CullFaceType );
+
+		virtual bool				IsDepthTest() const;
+		virtual bool				IsDepthWrite() const;
+		virtual bool				IsBlend() const;
+		virtual bool				IsCullFace() const;
+		virtual CULLFACE_TYPE		GetCullFaceType() const;
 		virtual const char*			GetNameShader() const;
 		virtual UInt32_t			GetCountParameters() const;
 		virtual IShaderParameter**	GetParameters() const;
@@ -46,6 +56,7 @@ namespace le
 		~StudioRenderPass();
 
 		void						Apply( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr );
+		void						InitStates();
 		bool						Refrash();
 		inline void					NeadRefrash()
 		{
@@ -58,7 +69,12 @@ namespace le
 
 	private:
 		bool								isNeadRefrash;
-		
+		bool								isDepthTest;
+		bool								isDepthWrite;
+		bool								isBlend;
+		bool								isCullFace;
+		CULLFACE_TYPE						cullFaceType;
+
 		IShader*							shader;
 		std::vector< ShaderParameter* >		parameters;
 	};

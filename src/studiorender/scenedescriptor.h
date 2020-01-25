@@ -14,7 +14,6 @@
 #include <vector>
 #include <unordered_map>
 
-#include "openglstate.h"
 #include "renderobject.h"
 
 //---------------------------------------------------------------------//
@@ -29,10 +28,8 @@ namespace le
 
 	struct SceneDescriptor
 	{
-		typedef		std::unordered_map< OpenGLState, std::vector< RenderObject >, Hash_OpenGLState >	MapRenderObjects_t;
-
-		ICamera*				camera;
-		MapRenderObjects_t		renderObjects;
+		ICamera*						camera;
+		std::vector< RenderObject >		renderObjects;
 	};
 
 	//---------------------------------------------------------------------//

@@ -11,10 +11,7 @@
 #ifndef TESTSHADER_H
 #define TESTSHADER_H
 
-#include <vector>
-
-#include "common/shaderparaminfo.h"
-#include "stdshaders/ishader.h"
+#include "baseshader.h"
 
 //---------------------------------------------------------------------//
 
@@ -26,25 +23,18 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class TestShader : public IShader
+	class TestShader : public BaseShader
 	{
 	public:
 		// IShader
 		virtual bool					InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters );
-		virtual void					OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera );
+		virtual void					OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr );
 
 		virtual const char*				GetName() const;
 		virtual const char*				GetFallbackShader() const;
-		virtual UInt32_t				GetCountParams() const;
-		virtual ShaderParamInfo*		GetParam( UInt32_t Index ) const;
-		virtual ShaderParamInfo*		GetParams() const;
 
 		// TestShader
 		TestShader();
-
-	private:
-		IGPUProgram*							gpuProgram;
-		std::vector< ShaderParamInfo >			shaderParams;
 	};
 
 	//---------------------------------------------------------------------//

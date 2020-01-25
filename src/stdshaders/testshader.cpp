@@ -29,7 +29,7 @@ bool le::TestShader::InitInstance( UInt32_t CountParams, IShaderParameter** Shad
 	#version 330 core\n \
 	\n \
 	layout( location = 0 ) 			in vec3 vertex_position; \n \
-	layout( location = 1 ) 			in vec2 vertex_texCoords; \n \
+	layout( location = 2 ) 			in vec2 vertex_texCoords; \n \
 	\n \
 		out vec2 				texCoords; \n \
 	\n \
@@ -52,7 +52,9 @@ bool le::TestShader::InitInstance( UInt32_t CountParams, IShaderParameter** Shad
 	\n\
 	void main()\n\
 	{\n\
-		color = texture2D( basetexture, texCoords );\n\
+		vec4 texelColor = texture2D( basetexture, texCoords );\n\
+		texelColor.a = 0.5;\n\
+		color = texelColor * vec4( 0.5, 0, 0, 1 );\n\
 	}\n";
 
 	if ( !gpuProgram->Compile( shaderDescriptor ) )
@@ -67,7 +69,7 @@ bool le::TestShader::InitInstance( UInt32_t CountParams, IShaderParameter** Shad
 // ------------------------------------------------------------------------------------ //
 // Подготовка к отрисовке элементов
 // ------------------------------------------------------------------------------------ //
-void le::TestShader::OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera )
+void le::TestShader::OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
 	if ( !gpuProgram ) return;
 	ShaderParameters[ 0 ]->GetValueTexture()->Bind();
@@ -94,35 +96,9 @@ const char* le::TestShader::GetFallbackShader() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить количество параметров
-// ------------------------------------------------------------------------------------ //
-le::UInt32_t le::TestShader::GetCountParams() const
-{
-	return shaderParams.size();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить массив параметров
-// ------------------------------------------------------------------------------------ //
-le::ShaderParamInfo* le::TestShader::GetParams() const
-{
-	return ( ShaderParamInfo* ) shaderParams.data();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить параметр
-// ------------------------------------------------------------------------------------ //
-le::ShaderParamInfo* le::TestShader::GetParam( UInt32_t Index ) const
-{
-	if ( Index >= shaderParams.size() ) return nullptr;
-	return ( ShaderParamInfo* ) &shaderParams[ Index ];
-}
-
-// ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
-le::TestShader::TestShader() :
-	gpuProgram( nullptr )
+le::TestShader::TestShader()
 {
 	shaderParams =
 	{

@@ -50,7 +50,7 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#define TECHNIQUE_INTERFACE_VERSION "LE_Technique001"
+#define TECHNIQUE_INTERFACE_VERSION "LE_StudioRenderTechnique001"
 
 //---------------------------------------------------------------------//
 

@@ -23,25 +23,27 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	struct OpenGLState
+	class OpenGLState
 	{
-		bool			isDepthTest;
-		bool			isCullFace;
-		bool			isBlend;
+	public:
+		friend class StudioRender;
 
-		CULLFACE_TYPE	cullFaceType;
-	};
+		static void				EnableDepthTest( bool Enable = true );
+		static void				EnableDepthWrite( bool Enable = true );
+		static void				EnableBlend( bool Enable = true );
+		static void				EnableCullFace( bool Enable =  true );
 
-	//---------------------------------------------------------------------//
+		static void				SetCullFaceType( CULLFACE_TYPE CullFaceType );
 
-	struct Hash_OpenGLState
-	{
-		std::size_t			operator()( const OpenGLState& Right ) const;
-	};
+	private:
+		static void				Initialize();
 
-	//---------------------------------------------------------------------//
-
-	bool					operator== ( const OpenGLState& Left, const OpenGLState& Right );
+		static bool				isDepthTest;
+		static bool				isDepthWrite;
+		static bool				isBlend;
+		static bool				isCullFace;
+		static CULLFACE_TYPE	cullFaceType;
+	};	
 
 	//---------------------------------------------------------------------//
 }

@@ -18,7 +18,7 @@
 #include "engine/ifactory.h"
 #include "engine/ientity.h"
 #include "engine/ientity.h"
-#include "materialsystem/imaterial.h"
+#include "engine/imaterial.h"
 #include "studiorender/studiovertexelement.h"
 #include "studiorender/itexture.h"
 #include "studiorender/istudiorender.h"
@@ -405,9 +405,6 @@ void le::Level::Update( UInt32_t DeltaTime )
 		Camera* camera = arrayCameras[ indexCamera ];
 
 		g_studioRender->BeginScene( camera );
-		g_studioRender->SetDepthTestEnabled( true );
-		g_studioRender->SetCullFaceEnabled( true );
-		g_studioRender->SetCullFaceType( CT_FRONT );
 
 		// Определяем в каком кластере находится камера
 		int			currentCluster = arrayBspLeafs[ FindLeaf( camera ) ].cluster;
@@ -451,10 +448,7 @@ void le::Level::Update( UInt32_t DeltaTime )
 				continue;
 
 			if ( !modelDescriptor.isBspModel )
-			{
-				g_studioRender->SetCullFaceType( CT_BACK );
 				g_studioRender->SubmitMesh( modelDescriptor.model->GetMesh(), modelDescriptor.model->GetTransformation(), modelDescriptor.model->GetStartFace(), modelDescriptor.model->GetCountFace() );
-			}
 			else
 				for ( UInt32_t indexFace = modelDescriptor.model->GetStartFace(), countFace = modelDescriptor.model->GetStartFace() + modelDescriptor.model->GetCountFace(); indexFace < countFace; ++indexFace )
 					if ( !facesDraw.On( indexFace ) )

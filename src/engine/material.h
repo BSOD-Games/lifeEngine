@@ -15,7 +15,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "materialsystem/imaterial.h"
+#include "engine/imaterial.h"
 
 //---------------------------------------------------------------------//
 

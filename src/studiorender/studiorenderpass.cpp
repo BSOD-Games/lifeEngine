@@ -11,11 +11,11 @@
 #include "engine/lifeengine.h"
 #include "engine/iconsolesystem.h"
 #include "stdshaders/ishader.h"
-
 #include "global.h"
 #include "studiorender.h"
 #include "studiorenderpass.h"
 #include "shadermanager.h"
+#include "openglstate.h"
 
 // ------------------------------------------------------------------------------------ //
 // Добавить параметер
@@ -58,8 +58,22 @@ void le::StudioRenderPass::Clear()
 // ------------------------------------------------------------------------------------ //
 void le::StudioRenderPass::Apply( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
+	InitStates();
+
 	if ( shader && ( !isNeadRefrash || Refrash() ) )
 		shader->OnDrawMesh( parameters.size(), ( IShaderParameter** ) parameters.data(), Transformation, Camera, Lightmap );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Инициализировать состаяния OpenGL
+// ------------------------------------------------------------------------------------ //
+void le::StudioRenderPass::InitStates()
+{
+	OpenGLState::EnableDepthTest( isDepthTest );
+	OpenGLState::EnableDepthWrite( isDepthWrite );
+	OpenGLState::EnableBlend( isBlend );
+	OpenGLState::EnableCullFace( isCullFace );
+	OpenGLState::SetCullFaceType( cullFaceType );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -113,6 +127,85 @@ void le::StudioRenderPass::SetShader( const char* NameShader )
 	else
 		g_consoleSystem->PrintError( "Shader [%s] not found in system", NameShader );
 }
+// ------------------------------------------------------------------------------------ //
+// Включить ли тест глубины
+// ------------------------------------------------------------------------------------ //
+void le::StudioRenderPass::EnableDepthTest( bool Enable )
+{
+	isDepthTest = Enable;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Включить ли запись в буфер глубины
+// ------------------------------------------------------------------------------------ //
+void le::StudioRenderPass::EnableDepthWrite( bool Enable )
+{
+	isDepthWrite = Enable;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Включить ли смешивание
+// ------------------------------------------------------------------------------------ //
+void le::StudioRenderPass::EnableBlend( bool Enable )
+{
+	isBlend = Enable;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Включить ли отсечение полигонов
+// ------------------------------------------------------------------------------------ //
+void le::StudioRenderPass::EnableCullFace( bool Enable )
+{
+	isCullFace = Enable;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Задать тип отсикаемых полигонов
+// ------------------------------------------------------------------------------------ //
+void le::StudioRenderPass::SetCullFaceType( CULLFACE_TYPE CullFaceType )
+{
+	cullFaceType = CullFaceType;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Включен ли тест глубины
+// ------------------------------------------------------------------------------------ //
+bool le::StudioRenderPass::IsDepthTest() const
+{
+	return isDepthTest;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Включена ли запись в буфер глубины
+// ------------------------------------------------------------------------------------ //
+bool le::StudioRenderPass::IsDepthWrite() const
+{
+	return isDepthWrite;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Включено ли смешивание
+// ------------------------------------------------------------------------------------ //
+bool le::StudioRenderPass::IsBlend() const
+{
+	return isBlend;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Включено ли отсечение полигонов
+// ------------------------------------------------------------------------------------ //
+bool le::StudioRenderPass::IsCullFace() const
+{
+	return isCullFace;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить тип отсикаемых полигонов
+// ------------------------------------------------------------------------------------ //
+le::CULLFACE_TYPE le::StudioRenderPass::GetCullFaceType() const
+{
+	return cullFaceType;
+}
 
 // ------------------------------------------------------------------------------------ //
 // Получить шейдер
@@ -153,6 +246,11 @@ le::IShaderParameter* le::StudioRenderPass::GetParameter( UInt32_t Index ) const
 // ------------------------------------------------------------------------------------ //
 le::StudioRenderPass::StudioRenderPass() : 
 	isNeadRefrash( true ),
+	isDepthTest( true ),
+	isDepthWrite( true ),
+	isBlend( false ),
+	isCullFace( true ),
+	cullFaceType( CT_BACK ),
 	shader( nullptr )
 {}
 

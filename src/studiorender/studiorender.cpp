@@ -28,6 +28,7 @@
 #include "mesh.h"
 #include "studiorendertechnique.h"
 #include "studiorenderpass.h"
+#include "openglstate.h"
 
 LIFEENGINE_STUDIORENDER_API( le::StudioRender );
 
@@ -101,7 +102,7 @@ void le::StudioRender::SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformatio
 		renderObject.material = mesh->GetMaterial( surface->materialID );
 
 		if ( !renderObject.material ) continue;
-		scenes[ currentScene ].renderObjects[ openGLState ].push_back( renderObject );
+		scenes[ currentScene ].renderObjects.push_back( renderObject );
 	}
 }
 
@@ -110,38 +111,6 @@ void le::StudioRender::SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformatio
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::EndScene()
 {}
-
-// ------------------------------------------------------------------------------------ //
-// Включить ли тест глубины
-// ------------------------------------------------------------------------------------ //
-void le::StudioRender::SetDepthTestEnabled( bool IsEnabled )
-{
-	openGLState.isDepthTest = IsEnabled;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Включить ли отсечение граней
-// ------------------------------------------------------------------------------------ //
-void le::StudioRender::SetCullFaceEnabled( bool IsEnabled )
-{
-	openGLState.isCullFace = IsEnabled;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Включить ли смешивание
-// ------------------------------------------------------------------------------------ //
-void le::StudioRender::SetBlendEnabled( bool IsEnabled )
-{
-	openGLState.isBlend = IsEnabled;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Задать тип отсечения граней
-// ------------------------------------------------------------------------------------ //
-void le::StudioRender::SetCullFaceType( CULLFACE_TYPE CullFaceType )
-{
-	openGLState.cullFaceType = CullFaceType;
-}
 
 // ------------------------------------------------------------------------------------ //
 // Инициализировать рендер
@@ -191,12 +160,10 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 	// Инициализируем OpenGL
 
 	glEnable( GL_TEXTURE_2D );
+	glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );
 
-	openGLState.isDepthTest = true;
-	openGLState.isCullFace = true;
-	openGLState.isBlend = true;
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-
+	OpenGLState::Initialize();
+	
 	viewport.x = viewport.y = 0;
 	Engine->GetWindow()->GetSize( viewport.width, viewport.height );
 
@@ -243,22 +210,21 @@ void le::StudioRender::End()
 void le::StudioRender::Present()
 {
 	LIFEENGINE_ASSERT( renderContext.IsCreated() );
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-	// TODO: Реализовать многопроходный рендер
+	glClear( GL_DEPTH_BUFFER_BIT );
 
 	for ( UInt32_t indexScene = 0, countScenes = scenes.size(); indexScene < countScenes; ++indexScene )
 	{
 		SceneDescriptor&			sceneDescriptor = scenes[ indexScene ];
 
-		for ( auto itOGLState = sceneDescriptor.renderObjects.begin(), itOGLEnd = sceneDescriptor.renderObjects.end(); itOGLState != itOGLEnd; ++itOGLState )
+		for ( UInt32_t indexObject = 0, countObjects = sceneDescriptor.renderObjects.size(); indexObject < countObjects; ++indexObject )
 		{
-			InitOpenGLStates( itOGLState->first );
+			RenderObject&			renderObject = sceneDescriptor.renderObjects[ indexObject ];
+			StudioRenderTechnique*	technique = ( StudioRenderTechnique* ) renderObject.material->GetTechnique( RT_DEFFERED_SHADING );
+			if ( !technique ) continue;
 
-			for ( UInt32_t indexObject = 0, countObjects = itOGLState->second.size(); indexObject < countObjects; ++indexObject )
+			for ( UInt32_t indexPass = 0, countPasses = technique->GetCountPasses(); indexPass < countPasses; ++indexPass )
 			{
-				RenderObject&		renderObject = itOGLState->second.at( indexObject );
-				auto*				pass = ( StudioRenderPass* ) renderObject.material->GetTechnique( RT_DEFFERED_SHADING )->GetPass( 0 );
+				StudioRenderPass*		pass = ( StudioRenderPass* ) technique->GetPass( indexPass );
 
 				pass->Apply( renderObject.transformation, sceneDescriptor.camera, renderObject.lightmap );
 				renderObject.vertexArrayObject->Bind();
@@ -328,40 +294,4 @@ le::StudioRender::StudioRender() :
 le::StudioRender::~StudioRender()
 {
 	if ( renderContext.IsCreated() )		renderContext.Destroy();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Инициализировать состояние OpenGL'a
-// ------------------------------------------------------------------------------------ //
-void le::StudioRender::InitOpenGLStates( const OpenGLState& OpenGLState )
-{
-	// TODO: Сделать инициализацию стейтов более элегантнее
-
-	if ( OpenGLState.isDepthTest )
-		glEnable( GL_DEPTH_TEST );
-	else
-		glDisable( GL_DEPTH_TEST );
-
-	if ( OpenGLState.isCullFace )
-	{
-		glEnable( GL_CULL_FACE );
-
-		switch ( OpenGLState.cullFaceType )
-		{
-		case CT_BACK:
-			glCullFace( GL_BACK );
-			break;
-
-		case CT_FRONT:
-			glCullFace( GL_FRONT );
-			break;
-		}
-	}
-	else
-		glDisable( GL_CULL_FACE );
-
-	if ( OpenGLState.isBlend )
-		glEnable( GL_BLEND );
-	else
-		glDisable( GL_BLEND );
 }

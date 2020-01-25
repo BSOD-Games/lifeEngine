@@ -51,6 +51,19 @@ struct Vertex
 
 struct MaterialPass
 {
+	MaterialPass() :
+		isDepthTest( true ),
+		isDepthWrite( true ),
+		isBlend( false ),
+		isCullFace( true ),
+		cullFaceType( le::CT_BACK )
+	{}
+
+	bool														isDepthTest;
+	bool														isDepthWrite;
+	bool														isBlend;
+	bool														isCullFace;
+	le::CULLFACE_TYPE											cullFaceType;
 	std::string													shader;
 	std::unordered_map< std::string, rapidjson::Value* >		parameters;
 };
@@ -160,6 +173,17 @@ inline le::RENDER_TECHNIQUE RenderTechnique_StringToEnum( const char* Type )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Преобразовать строку в перечисление типа отсекаемых полигонов
+// ------------------------------------------------------------------------------------ //
+inline le::CULLFACE_TYPE CullFaceType_StringToEnum( const char* Type )
+{
+	if ( !Type || Type == "" ) return le::CT_BACK;
+
+	if ( strcmp( Type, "front" ) == 0 )		return le::CT_FRONT;
+	else									return le::CT_BACK;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Загрузить изображение
 // ------------------------------------------------------------------------------------ //
 void LE_LoadImage( const char* Path, le::Image& Image, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels )
@@ -220,12 +244,12 @@ le::ITexture* LE_LoadTexture( const char* Path, le::IFactory* StudioRenderFactor
 	LE_LoadImage( Path, image, isError, false, true );
 	if ( isError )			return nullptr;
 
-	le::ITexture*		texture = ( le::ITexture* ) StudioRenderFactory->Create( TEXTURE_INTERFACE_VERSION );
+	le::ITexture* texture = ( le::ITexture* ) StudioRenderFactory->Create( TEXTURE_INTERFACE_VERSION );
 	if ( !texture )			return nullptr;
 
 	texture->Initialize( le::TT_2D, image.aMask > 0 ? le::IF_RGBA : le::IF_RGB, image.width, image.height );
-	texture->Bind(); 
-	texture->Append( image.data );	
+	texture->Bind();
+	texture->Append( image.data );
 	texture->GenerateMipmaps();
 
 	le::StudioRenderSampler			sampler;
@@ -253,7 +277,7 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 	rapidjson::Document			document;
 	document.Parse( stringBuffer.c_str() );
 	if ( document.HasParseError() )				return nullptr;
-		
+
 	if ( document.FindMember( "version" ) == document.MemberEnd() ||
 		 !document[ "version" ].IsNumber() || document[ "version" ].GetInt() != LMT_VERSION )
 		return nullptr;
@@ -284,6 +308,29 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 					MaterialPass			pass;
 					for ( auto itPass = itTechnique->value.GetObject().MemberBegin(), itPassEnd = itTechnique->value.GetObject().MemberEnd(); itPass != itPassEnd; ++itPass )
 					{
+						// Включен ли тест глубины
+						if ( strcmp( itPass->name.GetString(), "depthTest" ) == 0 && itPass->value.IsBool() )
+							pass.isDepthTest = itPass->value.GetBool();
+
+						// Включена ли запись в буфер глубины
+						else if ( strcmp( itPass->name.GetString(), "depthWrite" ) == 0 && itPass->value.IsBool() )
+							pass.isDepthWrite = itPass->value.GetBool();
+
+						// Включено ли смешивание
+						else if ( strcmp( itPass->name.GetString(), "blend" ) == 0 && itPass->value.IsBool() )
+							pass.isBlend = itPass->value.GetBool();
+
+						// Включено ли отсечение полигонов
+						else if ( strcmp( itPass->name.GetString(), "cullface" ) == 0 && itPass->value.IsBool() )
+							pass.isCullFace = itPass->value.GetBool();
+
+						// Тип отсикаемых полигонов
+						else if ( strcmp( itPass->name.GetString(), "cullface_type" ) == 0 )
+							if ( itPass->value.IsString() )
+								pass.cullFaceType = CullFaceType_StringToEnum( itPass->value.GetString() );
+							else if ( itPass->value.IsNumber() )
+								pass.cullFaceType = ( le::CULLFACE_TYPE ) itPass->value.GetInt();
+
 						// Шейдер
 						if ( strcmp( itPass->name.GetString(), "shader" ) == 0 && itPass->value.IsString() )
 							pass.shader = itPass->value.GetString();
@@ -291,7 +338,7 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 						// Параметры шейдера
 						else if ( strcmp( itPass->name.GetString(), "parameters" ) == 0 && itPass->value.IsObject() )
 							for ( auto itParameter = itPass->value.GetObject().MemberBegin(), itParameterEnd = itPass->value.GetObject().MemberEnd(); itParameter != itParameterEnd; ++itParameter )
-									pass.parameters[ itParameter->name.GetString() ] = &itParameter->value;
+								pass.parameters[ itParameter->name.GetString() ] = &itParameter->value;
 					}
 
 					technique.passes.push_back( pass );
@@ -305,33 +352,39 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 
 	if ( techniques.empty() )			return nullptr;
 
-	le::Material*				material = new le::Material();
+	le::Material* material = new le::Material();
 	if ( !surface.empty() )		material->SetSurfaceName( surface.c_str() );
 
 	for ( auto itTechnique = techniques.begin(), itTechniqueEnd = techniques.end(); itTechnique != itTechniqueEnd; ++itTechnique )
 	{
-		le::IStudioRenderTechnique*			technique = ( le::IStudioRenderTechnique* ) StudioRenderFactory->Create( TECHNIQUE_INTERFACE_VERSION );
+		le::IStudioRenderTechnique* technique = ( le::IStudioRenderTechnique* ) StudioRenderFactory->Create( TECHNIQUE_INTERFACE_VERSION );
 		if ( !technique )		return nullptr;
 
 		technique->SetType( RenderTechnique_StringToEnum( itTechnique->first.c_str() ) );
 		for ( le::UInt32_t indexPass = 0, countPasses = itTechnique->second.passes.size(); indexPass < countPasses; ++indexPass )
 		{
-			auto&							materialPass = itTechnique->second.passes[ indexPass ];
-			le::IStudioRenderPass*			pass = ( le::IStudioRenderPass* ) StudioRenderFactory->Create( PASS_INTERFACE_VERSION );
+			auto& materialPass = itTechnique->second.passes[ indexPass ];
+			le::IStudioRenderPass* pass = ( le::IStudioRenderPass* ) StudioRenderFactory->Create( PASS_INTERFACE_VERSION );
 			if ( !pass )		return nullptr;
-
+			
 			pass->SetShader( materialPass.shader.c_str() );
+			pass->EnableDepthTest( materialPass.isDepthTest );
+			pass->EnableDepthWrite( materialPass.isDepthWrite );
+			pass->EnableBlend( materialPass.isBlend );
+			pass->EnableCullFace( materialPass.isCullFace );
+			pass->SetCullFaceType( materialPass.cullFaceType );
+
 			for ( auto itParameters = materialPass.parameters.begin(), itParametersEnd = materialPass.parameters.end(); itParameters != itParametersEnd; ++itParameters )
 			{
-				auto&						value = itParameters->second;
-				le::IShaderParameter*		parameter = ( le::IShaderParameter* ) StudioRenderFactory->Create( SHADERPARAMETER_INTERFACE_VERSION );
+				auto& value = itParameters->second;
+				le::IShaderParameter* parameter = ( le::IShaderParameter* ) StudioRenderFactory->Create( SHADERPARAMETER_INTERFACE_VERSION );
 				if ( !parameter )		return nullptr;
 
 				parameter->SetName( itParameters->first.c_str() );
 
 				if ( itParameters->second->IsString() )
 				{
-					le::ITexture*		texture = ResourceSystem->LoadTexture( itParameters->second->GetString(), itParameters->second->GetString() );
+					le::ITexture* texture = ResourceSystem->LoadTexture( itParameters->second->GetString(), itParameters->second->GetString() );
 					if ( !texture )	continue;
 
 					parameter->SetValueTexture( texture );
@@ -351,7 +404,7 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 				else if ( itParameters->second->IsDouble() )	parameter->SetValueFloat( itParameters->second->GetDouble() );
 				else if ( itParameters->second->IsFloat() )		parameter->SetValueFloat( itParameters->second->GetFloat() );
 				else if ( itParameters->second->IsInt() )		parameter->SetValueInt( itParameters->second->GetInt() );
-			
+
 				pass->AddParameter( parameter );
 			}
 
@@ -361,7 +414,7 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 		material->AddTechnique( technique );
 	}
 
-	return material;
+	return ( le::IMaterial* ) material;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -383,7 +436,7 @@ le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, l
 	// Читаем все материалы модели
 	le::UInt32_t						sizeString = 0;
 	le::UInt32_t						sizeArrayMaterials = 0;
-	std::string*						routeMaterial = nullptr;
+	std::string* routeMaterial = nullptr;
 	std::vector< std::string >			arrayRouteMaterials;
 	std::vector< le::IMaterial* >		arrayMaterials;
 
@@ -402,7 +455,7 @@ le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, l
 	// Загружаем материалы
 	for ( le::UInt32_t index = 0; index < sizeArrayMaterials; ++index )
 	{
-		le::IMaterial*			material = ResourceSystem->LoadMaterial( arrayRouteMaterials[ index ].c_str(), arrayRouteMaterials[ index ].c_str() );
+		le::IMaterial* material = ResourceSystem->LoadMaterial( arrayRouteMaterials[ index ].c_str(), arrayRouteMaterials[ index ].c_str() );
 		if ( !material ) continue;
 
 		arrayMaterials.push_back( material );
@@ -414,7 +467,7 @@ le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, l
 
 	file.read( ( char* ) &sizeArrayVerteces, sizeof( le::UInt32_t ) );
 	arrayVerteces.resize( sizeArrayVerteces );
-	
+
 	if ( sizeArrayVerteces > 0 )
 		file.read( ( char* ) &arrayVerteces[ 0 ], sizeArrayVerteces * sizeof( Vertex ) );
 	else
@@ -469,7 +522,7 @@ le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, l
 	}
 
 	// Создаем сам меш
-	le::IMesh*				mesh = ( le::IMesh* ) StudioRenderFactory->Create( MESH_INTERFACE_VERSION );
+	le::IMesh* mesh = ( le::IMesh* ) StudioRenderFactory->Create( MESH_INTERFACE_VERSION );
 	if ( !mesh )				return nullptr;
 
 	// Создаем описание для формата вершин
@@ -518,7 +571,7 @@ le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, l
 // ------------------------------------------------------------------------------------ //
 le::ILevel* LE_LoadLevel( const char* Path, le::IFactory* GameFactory )
 {
-	le::Level*			level = new le::Level();
+	le::Level* level = new le::Level();
 	if ( !level->Load( Path, GameFactory ) )
 	{
 		delete level;
@@ -677,13 +730,13 @@ le::Image le::ResourceSystem::LoadImage( const char* Path, bool& IsError, bool I
 		auto				parser = loaderImages.find( format );
 		if ( parser == loaderImages.end() )			throw std::exception( "Loader for format image not found" );
 
-		Image				image;	
+		Image				image;
 		parser->second( path.c_str(), image, IsError, IsFlipVertical, IsSwitchRedAndBlueChannels );
-		if ( IsError )								throw std::exception( "Fail loading image" );		
-		
+		if ( IsError )								throw std::exception( "Fail loading image" );
+
 		return image;
 	}
-	catch ( std::exception& Exception )
+	catch ( std::exception & Exception )
 	{
 		g_consoleSystem->PrintError( "Image [%s] not loaded: %s", Path, Exception.what() );
 		return Image();
@@ -715,7 +768,7 @@ le::ITexture* le::ResourceSystem::LoadTexture( const char* Name, const char* Pat
 		auto				parser = loaderTextures.find( format );
 		if ( parser == loaderTextures.end() )		throw std::exception( "Loader for format texture not found" );
 
-		ITexture*			texture = parser->second( path.c_str(), studioRenderFactory );
+		ITexture* texture = parser->second( path.c_str(), studioRenderFactory );
 		if ( !texture )								throw std::exception( "Fail loading texture" );
 
 		textures.insert( std::make_pair( Name, texture ) );
@@ -723,7 +776,7 @@ le::ITexture* le::ResourceSystem::LoadTexture( const char* Name, const char* Pat
 
 		return texture;
 	}
-	catch ( std::exception& Exception )
+	catch ( std::exception & Exception )
 	{
 		g_consoleSystem->PrintError( "Texture [%s] not loaded: %s", Path, Exception.what() );
 		return nullptr;
@@ -755,7 +808,7 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
 		auto				parser = loaderMaterials.find( format );
 		if ( parser == loaderMaterials.end() )		throw std::exception( "Loader for format material not found" );
 
-		IMaterial*			material = parser->second( path.c_str(), this, studioRenderFactory );
+		IMaterial* material = parser->second( path.c_str(), this, studioRenderFactory );
 		if ( !material )	throw std::exception( "Fail loading material" );
 
 		materials.insert( std::make_pair( Name, material ) );
@@ -763,7 +816,7 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
 
 		return material;
 	}
-	catch ( std::exception& Exception )
+	catch ( std::exception & Exception )
 	{
 		g_consoleSystem->PrintError( "Material [%s] not loaded: %s", Path, Exception.what() );
 		return nullptr;
@@ -795,7 +848,7 @@ le::IMesh* le::ResourceSystem::LoadMesh( const char* Name, const char* Path )
 		auto				parser = loaderMeshes.find( format );
 		if ( parser == loaderMeshes.end() )		throw std::exception( "Loader for format mesh not found" );
 
-		IMesh*				mesh = parser->second( path.c_str(), this, studioRenderFactory );
+		IMesh* mesh = parser->second( path.c_str(), this, studioRenderFactory );
 		if ( !mesh )							throw std::exception( "Fail loading mesh" );
 
 		meshes.insert( std::make_pair( Name, mesh ) );
@@ -835,7 +888,7 @@ le::ILevel* le::ResourceSystem::LoadLevel( const char* Name, const char* Path, I
 		auto				parser = loaderLevels.find( format );
 		if ( parser == loaderLevels.end() )		throw std::exception( "Loader for format level not found" );
 
-		ILevel*				level = parser->second( path.c_str(), GameFactory );
+		ILevel* level = parser->second( path.c_str(), GameFactory );
 		if ( !level )							throw std::exception( "Fail loading level" );
 
 		levels.insert( std::make_pair( Name, level ) );
@@ -843,7 +896,7 @@ le::ILevel* le::ResourceSystem::LoadLevel( const char* Name, const char* Path, I
 
 		return level;
 	}
-	catch ( std::exception& Exception )
+	catch ( std::exception & Exception )
 	{
 		g_consoleSystem->PrintError( "Level [%s] not loaded: %s", Path, Exception.what() );
 		return nullptr;
@@ -946,7 +999,7 @@ void le::ResourceSystem::UnloadMaterials()
 	if ( materials.empty() ) return;
 
 	for ( auto it = materials.begin(), itEnd = materials.end(); it != itEnd; ++it )
-			delete it->second;
+		delete it->second;
 
 	g_consoleSystem->PrintInfo( "Unloaded all materials" );
 	materials.clear();
@@ -1000,10 +1053,10 @@ void le::ResourceSystem::UnloadTextures()
 	}
 
 	for ( auto it = textures.begin(), itEnd = textures.end(); it != itEnd; ++it )
-			studioRenderFactory->Delete( it->second );
+		studioRenderFactory->Delete( it->second );
 
 	g_consoleSystem->PrintInfo( "Unloaded all textures" );
-	textures.clear();	
+	textures.clear();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1012,7 +1065,7 @@ void le::ResourceSystem::UnloadTextures()
 void le::ResourceSystem::UnloadAll()
 {
 	UnloadLevels();
-	UnloadMeshes();	
+	UnloadMeshes();
 	UnloadMaterials();
 	UnloadTextures();
 }
@@ -1075,7 +1128,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 {
 	try
 	{
-		IStudioRender*			studioRender = Engine->GetStudioRender();
+		IStudioRender* studioRender = Engine->GetStudioRender();
 		if ( !studioRender )	throw std::exception( "Resource system requared studiorender" );
 
 		studioRenderFactory = studioRender->GetFactory();
@@ -1090,7 +1143,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 		RegisterLoader_Mesh( "lmd", LE_LoadMesh );
 		RegisterLoader_Level( "bsp", LE_LoadLevel );
 	}
-	catch ( std::exception& Exception )
+	catch ( std::exception & Exception )
 	{
 		g_consoleSystem->PrintError( Exception.what() );
 		return false;

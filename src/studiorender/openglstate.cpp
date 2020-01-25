@@ -8,48 +8,94 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include <GL/glew.h>
 #include <functional>
 
-#include "studiorender/istudiorender.h"
+#include "studiorender/studiorender.h"
 #include "openglstate.h"
  
-// ------------------------------------------------------------------------------------ //
-// Объеденение хеша
-// ------------------------------------------------------------------------------------ //
-inline void HashCombine( std::size_t& Seed ) 
-{}
+//---------------------------------------------------------------------//
+
+bool					le::OpenGLState::isDepthTest = true;
+bool					le::OpenGLState::isDepthWrite = true;
+bool					le::OpenGLState::isBlend = true;
+bool					le::OpenGLState::isCullFace = true;
+le::CULLFACE_TYPE		le::OpenGLState::cullFaceType = le::CT_BACK;
+
+//---------------------------------------------------------------------//
 
 // ------------------------------------------------------------------------------------ //
-// Объеденение хеша
+// Включить ли тест глубины
 // ------------------------------------------------------------------------------------ //
-template<typename T, typename... Arguments>
-inline void HashCombine( std::size_t& Seed, const T& Value, Arguments... Values )
+void le::OpenGLState::EnableDepthTest( bool Enable )
 {
-	std::hash< T >		hasher;
-	Seed ^= hasher( Value ) + 0x9E3779B9 + ( Seed << 6 ) + ( Seed >> 2 );
-	HashCombine( Seed, Values... );
+	if ( isDepthTest == Enable ) return;
+	isDepthTest = Enable;
+
+	isDepthTest ? glEnable( GL_DEPTH_TEST ) : glDisable( GL_DEPTH_TEST );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Неявное преобразование к std::size_t
+// Включить ли запись в буфер глубины
 // ------------------------------------------------------------------------------------ //
-std::size_t le::Hash_OpenGLState::operator()( const OpenGLState& Right ) const
+void le::OpenGLState::EnableDepthWrite( bool Enable )
 {
-	std::size_t				hash = 0;
-	HashCombine( hash, 
-				 std::hash< bool >{} ( Right.isDepthTest ),
-				 std::hash< bool >{} ( Right.isCullFace ), 
-				 std::hash< bool >{} ( Right.isBlend ), 
-				 std::hash< CULLFACE_TYPE >{} ( Right.cullFaceType ) );
+	if ( isDepthWrite == Enable ) return;
+	isDepthWrite = Enable;
 
-	return hash;
+	isDepthWrite ? glDepthMask( GL_TRUE ) : glDisable( GL_FALSE );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Сравнение состояний OpenGL'a
+// Включить ли смешивание
 // ------------------------------------------------------------------------------------ //
-bool le::operator==( const OpenGLState& Left, const OpenGLState& Right )
+void le::OpenGLState::EnableBlend( bool Enable )
 {
-	return Left.isDepthTest == Right.isDepthTest && Left.isCullFace == Right.isCullFace &&
-		Left.isBlend == Right.isBlend && Left.cullFaceType == Right.cullFaceType;
+	if ( isBlend == Enable ) return;
+	isBlend = Enable;
+
+	isBlend ? glEnable( GL_BLEND ) : glDisable( GL_BLEND );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Включить ли отсечение полигонов
+// ------------------------------------------------------------------------------------ //
+void le::OpenGLState::EnableCullFace( bool Enable )
+{
+	if ( isCullFace == Enable ) return;
+	isCullFace = Enable;
+
+	isCullFace ? glEnable( GL_CULL_FACE ) : glDisable( GL_CULL_FACE );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Задать тип отсекаемых полигонов
+// ------------------------------------------------------------------------------------ //
+void le::OpenGLState::SetCullFaceType( CULLFACE_TYPE CullFaceType )
+{
+	if ( cullFaceType == CullFaceType ) return;
+	cullFaceType = CullFaceType;
+
+	switch ( cullFaceType )
+	{
+	case CT_BACK:		glCullFace( GL_BACK ); return;
+	case CT_FRONT:		glCullFace( GL_FRONT ); return;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Инициализировать состояние OpenGL
+// ------------------------------------------------------------------------------------ //
+void le::OpenGLState::Initialize()
+{
+	isDepthTest ? glEnable( GL_DEPTH_TEST ) : glDisable( GL_DEPTH_TEST );
+	isDepthWrite ? glDepthMask( GL_TRUE ) : glDisable( GL_FALSE );
+	isBlend ? glEnable( GL_BLEND ) : glDisable( GL_BLEND );
+	isCullFace ? glEnable( GL_CULL_FACE ) : glDisable( GL_CULL_FACE );
+
+	switch ( cullFaceType )
+	{
+	case CT_BACK:		glCullFace( GL_BACK ); return;
+	case CT_FRONT:		glCullFace( GL_FRONT ); return;
+	}
 }
