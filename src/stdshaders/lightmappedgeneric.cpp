@@ -27,11 +27,13 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParamete
 	layout( location = 0 ) 			in vec3 vertex_position; \n \
 	layout( location = 1 ) 			in vec2 vertex_texCoords; \n \
 	layout( location = 2 ) 			in vec2 vertex_lightmapCoords; \n \
+	layout( location = 3 ) 			in vec3 vertex_normal; \n \
 	layout( location = 4 ) 			in vec4 vertex_color; \n \
 	\n \
 		out vec2 				texCoords; \n \
 		out vec2 				lightmapCoords; \n \
 		out vec4 				vertexColor; \n \
+		out vec3				normal; \n \
 	\n \
 		uniform mat4    		matrix_Projection; \n \
 		uniform mat4			matrix_Transformation; \n \
@@ -41,23 +43,30 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParamete
 		texCoords = vertex_texCoords; \n \
 		lightmapCoords = vertex_lightmapCoords; \n \
 		vertexColor = vertex_color; \n \
+		normal = vertex_normal; \n \
 		gl_Position = matrix_Projection * matrix_Transformation * vec4( vertex_position, 1.f ); \n \
 	}";
 
 	shaderDescriptor.fragmentShaderSource = " \
 	#version 330 core\n\
 	\n\
+		layout ( location = 0 ) out vec4 out_albedoSpecular;\n\
+		layout( location = 1 ) out vec4 out_normalShininess;\n\
+		layout( location = 2 ) out vec4 out_emission;\n\
+		\n\
 		in vec2 				texCoords;\n\
 		in vec2 				lightmapCoords;\n\
 		in vec4 				vertexColor; \n \
-		out vec4				color;\n\
+		in vec3					normal; \n \
 	\n\
 		uniform sampler2D		basetexture;\n\
 		uniform sampler2D		lightmap;\n\
 	\n\
 	void main()\n\
 	{\n\
-		color = texture2D( basetexture, texCoords ) * texture2D( lightmap, lightmapCoords ) * vertexColor;\n\
+		out_albedoSpecular = texture2D( basetexture, texCoords ); \n \
+		out_normalShininess = vec4( normal, 1 );\n\
+		out_emission = texture2D( lightmap, lightmapCoords ) * vertexColor;\n\
 	}\n";
 
 	if ( !LoadShader( shaderDescriptor ) )

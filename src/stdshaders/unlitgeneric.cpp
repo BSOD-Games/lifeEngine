@@ -25,9 +25,11 @@ bool le::UnlitGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** Sh
 	#version 330 core\n \
 	\n \
 	layout( location = 0 ) 			in vec3 vertex_position; \n \
+	layout( location = 1 ) 			in vec3 vertex_normal; \n \
 	layout( location = 2 ) 			in vec2 vertex_texCoords; \n \
 	\n \
 		out vec2 				texCoords; \n \
+		out vec3				normal; \n \
 	\n \
 		uniform mat4    		matrix_Projection; \n \
 		uniform mat4			matrix_Transformation; \n \
@@ -35,20 +37,27 @@ bool le::UnlitGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** Sh
 	void main() \n \
 	{\n \
 		texCoords = vertex_texCoords; \n \
+		normal = vertex_normal; \n \
 		gl_Position = matrix_Projection * matrix_Transformation * vec4( vertex_position, 1.f ); \n \
 	}";
 
 	shaderDescriptor.fragmentShaderSource = " \
 	#version 330 core\n\
 	\n\
+		layout ( location = 0 ) out vec4 out_albedoSpecular;\n\
+		layout( location = 1 ) out vec4 out_normalShininess;\n\
+		layout( location = 2 ) out vec4 out_emission;\n\
+		\n\
 		in vec2 				texCoords;\n\
-		out vec4				color;\n\
+		in vec3					normal; \n\
 	\n\
 		uniform sampler2D		basetexture;\n\
 	\n\
 	void main()\n\
 	{\n\
-		color = texture2D( basetexture, texCoords );\n\
+		out_albedoSpecular = texture2D( basetexture, texCoords ); \n \
+		out_normalShininess = vec4( normal, 1 );\n\
+		out_emission = vec4( 0 );\n\
 	}\n";
 
 	return LoadShader( shaderDescriptor );

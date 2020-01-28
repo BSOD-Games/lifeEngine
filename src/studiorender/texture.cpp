@@ -15,23 +15,31 @@
 #include "global.h"
 #include "texture.h"
 
+struct OpenGLImageFormat
+{
+	le::UInt32_t		internalFormat;
+	le::UInt32_t		format;
+	le::UInt32_t		type;
+};
+
 // ------------------------------------------------------------------------------------ //
 // Конвертировать формат тип формата изображения движка в формат OpenGL'a
 // ------------------------------------------------------------------------------------ //
-inline le::UInt32_t ConvertEngineImageFormat_To_OpenGLPixelFormat( le::IMAGE_FORMAT ImageFormat )
+inline OpenGLImageFormat TextureImageFormat_EnumToOpenGLFormat( le::IMAGE_FORMAT ImageFormat )
 {
 	switch ( ImageFormat )
 	{
-	case le::IF_RGBA:		return GL_RGBA;
-	case le::IF_RGB:		return GL_RGB;
-	default:				return 0;
+	case le::IF_RGBA_8UNORM:		return { GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE };
+	case le::IF_RGB_8UNORM:			return { GL_RGB, GL_RGB, GL_UNSIGNED_BYTE };
+	case le::IF_RGBA_16FLOAT:		return { GL_RGBA16F, GL_RGBA, GL_FLOAT };
+	case le::IF_RGB_16FLOAT:		return { GL_RGB16F, GL_RGB, GL_FLOAT };
 	}
 }
 
 // ------------------------------------------------------------------------------------ //
 // Конвертировать тип фильтра текстуры движка в формат OpenGL'a
 // ------------------------------------------------------------------------------------ //
-inline le::UInt32_t ConvertEngineSamplerFilter_To_OpenGLTextureFilter( le::SAMPLER_FILTER Filter )
+inline le::UInt32_t TextureSampler_EnumToOpenGLSampler( le::SAMPLER_FILTER Filter )
 {
 	switch ( Filter )
 	{
@@ -135,11 +143,11 @@ void le::Texture::Append( const UInt8_t* Data, UInt32_t MipmapLevel )
 {
 	LIFEENGINE_ASSERT( MipmapLevel >= 0 && MipmapLevel < countMipmaps && handle && layer );
 
-	UInt32_t		format = ConvertEngineImageFormat_To_OpenGLPixelFormat( imageFormat );
-	UInt32_t		width = GetWidth( MipmapLevel );
-	UInt32_t		height = GetHeight( MipmapLevel );
+	OpenGLImageFormat		openglImageFormat = TextureImageFormat_EnumToOpenGLFormat( imageFormat );
+	UInt32_t				width = GetWidth( MipmapLevel );
+	UInt32_t				height = GetHeight( MipmapLevel );
 	
-	glTexImage2D( GL_TEXTURE_2D, MipmapLevel, format, width, height, 0, format, GL_UNSIGNED_BYTE, Data );
+	glTexImage2D( GL_TEXTURE_2D, MipmapLevel, openglImageFormat.internalFormat, width, height, 0, openglImageFormat.format, openglImageFormat.type, Data );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -150,7 +158,7 @@ void le::Texture::Update( UInt32_t X, UInt32_t Y, UInt32_t Width, UInt32_t Heigh
 	LIFEENGINE_ASSERT( MipmapLevel >= 0 && MipmapLevel < countMipmaps && Width <= GetWidth( MipmapLevel ) && Height <= GetHeight( MipmapLevel ) && handle && layer );
 
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );	
-	glTexSubImage2D( GL_TEXTURE_2D, MipmapLevel, X, Y, Width, Height, ConvertEngineImageFormat_To_OpenGLPixelFormat( imageFormat ), GL_UNSIGNED_BYTE, Data );
+	glTexSubImage2D( GL_TEXTURE_2D, MipmapLevel, X, Y, Width, Height, TextureImageFormat_EnumToOpenGLFormat( imageFormat ).format, GL_UNSIGNED_BYTE, Data );
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
 }
 
@@ -164,8 +172,8 @@ void le::Texture::SetSampler( const StudioRenderSampler& Sampler )
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, ConvertEngineSamplerAddressMode_To_OpenGLTextureAddressMode( Sampler.addressU ) );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, ConvertEngineSamplerAddressMode_To_OpenGLTextureAddressMode( Sampler.addressV ) );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, ConvertEngineSamplerAddressMode_To_OpenGLTextureAddressMode( Sampler.addressW ) );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, ConvertEngineSamplerFilter_To_OpenGLTextureFilter( Sampler.minFilter ) );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, ConvertEngineSamplerFilter_To_OpenGLTextureFilter( Sampler.magFilter ) );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TextureSampler_EnumToOpenGLSampler( Sampler.minFilter ) );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TextureSampler_EnumToOpenGLSampler( Sampler.magFilter ) );
 	glTexParameterfv( GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, Sampler.borderColor );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, Sampler.minLod );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, Sampler.maxLod );

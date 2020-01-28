@@ -20,6 +20,7 @@
 #include "studiorender/studiorenderfactory.h"
 #include "studiorender/scenedescriptor.h"
 #include "studiorender/shadermanager.h"
+#include "studiorender/gbuffer.h"
 
 //---------------------------------------------------------------------//
 
@@ -60,6 +61,7 @@ namespace le
 		StudioRenderFactory					studioRenderFactory;
 		StudioRenderViewport				viewport;
 		ShaderManager						shaderManager;
+		GBuffer								gbuffer;
 
 		UInt32_t							currentScene;
 		std::vector< SceneDescriptor >		scenes;

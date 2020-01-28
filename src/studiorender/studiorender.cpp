@@ -33,6 +33,7 @@
 LIFEENGINE_STUDIORENDER_API( le::StudioRender );
 
 le::IConVar*		r_wireframe = nullptr;
+le::IConVar*		r_showgbuffer = nullptr;
 
 // ------------------------------------------------------------------------------------ //
 // Начать отрисовку сцены
@@ -167,6 +168,12 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 	viewport.x = viewport.y = 0;
 	Engine->GetWindow()->GetSize( viewport.width, viewport.height );
 
+	if ( !gbuffer.Initialize( Vector2DInt_t( viewport.width, viewport.height ) ) )
+	{
+		g_consoleSystem->PrintError( "Failed initialize GBuffer" );
+		return false;
+	}
+
 	// Инициализируем консольные команды
 	r_wireframe = ( IConVar* ) g_consoleSystem->GetFactory()->Create( CONVAR_INTERFACE_VERSION );
 	r_wireframe->Initialize( "r_wireframe", "0", CVT_BOOL, "Enable wireframe mode", true, 0, true, 1,
@@ -178,8 +185,14 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 									 glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 							 } );
 
+	r_showgbuffer = ( IConVar* ) g_consoleSystem->GetFactory()->Create( CONVAR_INTERFACE_VERSION );
+	r_showgbuffer->Initialize( "r_showgbuffer", "0", CVT_BOOL, "Enable view GBuffer", true, 0, true, 1, nullptr );
+
 	g_consoleSystem->RegisterVar( r_wireframe );
+	g_consoleSystem->RegisterVar( r_showgbuffer );
 	g_engine = Engine;
+
+	g_consoleSystem->Exec( "r_showgbuffer 1" );
 
 	return true;
 }
@@ -210,6 +223,7 @@ void le::StudioRender::End()
 void le::StudioRender::Present()
 {
 	LIFEENGINE_ASSERT( renderContext.IsCreated() );
+	gbuffer.Bind( GBuffer::BT_GEOMETRY );
 	glClear( GL_DEPTH_BUFFER_BIT );
 
 	for ( UInt32_t indexScene = 0, countScenes = scenes.size(); indexScene < countScenes; ++indexScene )
@@ -233,6 +247,7 @@ void le::StudioRender::Present()
 		}
 	}
 
+	if ( r_showgbuffer->GetValueBool() )		gbuffer.ShowBuffers();
 	renderContext.SwapBuffers();
 }
 

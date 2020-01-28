@@ -43,6 +43,11 @@ namespace le
 		Texture();
 		~Texture();
 
+		inline UInt32_t				GetHandle() const
+		{
+			return handle;
+		}
+
 	private:
 		bool				isCreated;
 

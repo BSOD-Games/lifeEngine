@@ -75,7 +75,7 @@ le::ITexture* Lightmap_Create( le::Byte_t* ImageBits, uint32_t Width, uint32_t H
 	le::ITexture* texture = ( le::ITexture* ) le::g_studioRender->GetFactory()->Create( TEXTURE_INTERFACE_VERSION );
 	if ( !texture )		return nullptr;
 
-	texture->Initialize( le::TT_2D, le::IF_RGB, Width, Height );
+	texture->Initialize( le::TT_2D, le::IF_RGB_8UNORM, Width, Height );
 	texture->Bind();
 	texture->Append( ImageBits );
 	texture->GenerateMipmaps();

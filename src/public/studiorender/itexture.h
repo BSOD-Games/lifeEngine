@@ -25,8 +25,10 @@ namespace le
 
 	enum IMAGE_FORMAT
 	{
-		IF_RGBA,
-		IF_RGB
+		IF_RGBA_8UNORM,
+		IF_RGB_8UNORM,
+		IF_RGBA_16FLOAT,
+		IF_RGB_16FLOAT
 	};
 
 	//---------------------------------------------------------------------//
