@@ -11,7 +11,6 @@
 #ifndef STUDIORENDER_H
 #define STUDIORENDER_H
 
-#include <unordered_map>
 #include <vector>
 
 #include "studiorender/istudiorenderinternal.h"
@@ -21,6 +20,8 @@
 #include "studiorender/scenedescriptor.h"
 #include "studiorender/shadermanager.h"
 #include "studiorender/gbuffer.h"
+#include "studiorender/mesh.h"
+#include "studiorender/gpuprogram.h"
 
 //---------------------------------------------------------------------//
 
@@ -41,6 +42,9 @@ namespace le
 		virtual void							BeginScene( ICamera* Camera );
 		virtual void							SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation );
 		virtual void							SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation, UInt32_t StartSurface, UInt32_t CountSurface );
+		virtual void							SubmitLight( IPointLight* PointLight );
+		virtual void							SubmitLight( ISpotLight* SpotLight );
+		virtual void							SubmitLight( IDirectionalLight* DirectionalLight );
 		virtual void							EndScene();
 
 		virtual void							SetVerticalSyncEnabled( bool IsEnabled = true );
@@ -62,6 +66,8 @@ namespace le
 		StudioRenderViewport				viewport;
 		ShaderManager						shaderManager;
 		GBuffer								gbuffer;
+		Mesh								meshQuad;
+		GPUProgram							gpuProgramLighting;
 
 		UInt32_t							currentScene;
 		std::vector< SceneDescriptor >		scenes;

@@ -29,6 +29,12 @@
 #include "studiorendertechnique.h"
 #include "studiorenderpass.h"
 #include "openglstate.h"
+#include "pointlight.h"
+#include "spotlight.h"
+#include "directionallight.h"
+#include "common/meshdescriptor.h"
+#include "studiorender/studiovertexelement.h"
+#include "common/shaderdescriptor.h"
 
 LIFEENGINE_STUDIORENDER_API( le::StudioRender );
 
@@ -105,6 +111,33 @@ void le::StudioRender::SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformatio
 		if ( !renderObject.material ) continue;
 		scenes[ currentScene ].renderObjects.push_back( renderObject );
 	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Добавить источник света на отрисовку
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::SubmitLight( IPointLight* PointLight )
+{
+	LIFEENGINE_ASSERT( PointLight );
+	scenes[ currentScene ].pointLights.push_back( ( le::PointLight* ) PointLight );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Добавить источник света на отрисовку
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::SubmitLight( ISpotLight* SpotLight )
+{
+	LIFEENGINE_ASSERT( SpotLight );
+	scenes[ currentScene ].spotLights.push_back( ( le::SpotLight* ) SpotLight );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Добавить источник света на отрисовку
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::SubmitLight( IDirectionalLight* DirectionalLight )
+{
+	LIFEENGINE_ASSERT( DirectionalLight );
+	scenes[ currentScene ].directionalLights.push_back( ( le::DirectionalLight* ) DirectionalLight );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -192,7 +225,64 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 	g_consoleSystem->RegisterVar( r_showgbuffer );
 	g_engine = Engine;
 
-	g_consoleSystem->Exec( "r_showgbuffer 1" );
+	UInt32_t		quadIndeces[] = { 0, 1, 2, 1, 3, 2 };
+	Vector3D_t		quadVerteces[] =
+	{
+		{ -1, -1, 0 },
+		{ 1, -1, 0 },
+		{ -1,  1, 0 },
+		{ 1,  1, 0 }
+	};
+
+	StudioVertexElement			quadVertexElement;
+	quadVertexElement.count = 3;
+	quadVertexElement.type = VET_FLOAT;
+
+	MeshDescriptor	quadDescriptor = {};
+	quadDescriptor.indeces = quadIndeces;
+	quadDescriptor.verteces = quadVerteces;
+	quadDescriptor.primitiveType = PT_TRIANGLES;
+	quadDescriptor.sizeVerteces = 4 * sizeof( Vector3D_t );
+	quadDescriptor.countIndeces = 6;
+	quadDescriptor.vertexElements = &quadVertexElement;
+	quadDescriptor.countVertexElements = 1;
+
+	meshQuad.Create( quadDescriptor );
+
+	ShaderDescriptor		lightingShaderDescriptor = {};
+	lightingShaderDescriptor.vertexShaderSource = " \
+	#version 330 core\n \
+	\n \
+	layout( location = 0 ) 			in vec3 vertex_position; \n \
+	\n \
+	void main() \n \
+	{\n \
+		gl_Position = vec4( vertex_position, 1.f ); \n \
+	}";
+
+	lightingShaderDescriptor.fragmentShaderSource = "\
+	#version 330 core\n\
+	\n\
+		out vec4				color;\n\
+	\n\
+		uniform vec2			screenSize;\n\
+		uniform sampler2D		albedoSpecular;\n\
+		uniform sampler2D		emission;\n\
+	\n \
+	void main()\n\
+	{\n\
+		vec2	texCoord = gl_FragCoord.xy / screenSize;\n\
+		color = texture( albedoSpecular, texCoord ) * texture( emission, texCoord );\n\
+	}\n";
+
+	if ( !gpuProgramLighting.Compile( lightingShaderDescriptor ) )
+		return false;
+
+	gpuProgramLighting.Bind();
+	gpuProgramLighting.SetUniform( "albedoSpecular", 0 );
+	gpuProgramLighting.SetUniform( "emission", 2 );
+	gpuProgramLighting.SetUniform( "screenSize", Vector2D_t( viewport.width, viewport.height ) );
+	gpuProgramLighting.Unbind();
 
 	return true;
 }
@@ -246,6 +336,19 @@ void le::StudioRender::Present()
 			}
 		}
 	}
+
+	gbuffer.Bind( GBuffer::BT_LIGHT ); 
+	glClear( GL_DEPTH_BUFFER_BIT );
+
+	OpenGLState::EnableDepthTest( true );
+	OpenGLState::EnableDepthWrite( true );
+	OpenGLState::EnableBlend( false );
+	OpenGLState::EnableCullFace( true );
+	OpenGLState::SetCullFaceType( CT_BACK );
+	
+	gpuProgramLighting.Bind();
+	meshQuad.GetVertexArrayObject().Bind();
+	glDrawElements( GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0 );
 
 	if ( r_showgbuffer->GetValueBool() )		gbuffer.ShowBuffers();
 	renderContext.SwapBuffers();

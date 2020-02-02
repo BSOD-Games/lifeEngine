@@ -23,6 +23,9 @@
 #include "studiorender/itexture.h"
 #include "studiorender/istudiorender.h"
 #include "studiorender/studiorendersampler.h"
+#include "studiorender/ipointlight.h"
+#include "studiorender/ispotlight.h"
+#include "studiorender/idirectionallight.h"
 
 #include "global.h"
 #include "consolesystem.h"
@@ -458,6 +461,31 @@ void le::Level::Update( UInt32_t DeltaTime )
 					}
 		}
 
+		// Посылаем на отрисовку видимые точечные источники света
+		for ( UInt32_t index = 0, count = arrayPointLights.size(); index < count; ++index )
+		{
+			IPointLight*	pointLight = arrayPointLights[ index ];
+			int				cluster = arrayBspLeafs[ FindLeaf( pointLight->GetPosition() ) ].cluster;
+
+			if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( pointLight->GetPosition(), pointLight->GetRadius() ) )
+				continue;
+
+			g_studioRender->SubmitLight( pointLight );
+		}
+
+		// Посылаем на отрисовку видимые прожекторные источники света
+		for ( UInt32_t index = 0, count = arraySpotLights.size(); index < count; ++index )
+		{
+			ISpotLight*		spotLight = arraySpotLights[ index ];
+			int				cluster = arrayBspLeafs[ FindLeaf( spotLight->GetPosition() ) ].cluster;
+
+			g_studioRender->SubmitLight( spotLight );
+		}
+
+		// Посылаем на отрисовку направленые источники света
+		for ( UInt32_t index = 0, count = arrayDirectionalLights.size(); index < count; ++index )
+			g_studioRender->SubmitLight( arrayDirectionalLights[ index ] );
+
 		g_studioRender->EndScene();
 	}
 }
@@ -485,6 +513,9 @@ void le::Level::Clear()
 	arrayModels.clear();
 	arrayLightmaps.clear();
 	arrayCameras.clear();
+	arrayPointLights.clear();
+	arraySpotLights.clear();
+	arrayDirectionalLights.clear();
 
 	mesh = nullptr;
 	isLoaded = false;
@@ -515,6 +546,33 @@ void le::Level::AddEntity( IEntity* Entity )
 {
 	LIFEENGINE_ASSERT( Entity );
 	arrayEntities.push_back( Entity );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Добавить точечный источник света
+// ------------------------------------------------------------------------------------ //
+void le::Level::AddPointLight( IPointLight* PointLight )
+{
+	LIFEENGINE_ASSERT( PointLight );
+	arrayPointLights.push_back( PointLight );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Добавить точечный источник света
+// ------------------------------------------------------------------------------------ //
+void le::Level::AddSpotLight( ISpotLight* SpotLight )
+{
+	LIFEENGINE_ASSERT( SpotLight );
+	arraySpotLights.push_back( SpotLight );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Добавить точечный источник светаь
+// ------------------------------------------------------------------------------------ //
+void le::Level::AddDirectionalLight( IDirectionalLight* DirectionalLight )
+{
+	LIFEENGINE_ASSERT( DirectionalLight );
+	arrayDirectionalLights.push_back( DirectionalLight );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -588,6 +646,72 @@ void le::Level::RemoveEntity( UInt32_t Index )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Удалить точечный источник света с уровня
+// ------------------------------------------------------------------------------------ //
+void le::Level::RemovePointLight( IPointLight* PointLight )
+{
+	for ( UInt32_t index = 0, count = arrayPointLights.size(); index < count; ++index )
+		if ( arrayPointLights[ index ] == PointLight )
+		{
+			arrayPointLights.erase( arrayPointLights.begin() + index );
+			break;
+		}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Удалить точечный источник света с уровня
+// ------------------------------------------------------------------------------------ //
+void le::Level::RemovePointLight( UInt32_t Index )
+{
+	if ( Index >= arrayPointLights.size() ) return;
+	arrayPointLights.erase( arrayPointLights.begin() + Index );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Удалить прожекторный источник света с уровня
+// ------------------------------------------------------------------------------------ //
+void le::Level::RemoveSpotLight( ISpotLight* SpotLight )
+{
+	for ( UInt32_t index = 0, count = arraySpotLights.size(); index < count; ++index )
+		if ( arraySpotLights[ index ] == SpotLight )
+		{
+			arraySpotLights.erase( arraySpotLights.begin() + index );
+			break;
+		}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Удалить прожекторный источник света с уровня
+// ------------------------------------------------------------------------------------ //
+void le::Level::RemoveSpotLight( UInt32_t Index )
+{
+	if ( Index >= arraySpotLights.size() ) return;
+	arraySpotLights.erase( arraySpotLights.begin() + Index );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Удалить направленый источник света с уровня
+// ------------------------------------------------------------------------------------ //
+void le::Level::RemoveDirectionalLight( IDirectionalLight* DirectionalLight )
+{
+	for ( UInt32_t index = 0, count = arrayDirectionalLights.size(); index < count; ++index )
+		if ( arrayDirectionalLights[ index ] == DirectionalLight )
+		{
+			arrayDirectionalLights.erase( arrayDirectionalLights.begin() + index );
+			break;
+		}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Удалить направленый источник света с уровня
+// ------------------------------------------------------------------------------------ //
+void le::Level::RemoveDirectionalLight( UInt32_t Index )
+{
+	if ( Index >= arrayDirectionalLights.size() ) return;
+	arrayDirectionalLights.erase( arrayDirectionalLights.begin() + Index );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Загружен ли уровень
 // ------------------------------------------------------------------------------------ //
 bool le::Level::IsLoaded() const
@@ -658,6 +782,63 @@ le::IEntity* le::Level::GetEntity( UInt32_t Index ) const
 		return nullptr;
 
 	return arrayEntities[ Index ];
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить количество точечных источников света
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::Level::GetCountPointLights() const
+{
+	return arrayPointLights.size();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить точечный источник света
+// ------------------------------------------------------------------------------------ //
+le::IPointLight* le::Level::GetPointLight( UInt32_t Index ) const
+{
+	if ( Index >= arrayPointLights.size() )
+		return nullptr;
+
+	return arrayPointLights[ Index ];
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить количество прожекторных источников света
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::Level::GetCountSpotLights() const
+{
+	return arraySpotLights.size();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить прожекторный свет
+// ------------------------------------------------------------------------------------ //
+le::ISpotLight* le::Level::GetSpotLight( UInt32_t Index ) const
+{
+	if ( Index >= arraySpotLights.size() )
+		return nullptr;
+
+	return arraySpotLights[ Index ];
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить количество направленых источников света
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::Level::GetCountDirectionalLight() const
+{
+	return arrayDirectionalLights.size();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить направленый источник света
+// ------------------------------------------------------------------------------------ //
+le::IDirectionalLight* le::Level::GetDirectionalLight( UInt32_t Index ) const
+{
+	if ( Index >= arrayDirectionalLights.size() )
+		return nullptr;
+
+	return arrayDirectionalLights[ Index ];
 }
 
 // ------------------------------------------------------------------------------------ //

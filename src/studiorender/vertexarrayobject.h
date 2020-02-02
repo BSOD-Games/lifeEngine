@@ -45,23 +45,23 @@ namespace le
 		void						AddBuffer( VertexBufferObject& VertexBufferObject, VertexBufferLayout& VertexBufferLayout );
 		void						AddBuffer( IndexBufferObject& IndexBufferObject );
 
-		inline void					Bind()
+		inline void					Bind() const
 		{
 			if ( handle == 0 ) return;
 			glBindVertexArray( handle );
 		}
 
-		static inline void			Unbind() 
+		static inline void			Unbind()
 		{ 
 			glBindVertexArray( 0 ); 
 		}
 			
-		inline UInt32_t				GetHandle()
+		inline UInt32_t				GetHandle() const
 		{
 			return handle;
 		}
 
-		inline bool					IsCreate()
+		inline bool					IsCreate() const
 		{
 			return handle > 0;
 		}

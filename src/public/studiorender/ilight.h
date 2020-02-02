@@ -1,23 +1,17 @@
 //////////////////////////////////////////////////////////////////////////
 //
 //			*** lifeEngine (Двигатель жизни) ***
-//				Copyright (C) 2018-2019
+//				Copyright (C) 2018-2020
 //
 // Репозиторий движка:  https://github.com/zombihello/lifeEngine
 // Авторы:				Егор Погуляка (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef SCENE_DESCRIPTOR_H
-#define SCENE_DESCRIPTOR_H
+#ifndef ILIGHT_H
+#define ILIGHT_H
 
-#include <vector>
-#include <unordered_map>
-
-#include "renderobject.h"
-#include "pointlight.h"
-#include "spotlight.h"
-#include "directionallight.h"
+#include "common/types.h"
 
 //---------------------------------------------------------------------//
 
@@ -25,17 +19,17 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class ICamera;
-
-	//---------------------------------------------------------------------//
-
-	struct SceneDescriptor
+	class ILight
 	{
-		ICamera*							camera;
-		std::vector< RenderObject >			renderObjects;
-		std::vector< PointLight* >			pointLights;
-		std::vector< SpotLight* >			spotLights;
-		std::vector< DirectionalLight* >	directionalLights;
+	public:
+		virtual ~ILight() {}
+		virtual void					SetColor( const Vector4D_t& Color ) = 0;
+		virtual void					SetSpecular( const Vector4D_t& Color ) = 0;
+		virtual void					SetIntensivity( float Intensivity ) = 0;
+
+		virtual const Vector4D_t&		GetColor() const = 0;
+		virtual const Vector4D_t&		GetSpecular() const = 0;
+		virtual float					GetIntensivity() const = 0;
 	};
 
 	//---------------------------------------------------------------------//
@@ -43,4 +37,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !SCENE_DESCRIPTOR_H
+#endif // !ILIGHT_H
+

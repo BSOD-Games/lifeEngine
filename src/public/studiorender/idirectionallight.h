@@ -1,23 +1,17 @@
 //////////////////////////////////////////////////////////////////////////
 //
 //			*** lifeEngine (Двигатель жизни) ***
-//				Copyright (C) 2018-2019
+//				Copyright (C) 2018-2020
 //
 // Репозиторий движка:  https://github.com/zombihello/lifeEngine
 // Авторы:				Егор Погуляка (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef SCENE_DESCRIPTOR_H
-#define SCENE_DESCRIPTOR_H
+#ifndef IDIRECTIONALLIGHT_H
+#define IDIRECTIONALLIGHT_H
 
-#include <vector>
-#include <unordered_map>
-
-#include "renderobject.h"
-#include "pointlight.h"
-#include "spotlight.h"
-#include "directionallight.h"
+#include "studiorender/ilight.h"
 
 //---------------------------------------------------------------------//
 
@@ -25,17 +19,13 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class ICamera;
-
-	//---------------------------------------------------------------------//
-
-	struct SceneDescriptor
+	class IDirectionalLight : public ILight
 	{
-		ICamera*							camera;
-		std::vector< RenderObject >			renderObjects;
-		std::vector< PointLight* >			pointLights;
-		std::vector< SpotLight* >			spotLights;
-		std::vector< DirectionalLight* >	directionalLights;
+	public:
+		virtual ~IDirectionalLight() {}
+		virtual void						SetDirection( const Vector3D_t& Direction ) = 0;
+
+		virtual const Vector3D_t&			GetDirection() const = 0;
 	};
 
 	//---------------------------------------------------------------------//
@@ -43,4 +33,9 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !SCENE_DESCRIPTOR_H
+#define DIRECTIONALLIGHT_INTERFACE_VERSION "LE_DirectionalLight001"
+
+//---------------------------------------------------------------------//
+
+#endif // !IDIRECTIONALLIGHT_H
+

@@ -1,23 +1,17 @@
 //////////////////////////////////////////////////////////////////////////
 //
 //			*** lifeEngine (Двигатель жизни) ***
-//				Copyright (C) 2018-2019
+//				Copyright (C) 2018-2020
 //
 // Репозиторий движка:  https://github.com/zombihello/lifeEngine
 // Авторы:				Егор Погуляка (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef SCENE_DESCRIPTOR_H
-#define SCENE_DESCRIPTOR_H
+#ifndef IPOINTLIGHT_H
+#define IPOINTLIGHT_H
 
-#include <vector>
-#include <unordered_map>
-
-#include "renderobject.h"
-#include "pointlight.h"
-#include "spotlight.h"
-#include "directionallight.h"
+#include "studiorender/ilight.h"
 
 //---------------------------------------------------------------------//
 
@@ -25,17 +19,15 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class ICamera;
-
-	//---------------------------------------------------------------------//
-
-	struct SceneDescriptor
+	class IPointLight : public ILight
 	{
-		ICamera*							camera;
-		std::vector< RenderObject >			renderObjects;
-		std::vector< PointLight* >			pointLights;
-		std::vector< SpotLight* >			spotLights;
-		std::vector< DirectionalLight* >	directionalLights;
+	public:
+		virtual ~IPointLight() {}
+		virtual void						SetPosition( const Vector3D_t& Position ) = 0;
+		virtual void						SetRadius( float Radius ) = 0;
+
+		virtual const Vector3D_t&			GetPosition() const = 0;
+		virtual float						GetRadius() const = 0;
 	};
 
 	//---------------------------------------------------------------------//
@@ -43,4 +35,9 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !SCENE_DESCRIPTOR_H
+#define POINTLIGHT_INTERFACE_VERSION "LE_PointLight001"
+
+//---------------------------------------------------------------------//
+
+#endif // !IPOINTLIGHT_H
+

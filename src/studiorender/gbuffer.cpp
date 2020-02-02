@@ -131,6 +131,8 @@ void le::GBuffer::Bind( BIND_TYPE BindType )
 		break;
 
 	case BT_LIGHT:	
+		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+
 		// Albedo + Specular
 		albedoSpecular.Bind( 0 );
 
