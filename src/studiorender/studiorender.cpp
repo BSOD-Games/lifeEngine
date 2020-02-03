@@ -225,64 +225,12 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 	g_consoleSystem->RegisterVar( r_showgbuffer );
 	g_engine = Engine;
 
-	UInt32_t		quadIndeces[] = { 0, 1, 2, 1, 3, 2 };
-	Vector3D_t		quadVerteces[] =
-	{
-		{ -1, -1, 0 },
-		{ 1, -1, 0 },
-		{ -1,  1, 0 },
-		{ 1,  1, 0 }
-	};
+	quad.Create( Vector2D_t( 1.f ) );
 
-	StudioVertexElement			quadVertexElement;
-	quadVertexElement.count = 3;
-	quadVertexElement.type = VET_FLOAT;
-
-	MeshDescriptor	quadDescriptor = {};
-	quadDescriptor.indeces = quadIndeces;
-	quadDescriptor.verteces = quadVerteces;
-	quadDescriptor.primitiveType = PT_TRIANGLES;
-	quadDescriptor.sizeVerteces = 4 * sizeof( Vector3D_t );
-	quadDescriptor.countIndeces = 6;
-	quadDescriptor.vertexElements = &quadVertexElement;
-	quadDescriptor.countVertexElements = 1;
-
-	meshQuad.Create( quadDescriptor );
-
-	ShaderDescriptor		lightingShaderDescriptor = {};
-	lightingShaderDescriptor.vertexShaderSource = " \
-	#version 330 core\n \
-	\n \
-	layout( location = 0 ) 			in vec3 vertex_position; \n \
-	\n \
-	void main() \n \
-	{\n \
-		gl_Position = vec4( vertex_position, 1.f ); \n \
-	}";
-
-	lightingShaderDescriptor.fragmentShaderSource = "\
-	#version 330 core\n\
-	\n\
-		out vec4				color;\n\
-	\n\
-		uniform vec2			screenSize;\n\
-		uniform sampler2D		albedoSpecular;\n\
-		uniform sampler2D		emission;\n\
-	\n \
-	void main()\n\
-	{\n\
-		vec2	texCoord = gl_FragCoord.xy / screenSize;\n\
-		color = texture( albedoSpecular, texCoord ) * texture( emission, texCoord );\n\
-	}\n";
-
-	if ( !gpuProgramLighting.Compile( lightingShaderDescriptor ) )
+	if ( !shaderLighting.Create() )
 		return false;
-
-	gpuProgramLighting.Bind();
-	gpuProgramLighting.SetUniform( "albedoSpecular", 0 );
-	gpuProgramLighting.SetUniform( "emission", 2 );
-	gpuProgramLighting.SetUniform( "screenSize", Vector2D_t( viewport.width, viewport.height ) );
-	gpuProgramLighting.Unbind();
+	
+	shaderLighting.SetSizeViewport( Vector2D_t( viewport.width, viewport.height ) );
 
 	return true;
 }
@@ -313,6 +261,9 @@ void le::StudioRender::End()
 void le::StudioRender::Present()
 {
 	LIFEENGINE_ASSERT( renderContext.IsCreated() );
+
+	// Геометрический проход Deffered Shading'a
+
 	gbuffer.Bind( GBuffer::BT_GEOMETRY );
 	glClear( GL_DEPTH_BUFFER_BIT );
 
@@ -337,6 +288,8 @@ void le::StudioRender::Present()
 		}
 	}
 
+	// Проход освещения
+
 	gbuffer.Bind( GBuffer::BT_LIGHT ); 
 	glClear( GL_DEPTH_BUFFER_BIT );
 
@@ -346,9 +299,9 @@ void le::StudioRender::Present()
 	OpenGLState::EnableCullFace( true );
 	OpenGLState::SetCullFaceType( CT_BACK );
 	
-	gpuProgramLighting.Bind();
-	meshQuad.GetVertexArrayObject().Bind();
-	glDrawElements( GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0 );
+	shaderLighting.Bind();
+	quad.Bind();
+	glDrawElements( GL_TRIANGLES, quad.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( quad.GetStartIndex() * sizeof( UInt32_t ) ) );
 
 	if ( r_showgbuffer->GetValueBool() )		gbuffer.ShowBuffers();
 	renderContext.SwapBuffers();

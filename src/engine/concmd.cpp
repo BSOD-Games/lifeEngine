@@ -13,9 +13,10 @@
 // ------------------------------------------------------------------------------------ //
 // Инициализировать консольную команду
 // ------------------------------------------------------------------------------------ //
-void le::ConCmd::Initialize( const char* Name, ExecCallbackFn_t ExecCallback )
+void le::ConCmd::Initialize( const char* Name, const char* HelpText, ExecCallbackFn_t ExecCallback )
 {
 	name = Name;
+	helpText = HelpText;
 	execCallback = ExecCallback;
 }
 
@@ -50,6 +51,14 @@ void le::ConCmd::SetName( const char* Name )
 const char* le::ConCmd::GetName() const
 {
 	return name.c_str();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить описание команды
+// ------------------------------------------------------------------------------------ //
+const char* le::ConCmd::GetHelpText() const
+{
+	return helpText.c_str();
 }
 
 // ------------------------------------------------------------------------------------ //

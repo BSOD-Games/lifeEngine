@@ -142,6 +142,10 @@ void le::GBuffer::Bind( BIND_TYPE BindType )
 		// Emission
 		emission.Bind( 2 );
 		break;
+
+	default:
+		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+		break;
 	}
 }
 

@@ -48,7 +48,7 @@ bool le::InputSystem::Initialize( IEngine* Engine )
 	if ( !g_consoleSystem )			return false;
 
 	cmd_bind = new ConCmd();
-	cmd_bind->Initialize( "bind", CMD_Bind );
+	cmd_bind->Initialize( "bind", "bind comand on key", CMD_Bind );
 	g_consoleSystem->RegisterCommand( cmd_bind );
 
 	return true;

@@ -24,20 +24,22 @@ namespace le
 	{
 	public:
 		// IConCmd
-		virtual void					Initialize( const char* Name, ExecCallbackFn_t ExecCallback );
+		virtual void					Initialize( const char* Name, const char* HelpText, ExecCallbackFn_t ExecCallback );
 		virtual void					Exec( UInt32_t CountArguments, const char** Arguments );
 		
 		virtual void					SetExecCallback( ExecCallbackFn_t ExecCallback );
 		virtual void					SetName( const char* Name );
 		
 		virtual const char*				GetName() const;
-
+		virtual const char*				GetHelpText() const;
+		
 		// ConCmd
 		ConCmd();
 		~ConCmd();
 
 	private:
 		std::string					name;
+		std::string					helpText;
 		ExecCallbackFn_t			execCallback;
 	};
 

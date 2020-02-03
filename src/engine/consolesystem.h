@@ -15,6 +15,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "common/types.h"
 #include "engine/iconsolesysteminternal.h"
 #include "engine/consolesystemfactory.h"
 
@@ -27,6 +28,8 @@ namespace le
 	class ConsoleSystem : public IConsoleSystemInternal
 	{
 	public:
+		friend void			CMD_Help( UInt32_t CountArguments, const char** Arguments );
+
 		// IConsoleSystemInternal
 		virtual void		Initialize();
 

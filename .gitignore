@@ -34,3 +34,4 @@
 build/*
 src/build/*
 src/extlibs/*
+src/.vscode/*

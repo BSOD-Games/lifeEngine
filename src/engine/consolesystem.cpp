@@ -20,12 +20,44 @@
 #include "consolesystem.h"
 #include "global.h"
 
+le::ConCmd*     con_help = nullptr;
+
+namespace le
+{
+	// ------------------------------------------------------------------------------------ //
+	// Консольная комманда помощи
+	// ------------------------------------------------------------------------------------ //
+	void CMD_Help( le::UInt32_t CountArguments, const char** Arguments )
+	{
+		g_consoleSystem->PrintInfo( "** Console variables **" );
+
+		for ( auto it = g_consoleSystem->vars.begin(), itEnd = g_consoleSystem->vars.end(); it != itEnd; ++it )
+		{
+		    ConVar*             conVar = ( ConVar* ) it->second;
+            g_consoleSystem->PrintInfo("%s : %s. Default value: %s", conVar->GetName(), conVar->GetHelpText(), conVar->GetValueDefault() );
+        }
+
+		g_consoleSystem->PrintInfo( "" );
+		g_consoleSystem->PrintInfo( "** Console commands **" );
+
+		for ( auto it = g_consoleSystem->commands.begin(), itEnd = g_consoleSystem->commands.end(); it != itEnd; ++it )
+        {
+		    ConCmd*         conCmd = ( ConCmd* ) it->second;
+		    g_consoleSystem->PrintInfo( "%s : %s", conCmd->GetName(), conCmd->GetHelpText() );
+        }
+	}
+}
+
 // ------------------------------------------------------------------------------------ //
 // Инициализировать систему консоли
 // ------------------------------------------------------------------------------------ //
 void le::ConsoleSystem::Initialize()
 {
 	fileLog = fopen( "engine.log", "w" );
+
+	con_help = new ConCmd();
+	con_help->Initialize( "help", "Show help variables and comands", CMD_Help );
+	RegisterCommand( con_help );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -255,4 +287,9 @@ le::ConsoleSystem::ConsoleSystem() :
 le::ConsoleSystem::~ConsoleSystem()
 {
 	if ( fileLog )		fclose( fileLog );
+	if ( con_help )
+    {
+	    UnregisterCommand( "help" );
+	    delete con_help;
+    }
 }

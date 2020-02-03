@@ -82,8 +82,8 @@ le::Engine::Engine() :
 
 	consoleSystem.Initialize();
 	inputSystem.Initialize( this );
-	cmd_Exit->Initialize( "exit", CMD_Exit );
-	cmd_Version->Initialize( "version", CMD_Version );
+	cmd_Exit->Initialize( "exit", "close game", CMD_Exit );
+	cmd_Version->Initialize( "version", "show version engine", CMD_Version );
 
 	consoleSystem.RegisterCommand( cmd_Exit );
 	consoleSystem.RegisterCommand( cmd_Version );

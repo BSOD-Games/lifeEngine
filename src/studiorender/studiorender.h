@@ -22,6 +22,9 @@
 #include "studiorender/gbuffer.h"
 #include "studiorender/mesh.h"
 #include "studiorender/gpuprogram.h"
+#include "studiorender/quad.h"
+
+#include "shaderlighting.h"
 
 //---------------------------------------------------------------------//
 
@@ -66,8 +69,8 @@ namespace le
 		StudioRenderViewport				viewport;
 		ShaderManager						shaderManager;
 		GBuffer								gbuffer;
-		Mesh								meshQuad;
-		GPUProgram							gpuProgramLighting;
+		Quad								quad;
+		ShaderLighting						shaderLighting;
 
 		UInt32_t							currentScene;
 		std::vector< SceneDescriptor >		scenes;
