@@ -23,6 +23,8 @@
 #include "studiorender/mesh.h"
 #include "studiorender/gpuprogram.h"
 #include "studiorender/quad.h"
+#include "studiorender/sphere.h"
+#include "studiorender/cone.h"
 
 #include "shaderlighting.h"
 
@@ -70,6 +72,8 @@ namespace le
 		ShaderManager						shaderManager;
 		GBuffer								gbuffer;
 		Quad								quad;
+		Sphere								sphere;
+		Cone								cone;
 		ShaderLighting						shaderLighting;
 
 		UInt32_t							currentScene;

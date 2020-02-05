@@ -8,8 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef SPHERE_H
-#define SPHERE_H
+#ifndef CONE_H
+#define CONE_H
 
 #include "baseprimitive.h"
 
@@ -19,16 +19,16 @@ namespace le
 {
     //----------------------------------------------------------------------//
 
-    class Sphere : public BasePrimitive
+    class Cone : public BasePrimitive
     {
     public:
-        Sphere();
-        ~Sphere();
+        Cone();
+        ~Cone();
 
-        virtual void                Create();
+        virtual void            Create();
 
-        virtual UInt32_t			GetCountIndeces() const;
-	    virtual UInt32_t			GetStartIndex() const;
+        virtual UInt32_t	    GetCountIndeces() const;
+	    virtual	UInt32_t	    GetStartIndex() const;
     };
 
     //----------------------------------------------------------------------//
@@ -36,4 +36,4 @@ namespace le
 
 //----------------------------------------------------------------------//
 
-#endif // !SPHERE_H
+#endif // !CONE_H

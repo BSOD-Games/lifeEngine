@@ -49,7 +49,7 @@ void CMD_Exit( le::UInt32_t CountArguments, const char** Arguments )
 void CMD_Version( le::UInt32_t CountArguments, const char** Arguments )
 {
 	if ( !le::g_consoleSystem ) return;
-	le::g_consoleSystem->PrintInfo( "lifeEngine version %i.%i.%i (build %i)", LIFEENGINE_VERSION_MAJOR, LIFEENGINE_VERSION_MINOR, LIFEENGINE_VERSION_PATCH, le::Engine_BuildNumber() );
+	le::g_consoleSystem->PrintInfo( "lifeEngine %s (build %i)", LIFEENGINE_VERSION, le::Engine_BuildNumber() );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -563,7 +563,7 @@ const le::Configurations& le::Engine::GetConfigurations() const
 // ------------------------------------------------------------------------------------ //
 const le::Version& le::Engine::GetVersion() const
 {
-	return Version( LIFEENGINE_VERSION_MAJOR, LIFEENGINE_VERSION_MINOR, LIFEENGINE_VERSION_PATCH, Engine_BuildNumber() );
+	return Version( LIFEENGINE_VERSION, Engine_BuildNumber() );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -581,7 +581,7 @@ bool le::Engine::Initialize( WindowHandle_t WindowHandle )
 	consoleSystem.PrintInfo( "*** System info start ****" );
 	consoleSystem.PrintInfo( "  Base path: %s", SDL_GetBasePath() );
 	consoleSystem.PrintInfo( "" );
-	consoleSystem.PrintInfo( "  lifeEngine %i.%i.%i (build %i)", LIFEENGINE_VERSION_MAJOR, LIFEENGINE_VERSION_MINOR, LIFEENGINE_VERSION_PATCH, Engine_BuildNumber() );
+	consoleSystem.PrintInfo( "  lifeEngine %s (build %i)", LIFEENGINE_VERSION, Engine_BuildNumber() );
 	consoleSystem.PrintInfo( "  SDL version: %i.%i.%i", sdlVersion.major, sdlVersion.minor, sdlVersion.patch );
 	consoleSystem.PrintInfo( "  Platform: %s", SDL_GetPlatform() );
 	consoleSystem.PrintInfo( "  CPU cache L1 size: %i bytes", SDL_GetCPUCacheLineSize() );

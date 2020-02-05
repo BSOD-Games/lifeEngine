@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
+//			*** lifeEngine (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ) ***
 //				Copyright (C) 2018-2019
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ:  https://github.com/zombihello/lifeEngine
+// пїЅпїЅпїЅпїЅпїЅпїЅ:				пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -57,6 +57,8 @@ namespace le
 		virtual bool							IsVisible( const Vector3DInt_t& MinPosition, const Vector3DInt_t& MaxPosition ) = 0;
 		virtual bool							IsVisible( const Vector3DInt_t& Position, float Radius ) = 0;
 
+		virtual float							GetNear() const = 0;
+		virtual float							GetFar() const = 0;
 		virtual const Vector3D_t&				GetPosition() const = 0;
 		virtual const Vector3D_t&				GetUp() const = 0;
 		virtual const Vector3D_t&				GetRight() const = 0;
@@ -72,7 +74,7 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#define CAMERA_INTERFACE_VERSION "LE_Camera003"
+#define CAMERA_INTERFACE_VERSION "LE_Camera004"
 
 //---------------------------------------------------------------------//
 

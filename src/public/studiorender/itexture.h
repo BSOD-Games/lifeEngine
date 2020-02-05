@@ -28,7 +28,8 @@ namespace le
 		IF_RGBA_8UNORM,
 		IF_RGB_8UNORM,
 		IF_RGBA_16FLOAT,
-		IF_RGB_16FLOAT
+		IF_RGB_16FLOAT,
+		IF_DEPTH24_STENCIL8		
 	};
 
 	//---------------------------------------------------------------------//

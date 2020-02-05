@@ -42,6 +42,8 @@ namespace le
 		virtual bool							IsVisible( const Vector3DInt_t& MinPosition, const Vector3DInt_t& MaxPosition );
 		virtual bool							IsVisible( const Vector3DInt_t& Position, float Radius );
 
+		virtual float							GetNear() const;
+		virtual float							GetFar() const;
 		virtual const Vector3D_t&				GetPosition() const;
 		virtual const Vector3D_t&				GetUp() const;
 		virtual const Vector3D_t&				GetRight() const;
@@ -64,6 +66,8 @@ namespace le
 		void									Update();
 
 		bool				isNeedUpdate;
+		float				near;
+		float				far;
 
 		Vector3D_t			position;
 		Vector3D_t			targetDirection;

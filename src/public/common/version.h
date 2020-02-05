@@ -22,26 +22,20 @@ namespace le
 	struct Version
 	{
 		Version() :
-			major ( 0 ),
-			minor( 0 ),
-			path( 0 ),
+			version( "" ),
 			build( 0 ),
 			date( __DATE__ ),
 			time( __TIME__ )
 		{}
 
-		Version( UInt32_t Major, UInt32_t Minor, UInt32_t Path, UInt32_t Build ) :
-			major( Major ),
-			minor( Minor ),
-			path( Path ),
+		Version( const char* Version, UInt32_t Build ) :
+			version( Version ),
 			build( Build ),
 			date( __DATE__ ),
 			time( __TIME__ )
 		{}
 
-		UInt32_t		major;
-		UInt32_t		minor;
-		UInt32_t		path;
+		const char*		version;
 		UInt32_t		build;
 
 		const char*		date;

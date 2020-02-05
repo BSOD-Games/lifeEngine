@@ -28,17 +28,22 @@ le::Quad::~Quad()
 // ------------------------------------------------------------------------------------ //
 // Создать квадрат
 // ------------------------------------------------------------------------------------ //
-void le::Quad::Create( const Vector2D_t& Size )
+void le::Quad::Create()
 {
 	if ( !mesh.IsCreated() ) mesh.Delete();
 
-	UInt32_t		quadIndeces[] = { 0, 1, 2, 1, 3, 2 };
+	UInt32_t		quadIndeces[] = 
+	{
+		#define INCLUDE_QUAD_INDECES
+		#include "mesh_primitives/meshquad.h"
+		#undef INCLUDE_QUAD_INDECES
+	};
+
 	Vector3D_t		quadVerteces[] =
 	{
-		{ -Size.x, -Size.y, 0 },
-		{ Size.x, -Size.y, 0 },
-		{ -Size.x, Size.y, 0 },
-		{ Size.x, Size.y, 0 }
+		#define INCLUDE_QUAD_VERTECES
+		#include "mesh_primitives/meshquad.h"
+		#undef INCLUDE_QUAD_VERTECES
 	};
 
 	StudioVertexElement			quadVertexElement;

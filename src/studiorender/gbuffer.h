@@ -60,7 +60,7 @@ namespace le
 		Vector2DInt_t	windowSize;
 
 		UInt32_t		handle_frameBuffer;
-		UInt32_t		handle_depthBuffer;
+		Texture			depth;
 		Texture			albedoSpecular;
 		Texture			normalShininess;
 		Texture			emission;

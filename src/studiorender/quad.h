@@ -25,10 +25,10 @@ namespace le
 		Quad();
 		~Quad();
 
-		void				Create( const Vector2D_t& Size );
+		virtual void		Create();
 
-		UInt32_t			GetCountIndeces() const;
-		UInt32_t			GetStartIndex() const;
+		virtual UInt32_t	GetCountIndeces() const;
+		virtual UInt32_t	GetStartIndex() const;
 	};
 
 	//----------------------------------------------------------------------//

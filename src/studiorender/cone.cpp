@@ -11,69 +11,69 @@
 #include "common/meshdescriptor.h"
 #include "studiorender/studiovertexelement.h"
 
-#include "sphere.h"
+#include "cone.h"
 
 // ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
-le::Sphere::Sphere()
+le::Cone::Cone()
 {}
 
 // ------------------------------------------------------------------------------------ //
 // Деструктор
 // ------------------------------------------------------------------------------------ //
-le::Sphere::~Sphere()
+le::Cone::~Cone()
 {}
 
 // ------------------------------------------------------------------------------------ //
 // Создать квадрат
 // ------------------------------------------------------------------------------------ //
-void le::Sphere::Create()
+void le::Cone::Create()
 {
 	if ( !mesh.IsCreated() ) mesh.Delete();
 
-	UInt32_t		sphereIndeces[] = 
+	UInt32_t		coneIndeces[] = 
     { 
-        #define INCLUDE_SPHERE_INDECES 
-        #include "mesh_primitives/meshsphere.h" 
-        #undef INCLUDE_SPHERE_INDECES
+        #define INCLUDE_CONE_INDECES 
+        #include "mesh_primitives/meshcone.h" 
+        #undef INCLUDE_CONE_INDECES
     };
 
-	Vector3D_t		sphereVerteces[] =
+	Vector3D_t		coneVerteces[] =
 	{
-        #define INCLUDE_SPHERE_VERTECES 
-        #include "mesh_primitives/meshsphere.h" 
-        #undef INCLUDE_SPHERE_VERTECES
+        #define INCLUDE_CONE_VERTECES 
+        #include "mesh_primitives/meshcone.h" 
+        #undef INCLUDE_CONE_VERTECES
 	};
 
-	StudioVertexElement			sphereVertexElement;
-	sphereVertexElement.count = 3;
-	sphereVertexElement.type = VET_FLOAT;
+	StudioVertexElement			coneVertexElement;
+	coneVertexElement.count = 3;
+	coneVertexElement.type = VET_FLOAT;
 
-	MeshDescriptor	sphereDescriptor = {};
-	sphereDescriptor.indeces = sphereIndeces;
-	sphereDescriptor.verteces = sphereVerteces;
-	sphereDescriptor.primitiveType = PT_TRIANGLES;
-	sphereDescriptor.sizeVerteces = 258 * sizeof( Vector3D_t );
-	sphereDescriptor.countIndeces = 1440;
-	sphereDescriptor.vertexElements = &sphereVertexElement;
-	sphereDescriptor.countVertexElements = 1;
+	MeshDescriptor	coneDescriptor = {};
+	coneDescriptor.indeces = coneIndeces;
+	coneDescriptor.verteces = coneVerteces;
+	coneDescriptor.primitiveType = PT_TRIANGLES;
+	coneDescriptor.sizeVerteces = 258 * sizeof( Vector3D_t );
+	coneDescriptor.countIndeces = 1440;
+	coneDescriptor.vertexElements = &coneVertexElement;
+	coneDescriptor.countVertexElements = 1;
 
-	mesh.Create( sphereDescriptor );
+	mesh.Create( coneDescriptor );
 }
 
 // ------------------------------------------------------------------------------------ //
 // Получить количество индексов вершин
 // ------------------------------------------------------------------------------------ //
-le::UInt32_t le::Sphere::GetCountIndeces() const
+le::UInt32_t le::Cone::GetCountIndeces() const
 {
-	return 1440;
+	return 4920;
 }
 
 // ------------------------------------------------------------------------------------ //
 // Получить стартовый индекс вершины
 // ------------------------------------------------------------------------------------ //
-le::UInt32_t le::Sphere::GetStartIndex() const
+le::UInt32_t le::Cone::GetStartIndex() const
 {
 	return 0;
 }

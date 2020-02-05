@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
+//			*** lifeEngine (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ) ***
 //				Copyright (C) 2018-2020
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ:  https://github.com/zombihello/lifeEngine
+// пїЅпїЅпїЅпїЅпїЅпїЅ:				пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -14,14 +14,14 @@
 #include "shaderlighting.h"
 
 // ------------------------------------------------------------------------------------ //
-// Конструктор
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 // ------------------------------------------------------------------------------------ //
 le::ShaderLighting::ShaderLighting() :
 	gpuProgram( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //
-// Деструктор
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 // ------------------------------------------------------------------------------------ //
 le::ShaderLighting::~ShaderLighting()
 {
@@ -29,7 +29,7 @@ le::ShaderLighting::~ShaderLighting()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Создать экземпляр шейдера
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 // ------------------------------------------------------------------------------------ //
 bool le::ShaderLighting::Create()
 {
@@ -51,12 +51,69 @@ bool le::ShaderLighting::Create()
 	\n\
 		uniform vec2			screenSize;\n\
 		uniform sampler2D		albedoSpecular;\n\
+		uniform sampler2D		normalShininess;\n\
 		uniform sampler2D		emission;\n\
+		uniform sampler2D		depth;\n\
 	\n \
+		uniform struct Camera \n \
+		{ 	\n \
+			mat4		invProjectionMatrix;\n \
+			mat4		invViewMatrix;\n \
+			vec3		position; \n \
+			\n \
+			float		near;\n \
+			float 		far; \n \
+		} camera; \n \
+	\n \
+		uniform struct Light \n \
+		{ \n \
+			vec3		position; \n \
+			vec4		color; \n \
+			vec4		specular; \n \
+			float		intensivity; \n \
+			\n \
+			float 		radius; \n \
+		} light; \n \
+	\n \
+	float LinearizeDepth( float depth ) \n\
+	{ \n\
+  		return ( 2.0f * camera.near ) / ( camera.far + camera.near - depth * ( camera.far - camera.near ) ); \n\
+	} \n\
+	\n\
+	vec3 ReconstructPosition( vec2 FragCoord ) \n\
+	{ \n\
+		float 		depth = texture( depth, FragCoord ).r;\n\
+		vec3 		positionNDC = vec3( FragCoord, depth ) * 2.0 - 1.0;\n\
+	\n\
+		vec4 		positionCS;\n\
+		positionCS.w = ( 2.0f * camera.near * camera.far ) / ( camera.near + camera.far + positionNDC.z * ( camera.near - camera.far ) );\n\
+		positionCS.xyz = positionNDC.xyz * positionCS.w;\n\
+	\n\
+		vec4 		positionVS = camera.invViewMatrix * camera.invProjectionMatrix * positionCS;\n\
+		return positionVS.xyz;\n\
+	}	\n\
+	\n\
 	void main()\n\
 	{\n\
-		vec2	texCoord = gl_FragCoord.xy / screenSize;\n\
-		color = texture( albedoSpecular, texCoord ) * texture( emission, texCoord );\n\
+		vec2	fragCoord = gl_FragCoord.xy / screenSize;\n\
+		\n\
+		vec4	fragColor = texture( albedoSpecular, fragCoord ); \n\
+		vec4	normal = normalize( texture( normalShininess, fragCoord ) ); \n\
+		vec3	posFrag = ReconstructPosition( fragCoord ); \n\
+		vec3	viewDirection = normalize( camera.position - posFrag ); \n\
+		\n\
+		vec3	lightDirection = light.position - posFrag; \n\
+		vec3	halfwayDirection = normalize( lightDirection +viewDirection ); \n\
+		float	distance = length( lightDirection ); \n\
+		lightDirection = normalize( lightDirection ); \n\
+		\n\
+		float 	NdotL = dot( normal.xyz, lightDirection ); \n\
+		float 	diffuseFactor = max( NdotL, 0.0f ); \n\
+		float 	attenuation =  max( 1.0f - pow( distance / light.radius, 2.f ), 0.f ); \n\
+		float 	specularFactor  = pow( max( dot( normal.xyz, halfwayDirection ), 0.0 ), normal.a ) * fragColor.a; \n\
+		\n\
+		color = vec4( fragColor.rgb, 1.f ) * texture( emission, fragCoord ); \n\
+		color += ( light.color * diffuseFactor * light.intensivity + light.specular * specularFactor ) * attenuation * vec4( fragColor.rgb, 1.f ); \n\
 	}\n";
 
 	gpuProgram = new GPUProgram();
@@ -65,14 +122,16 @@ bool le::ShaderLighting::Create()
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "albedoSpecular", 0 );
+	gpuProgram->SetUniform( "normalShininess", 1 );
 	gpuProgram->SetUniform( "emission", 2 );
+	gpuProgram->SetUniform( "depth", 3 );
 	gpuProgram->Unbind();
 
 	return true;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Удалить экземпляр шейдера
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 // ------------------------------------------------------------------------------------ //
 void le::ShaderLighting::Delete()
 {

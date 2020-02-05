@@ -26,6 +26,7 @@ namespace le
 		BasePrimitive();
 		~BasePrimitive();
         
+		virtual void		Create() = 0;
 		inline void			Delete()
 		{
 			if ( !mesh.IsCreated() ) return;

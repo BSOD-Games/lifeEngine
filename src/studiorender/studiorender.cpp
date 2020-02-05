@@ -225,7 +225,9 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 	g_consoleSystem->RegisterVar( r_showgbuffer );
 	g_engine = Engine;
 
-	quad.Create( Vector2D_t( 1.f ) );
+	quad.Create();
+	sphere.Create();
+	cone.Create();
 
 	if ( !shaderLighting.Create() )
 		return false;
@@ -254,7 +256,7 @@ void le::StudioRender::End()
 {
 	// TODO: Добавить сортировку по материалам
 }
-
+#include "engine/icamera.h"
 // ------------------------------------------------------------------------------------ //
 // Визуализировать кадр
 // ------------------------------------------------------------------------------------ //
@@ -262,14 +264,14 @@ void le::StudioRender::Present()
 {
 	LIFEENGINE_ASSERT( renderContext.IsCreated() );
 
-	// Геометрический проход Deffered Shading'a
-
-	gbuffer.Bind( GBuffer::BT_GEOMETRY );
-	glClear( GL_DEPTH_BUFFER_BIT );
-
 	for ( UInt32_t indexScene = 0, countScenes = scenes.size(); indexScene < countScenes; ++indexScene )
 	{
 		SceneDescriptor&			sceneDescriptor = scenes[ indexScene ];
+
+		// Геометрический проход Deffered Shading'a
+
+		gbuffer.Bind( GBuffer::BT_GEOMETRY );
+		glClear( GL_DEPTH_BUFFER_BIT );
 
 		for ( UInt32_t indexObject = 0, countObjects = sceneDescriptor.renderObjects.size(); indexObject < countObjects; ++indexObject )
 		{
@@ -286,22 +288,24 @@ void le::StudioRender::Present()
 				glDrawRangeElementsBaseVertex( renderObject.primitiveType, 0, renderObject.countIndeces, renderObject.countIndeces, GL_UNSIGNED_INT, ( void* ) ( renderObject.startIndex * sizeof( UInt32_t ) ), renderObject.startVertexIndex );
 			}
 		}
+
+		// Проход освещения
+
+		gbuffer.Bind( GBuffer::BT_LIGHT ); 
+		glClear( GL_DEPTH_BUFFER_BIT );
+
+		OpenGLState::EnableDepthTest( true );
+		OpenGLState::EnableDepthWrite( true );
+		OpenGLState::EnableBlend( false );
+		OpenGLState::EnableCullFace( true );
+		OpenGLState::SetCullFaceType( CT_BACK );
+
+		shaderLighting.SetCamera( sceneDescriptor.camera );
+		shaderLighting.SetLight( sceneDescriptor.pointLights[ 0 ] );
+		shaderLighting.Bind();
+		quad.Bind();
+		glDrawElements( GL_TRIANGLES, quad.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( quad.GetStartIndex() * sizeof( UInt32_t ) ) );
 	}
-
-	// Проход освещения
-
-	gbuffer.Bind( GBuffer::BT_LIGHT ); 
-	glClear( GL_DEPTH_BUFFER_BIT );
-
-	OpenGLState::EnableDepthTest( true );
-	OpenGLState::EnableDepthWrite( true );
-	OpenGLState::EnableBlend( false );
-	OpenGLState::EnableCullFace( true );
-	OpenGLState::SetCullFaceType( CT_BACK );
-	
-	shaderLighting.Bind();
-	quad.Bind();
-	glDrawElements( GL_TRIANGLES, quad.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( quad.GetStartIndex() * sizeof( UInt32_t ) ) );
 
 	if ( r_showgbuffer->GetValueBool() )		gbuffer.ShowBuffers();
 	renderContext.SwapBuffers();

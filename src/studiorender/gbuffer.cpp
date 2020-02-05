@@ -21,7 +21,6 @@
 // ------------------------------------------------------------------------------------ //
 le::GBuffer::GBuffer() :
 	isInitialize( false ),
-	handle_depthBuffer( 0 ),
 	handle_frameBuffer( 0 )
 {}
 
@@ -38,10 +37,11 @@ le::GBuffer::~GBuffer()
 // ------------------------------------------------------------------------------------ //
 bool le::GBuffer::Initialize( const Vector2DInt_t& WindowSize )
 {
+	if ( isInitialize ) return true;
+
 	// Генерируем буферы
 
 	glGenFramebuffers( 1, &handle_frameBuffer );
-	glGenRenderbuffers( 1, &handle_depthBuffer );
 	glBindFramebuffer( GL_FRAMEBUFFER, handle_frameBuffer );
 
 	StudioRenderSampler			sampler;
@@ -74,10 +74,11 @@ bool le::GBuffer::Initialize( const Vector2DInt_t& WindowSize )
 
 	// Инициализируем буфер глубины
 
-	glBindRenderbuffer( GL_RENDERBUFFER, handle_depthBuffer );
-	glRenderbufferStorage( GL_RENDERBUFFER, GL_DEPTH32F_STENCIL8, WindowSize.x, WindowSize.y );
-	glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, handle_depthBuffer );
-	glBindRenderbuffer( GL_RENDERBUFFER, 0 );
+	depth.Initialize( TT_2D, IF_DEPTH24_STENCIL8, WindowSize.x, WindowSize.y );
+	depth.Bind();
+	depth.Append( nullptr );
+	depth.SetSampler( sampler );
+	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depth.GetHandle(), 0 );
 
 	// Разрешаем рендер в буфферы нормалей, позиций и т.д
 
@@ -109,7 +110,7 @@ bool le::GBuffer::Initialize( const Vector2DInt_t& WindowSize )
 void le::GBuffer::Delete()
 {
 	if ( handle_frameBuffer > 0 )		glDeleteFramebuffers( 1, &handle_frameBuffer );
-	if ( handle_depthBuffer > 0 )		glDeleteRenderbuffers( 1, &handle_depthBuffer );
+	if ( depth.IsCreated() )			depth.Delete();
 	if ( albedoSpecular.IsCreated() )	albedoSpecular.Delete();
 	if ( normalShininess.IsCreated() )	normalShininess.Delete();
 	if ( emission.IsCreated() )			emission.Delete();
@@ -141,6 +142,9 @@ void le::GBuffer::Bind( BIND_TYPE BindType )
 
 		// Emission
 		emission.Bind( 2 );
+
+		// Depth
+		depth.Bind( 3 );
 		break;
 
 	default:

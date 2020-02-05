@@ -33,6 +33,7 @@ inline OpenGLImageFormat TextureImageFormat_EnumToOpenGLFormat( le::IMAGE_FORMAT
 	case le::IF_RGB_8UNORM:			return { GL_RGB, GL_RGB, GL_UNSIGNED_BYTE };
 	case le::IF_RGBA_16FLOAT:		return { GL_RGBA16F, GL_RGBA, GL_FLOAT };
 	case le::IF_RGB_16FLOAT:		return { GL_RGB16F, GL_RGB, GL_FLOAT };
+	case le::IF_DEPTH24_STENCIL8:	return { GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8 };
 	}
 }
 

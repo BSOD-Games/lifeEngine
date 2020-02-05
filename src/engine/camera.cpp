@@ -17,6 +17,8 @@
 void le::Camera::InitProjection_Perspective( float FOV, float Aspect, float Near, float Far )
 {
 	matrixProjection = glm::perspective( glm::radians( FOV ), Aspect, Near, Far );
+	near = Near;
+	far = Far;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -25,6 +27,8 @@ void le::Camera::InitProjection_Perspective( float FOV, float Aspect, float Near
 void le::Camera::InitProjection_Ortho( float Left, float Right, float Bottom, float Top, float Near, float Far )
 {
 	matrixProjection = glm::ortho( Left, Right, Bottom, Top, Near, Far );
+	near = Near;
+	far = Far;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -142,7 +146,7 @@ void le::Camera::RotateByMouse( const Vector2D_t& MouseOffset, float MouseSensit
 // ------------------------------------------------------------------------------------ //
 // Получить точку в мире по экранным координатам
 // ------------------------------------------------------------------------------------ //
-le::Ray le::Camera::ScreenToWorld( const Vector2D_t & Coords, const Vector2D_t & ViewportSize )
+le::Ray le::Camera::ScreenToWorld( const Vector2D_t& Coords, const Vector2D_t & ViewportSize )
 {
 	Vector3D_t      farPlane	= glm::unProject( Vector3D_t( Coords.x, ViewportSize.y - Coords.y, 1.f ), matrixView, matrixProjection, Vector4D_t( 0, 0, ViewportSize.x, ViewportSize.y ) );
 	Vector3D_t		nearPlane	= glm::unProject( Vector3D_t( Coords.x, ViewportSize.y - Coords.y, 0.f ), matrixView, matrixProjection, Vector4D_t( 0, 0, ViewportSize.x, ViewportSize.y ) );
@@ -239,6 +243,22 @@ bool le::Camera::IsVisible( const Vector3DInt_t& Position, float Radius )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Получить ближнию плоскость отсечения
+// ------------------------------------------------------------------------------------ //
+float le::Camera::GetNear() const
+{
+	return near;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить дальнию плоскость отсечения
+// ------------------------------------------------------------------------------------ //
+float le::Camera::GetFar() const
+{
+	return far;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Получить позицию
 // ------------------------------------------------------------------------------------ //
 const le::Vector3D_t& le::Camera::GetPosition() const
@@ -308,6 +328,8 @@ const le::Matrix4x4_t& le::Camera::GetProjectionMatrix() const
 // ------------------------------------------------------------------------------------ //
 le::Camera::Camera() :
 	isNeedUpdate( true ),
+	near( 0.f ),
+	far( 0.f ),
 	up( 0.f, 1.f, 0.f ),
 	localUp( 0.f, 1.f, 0.f ),
 	position( 0.f, 0.f, 0.f ),
