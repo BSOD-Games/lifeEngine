@@ -35,7 +35,7 @@
 #include "common/meshdescriptor.h"
 #include "studiorender/studiovertexelement.h"
 #include "common/shaderdescriptor.h"
-
+#include "engine/iconcmd.h"
 LIFEENGINE_STUDIORENDER_API( le::StudioRender );
 
 le::IConVar*		r_wireframe = nullptr;
@@ -194,7 +194,7 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 	// Инициализируем OpenGL
 
 	glEnable( GL_TEXTURE_2D );
-	glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );
+	//glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );
 
 	OpenGLState::Initialize();
 	
@@ -269,46 +269,90 @@ void le::StudioRender::Present()
 		SceneDescriptor&			sceneDescriptor = scenes[ indexScene ];
 
 		// Геометрический проход Deffered Shading'a
-
-		gbuffer.Bind( GBuffer::BT_GEOMETRY );
-		glClear( GL_DEPTH_BUFFER_BIT );
-
-		for ( UInt32_t indexObject = 0, countObjects = sceneDescriptor.renderObjects.size(); indexObject < countObjects; ++indexObject )
-		{
-			RenderObject&			renderObject = sceneDescriptor.renderObjects[ indexObject ];
-			StudioRenderTechnique*	technique = ( StudioRenderTechnique* ) renderObject.material->GetTechnique( RT_DEFFERED_SHADING );
-			if ( !technique ) continue;
-
-			for ( UInt32_t indexPass = 0, countPasses = technique->GetCountPasses(); indexPass < countPasses; ++indexPass )
-			{
-				StudioRenderPass*		pass = ( StudioRenderPass* ) technique->GetPass( indexPass );
-
-				pass->Apply( renderObject.transformation, sceneDescriptor.camera, renderObject.lightmap );
-				renderObject.vertexArrayObject->Bind();
-				glDrawRangeElementsBaseVertex( renderObject.primitiveType, 0, renderObject.countIndeces, renderObject.countIndeces, GL_UNSIGNED_INT, ( void* ) ( renderObject.startIndex * sizeof( UInt32_t ) ), renderObject.startVertexIndex );
-			}
-		}
+		Render_GeometryPass( sceneDescriptor );
 
 		// Проход освещения
-
-		gbuffer.Bind( GBuffer::BT_LIGHT ); 
-		glClear( GL_DEPTH_BUFFER_BIT );
-
-		OpenGLState::EnableDepthTest( true );
-		OpenGLState::EnableDepthWrite( true );
-		OpenGLState::EnableBlend( false );
-		OpenGLState::EnableCullFace( true );
-		OpenGLState::SetCullFaceType( CT_BACK );
-
-		shaderLighting.SetCamera( sceneDescriptor.camera );
-		shaderLighting.SetLight( sceneDescriptor.pointLights[ 0 ] );
-		shaderLighting.Bind();
-		quad.Bind();
-		glDrawElements( GL_TRIANGLES, quad.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( quad.GetStartIndex() * sizeof( UInt32_t ) ) );
+		Render_LightPass( sceneDescriptor );
 	}
 
 	if ( r_showgbuffer->GetValueBool() )		gbuffer.ShowBuffers();
 	renderContext.SwapBuffers();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Геометрический проход Deffered Shading'a
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::Render_GeometryPass( const SceneDescriptor& SceneDescriptor ) 
+{
+	gbuffer.Bind( GBuffer::BT_GEOMETRY );
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+	for ( UInt32_t indexObject = 0, countObjects = SceneDescriptor.renderObjects.size(); indexObject < countObjects; ++indexObject )
+	{
+		const RenderObject&		renderObject = SceneDescriptor.renderObjects[ indexObject ];
+		StudioRenderTechnique*	technique = ( StudioRenderTechnique* ) renderObject.material->GetTechnique( RT_DEFFERED_SHADING );
+		if ( !technique ) continue;
+
+		for ( UInt32_t indexPass = 0, countPasses = technique->GetCountPasses(); indexPass < countPasses; ++indexPass )
+		{
+			StudioRenderPass*		pass = ( StudioRenderPass* ) technique->GetPass( indexPass );
+
+			pass->Apply( renderObject.transformation, SceneDescriptor.camera, renderObject.lightmap );
+			renderObject.vertexArrayObject->Bind();
+			glDrawRangeElementsBaseVertex( renderObject.primitiveType, 0, renderObject.countIndeces, renderObject.countIndeces, GL_UNSIGNED_INT, ( void* ) ( renderObject.startIndex * sizeof( UInt32_t ) ), renderObject.startVertexIndex );
+		}
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Световой проход Deffered Shading'a
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::Render_LightPass( const SceneDescriptor& SceneDescriptor ) 
+{
+	gbuffer.Bind( GBuffer::BT_LIGHT ); 
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	
+	OpenGLState::EnableDepthTest( false );
+	OpenGLState::EnableDepthWrite( false );
+	OpenGLState::SetCullFaceType( CT_FRONT );
+	OpenGLState::EnableBlend( true );
+
+	glBlendEquation( GL_FUNC_ADD );
+    glBlendFunc( GL_ONE, GL_ONE );
+
+	shaderLighting.SetCamera( SceneDescriptor.camera );
+	sphere.Bind();
+
+	for ( UInt32_t indexLight = 0, countLights = SceneDescriptor.pointLights.size(); indexLight < countLights; ++indexLight )
+	{
+		shaderLighting.SetLight( SceneDescriptor.pointLights[ indexLight ] );
+		shaderLighting.Bind();	
+		glDrawElements( GL_TRIANGLES, sphere.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( sphere.GetStartIndex() * sizeof( UInt32_t ) ) );
+	}
+
+	OpenGLState::EnableDepthTest( true );
+	OpenGLState::EnableCullFace( true );
+	OpenGLState::EnableDepthWrite( true );
+	OpenGLState::EnableBlend( false );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Финальный проход Deffered Shading'a
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::Render_FinalPass( const SceneDescriptor& SceneDescriptor ) 
+{
+	gbuffer.Bind( GBuffer::BT_LIGHT ); 
+
+	OpenGLState::EnableDepthTest( true );
+	OpenGLState::EnableDepthWrite( true );
+	OpenGLState::EnableBlend( false );
+	OpenGLState::EnableCullFace( true );
+	OpenGLState::SetCullFaceType( CT_FRONT );
+
+	shaderLighting.SetCamera( SceneDescriptor.camera );
+	shaderLighting.Bind();
+	quad.Bind();
+	glDrawElements( GL_TRIANGLES, sphere.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( sphere.GetStartIndex() * sizeof( UInt32_t ) ) );
 }
 
 // ------------------------------------------------------------------------------------ //

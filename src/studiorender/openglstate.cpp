@@ -43,7 +43,7 @@ void le::OpenGLState::EnableDepthWrite( bool Enable )
 	if ( isDepthWrite == Enable ) return;
 	isDepthWrite = Enable;
 
-	isDepthWrite ? glDepthMask( GL_TRUE ) : glDisable( GL_FALSE );
+	isDepthWrite ? glDepthMask( GL_TRUE ) : glDepthMask( GL_FALSE );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -89,7 +89,7 @@ void le::OpenGLState::SetCullFaceType( CULLFACE_TYPE CullFaceType )
 void le::OpenGLState::Initialize()
 {
 	isDepthTest ? glEnable( GL_DEPTH_TEST ) : glDisable( GL_DEPTH_TEST );
-	isDepthWrite ? glDepthMask( GL_TRUE ) : glDisable( GL_FALSE );
+	isDepthWrite ? glDepthMask( GL_TRUE ) : glDepthMask( GL_FALSE );
 	isBlend ? glEnable( GL_BLEND ) : glDisable( GL_BLEND );
 	isCullFace ? glEnable( GL_CULL_FACE ) : glDisable( GL_CULL_FACE );
 

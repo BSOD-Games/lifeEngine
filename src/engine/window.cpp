@@ -232,11 +232,11 @@ bool le::Window::Create( const char* Title, int Width, int Heigt, STYLE_WINDOW S
 		if ( Style & SW_RESIZABLE )
 			flags |= SDL_WINDOW_RESIZABLE;
 
-		if ( Style & SW_DECORATED )
+		if ( !( Style & SW_DECORATED ) )
 			flags |= SDL_WINDOW_BORDERLESS;
 	}
 
-	window = SDL_CreateWindow( Title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, Width, Heigt, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE );
+	window = SDL_CreateWindow( Title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, Width, Heigt, flags );
 	if ( !window )
 	{
 		g_consoleSystem->PrintError( "Failed created window. SDL error: %s", SDL_GetError() );

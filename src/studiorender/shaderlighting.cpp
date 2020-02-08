@@ -8,6 +8,9 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include <vector>
+#include <string>
+
 #include "common/shaderdescriptor.h"
 #include "studiorender/gpuprogram.h"
 
@@ -39,9 +42,41 @@ bool le::ShaderLighting::Create()
 	\n \
 	layout( location = 0 ) 			in vec3 vertex_position; \n \
 	\n \
+		uniform struct Camera \n \
+		{ 	\n \
+			mat4		pvMatrix; \n \
+			mat4		invProjectionMatrix;\n \
+			mat4		invViewMatrix;\n \
+			vec3		position; \n \
+			\n \
+			float		near;\n \
+			float 		far; \n \
+		} camera; \n \
+		\n \
+		uniform struct Light \n \
+		{ \n \
+			vec3		position; \n \
+			vec4		color; \n \
+			vec4		specular; \n \
+			float		intensivity; \n \
+			\n \
+			#ifdef POINT_LIGHT \n\
+				float 		radius; \n \
+			#elif defined( SPOT_LIGHT ) \n\
+				float		radius; \n\
+				float		height; \n\
+			#endif \n\
+		} light; \n \
+	\n \
 	void main() \n \
 	{\n \
-		gl_Position = vec4( vertex_position, 1.f ); \n \
+		#ifdef POINT_LIGHT \n\
+			gl_Position = camera.pvMatrix * vec4( vertex_position * light.radius + light.position, 1.f ); \n\
+		#elif defined( SPOT_LIGHT ) \n\
+			gl_Position = vec4( vertex_position.x * light.radius, vertex_position.y * light.height, vertex_position.z * light.radius, 1.f ); \n \
+		#elif \n\
+			gl_Position = vec4( vertex_position, 1.f ); \n \
+		#endif \n\
 	}";
 
 	shaderDescriptor.fragmentShaderSource = "\
@@ -57,6 +92,7 @@ bool le::ShaderLighting::Create()
 	\n \
 		uniform struct Camera \n \
 		{ 	\n \
+			mat4		pvMatrix; \n \
 			mat4		invProjectionMatrix;\n \
 			mat4		invViewMatrix;\n \
 			vec3		position; \n \
@@ -72,7 +108,9 @@ bool le::ShaderLighting::Create()
 			vec4		specular; \n \
 			float		intensivity; \n \
 			\n \
-			float 		radius; \n \
+			#ifdef POINT_LIGHT \n\
+				float 		radius; \n \
+			#endif \n\
 		} light; \n \
 	\n \
 	float LinearizeDepth( float depth ) \n\
@@ -103,21 +141,22 @@ bool le::ShaderLighting::Create()
 		vec3	viewDirection = normalize( camera.position - posFrag ); \n\
 		\n\
 		vec3	lightDirection = light.position - posFrag; \n\
-		vec3	halfwayDirection = normalize( lightDirection +viewDirection ); \n\
 		float	distance = length( lightDirection ); \n\
+		vec3	halfwayDirection = normalize( lightDirection + viewDirection ); \n\
 		lightDirection = normalize( lightDirection ); \n\
 		\n\
-		float 	NdotL = dot( normal.xyz, lightDirection ); \n\
-		float 	diffuseFactor = max( NdotL, 0.0f ); \n\
-		float 	attenuation =  max( 1.0f - pow( distance / light.radius, 2.f ), 0.f ); \n\
-		float 	specularFactor  = pow( max( dot( normal.xyz, halfwayDirection ), 0.0 ), normal.a ) * fragColor.a; \n\
+		float 	NdotL = max( dot( lightDirection, normal.xyz ), 0.f ); \n\
+		float 	attenuation = pow( clamp( 1.f - pow( distance / light.radius, 4.f ), 0.f, 1.f ), 2.f ) / ( pow( distance, 2.f ) + 1.f );\n\
+		float	specularFactor = pow( max( dot( normal.rgb, halfwayDirection ), 0.f ), normal.a ) * fragColor.a; \n\
 		\n\
 		color = vec4( fragColor.rgb, 1.f ) * texture( emission, fragCoord ); \n\
-		color += ( light.color * diffuseFactor * light.intensivity + light.specular * specularFactor ) * attenuation * vec4( fragColor.rgb, 1.f ); \n\
+		color = ( vec4( fragColor.rgb, 1.f ) * light.color * light.intensivity * NdotL + light.specular * specularFactor ) * attenuation; //( light.color * NdotL * light.intensivity + light.specular * specularFactor ) * attenuation * vec4( fragColor.rgb, 1.f ); \n\
 	}\n";
 
+	std::vector< const char* >		defines = { "POINT_LIGHT" };
+
 	gpuProgram = new GPUProgram();
-	if ( !gpuProgram->Compile( shaderDescriptor ) )
+	if ( !gpuProgram->Compile( shaderDescriptor, defines.size(), defines.data() ) )
 		return false;
 
 	gpuProgram->Bind();

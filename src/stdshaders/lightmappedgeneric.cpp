@@ -66,7 +66,7 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParamete
 	{\n\
 		out_albedoSpecular = texture2D( basetexture, texCoords ); \n \
 		out_normalShininess = vec4( normal, 1 );\n\
-		out_emission = texture2D( lightmap, lightmapCoords ) * vertexColor;\n\
+		out_emission = vec4(0);// texture2D( lightmap, lightmapCoords ) * vertexColor;\n\
 	}\n";
 
 	if ( !LoadShader( shaderDescriptor ) )

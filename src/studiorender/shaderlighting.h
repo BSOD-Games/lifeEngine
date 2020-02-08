@@ -74,9 +74,10 @@ namespace le
 			LIFEENGINE_ASSERT( Camera );
 
 			Bind();
-			gpuProgram->SetUniform( "camera.position", Camera->GetPosition() );
+			gpuProgram->SetUniform( "camera.position", Camera->GetPosition() );	
+			gpuProgram->SetUniform( "camera.pvMatrix", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );		
 			gpuProgram->SetUniform( "camera.invProjectionMatrix", glm::inverse( Camera->GetProjectionMatrix() ) );
-			gpuProgram->SetUniform( "camera.invViewMatrix", glm::inverse( Camera->GetViewMatrix() ) );
+			gpuProgram->SetUniform( "camera.invViewMatrix", glm::inverse( Camera->GetViewMatrix() ) );			
 			gpuProgram->SetUniform( "camera.near", Camera->GetNear() );
 			gpuProgram->SetUniform( "camera.far", Camera->GetFar() );
 			Unbind();

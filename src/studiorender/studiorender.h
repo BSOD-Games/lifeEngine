@@ -64,6 +64,10 @@ namespace le
 		~StudioRender();
 
 	private:
+		void								Render_GeometryPass( const SceneDescriptor& SceneDescriptor );
+		void								Render_LightPass( const SceneDescriptor& SceneDescriptor );
+		void								Render_FinalPass( const SceneDescriptor& SceneDescriptor );
+
 		bool								isInitialize;
 
 		RenderContext						renderContext;
