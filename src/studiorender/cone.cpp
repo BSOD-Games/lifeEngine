@@ -54,8 +54,8 @@ void le::Cone::Create()
 	coneDescriptor.indeces = coneIndeces;
 	coneDescriptor.verteces = coneVerteces;
 	coneDescriptor.primitiveType = PT_TRIANGLES;
-	coneDescriptor.sizeVerteces = 258 * sizeof( Vector3D_t );
-	coneDescriptor.countIndeces = 1440;
+	coneDescriptor.sizeVerteces = 822 * sizeof( Vector3D_t );
+	coneDescriptor.countIndeces = 4920;
 	coneDescriptor.vertexElements = &coneVertexElement;
 	coneDescriptor.countVertexElements = 1;
 

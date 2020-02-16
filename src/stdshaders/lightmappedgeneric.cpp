@@ -43,7 +43,7 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParamete
 		texCoords = vertex_texCoords; \n \
 		lightmapCoords = vertex_lightmapCoords; \n \
 		vertexColor = vertex_color; \n \
-		normal = vertex_normal; \n \
+		normal = ( matrix_Transformation * vec4( vertex_normal, 0.f ) ).xyz; \n \
 		gl_Position = matrix_Projection * matrix_Transformation * vec4( vertex_position, 1.f ); \n \
 	}";
 
@@ -64,9 +64,9 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParamete
 	\n\
 	void main()\n\
 	{\n\
-		out_albedoSpecular = texture2D( basetexture, texCoords ); \n \
+		out_albedoSpecular = vec4( texture2D( basetexture, texCoords ).rgb, 0.f ); \n \
 		out_normalShininess = vec4( normal, 1 );\n\
-		out_emission = vec4(0);// texture2D( lightmap, lightmapCoords ) * vertexColor;\n\
+		out_emission = texture2D( lightmap, lightmapCoords ) * vertexColor;\n\
 	}\n";
 
 	if ( !LoadShader( shaderDescriptor ) )

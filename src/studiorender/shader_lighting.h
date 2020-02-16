@@ -1,21 +1,25 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (��������� �����) ***
+//			*** lifeEngine (Двигатель жизни) ***
 //				Copyright (C) 2018-2020
 //
-// ����������� ������:  https://github.com/zombihello/lifeEngine
-// ������:				���� �������� (zombiHello)
+// Репозиторий движка:  https://github.com/zombihello/lifeEngine
+// Авторы:				Егор Погуляка (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
 #ifndef SHADER_LIGHTING_H
 #define SHADER_LIGHTING_H
 
+#include <unordered_map>
+
 #include "common/types.h"
 #include "engine/lifeengine.h"
 #include "engine/icamera.h"
 
 #include "pointlight.h"
+#include "spotlight.h"
+#include "directionallight.h"
 
 //---------------------------------------------------------------------//
 
@@ -59,6 +63,11 @@ namespace le
 			gpuProgram->Unbind();
 		}
 
+		inline void			SetType( LIGHTING_TYPE Type )
+		{
+			gpuProgram = gpuPrograms[ Type ];
+		}
+
 		inline void			SetSizeViewport( const Vector2D_t& SizeViewport )
 		{
 			if ( !gpuProgram ) return;
@@ -74,16 +83,22 @@ namespace le
 			LIFEENGINE_ASSERT( Camera );
 
 			Bind();
-			gpuProgram->SetUniform( "camera.position", Camera->GetPosition() );	
-			gpuProgram->SetUniform( "camera.pvMatrix", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );		
+			gpuProgram->SetUniform( "camera.position", Camera->GetPosition() );			
 			gpuProgram->SetUniform( "camera.invProjectionMatrix", glm::inverse( Camera->GetProjectionMatrix() ) );
 			gpuProgram->SetUniform( "camera.invViewMatrix", glm::inverse( Camera->GetViewMatrix() ) );			
-			gpuProgram->SetUniform( "camera.near", Camera->GetNear() );
-			gpuProgram->SetUniform( "camera.far", Camera->GetFar() );
 			Unbind();
 		}
 
-		inline void			SetLight( const PointLight* PointLight )
+		inline void			SetPVTMatrix( const Matrix4x4_t& PVTMatrix )
+		{
+			if ( !gpuProgram ) return;
+
+			Bind();
+			gpuProgram->SetUniform( "pvtMatrix", PVTMatrix );
+			Unbind();
+		};
+
+		inline void			SetLight( PointLight* PointLight )
 		{
 			if ( !gpuProgram ) return;
 			LIFEENGINE_ASSERT( PointLight );
@@ -97,13 +112,39 @@ namespace le
 			Unbind();
 		}
 
-		inline GPUProgram*	GetHandle() const
+		inline void			SetLight( SpotLight* SpotLight )
 		{
-			return gpuProgram;
+			if ( !gpuProgram ) return;
+			LIFEENGINE_ASSERT( SpotLight );
+
+			Bind();
+			gpuProgram->SetUniform( "light.position", SpotLight->GetPosition() );
+			gpuProgram->SetUniform( "light.color", SpotLight->GetColor() );
+			gpuProgram->SetUniform( "light.specular", SpotLight->GetSpecular() );
+			gpuProgram->SetUniform( "light.intensivity", SpotLight->GetIntensivity() );
+			gpuProgram->SetUniform( "light.radius", SpotLight->GetRadius() );
+			gpuProgram->SetUniform( "light.height", SpotLight->GetHeight() );
+			gpuProgram->SetUniform( "light.cutoff", SpotLight->GetCutoff() );
+			gpuProgram->SetUniform( "light.direction", SpotLight->GetDirection() );
+			Unbind();
+		}		
+
+		inline void			SetLight( DirectionalLight* DirectionalLight )
+		{
+			if ( !gpuProgram ) return;
+			LIFEENGINE_ASSERT( DirectionalLight );
+
+			Bind();
+			gpuProgram->SetUniform( "light.color", DirectionalLight->GetColor() );
+			gpuProgram->SetUniform( "light.specular", DirectionalLight->GetSpecular() );
+			gpuProgram->SetUniform( "light.intensivity", DirectionalLight->GetIntensivity() );
+			gpuProgram->SetUniform( "light.direction", DirectionalLight->GetDirection() );
+			Unbind();
 		}
 
 	private:
-		GPUProgram*			gpuProgram;
+		GPUProgram*												gpuProgram;
+		std::unordered_map< LIGHTING_TYPE, GPUProgram* >		gpuPrograms;
 	};
 
 	//---------------------------------------------------------------------//

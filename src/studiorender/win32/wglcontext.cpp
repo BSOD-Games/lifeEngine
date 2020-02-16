@@ -48,14 +48,17 @@ static le::ContextDescriptor*				currentContext = nullptr;
 bool le::WinGL_CreateContext( WindowHandle_t WindowHandle, const SettingsContext& SettingsContext, ContextDescriptor_t& ContextDescriptor, ContextDescriptor_t* ShareContext )
 {
 	PIXELFORMATDESCRIPTOR				pixelFormatDesc = {};
+	UInt32_t							colorBits = SettingsContext.redBits + SettingsContext.greenBits + SettingsContext.blueBits + SettingsContext.alphaBits;
+
 	pixelFormatDesc.nSize = sizeof( PIXELFORMATDESCRIPTOR );
 	pixelFormatDesc.nVersion = 1;
 	pixelFormatDesc.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
 	pixelFormatDesc.iPixelType = PFD_TYPE_RGBA;
 	pixelFormatDesc.iLayerType = PFD_MAIN_PLANE;
-	pixelFormatDesc.cColorBits = SettingsContext.redBits + SettingsContext.greenBits + SettingsContext.blueBits + SettingsContext.alphaBits;
-	pixelFormatDesc.cDepthBits = SettingsContext.depthBits;
-	pixelFormatDesc.cStencilBits = SettingsContext.stencilBits;
+	pixelFormatDesc.cColorBits = static_cast<BYTE>( colorBits );
+	pixelFormatDesc.cDepthBits = static_cast<BYTE>( SettingsContext.depthBits );
+	pixelFormatDesc.cStencilBits = static_cast<BYTE>( SettingsContext.stencilBits );
+	pixelFormatDesc.cAlphaBits = colorBits == 32 ? 8 : 0;
 
 	HDC						deviceContext = GetDC( static_cast< HWND >( WindowHandle ) );
 	HGLRC					renderContext = nullptr;

@@ -16,6 +16,7 @@
 void le::PointLight::SetPosition( const Vector3D_t& Position )
 {
 	position = Position;
+	isNeadUpdateTransformation = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -94,6 +95,7 @@ float le::PointLight::GetIntensivity() const
 // Конструктор
 // ------------------------------------------------------------------------------------ //
 le::PointLight::PointLight() :
+	isNeadUpdateTransformation( true ),
 	intensivity( 1.f ),
 	color( 1.f ),
 	specular( 1.f ),

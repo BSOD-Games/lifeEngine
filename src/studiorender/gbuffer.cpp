@@ -72,6 +72,14 @@ bool le::GBuffer::Initialize( const Vector2DInt_t& WindowSize )
 	emission.SetSampler( sampler );
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, emission.GetHandle(), 0 );
 
+	// Инициалищируем финальный кадр
+
+	finalFrame.Initialize( TT_2D, IF_RGBA_16FLOAT, WindowSize.x, WindowSize.y );
+	finalFrame.Bind();
+	finalFrame.Append( nullptr );
+	finalFrame.SetSampler( sampler );
+	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, finalFrame.GetHandle(), 0 );
+
 	// Инициализируем буфер глубины
 
 	depth.Initialize( TT_2D, IF_DEPTH24_STENCIL8, WindowSize.x, WindowSize.y );
@@ -79,11 +87,6 @@ bool le::GBuffer::Initialize( const Vector2DInt_t& WindowSize )
 	depth.Append( nullptr );
 	depth.SetSampler( sampler );
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depth.GetHandle(), 0 );
-
-	// Разрешаем рендер в буфферы нормалей, позиций и т.д
-
-	GLenum			attachments[ 3 ] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-	glDrawBuffers( 3, attachments );
 
 	// Проверяем статус FBO, создан ли он
 
@@ -114,6 +117,7 @@ void le::GBuffer::Delete()
 	if ( albedoSpecular.IsCreated() )	albedoSpecular.Delete();
 	if ( normalShininess.IsCreated() )	normalShininess.Delete();
 	if ( emission.IsCreated() )			emission.Delete();
+	if ( finalFrame.IsCreated() )		finalFrame.Delete();
 
 	isInitialize = false;
 }
@@ -128,11 +132,16 @@ void le::GBuffer::Bind( BIND_TYPE BindType )
 	switch ( BindType )
 	{
 	case BT_GEOMETRY:
+	{
 		glBindFramebuffer( GL_FRAMEBUFFER, handle_frameBuffer );
+		GLenum			attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+		glDrawBuffers( 3, attachments );
 		break;
+	}
 
 	case BT_LIGHT:	
-		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+		glBindFramebuffer( GL_FRAMEBUFFER, handle_frameBuffer );
+		glDrawBuffer( GL_COLOR_ATTACHMENT3 );
 
 		// Albedo + Specular
 		albedoSpecular.Bind( 0 );
@@ -163,18 +172,29 @@ void le::GBuffer::Unbind()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Показать финальный кадр
+// ------------------------------------------------------------------------------------ //
+void le::GBuffer::ShowFinalFrame()
+{
+	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+	glBindFramebuffer( GL_READ_FRAMEBUFFER, handle_frameBuffer );
+
+	glReadBuffer( GL_COLOR_ATTACHMENT3 ); 
+	glBlitFramebuffer( 0, 0, windowSize.x, windowSize.y, 0, 0, windowSize.x, windowSize.y, GL_COLOR_BUFFER_BIT, GL_LINEAR );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Показать все буферы на экране
 // ------------------------------------------------------------------------------------ //
 void le::GBuffer::ShowBuffers()
 {
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-	glClear( GL_DEPTH_BUFFER_BIT );
 	glBindFramebuffer( GL_READ_FRAMEBUFFER, handle_frameBuffer );
 
 	float			halfWidth = windowSize.x / 2.f;
 	float			halfHeight = windowSize.y / 2.f;
 
-	// Albedo + Specular
+	 //Albedo + Specular
 	glReadBuffer( GL_COLOR_ATTACHMENT0 ); 
 	glBlitFramebuffer( 0, 0, windowSize.x, windowSize.y, 0, 0, halfWidth, halfHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR );
 	

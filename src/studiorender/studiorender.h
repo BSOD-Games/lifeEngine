@@ -26,7 +26,8 @@
 #include "studiorender/sphere.h"
 #include "studiorender/cone.h"
 
-#include "shaderlighting.h"
+#include "shader_lighting.h"
+#include "shader_depth.h"
 
 //---------------------------------------------------------------------//
 
@@ -78,6 +79,7 @@ namespace le
 		Quad								quad;
 		Sphere								sphere;
 		Cone								cone;
+		ShaderDepth							shaderDepth;
 		ShaderLighting						shaderLighting;
 
 		UInt32_t							currentScene;

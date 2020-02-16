@@ -229,9 +229,16 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 	sphere.Create();
 	cone.Create();
 
-	if ( !shaderLighting.Create() )
+	if ( !shaderDepth.Create() || !shaderLighting.Create() )
 		return false;
 	
+	shaderLighting.SetType( ShaderLighting::LT_POINT );
+	shaderLighting.SetSizeViewport( Vector2D_t( viewport.width, viewport.height ) );
+
+	shaderLighting.SetType( ShaderLighting::LT_SPOT );
+	shaderLighting.SetSizeViewport( Vector2D_t( viewport.width, viewport.height ) );
+
+	shaderLighting.SetType( ShaderLighting::LT_DIRECTIONAL );
 	shaderLighting.SetSizeViewport( Vector2D_t( viewport.width, viewport.height ) );
 
 	return true;
@@ -273,6 +280,9 @@ void le::StudioRender::Present()
 
 		// Проход освещения
 		Render_LightPass( sceneDescriptor );
+
+		// Показать финальный кадр
+		Render_FinalPass( sceneDescriptor );
 	}
 
 	if ( r_showgbuffer->GetValueBool() )		gbuffer.ShowBuffers();
@@ -310,30 +320,100 @@ void le::StudioRender::Render_GeometryPass( const SceneDescriptor& SceneDescript
 void le::StudioRender::Render_LightPass( const SceneDescriptor& SceneDescriptor ) 
 {
 	gbuffer.Bind( GBuffer::BT_LIGHT ); 
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	
-	OpenGLState::EnableDepthTest( false );
+	glClear( GL_COLOR_BUFFER_BIT );
+
+	OpenGLState::EnableStencilTest( true );
 	OpenGLState::EnableDepthWrite( false );
 	OpenGLState::SetCullFaceType( CT_FRONT );
-	OpenGLState::EnableBlend( true );
+	OpenGLState::SetStencilOpSeparate( GL_FRONT, GL_KEEP, GL_INCR_WRAP, GL_KEEP );
+	OpenGLState::SetStencilOpSeparate( GL_BACK, GL_KEEP, GL_DECR_WRAP_EXT, GL_KEEP );
 
-	glBlendEquation( GL_FUNC_ADD );
-    glBlendFunc( GL_ONE, GL_ONE );
-
+	shaderDepth.SetType( ShaderDepth::GT_SPHERE );
+	shaderLighting.SetType( ShaderLighting::LT_POINT );
 	shaderLighting.SetCamera( SceneDescriptor.camera );
 	sphere.Bind();
 
 	for ( UInt32_t indexLight = 0, countLights = SceneDescriptor.pointLights.size(); indexLight < countLights; ++indexLight )
 	{
-		shaderLighting.SetLight( SceneDescriptor.pointLights[ indexLight ] );
-		shaderLighting.Bind();	
+		auto*			light = SceneDescriptor.pointLights[ indexLight ];
+
+		OpenGLState::SetColorMask( false, false, false, false );
+		OpenGLState::EnableDepthTest( true );
+		glClear( GL_STENCIL_BUFFER_BIT );
+		OpenGLState::SetStencilFunc( GL_ALWAYS, 0, 0 );
+
+		shaderDepth.SetPVTMatrix( SceneDescriptor.camera->GetProjectionMatrix() * SceneDescriptor.camera->GetViewMatrix() * light->GetTransformation() );
+		shaderDepth.SetRadius( light->GetRadius() );
+		shaderDepth.Bind();
 		glDrawElements( GL_TRIANGLES, sphere.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( sphere.GetStartIndex() * sizeof( UInt32_t ) ) );
+	
+		shaderLighting.SetPVTMatrix( SceneDescriptor.camera->GetProjectionMatrix() * SceneDescriptor.camera->GetViewMatrix() * light->GetTransformation() );
+		shaderLighting.SetLight( light );
+		shaderLighting.Bind();	
+		
+		OpenGLState::SetColorMask( true, true, true, true );
+		OpenGLState::SetStencilFunc( GL_NOTEQUAL, 0, 0xFF );
+		OpenGLState::EnableDepthTest( false );
+
+		OpenGLState::EnableBlend( true );
+		glDrawElements( GL_TRIANGLES, sphere.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( sphere.GetStartIndex() * sizeof( UInt32_t ) ) );
+		OpenGLState::EnableBlend( false );
 	}
 
-	OpenGLState::EnableDepthTest( true );
-	OpenGLState::EnableCullFace( true );
-	OpenGLState::EnableDepthWrite( true );
+	shaderDepth.SetType( ShaderDepth::GT_CONE );
+	shaderLighting.SetType( ShaderLighting::LT_SPOT );
+	shaderLighting.SetCamera( SceneDescriptor.camera );
+	cone.Bind();
+
+	for ( UInt32_t indexLight = 0, countLights = SceneDescriptor.spotLights.size(); indexLight < countLights; ++indexLight )
+	{
+		auto*			light = SceneDescriptor.spotLights[ indexLight ];
+
+		OpenGLState::SetColorMask( false, false, false, false );
+		OpenGLState::EnableDepthTest( true );
+		glClear( GL_STENCIL_BUFFER_BIT );
+		OpenGLState::SetStencilFunc( GL_ALWAYS, 0, 0 );
+	
+		shaderDepth.SetPVTMatrix( SceneDescriptor.camera->GetProjectionMatrix() * SceneDescriptor.camera->GetViewMatrix() * light->GetTransformation() );
+		shaderDepth.SetRadius( light->GetRadius() );
+		shaderDepth.SetHeight( light->GetHeight() );
+		shaderDepth.Bind();
+		glDrawElements( GL_TRIANGLES, cone.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( cone.GetStartIndex() * sizeof( UInt32_t ) ) );
+	
+		shaderLighting.SetPVTMatrix( SceneDescriptor.camera->GetProjectionMatrix() * SceneDescriptor.camera->GetViewMatrix() * light->GetTransformation() );
+		shaderLighting.SetLight( light );
+		shaderLighting.Bind();	
+		
+		OpenGLState::SetColorMask( true, true, true, true );
+		OpenGLState::SetStencilFunc( GL_NOTEQUAL, 0, 0xFF );
+		OpenGLState::EnableDepthTest( false );
+
+		OpenGLState::EnableBlend( true );
+		glDrawElements( GL_TRIANGLES, cone.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( cone.GetStartIndex() * sizeof( UInt32_t ) ) );
+		OpenGLState::EnableBlend( false );
+	}
+
+	shaderLighting.SetType( ShaderLighting::LT_DIRECTIONAL );
+	shaderLighting.SetCamera( SceneDescriptor.camera );
+	quad.Bind();
+
+	OpenGLState::EnableStencilTest( false );
+	OpenGLState::SetCullFaceType( CT_BACK );
+	OpenGLState::EnableBlend( true );
+
+	for ( UInt32_t indexLight = 0, countLights = SceneDescriptor.directionalLights.size(); indexLight < countLights; ++indexLight )
+	{
+		auto*			light = SceneDescriptor.directionalLights[ indexLight ];
+		
+		shaderLighting.SetLight( light );
+		shaderLighting.Bind();	
+		glDrawElements( GL_TRIANGLES, quad.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( quad.GetStartIndex() * sizeof( UInt32_t ) ) );
+	}
+
 	OpenGLState::EnableBlend( false );
+	OpenGLState::EnableStencilTest( false );
+	OpenGLState::EnableDepthTest( true );
+	OpenGLState::EnableDepthWrite( true );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -341,18 +421,7 @@ void le::StudioRender::Render_LightPass( const SceneDescriptor& SceneDescriptor 
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::Render_FinalPass( const SceneDescriptor& SceneDescriptor ) 
 {
-	gbuffer.Bind( GBuffer::BT_LIGHT ); 
-
-	OpenGLState::EnableDepthTest( true );
-	OpenGLState::EnableDepthWrite( true );
-	OpenGLState::EnableBlend( false );
-	OpenGLState::EnableCullFace( true );
-	OpenGLState::SetCullFaceType( CT_FRONT );
-
-	shaderLighting.SetCamera( SceneDescriptor.camera );
-	shaderLighting.Bind();
-	quad.Bind();
-	glDrawElements( GL_TRIANGLES, sphere.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( sphere.GetStartIndex() * sizeof( UInt32_t ) ) );
+	gbuffer.ShowFinalFrame();
 }
 
 // ------------------------------------------------------------------------------------ //

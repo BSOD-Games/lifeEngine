@@ -57,15 +57,41 @@ namespace le
 			return cutoff;
 		}
 
+		inline const Matrix4x4_t&			GetTransformation()
+		{
+			if ( isNeadUpdateTransformation )
+			{
+				transformation = glm::translate( position ) * glm::mat4_cast( rotation );
+				isNeadUpdateTransformation = false;
+			}
+
+			return transformation;
+		}
+
+		inline Vector3D_t					GetDirection()
+		{
+			if ( isNeadUpdataDirection )
+			{
+				direction = glm::normalize( rotation * Vector3D_t( 0.f, -1.f, 0.f ) );
+				isNeadUpdataDirection = false;
+			}
+
+			return direction;
+		}
+
 	private:
 		bool			isNeadUpdateCutoff;
+		bool			isNeadUpdateTransformation;
+		bool			isNeadUpdataDirection;
 
 		float			intensivity;
 		float			radius;
 		float			height;
 		float			cutoff;
 
+		Matrix4x4_t		transformation;
 		Vector3D_t		position;
+		Vector3D_t		direction;
 		Quaternion_t	rotation;
 		Vector4D_t		color;
 		Vector4D_t		specular;

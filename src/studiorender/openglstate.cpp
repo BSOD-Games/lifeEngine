@@ -20,7 +20,16 @@ bool					le::OpenGLState::isDepthTest = true;
 bool					le::OpenGLState::isDepthWrite = true;
 bool					le::OpenGLState::isBlend = true;
 bool					le::OpenGLState::isCullFace = true;
+bool					le::OpenGLState::isStencilTest = false;
+
+bool					le::OpenGLState::colorMask[ 4 ] = { true, true, true, true };
 le::CULLFACE_TYPE		le::OpenGLState::cullFaceType = le::CT_BACK;
+le::UInt32_t			le::OpenGLState::stencilFuncType = GL_ALWAYS;
+le::UInt32_t			le::OpenGLState::stencilFunc_ref = 0;
+le::UInt32_t			le::OpenGLState::stencilFunc_mask = 0;
+le::UInt32_t			le::OpenGLState::blendFunc_sFactor = GL_ONE;
+le::UInt32_t			le::OpenGLState::blendFunc_dFactor = GL_ONE;
+le::UInt32_t			le::OpenGLState::blendEquation_mode = GL_FUNC_ADD;
 
 //---------------------------------------------------------------------//
 
@@ -69,6 +78,17 @@ void le::OpenGLState::EnableCullFace( bool Enable )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Включить ли тест трафарета
+// ------------------------------------------------------------------------------------ //
+void le::OpenGLState::EnableStencilTest( bool Enable )
+{
+	if ( isStencilTest == Enable )	return;
+	isStencilTest = Enable;
+	
+	isStencilTest ? glEnable( GL_STENCIL_TEST ) : glDisable( GL_STENCIL_TEST );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Задать тип отсекаемых полигонов
 // ------------------------------------------------------------------------------------ //
 void le::OpenGLState::SetCullFaceType( CULLFACE_TYPE CullFaceType )
@@ -84,6 +104,72 @@ void le::OpenGLState::SetCullFaceType( CULLFACE_TYPE CullFaceType )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Задать маску цвета
+// ------------------------------------------------------------------------------------ //
+void le::OpenGLState::SetColorMask( bool R, bool G, bool B, bool A )
+{
+	if ( colorMask[ 0 ] == R && colorMask[ 1 ] == G &&
+	colorMask[ 2 ] == B && colorMask[ 3 ] == A  )
+	return;
+
+	colorMask[ 0 ] = R;
+	colorMask[ 1 ] = G;
+	colorMask[ 2 ] = B;
+	colorMask[ 3 ] = A;
+
+	glColorMask( R, G, B, A );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Задать функцию смешивания
+// ------------------------------------------------------------------------------------ //
+void le::OpenGLState::SetBlendFunc( UInt32_t SFactor, UInt32_t DFactor )
+{
+	if ( SFactor == blendFunc_sFactor && DFactor == blendFunc_dFactor )
+		return;
+
+	blendFunc_sFactor = SFactor;
+	blendFunc_dFactor = DFactor;
+
+	glBlendFunc( SFactor, DFactor );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Задать уравнение смешивания
+// ------------------------------------------------------------------------------------ //
+void le::OpenGLState::SetBlendEquation( UInt32_t Mode )
+{
+	if ( Mode == blendEquation_mode ) return;
+	blendEquation_mode = Mode;
+
+	glBlendEquation( Mode );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Задать функцию трафарета
+// ------------------------------------------------------------------------------------ //
+void le::OpenGLState::SetStencilFunc( UInt32_t StencilFuncType, UInt32_t Ref, UInt32_t Mask )
+{
+	if ( stencilFuncType == StencilFuncType && stencilFunc_ref == Ref &&
+	stencilFunc_mask == Mask )
+		return;
+	
+	stencilFuncType = StencilFuncType;
+	stencilFunc_ref = Ref;
+	stencilFunc_mask = Mask;
+
+	glStencilFunc( StencilFuncType, Ref, Mask );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Задать операцию заполнения трафарета
+// ------------------------------------------------------------------------------------ //
+void le::OpenGLState::SetStencilOpSeparate( UInt32_t Face, UInt32_t SFail, UInt32_t DpFail, UInt32_t DpPass )
+{
+	glStencilOpSeparate( Face, SFail, DpFail, DpPass );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Инициализировать состояние OpenGL
 // ------------------------------------------------------------------------------------ //
 void le::OpenGLState::Initialize()
@@ -92,10 +178,16 @@ void le::OpenGLState::Initialize()
 	isDepthWrite ? glDepthMask( GL_TRUE ) : glDepthMask( GL_FALSE );
 	isBlend ? glEnable( GL_BLEND ) : glDisable( GL_BLEND );
 	isCullFace ? glEnable( GL_CULL_FACE ) : glDisable( GL_CULL_FACE );
+	isStencilTest ? glEnable( GL_STENCIL_TEST ) : glDisable( GL_STENCIL_TEST );
 
 	switch ( cullFaceType )
 	{
-	case CT_BACK:		glCullFace( GL_BACK ); return;
-	case CT_FRONT:		glCullFace( GL_FRONT ); return;
+	case CT_BACK:		glCullFace( GL_BACK ); break;
+	case CT_FRONT:		glCullFace( GL_FRONT ); break;
 	}
+
+	glColorMask( colorMask[ 0 ], colorMask[ 1 ], colorMask[ 2 ], colorMask[ 3 ] );
+	glStencilFunc( stencilFuncType, stencilFunc_ref, stencilFunc_mask );
+	glBlendFunc( blendFunc_sFactor, blendFunc_dFactor );
+	glBlendEquation( blendEquation_mode );
 }

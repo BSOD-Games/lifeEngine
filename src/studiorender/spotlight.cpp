@@ -16,6 +16,7 @@
 void le::SpotLight::SetPosition( const Vector3D_t& Position )
 {
 	position = Position;
+	isNeadUpdateTransformation = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -24,6 +25,8 @@ void le::SpotLight::SetPosition( const Vector3D_t& Position )
 void le::SpotLight::SetRotation( const Quaternion_t & Quaternion )
 {
 	rotation = Quaternion;
+	isNeadUpdateTransformation = true;
+	isNeadUpdataDirection = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -129,6 +132,8 @@ float le::SpotLight::GetIntensivity() const
 // ------------------------------------------------------------------------------------ //
 le::SpotLight::SpotLight() :
 	isNeadUpdateCutoff( false ),
+	isNeadUpdateTransformation( false ),
+	isNeadUpdataDirection( false ),
 	intensivity( 1.f ),
 	color( 1.f ),
 	specular( 1.f ),
@@ -136,7 +141,8 @@ le::SpotLight::SpotLight() :
 	position( 0.f ),
 	height( 0.f ),
 	cutoff( 0.f ),
-	rotation( 1.f, 0.f, 0.f, 0.f )
+	rotation( 1.f, 0.f, 0.f, 0.f ),
+	direction( 0.f, -1.f, 0.f )
 {}
 
 // ------------------------------------------------------------------------------------ //

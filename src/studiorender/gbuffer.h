@@ -52,6 +52,7 @@ namespace le
 		void			Bind( BIND_TYPE BindType );
 		void			Unbind();
 		void			ShowBuffers();
+		void			ShowFinalFrame();
 
 		bool			IsInitialize() const;
 
@@ -64,6 +65,7 @@ namespace le
 		Texture			albedoSpecular;
 		Texture			normalShininess;
 		Texture			emission;
+		Texture 		finalFrame;
 	};
 
 	//---------------------------------------------------------------------//

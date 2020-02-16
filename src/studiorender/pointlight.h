@@ -42,10 +42,24 @@ namespace le
 		PointLight();
 		~PointLight();
 
+		inline const Matrix4x4_t&		GetTransformation()
+		{
+			if ( isNeadUpdateTransformation )
+			{
+				transformation = glm::translate( position );
+				isNeadUpdateTransformation = false;
+			}
+			
+			return transformation;
+		}
+
 	private:
+		bool			isNeadUpdateTransformation;
+		
 		float			intensivity;
 		float			radius;
 
+		Matrix4x4_t		transformation;
 		Vector3D_t		position;
 		Vector4D_t		color;
 		Vector4D_t		specular;
