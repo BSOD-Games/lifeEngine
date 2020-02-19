@@ -57,7 +57,7 @@ bool le::UnlitGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** Sh
 	{\n\
 		out_albedoSpecular = texture2D( basetexture, texCoords ); \n \
 		out_normalShininess = vec4( normal, 1 );\n\
-		out_emission = vec4( 1.f );\n\
+		out_emission = vec4( 0.f );\n\
 	}\n";
 
 	return LoadShader( shaderDescriptor );

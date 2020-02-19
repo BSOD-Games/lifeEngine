@@ -28,6 +28,8 @@ namespace le
 		virtual void						SetRadius( float Radius );
 		virtual void						SetHeight( float Height );
 
+		// TODO: Add methods for transformation light sources
+
 		virtual const Vector3D_t&			GetPosition() const;
 		virtual const Quaternion_t&			GetRotation() const;
 		virtual float						GetRadius() const;
@@ -68,7 +70,7 @@ namespace le
 			return transformation;
 		}
 
-		inline Vector3D_t					GetDirection()
+		inline const Vector3D_t&			GetDirection()
 		{
 			if ( isNeadUpdataDirection )
 			{

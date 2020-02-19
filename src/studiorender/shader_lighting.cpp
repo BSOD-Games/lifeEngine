@@ -13,6 +13,8 @@
 
 #include "common/shaderdescriptor.h"
 #include "studiorender/gpuprogram.h"
+#include "engine/iconsolesystem.h"
+#include "global.h"
 
 #include "shader_lighting.h"
 
@@ -36,6 +38,8 @@ le::ShaderLighting::~ShaderLighting()
 // ------------------------------------------------------------------------------------ //
 bool le::ShaderLighting::Create()
 {
+	// TODO: extract all shader codes in files
+
 	ShaderDescriptor		shaderDescriptor = {};
 	shaderDescriptor.vertexShaderSource = " \
 	#version 330 core\n \
@@ -162,7 +166,7 @@ bool le::ShaderLighting::Create()
 		\n\
 		#ifdef SPOT_LIGHT \n\
 			float 		spotFactor = dot( -lightDirection, normalize( light.direction ) );\n\
-			spotFactor = clamp( ( spotFactor - light.cutoff ) / ( 1.0f - light.cutoff ), 0.0f, 1.0f ); \n\
+			spotFactor = clamp( ( spotFactor - light.cutoff ) / ( 0.95f - light.cutoff ), 0.0f, 1.0f ); \n\
 		#endif \n\
 		\n\
 		#ifdef POINT_LIGHT \n\
@@ -170,7 +174,7 @@ bool le::ShaderLighting::Create()
 		#elif defined( SPOT_LIGHT ) \n\
 			color = ( vec4( fragColor.rgb, 1.f ) * light.color * light.intensivity * NdotL + light.specular * specularFactor ) * attenuation * spotFactor; \n\
 		#elif defined( DIRECTIONAL_LIGHT ) \n\
-			color = vec4( fragColor.rgb, 1.f ) * light.color * light.intensivity * NdotL + light.specular * specularFactor; \n\
+			color = vec4( fragColor.rgb, 1.f ) * texture( emission, fragCoord ); //vec4( fragColor.rgb, 1.f ) * light.color * light.intensivity * NdotL + light.specular * specularFactor; \n\
 		#endif \n\
 	}\n";
 

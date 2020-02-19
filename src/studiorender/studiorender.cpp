@@ -36,6 +36,8 @@
 #include "studiorender/studiovertexelement.h"
 #include "common/shaderdescriptor.h"
 #include "engine/iconcmd.h"
+#include "engine/icamera.h"
+
 LIFEENGINE_STUDIORENDER_API( le::StudioRender );
 
 le::IConVar*		r_wireframe = nullptr;
@@ -194,8 +196,6 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 	// Инициализируем OpenGL
 
 	glEnable( GL_TEXTURE_2D );
-	//glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );
-
 	OpenGLState::Initialize();
 	
 	viewport.x = viewport.y = 0;
@@ -231,7 +231,7 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 
 	if ( !shaderDepth.Create() || !shaderLighting.Create() )
 		return false;
-	
+
 	shaderLighting.SetType( ShaderLighting::LT_POINT );
 	shaderLighting.SetSizeViewport( Vector2D_t( viewport.width, viewport.height ) );
 
@@ -263,7 +263,7 @@ void le::StudioRender::End()
 {
 	// TODO: Добавить сортировку по материалам
 }
-#include "engine/icamera.h"
+
 // ------------------------------------------------------------------------------------ //
 // Визуализировать кадр
 // ------------------------------------------------------------------------------------ //
