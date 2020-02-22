@@ -27,6 +27,7 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	class Model;
+	class Sprite;
 
 	//---------------------------------------------------------------------//
 
@@ -43,6 +44,7 @@ namespace le
 		virtual void					AddPointLight( IPointLight* PointLight );
 		virtual void					AddSpotLight( ISpotLight* SpotLight );
 		virtual void					AddDirectionalLight( IDirectionalLight* DirectionalLight );
+		virtual void					AddSprite( ISprite* Sprite );
 		virtual void					RemoveCamera( ICamera* Camera );
 		virtual void					RemoveCamera( UInt32_t Index );
 		virtual void					RemoveModel( IModel* Model );
@@ -55,6 +57,8 @@ namespace le
 		virtual void					RemoveSpotLight( UInt32_t Index );
 		virtual void					RemoveDirectionalLight( IDirectionalLight* DirectionalLight );
 		virtual void					RemoveDirectionalLight( UInt32_t Index );
+		virtual void					RemoveSprite( ISprite* Sprite );
+		virtual void					RemoveSprite( UInt32_t Index );
 
 		virtual bool					IsLoaded() const;
 		virtual const char*				GetNameFormat() const;
@@ -68,8 +72,10 @@ namespace le
 		virtual IPointLight*			GetPointLight( UInt32_t Index ) const;
 		virtual UInt32_t				GetCountSpotLights() const;
 		virtual ISpotLight*				GetSpotLight( UInt32_t Index ) const;
-		virtual UInt32_t				GetCountDirectionalLight() const;
+		virtual UInt32_t				GetCountDirectionalLights() const;
 		virtual IDirectionalLight*		GetDirectionalLight( UInt32_t Index ) const;
+		virtual UInt32_t				GetCountSprites() const;
+		virtual ISprite*				GetSprite( UInt32_t Index ) const;
 
 		// Level
 		Level();
@@ -122,6 +128,7 @@ namespace le
 		std::vector< IPointLight* >			arrayPointLights;
 		std::vector< ISpotLight* >			arraySpotLights;
 		std::vector< IDirectionalLight* >	arrayDirectionalLights;
+		std::vector< Sprite* >				arraySprites;
 	};
 
 	//---------------------------------------------------------------------//

@@ -142,7 +142,6 @@ bool le::ShaderLighting::Create()
 		\n\
 		vec4	fragColor = texture( albedoSpecular, fragCoord ); \n\
 		vec4	normal = texture( normalShininess, fragCoord ); \n\
-		normal.xyz = normalize( normal.xyz ); \n\
 		vec3	posFrag = ReconstructPosition( fragCoord ); \n\
 		vec3	viewDirection = normalize( camera.position - posFrag ); \n\
 		\n\
@@ -163,6 +162,7 @@ bool le::ShaderLighting::Create()
 			float 	attenuation = pow( clamp( 1.f - pow( distance / light.height, 4.f ), 0.f, 1.f ), 2.f ) / ( pow( distance, 2.f ) + 1.f );\n\
 		#endif \n\
 		float	specularFactor = pow( max( dot( normal.xyz, halfwayDirection ), 0.f ), normal.a ) * fragColor.a; \n\
+		//float	specularFactor = max( pow( dot( reflect( -lightDirection, normal.xyz ), viewDirection ), normal.a ) * fragColor.a, 0.f );\n\
 		\n\
 		#ifdef SPOT_LIGHT \n\
 			float 		spotFactor = dot( -lightDirection, normalize( light.direction ) );\n\
@@ -170,11 +170,11 @@ bool le::ShaderLighting::Create()
 		#endif \n\
 		\n\
 		#ifdef POINT_LIGHT \n\
-			color = ( vec4( fragColor.rgb, 1.f ) * light.color * light.intensivity * NdotL + light.specular * specularFactor ) * attenuation; \n\
+			color = ( vec4( fragColor.rgb, 1.f ) * light.color * light.intensivity + light.color * specularFactor * light.intensivity ) * attenuation * NdotL ; \n\
 		#elif defined( SPOT_LIGHT ) \n\
-			color = ( vec4( fragColor.rgb, 1.f ) * light.color * light.intensivity * NdotL + light.specular * specularFactor ) * attenuation * spotFactor; \n\
+			color = ( vec4( fragColor.rgb, 1.f ) * light.color * light.intensivity + light.color * specularFactor * light.intensivity ) * attenuation * spotFactor * NdotL ; \n\
 		#elif defined( DIRECTIONAL_LIGHT ) \n\
-			color = vec4( fragColor.rgb, 1.f ) * texture( emission, fragCoord ); //vec4( fragColor.rgb, 1.f ) * light.color * light.intensivity * NdotL + light.specular * specularFactor; \n\
+			color = ( vec4( fragColor.rgb, 1.f ) * light.color * light.intensivity + light.color * specularFactor ) * NdotL; \n\
 		#endif \n\
 	}\n";
 

@@ -49,8 +49,12 @@ namespace le
 			return mesh.IsCreated(); 
 		}
 
-		virtual UInt32_t		GetCountIndeces() const = 0;
-		virtual UInt32_t		GetStartIndex() const = 0;
+		virtual UInt32_t						GetCountIndeces() const = 0;
+		virtual UInt32_t						GetStartIndex() const = 0;
+		inline const VertexArrayObject&			GetVertexArrayObject()
+		{
+			return mesh.GetVertexArrayObject();
+		}
 
 	protected:
 		Mesh		mesh;

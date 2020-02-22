@@ -11,6 +11,7 @@
 #ifndef BASE_SHADER_H
 #define BASE_SHADER_H
 
+#include <unordered_map>
 #include <vector>
 
 #include "common/shaderparaminfo.h"
@@ -40,10 +41,13 @@ namespace le
 		virtual ~BaseShader();
 
 	protected:
-		bool							LoadShader( const ShaderDescriptor& ShaderDescriptor );
+		bool							LoadShader( const ShaderDescriptor& ShaderDescriptor, const std::vector< const char* >& Defines, UInt32_t Flags = 0 );
+		IGPUProgram*					GetGPUProgram( UInt32_t Flags ) const;
 
-		IGPUProgram*							gpuProgram;
-		std::vector< ShaderParamInfo >			shaderParams;
+		std::vector< ShaderParamInfo >						shaderParams;
+
+	private:
+		std::unordered_map< UInt32_t, IGPUProgram* >		gpuPrograms;
 	};
 
 	//---------------------------------------------------------------------//

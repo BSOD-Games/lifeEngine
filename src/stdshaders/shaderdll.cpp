@@ -18,6 +18,7 @@
 #include "unlitgeneric.h"
 #include "lightmappedgeneric.h"
 #include "testshader.h"
+#include "spritegeneric.h"
 
 LIFEENGINE_STDSHADERS_API( le::ShaderDLL );
 
@@ -30,10 +31,12 @@ bool le::ShaderDLL::Initialize( IEngine* Engine )
 	if ( !studioRender )		return false;
 
 	g_studioRenderFactory = studioRender->GetFactory();
+	g_consoleSystem = Engine->GetConsoleSystem();
 
 	shaders.push_back( new UnlitGeneric() );
 	shaders.push_back( new LightmappedGeneric() );
 	shaders.push_back( new TestShader() );
+	shaders.push_back( new SpriteGeneric() );
 
 	return true;
 }

@@ -37,6 +37,7 @@
 #include "common/shaderdescriptor.h"
 #include "engine/iconcmd.h"
 #include "engine/icamera.h"
+#include "engine/isprite.h"
 
 LIFEENGINE_STUDIORENDER_API( le::StudioRender );
 
@@ -97,6 +98,10 @@ void le::StudioRender::SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformatio
 
 	case PT_TRIANGLES:
 		renderObject.primitiveType = GL_TRIANGLES;
+		break;
+
+	case PT_TRIANGLE_FAN:
+		renderObject.primitiveType = GL_TRIANGLE_FAN;
 		break;
 	}
 

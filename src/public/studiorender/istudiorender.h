@@ -27,6 +27,7 @@ namespace le
 	class IPointLight;
 	class ISpotLight;
 	class IDirectionalLight;
+	class ISprite;
 	struct StudioRenderViewport;
 
 	//---------------------------------------------------------------------//

@@ -32,6 +32,7 @@
 #include "resourcesystem.h"
 #include "level.h"
 #include "model.h"
+#include "sprite.h"
 
 // ------------------------------------------------------------------------------------ //
 // Изменить гаму карты освещения
@@ -461,6 +462,15 @@ void le::Level::Update( UInt32_t DeltaTime )
 					}
 		}
 
+		// Send to render visible sprites
+		for ( UInt32_t index = 0, count = arraySprites.size(); index < count; ++index )
+		{
+			Sprite*			sprite = arraySprites[ index ];
+			// TODO: add check on visible
+
+			g_studioRender->SubmitMesh( sprite->GetMesh(), sprite->GetTransformation( camera ) );
+		}
+
 		// Посылаем на отрисовку видимые точечные источники света
 		for ( UInt32_t index = 0, count = arrayPointLights.size(); index < count; ++index )
 		{
@@ -567,12 +577,21 @@ void le::Level::AddSpotLight( ISpotLight* SpotLight )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Добавить точечный источник светаь
+// Добавить точечный источник света
 // ------------------------------------------------------------------------------------ //
 void le::Level::AddDirectionalLight( IDirectionalLight* DirectionalLight )
 {
 	LIFEENGINE_ASSERT( DirectionalLight );
 	arrayDirectionalLights.push_back( DirectionalLight );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Add sprite
+// ------------------------------------------------------------------------------------ //
+void le::Level::AddSprite( ISprite* Sprite )
+{
+	LIFEENGINE_ASSERT( Sprite );
+	arraySprites.push_back( ( le::Sprite* ) Sprite );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -712,6 +731,28 @@ void le::Level::RemoveDirectionalLight( UInt32_t Index )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Remove sprite
+// ------------------------------------------------------------------------------------ //
+void le::Level::RemoveSprite( ISprite* Sprite )
+{	
+	for ( UInt32_t index = 0, count = arraySprites.size(); index < count; ++index )
+		if ( arraySprites[ index ] == Sprite )
+		{
+			arraySprites.erase( arraySprites.begin() + index );
+			break;
+		}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Remove sprite
+// ------------------------------------------------------------------------------------ //
+void le::Level::RemoveSprite( UInt32_t Index )
+{
+	if ( Index >= arraySprites.size() ) return;
+	arraySprites.erase( arraySprites.begin() + Index );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Загружен ли уровень
 // ------------------------------------------------------------------------------------ //
 bool le::Level::IsLoaded() const
@@ -825,7 +866,7 @@ le::ISpotLight* le::Level::GetSpotLight( UInt32_t Index ) const
 // ------------------------------------------------------------------------------------ //
 // Получить количество направленых источников света
 // ------------------------------------------------------------------------------------ //
-le::UInt32_t le::Level::GetCountDirectionalLight() const
+le::UInt32_t le::Level::GetCountDirectionalLights() const
 {
 	return arrayDirectionalLights.size();
 }
@@ -840,6 +881,24 @@ le::IDirectionalLight* le::Level::GetDirectionalLight( UInt32_t Index ) const
 
 	return arrayDirectionalLights[ Index ];
 }
+
+// ------------------------------------------------------------------------------------ //
+// Get count sprites
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::Level::GetCountSprites() const
+{
+	return arraySprites.size();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get sprite
+// ------------------------------------------------------------------------------------ //
+le::ISprite* le::Level::GetSprite( UInt32_t Index ) const
+{	
+	if ( Index >= arraySprites.size() )
+		return nullptr;
+
+	return ( ISprite* ) arraySprites[ Index ];}
 
 // ------------------------------------------------------------------------------------ //
 // Конструктор

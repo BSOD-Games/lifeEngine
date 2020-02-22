@@ -43,8 +43,7 @@ le::ShaderParamInfo* le::BaseShader::GetParam( UInt32_t Index ) const
 // ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
-le::BaseShader::BaseShader() :
-	gpuProgram( nullptr )
+le::BaseShader::BaseShader()
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -52,23 +51,42 @@ le::BaseShader::BaseShader() :
 // ------------------------------------------------------------------------------------ //
 le::BaseShader::~BaseShader()
 {
-	if ( gpuProgram )		g_studioRenderFactory->Delete( gpuProgram );
+	for ( auto it = gpuPrograms.begin(), itEnd = gpuPrograms.end(); it != itEnd; ++it )
+		g_studioRenderFactory->Delete( it->second );
+
+	gpuPrograms.clear();	
 }
 
 // ------------------------------------------------------------------------------------ //
 // Загрузить шейдер
 // ------------------------------------------------------------------------------------ //
-bool le::BaseShader::LoadShader( const ShaderDescriptor& ShaderDescriptor )
+bool le::BaseShader::LoadShader( const ShaderDescriptor& ShaderDescriptor, const std::vector< const char* >& Defines, UInt32_t Flags )
 {
-	gpuProgram = ( IGPUProgram* ) g_studioRenderFactory->Create( GPUPROGRAM_INTERFACE_VERSION );
+	if ( gpuPrograms.find( Flags ) != gpuPrograms.end() )
+		return true;
+
+	IGPUProgram*			gpuProgram = ( IGPUProgram* ) g_studioRenderFactory->Create( GPUPROGRAM_INTERFACE_VERSION );
 	if ( !gpuProgram ) return false;
 
-	if ( !gpuProgram->Compile( ShaderDescriptor ) )
+	if ( !gpuProgram->Compile( ShaderDescriptor, Defines.size(), ( const char** ) Defines.data() ) )
 	{
 		g_studioRenderFactory->Delete( gpuProgram );
 		gpuProgram = nullptr;
 		return false;
 	}
 
+	gpuPrograms[ Flags ] = gpuProgram;
 	return true;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get gpu program by shader flags
+// ------------------------------------------------------------------------------------ //
+le::IGPUProgram* le::BaseShader::GetGPUProgram( UInt32_t Flags ) const
+{
+	auto 		itGpuProgram = gpuPrograms.find( Flags );
+	if ( itGpuProgram == gpuPrograms.end() )
+		return nullptr;
+
+	return itGpuProgram->second;
 }

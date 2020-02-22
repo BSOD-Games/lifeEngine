@@ -1,15 +1,15 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
-//				Copyright (C) 2018-2019
+//			        *** lifeEngine ***
+//				Copyright (C) 2018-2020
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Repository engine:   https://github.com/zombihello/lifeEngine
+// Authors:				Egor Pogulyaka (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef LIGHTMAPPED_GENERIC_H
-#define LIGHTMAPPED_GENERIC_H
+#ifndef SPRITE_GENERIC_H
+#define SPRITE_GENERIC_H
 
 #include "baseshader.h"
 
@@ -19,18 +19,18 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class LightmappedGeneric : public BaseShader
+	class SpriteGeneric : public BaseShader
 	{
 	public:
 		// IShader
 		virtual bool					InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters );
 		virtual void					OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr );
 
-		virtual const char* 			GetName() const;
-		virtual const char* 			GetFallbackShader() const;
+		virtual const char* GetName() const;
+		virtual const char* GetFallbackShader() const;
 
-		// LightmappedGeneric
-		LightmappedGeneric();
+		// SpriteGeneric
+		SpriteGeneric();
 	};
 
 	//---------------------------------------------------------------------//
@@ -38,5 +38,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !LIGHTMAPPED_GENERIC_H
+#endif // !SPRITE_GENERIC_H
 

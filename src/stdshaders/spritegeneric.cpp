@@ -1,72 +1,67 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
-//				Copyright (C) 2018-2019
+//			        *** lifeEngine ***
+//				Copyright (C) 2018-2020
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Repository engine:   https://github.com/zombihello/lifeEngine
+// Authors:				Egor Pogulyaka (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include <string.h>
+
 #include "engine/icamera.h"
+#include "engine/iconsolesystem.h"
 #include "studiorender/igpuprogram.h"
 #include "studiorender/itexture.h"
 
 #include "global.h"
-#include "lightmappedgeneric.h"
+#include "spritegeneric.h"
 
 // ------------------------------------------------------------------------------------ //
 // Инициализировать экземпляр шейдера
 // ------------------------------------------------------------------------------------ //
-bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
+bool le::SpriteGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
 	ShaderDescriptor			shaderDescriptor;
 	shaderDescriptor.vertexShaderSource = " \
 	#version 330 core\n \
 	\n \
 	layout( location = 0 ) 			in vec3 vertex_position; \n \
-	layout( location = 1 ) 			in vec2 vertex_texCoords; \n \
-	layout( location = 2 ) 			in vec2 vertex_lightmapCoords; \n \
-	layout( location = 3 ) 			in vec3 vertex_normal; \n \
-	layout( location = 4 ) 			in vec4 vertex_color; \n \
+    layout( location = 1 ) 			in vec3 vertex_normal; \n \
+	layout( location = 2 ) 			in vec2 vertex_texCoords; \n \
 	\n \
 		out vec2 				texCoords; \n \
-		out vec2 				lightmapCoords; \n \
-		out vec4 				vertexColor; \n \
-		out vec3				normal; \n \
+        out vec3 				normal; \n \
 	\n \
+        uniform vec4            textureRect; \n\
 		uniform mat4    		matrix_Projection; \n \
 		uniform mat4			matrix_Transformation; \n \
 	\n \
 	void main() \n \
 	{\n \
-		texCoords = vertex_texCoords; \n \
-		lightmapCoords = vertex_lightmapCoords; \n \
-		vertexColor = vertex_color; \n \
-		normal = ( matrix_Transformation * vec4( vertex_normal, 0.f ) ).xyz; \n \
+        texCoords = textureRect.xy + ( vertex_texCoords * textureRect.zw ); \n \
+        normal = ( matrix_Transformation * vec4( vertex_normal, 0.f ) ).xyz; \n\
 		gl_Position = matrix_Projection * matrix_Transformation * vec4( vertex_position, 1.f ); \n \
 	}";
 
 	shaderDescriptor.fragmentShaderSource = " \
 	#version 330 core\n\
 	\n\
-		layout ( location = 0 ) out vec4 out_albedoSpecular;\n\
-		layout( location = 1 ) out vec4 out_normalShininess;\n\
-		layout( location = 2 ) out vec4 out_emission;\n\
+		layout ( location = 0 )     out vec4 out_albedoSpecular;\n\
+		layout( location = 1 )      out vec4 out_normalShininess;\n\
+		layout( location = 2 )      out vec4 out_emission;\n\
 		\n\
 		in vec2 				texCoords;\n\
-		in vec2 				lightmapCoords;\n\
-		in vec4 				vertexColor; \n \
-		in vec3					normal; \n \
+        in vec3 				normal;\n\
 	\n\
 		uniform sampler2D		basetexture;\n\
-		uniform sampler2D		lightmap;\n\
 	\n\
 	void main()\n\
 	{\n\
 		out_albedoSpecular = vec4( texture2D( basetexture, texCoords ).rgb, 0.f ); \n \
-		out_normalShininess = vec4( normalize( normal ), 1 );\n\
-		out_emission = texture2D( lightmap, lightmapCoords ) * vertexColor;\n\
+		out_normalShininess = vec4( normalize( normal ), 1.f );\n\
+		out_emission = vec4( 0.f );\n\
 	}\n";
 
 	std::vector< const char* >			defines;
@@ -80,7 +75,6 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParamete
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "basetexture", 0 );
-	gpuProgram->SetUniform( "lightmap", 1 );
 	gpuProgram->Unbind();
 
 	return true;
@@ -89,15 +83,21 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParamete
 // ------------------------------------------------------------------------------------ //
 // Подготовка к отрисовке элементов
 // ------------------------------------------------------------------------------------ //
-void le::LightmappedGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+void le::SpriteGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
 	IGPUProgram*		gpuProgram = GetGPUProgram( 0 );
 	if ( !gpuProgram ) return;
+    gpuProgram->Bind();
 
-	if ( ShaderParameters[ 0 ]->IsDefined() )		ShaderParameters[ 0 ]->GetValueTexture()->Bind( 0 );
-	if ( Lightmap )			Lightmap->Bind( 1 );
+    for ( UInt32_t index = 0; index < CountParams; ++index )
+    {
+        IShaderParameter*           shaderParameter = ShaderParameters[ index ];
+        if ( !shaderParameter->IsDefined() ) continue;
 
-	gpuProgram->Bind();
+        if ( strcmp( shaderParameter->GetName(), "basetexture" ) == 0 )           shaderParameter->GetValueTexture()->Bind();
+        else if ( strcmp( shaderParameter->GetName(), "textureRect" ) == 0  )     gpuProgram->SetUniform( "textureRect", shaderParameter->GetValueVector4D() );
+    }
+	
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
 	gpuProgram->SetUniform( "matrix_Projection", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
 }
@@ -105,15 +105,15 @@ void le::LightmappedGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter*
 // ------------------------------------------------------------------------------------ //
 // Получить название шейдера
 // ------------------------------------------------------------------------------------ //
-const char* le::LightmappedGeneric::GetName() const
+const char* le::SpriteGeneric::GetName() const
 {
-	return "LightmappedGeneric";
+	return "SpriteGeneric";
 }
 
 // ------------------------------------------------------------------------------------ //
 // Получить запасной шейдер
 // ------------------------------------------------------------------------------------ //
-const char* le::LightmappedGeneric::GetFallbackShader() const
+const char* le::SpriteGeneric::GetFallbackShader() const
 {
 	return nullptr;
 }
@@ -121,7 +121,7 @@ const char* le::LightmappedGeneric::GetFallbackShader() const
 // ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
-le::LightmappedGeneric::LightmappedGeneric()
+le::SpriteGeneric::SpriteGeneric()
 {
 	shaderParams =
 	{

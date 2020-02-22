@@ -29,7 +29,8 @@ namespace le
 	enum PRIMITIVE_TYPE
 	{
 		PT_LINES,
-		PT_TRIANGLES
+		PT_TRIANGLES,
+		PT_TRIANGLE_FAN
 	};
 
 	//---------------------------------------------------------------------//
