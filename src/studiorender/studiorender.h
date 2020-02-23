@@ -25,6 +25,7 @@
 #include "studiorender/quad.h"
 #include "studiorender/sphere.h"
 #include "studiorender/cone.h"
+#include "studiorender/studiorenderdeviceconfigurations.h"
 
 #include "shader_lighting.h"
 #include "shader_depth.h"
@@ -39,26 +40,27 @@ namespace le
 	{
 	public:
 		// IStudioRenderInternal
-		virtual bool							Initialize( IEngine* Engine );
-		virtual void							Begin();
-		virtual void							End();
-		virtual void							Present();
+		virtual bool											Initialize( IEngine* Engine );
+		virtual void											Begin();
+		virtual void											End();
+		virtual void											Present();
 
-		// IStudioRender
-		virtual void							BeginScene( ICamera* Camera );
-		virtual void							SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation );
-		virtual void							SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation, UInt32_t StartSurface, UInt32_t CountSurface );
-		virtual void							SubmitLight( IPointLight* PointLight );
-		virtual void							SubmitLight( ISpotLight* SpotLight );
-		virtual void							SubmitLight( IDirectionalLight* DirectionalLight );
-		virtual void							EndScene();
+		// IStudioRender				
+		virtual void											BeginScene( ICamera* Camera );
+		virtual void											SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation );
+		virtual void											SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation, UInt32_t StartSurface, UInt32_t CountSurface );
+		virtual void											SubmitLight( IPointLight* PointLight );
+		virtual void											SubmitLight( ISpotLight* SpotLight );
+		virtual void											SubmitLight( IDirectionalLight* DirectionalLight );
+		virtual void											EndScene();
 
-		virtual void							SetVerticalSyncEnabled( bool IsEnabled = true );
-		virtual void							SetViewport( const StudioRenderViewport& Viewport );
+		virtual void											SetVerticalSyncEnabled( bool IsEnabled = true );
+		virtual void											SetViewport( const StudioRenderViewport& Viewport );
 
-		virtual IFactory*						GetFactory() const;
-		virtual IShaderManager*					GetShaderManager() const;
-		virtual const StudioRenderViewport&		GetViewport() const;
+		virtual IFactory*										GetFactory() const;
+		virtual IShaderManager*									GetShaderManager() const;
+		virtual const StudioRenderViewport&						GetViewport() const;
+		virtual const StudioRenderDeviceConfigurations&			GetDeviceConfigurations() const;
 		
 		// StudioRender
 		StudioRender();
@@ -72,6 +74,7 @@ namespace le
 		bool								isInitialize;
 
 		RenderContext						renderContext;
+		StudioRenderDeviceConfigurations	deviceConfigurations;
 		StudioRenderFactory					studioRenderFactory;
 		StudioRenderViewport				viewport;
 		ShaderManager						shaderManager;

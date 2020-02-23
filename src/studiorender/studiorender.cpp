@@ -203,6 +203,12 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 	glEnable( GL_TEXTURE_2D );
 	OpenGLState::Initialize();
 	
+	// Getting configurations videocard
+	GLint			tempValue = 0;
+
+	glGetIntegerv( GL_MAX_TEXTURE_SIZE, &tempValue );
+	deviceConfigurations.maxTextureSize = tempValue;
+
 	viewport.x = viewport.y = 0;
 	Engine->GetWindow()->GetSize( viewport.width, viewport.height );
 
@@ -301,7 +307,7 @@ void le::StudioRender::Render_GeometryPass( const SceneDescriptor& SceneDescript
 {
 	gbuffer.Bind( GBuffer::BT_GEOMETRY );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
+	
 	for ( UInt32_t indexObject = 0, countObjects = SceneDescriptor.renderObjects.size(); indexObject < countObjects; ++indexObject )
 	{
 		const RenderObject&		renderObject = SceneDescriptor.renderObjects[ indexObject ];
@@ -468,6 +474,14 @@ le::IShaderManager* le::StudioRender::GetShaderManager() const
 const le::StudioRenderViewport& le::StudioRender::GetViewport() const
 {
 	return viewport;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get device configurations
+// ------------------------------------------------------------------------------------ //
+const le::StudioRenderDeviceConfigurations& le::StudioRender::GetDeviceConfigurations() const
+{
+	return deviceConfigurations;
 }
 
 // ------------------------------------------------------------------------------------ //

@@ -11,6 +11,7 @@ set( SDL2_PATH ${EXTLIBS_DIR}/SDL2 CACHE PATH "Path to SDL2" )
 set( RAPIDJSON_PATH ${EXTLIBS_DIR} CACHE PATH "Path to RapidJSON" )
 set( GLM_PATH ${EXTLIBS_DIR} CACHE PATH "Path to GLM" )
 set( FREEIMAGE_PATH ${EXTLIBS_DIR}/FreeImage CACHE PATH "Path to FreeImage" )
+set( FREETYPE_PATH ${EXTLIBS_DIR}/freetype CACHE PATH "Path to Freetype" )
 
 #
 #   --- Название модулей движка ---
@@ -102,3 +103,15 @@ if ( NOT GLM_FOUND )
 else()
     include_directories( ${GLM_INCLUDE} )
 endif()
+
+#---------------
+#   Freetype
+
+find_package( Freetype REQUIRED )
+if( NOT FREETYPE_FOUND )
+    message( SEND_ERROR "Failed to find Freetype" )
+    return()
+else()
+    include_directories( ${FREETYPE_INCLUDE} )
+    target_link_libraries( ${MODULE_NAME} ${FREETYPE_LIB} )
+endif()  

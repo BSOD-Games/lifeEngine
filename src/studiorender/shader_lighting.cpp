@@ -161,8 +161,7 @@ bool le::ShaderLighting::Create()
 		#elif defined( SPOT_LIGHT ) \n\
 			float 	attenuation = pow( clamp( 1.f - pow( distance / light.height, 4.f ), 0.f, 1.f ), 2.f ) / ( pow( distance, 2.f ) + 1.f );\n\
 		#endif \n\
-		float	specularFactor = pow( max( dot( normal.xyz, halfwayDirection ), 0.f ), normal.a ) * fragColor.a; \n\
-		//float	specularFactor = max( pow( dot( reflect( -lightDirection, normal.xyz ), viewDirection ), normal.a ) * fragColor.a, 0.f );\n\
+		float	specularFactor = max( pow( dot( reflect( -lightDirection, normal.xyz ), viewDirection ), normal.a ) * fragColor.a, 0.f );\n\
 		\n\
 		#ifdef SPOT_LIGHT \n\
 			float 		spotFactor = dot( -lightDirection, normalize( light.direction ) );\n\

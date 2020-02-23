@@ -467,7 +467,7 @@ void le::Level::Update( UInt32_t DeltaTime )
 		{
 			Sprite*			sprite = arraySprites[ index ];
 			// TODO: add check on visible
-
+			
 			g_studioRender->SubmitMesh( sprite->GetMesh(), sprite->GetTransformation( camera ) );
 		}
 

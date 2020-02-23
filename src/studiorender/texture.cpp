@@ -11,7 +11,9 @@
 #include <GL/glew.h>
 
 #include "engine/lifeengine.h"
+#include "engine/iconsolesystem.h"
 #include "studiorender/studiorendersampler.h"
+
 #include "global.h"
 #include "texture.h"
 
@@ -29,6 +31,7 @@ inline OpenGLImageFormat TextureImageFormat_EnumToOpenGLFormat( le::IMAGE_FORMAT
 {
 	switch ( ImageFormat )
 	{
+	case le::IF_R_8UNORM:			return { GL_RED, GL_RED, GL_UNSIGNED_BYTE };
 	case le::IF_RGBA_8UNORM:		return { GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE };
 	case le::IF_RGB_8UNORM:			return { GL_RGB, GL_RGB, GL_UNSIGNED_BYTE };
 	case le::IF_RGBA_16FLOAT:		return { GL_RGBA16F, GL_RGBA, GL_FLOAT };
@@ -164,12 +167,118 @@ void le::Texture::Update( UInt32_t X, UInt32_t Y, UInt32_t Width, UInt32_t Heigh
 }
 
 // ------------------------------------------------------------------------------------ //
+// Resize texture
+// ------------------------------------------------------------------------------------ //
+void le::Texture::Resize( UInt32_t NewWidth, UInt32_t NewHeight, bool IsSaveData )
+{
+	if ( type != TT_2D )
+	{
+		g_consoleSystem->PrintError( "le::Texture::Resize implemented only for 2D textures" );
+		return;
+	}
+
+	// If we don’t need to save the data, just recreate the texture
+	if ( !IsSaveData )
+	{
+		OpenGLImageFormat		openglImageFormat = TextureImageFormat_EnumToOpenGLFormat( imageFormat );
+		glTexImage2D( GL_TEXTURE_2D, 0, openglImageFormat.internalFormat, NewWidth, NewHeight, 0, openglImageFormat.format, openglImageFormat.type, nullptr );
+
+		width = NewWidth;
+		height = NewHeight;
+		return;
+	}
+
+	// We save the current frame buffer binders so that we can restore them later
+	GLint		readFramebuffer = 0;
+	GLint		drawFramebuffer = 0;
+
+	glGetIntegerv( GL_READ_FRAMEBUFFER_BINDING, &readFramebuffer );
+	glGetIntegerv( GL_DRAW_FRAMEBUFFER_BINDING, &drawFramebuffer );
+
+	// Create frame buffers
+	GLuint		sourceFramebuffer = 0;
+	GLuint		destFramebuffer = 0;
+
+	glGenFramebuffers( 1, &sourceFramebuffer );
+	glGenFramebuffers( 1, &destFramebuffer );
+
+	if ( !sourceFramebuffer || !destFramebuffer )
+	{
+		g_consoleSystem->PrintError( "Cannot copy texture, failed to create a frame buffer object" );
+		return;
+	}
+
+	// Remember the identifier of the old texture and create a new oneю
+	OpenGLImageFormat		openglImageFormat = TextureImageFormat_EnumToOpenGLFormat( imageFormat );
+	GLuint					oldTexture = handle;
+
+	glGenTextures( 1, &handle );
+	glBindTexture( GL_TEXTURE_2D, handle );
+	glTexImage2D( GL_TEXTURE_2D, 0, openglImageFormat.internalFormat, NewWidth, NewHeight, 0, openglImageFormat.format, openglImageFormat.type, nullptr );
+
+	ApplySampler( sampler );
+
+	// Join the original texture with the original frame buffer
+	glBindFramebuffer( GL_READ_FRAMEBUFFER, sourceFramebuffer );
+	glFramebufferTexture2D( GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, oldTexture, 0 );
+
+	// Join destination texture with destination frame buffer
+	glBindFramebuffer( GL_DRAW_FRAMEBUFFER, destFramebuffer );
+	glFramebufferTexture2D( GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, handle, 0 );
+
+	// Final check for correct creation of buffers
+	GLenum			sourceStatus;
+	sourceStatus = glCheckFramebufferStatus( GL_READ_FRAMEBUFFER );
+
+	GLenum			destStatus;
+	destStatus = glCheckFramebufferStatus( GL_DRAW_FRAMEBUFFER );
+
+	if ( sourceStatus == GL_FRAMEBUFFER_COMPLETE && destStatus == GL_FRAMEBUFFER_COMPLETE )
+	{
+		// Draws the contents of the texture from the source to the destination of the texture
+		glBlitFramebuffer(
+			0, 0, width, height,		// source rectangle
+			0, 0, width, height,		// destination rectangle
+			GL_COLOR_BUFFER_BIT, GL_NEAREST
+		);
+	}
+	else
+		g_consoleSystem->PrintError( "Cannot copy texture, failed to link texture to frame buffer" );
+
+	// Restore buffers
+	glBindFramebuffer( GL_READ_FRAMEBUFFER, readFramebuffer );
+	glBindFramebuffer( GL_DRAW_FRAMEBUFFER, drawFramebuffer );
+
+	// Delete the buffers that were created and the old texture
+	glDeleteFramebuffers( 1, &sourceFramebuffer );
+	glDeleteFramebuffers( 1, &destFramebuffer );
+	glDeleteTextures( 1, &oldTexture );
+
+	// If previously there were mipmap levels, then we generate them again
+	if ( countMipmaps > 1 )
+		GenerateMipmaps();
+
+	width = NewWidth;
+	height = NewHeight;
+	glBindTexture( GL_TEXTURE_2D, 0 );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Задать семплер текстуры
 // ------------------------------------------------------------------------------------ //
 void le::Texture::SetSampler( const StudioRenderSampler& Sampler )
 {
 	LIFEENGINE_ASSERT( handle && layer );
 
+	sampler = Sampler;
+	ApplySampler( Sampler );	
+}
+
+// ------------------------------------------------------------------------------------ //
+// Apply sampler texture
+// ------------------------------------------------------------------------------------ //
+void le::Texture::ApplySampler( const StudioRenderSampler& Sampler )
+{
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, ConvertEngineSamplerAddressMode_To_OpenGLTextureAddressMode( Sampler.addressU ) );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, ConvertEngineSamplerAddressMode_To_OpenGLTextureAddressMode( Sampler.addressV ) );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, ConvertEngineSamplerAddressMode_To_OpenGLTextureAddressMode( Sampler.addressW ) );
@@ -224,6 +333,14 @@ le::UInt32_t le::Texture::GetCountMipmaps() const
 le::TEXTURE_TYPE le::Texture::GetType() const
 {
 	return type;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get texture sampler
+// ------------------------------------------------------------------------------------ //
+const le::StudioRenderSampler& le::Texture::GetSampler() const
+{
+	return sampler;
 }
 
 // ------------------------------------------------------------------------------------ //

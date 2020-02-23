@@ -27,6 +27,7 @@
 #include "engine/concmd.h"
 #include "engine/buildnum.h"
 #include "engine/resourcesystem.h"
+#include "engine/fontfreetype.h"
 #include "studiorender/istudiorenderinternal.h"
 #include "studiorender/studiorenderviewport.h"
 #include "studiorender/ishadermanager.h"
@@ -112,6 +113,8 @@ le::Engine::~Engine()
 		consoleSystem.UnregisterCommand( cmd_Version->GetName() );
 		delete cmd_Version;
 	}
+
+	FontFreeType::UninitializeFreeType();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -621,6 +624,7 @@ bool le::Engine::Initialize( WindowHandle_t WindowHandle )
 		if ( !shaderManager )		throw std::exception( "In studiorender not exist shader manager" );
 		if ( !shaderManager->LoadShaderDLL( LIFEENGINE_STDSHADERS_DLL ) )	throw std::exception( "Failed loading stdshaders" );
 
+		FontFreeType::InitializeFreeType();
 		resourceSystem.Initialize( this );
 	}
 	catch ( const std::exception& Exception )

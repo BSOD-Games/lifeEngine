@@ -35,6 +35,7 @@
 #include "consolesystem.h"
 #include "resourcesystem.h"
 #include "level.h"
+#include "fontfreetype.h"
 
 #define LMD_ID			"LMD"
 #define LMD_VERSION		2
@@ -567,6 +568,21 @@ le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, l
 }
 
 // ------------------------------------------------------------------------------------ //
+// Load font
+// ------------------------------------------------------------------------------------ //
+le::IFont* LE_LoadFont( const char* Path )
+{
+	le::FontFreeType*			fontFreeType = new le::FontFreeType();
+	if ( !fontFreeType->Load( Path ) )
+	{
+		delete fontFreeType;
+		return nullptr;
+	}
+
+	return fontFreeType;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Загрузить уровень
 // ------------------------------------------------------------------------------------ //
 le::ILevel* LE_LoadLevel( const char* Path, le::IFactory* GameFactory )
@@ -642,6 +658,17 @@ void le::ResourceSystem::RegisterLoader_Level( const char* Format, LoadLevelFn_t
 }
 
 // ------------------------------------------------------------------------------------ //
+// Register loader fonts
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader_Font( const char* Format, LoadFontFn_t LoadFont )
+{	
+	LIFEENGINE_ASSERT( Format );
+	LIFEENGINE_ASSERT( LoadFont );
+
+	g_consoleSystem->PrintInfo( "Loader font for format [%s] registered", Format );
+	loaderFonts[ Format ] = LoadFont;}
+
+// ------------------------------------------------------------------------------------ //
 // Разрегестрировать загрузчик картинок
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnregisterLoader_Image( const char* Format )
@@ -709,6 +736,20 @@ void le::ResourceSystem::UnregisterLoader_Level( const char* Format )
 
 	loaderLevels.erase( it );
 	g_consoleSystem->PrintInfo( "Loader level for format [%s] unregistered", Format );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Unregister loader font
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnregisterLoader_Font( const char* Format )
+{	
+	LIFEENGINE_ASSERT( Format );
+
+	auto		it = loaderFonts.find( Format );
+	if ( it == loaderFonts.end() ) return;
+
+	loaderFonts.erase( it );
+	g_consoleSystem->PrintInfo( "Loader font for format [%s] unregistered", Format );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -904,6 +945,44 @@ le::ILevel* le::ResourceSystem::LoadLevel( const char* Name, const char* Path, I
 }
 
 // ------------------------------------------------------------------------------------ //
+// Load font
+// ------------------------------------------------------------------------------------ //
+le:: IFont* le::ResourceSystem::LoadFont( const char* Name, const char* Path )
+{
+	LIFEENGINE_ASSERT( Name );
+	LIFEENGINE_ASSERT( Path );
+
+	try
+	{
+		if ( fonts.find( Name ) != fonts.end() )			return fonts[ Name ];
+		if ( loaderFonts.empty() )							throw std::exception( "No font loaders" );
+
+		std::string			path = gameDir + "/" + Path;
+
+		g_consoleSystem->PrintInfo( "Loading font [%s] with name [%s]", Path, Name );
+
+		std::string			format = GetFormatFile( path );
+		if ( format.empty() )						throw std::exception( "In font format not found" );
+
+		auto				parser = loaderFonts.find( format );
+		if ( parser == loaderFonts.end() )		throw std::exception( "Loader for format font not found" );
+
+		IFont* 		font = parser->second( path.c_str() );
+		if ( !font )							throw std::exception( "Fail loading font" );
+
+		fonts.insert( std::make_pair( Name, font ) );
+		g_consoleSystem->PrintInfo( "Loaded font [%s]", Name );
+
+		return font;
+	}
+	catch ( std::exception & Exception )
+	{
+		g_consoleSystem->PrintError( "Font [%s] not loaded: %s", Path, Exception.what() );
+		return nullptr;
+	}	
+}
+
+// ------------------------------------------------------------------------------------ //
 // Выгрузить картинку
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadImage( Image& Image )
@@ -992,6 +1071,23 @@ void le::ResourceSystem::UnloadLevel( const char* Name )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Unload font
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadFont( const char* Name )
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto				it = fonts.find( Name );
+	if ( it == fonts.end() )	return;
+
+	// TODO: Сделать правильное удаление, ибо объект может быть создан в другом модуле
+	delete it->second;
+	fonts.erase( it );
+
+	g_consoleSystem->PrintInfo( "Unloaded font [%s]", Name );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Выгрузить все материалы
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadMaterials()
@@ -1040,6 +1136,20 @@ void le::ResourceSystem::UnloadLevels()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Unload all fonts
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadFonts()
+{
+	if ( fonts.empty() ) return;
+
+	for ( auto it = fonts.begin(), itEnd = fonts.end(); it != itEnd; ++it )
+		delete it->second;
+
+	g_consoleSystem->PrintInfo( "Unloaded all fonts" );
+	fonts.clear();	
+}
+
+// ------------------------------------------------------------------------------------ //
 // Выгрузить все текстуры
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadTextures()
@@ -1068,6 +1178,7 @@ void le::ResourceSystem::UnloadAll()
 	UnloadMeshes();
 	UnloadMaterials();
 	UnloadTextures();
+	UnloadFonts();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1122,6 +1233,19 @@ le::ILevel* le::ResourceSystem::GetLevel( const char* Name ) const
 }
 
 // ------------------------------------------------------------------------------------ //
+// Get font
+// ------------------------------------------------------------------------------------ //
+le::IFont* le::ResourceSystem::GetFont( const char* Name ) const
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto	it = fonts.find( Name );
+	if ( it != fonts.end() )		return it->second;
+
+	return nullptr;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Инициализировать систему ресурсов
 // ------------------------------------------------------------------------------------ //
 bool le::ResourceSystem::Initialize( IEngine* Engine )
@@ -1142,6 +1266,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 		RegisterLoader_Material( "lmt", LE_LoadMaterial );
 		RegisterLoader_Mesh( "lmd", LE_LoadMesh );
 		RegisterLoader_Level( "bsp", LE_LoadLevel );
+		RegisterLoader_Font( "ttf", LE_LoadFont );
 	}
 	catch ( std::exception & Exception )
 	{
