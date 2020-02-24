@@ -29,6 +29,7 @@
 
 #include "shader_lighting.h"
 #include "shader_depth.h"
+#include "shader_postprocess.h"
 
 //---------------------------------------------------------------------//
 
@@ -67,9 +68,9 @@ namespace le
 		~StudioRender();
 
 	private:
-		void								Render_GeometryPass( const SceneDescriptor& SceneDescriptor );
-		void								Render_LightPass( const SceneDescriptor& SceneDescriptor );
-		void								Render_FinalPass( const SceneDescriptor& SceneDescriptor );
+		void								Render_GeometryPass();
+		void								Render_LightPass();
+		void								Render_FinalPass();
 
 		bool								isInitialize;
 
@@ -84,6 +85,7 @@ namespace le
 		Cone								cone;
 		ShaderDepth							shaderDepth;
 		ShaderLighting						shaderLighting;
+		ShaderPostprocess					shaderPostrocess;
 
 		UInt32_t							currentScene;
 		std::vector< SceneDescriptor >		scenes;

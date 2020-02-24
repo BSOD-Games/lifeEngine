@@ -39,7 +39,8 @@ namespace le
 		{
 			BT_NONE,
 			BT_GEOMETRY,
-			BT_LIGHT
+			BT_LIGHT,
+			BT_FINAL
 		};
 
 		//---------------------------------------------------------------------//

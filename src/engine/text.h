@@ -11,6 +11,8 @@
 #ifndef TEXT_H
 #define TEXT_H
 
+#include <string>
+
 #include "engine/itext.h"
 #include "engine/imaterial.h"
 
@@ -18,6 +20,13 @@
 
 namespace le
 {
+    //---------------------------------------------------------------------//
+
+    class IMaterial;
+    class IStudioRenderTechnique;
+    class IStudioRenderPass;
+    class ITexture;
+
     //---------------------------------------------------------------------//
 
     class Text : public IText
@@ -37,7 +46,7 @@ namespace le
         virtual const Vector3D_t&       GetColor() const;
         virtual float                   GetLetterSpacingFactor() const;
         virtual float                   GetLineSpacingFactor() const;
-        virtual IMesh*                  GetMesh() const;
+        virtual IMesh*                  GetMesh();
 
         // ITransformable
         virtual void					Move( const Vector3D_t& FactorMove );
@@ -61,13 +70,29 @@ namespace le
 
     private:        
         void				UpdateTransformation();
+        void                UpdateGeometry();
 
  		bool				isNeedUpdateTransformation;
+        bool                isNeedUpdateGeometry;
 
-		Vector3D_t			position;
-		Quaternion_t		rotation;
-		Vector3D_t			scale;
-		Matrix4x4_t			transformation;  
+        IMesh*                      mesh;
+        IFont*                      font;
+        ITexture*                   texture;
+        IMaterial*                  material;
+        IStudioRenderTechnique*     renderTechique;
+        IStudioRenderPass*          renderPass;
+        std::string                 text;
+        std::string                 fontName;
+        UInt32_t                    characterSize;
+        float                       letterSpacingFactor;
+        float                       lineSpacingFactor;
+
+        Vector2D_t                  sizeTextureFont;
+        Vector3D_t                  color;
+		Vector3D_t			        position;
+		Quaternion_t		        rotation;
+		Vector3D_t			        scale;
+		Matrix4x4_t			        transformation;  
     };
 
     //---------------------------------------------------------------------//

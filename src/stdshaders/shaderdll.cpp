@@ -19,6 +19,7 @@
 #include "lightmappedgeneric.h"
 #include "testshader.h"
 #include "spritegeneric.h"
+#include "textgeneric.h"
 
 LIFEENGINE_STDSHADERS_API( le::ShaderDLL );
 
@@ -37,6 +38,7 @@ bool le::ShaderDLL::Initialize( IEngine* Engine )
 	shaders.push_back( new LightmappedGeneric() );
 	shaders.push_back( new TestShader() );
 	shaders.push_back( new SpriteGeneric() );
+	shaders.push_back( new TextGeneric() );
 
 	return true;
 }

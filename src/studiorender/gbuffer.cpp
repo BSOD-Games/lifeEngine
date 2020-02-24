@@ -156,6 +156,19 @@ void le::GBuffer::Bind( BIND_TYPE BindType )
 		depth.Bind( 3 );
 		break;
 
+	case BT_FINAL:
+		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+
+		// Albedo + Specular
+		albedoSpecular.Bind( 0 );
+
+		// Emission
+		emission.Bind( 1 );
+
+		// Light
+		finalFrame.Bind( 2 );
+		break;
+
 	default:
 		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 		break;

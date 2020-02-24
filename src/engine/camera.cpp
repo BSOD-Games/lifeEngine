@@ -335,7 +335,7 @@ le::Camera::Camera() :
 	position( 0.f, 0.f, 0.f ),
 	targetDirection( 0.f, 0.f, -1.f ),
 	localTargetDirection( 0.f, 0.f, -1.f ),
-	quatRotation( 0.f, 0.f, 0.f, 0.f ),
+	quatRotation( 1.f, 0.f, 0.f, 0.f ),
 	eulerRotation( 0.f, 0.f, 0.f ),
 	matrixProjection( 1.f ),
 	matrixView( 1.f )

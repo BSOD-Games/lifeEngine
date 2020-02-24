@@ -43,7 +43,7 @@ namespace le
         virtual const Vector3D_t&       GetColor() const = 0;
         virtual float                   GetLetterSpacingFactor() const = 0;
         virtual float                   GetLineSpacingFactor() const = 0;
-        virtual IMesh*                  GetMesh() const = 0;
+        virtual IMesh*                  GetMesh() = 0;
     };
 
     //---------------------------------------------------------------------//
