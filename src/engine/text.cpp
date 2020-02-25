@@ -54,21 +54,25 @@ le::Text::Text() :
 	scale( 1.f ),
 	font( nullptr ),
 	material( nullptr ),
-	renderTechique( nullptr ),
-	renderPass( nullptr ),
+	material_techique( nullptr ),
+	material_pass( nullptr ),
 	mesh( nullptr ),
-	texture( nullptr ),
+	materialParam_color( nullptr ),
+	materialParam_basetexture( nullptr ),
 	characterSize( 45 ),
 	lineSpacingFactor( 1.f ),
 	letterSpacingFactor( 1.f ),
-	color( 1.f )
+	color( 1.f ),
+	textureSize( 0.f )
 {}
 
 // ------------------------------------------------------------------------------------ //
 // Destructor
 // ------------------------------------------------------------------------------------ //
 le::Text::~Text()
-{}
+{
+	Delete();
+}
 
 // ------------------------------------------------------------------------------------ //
 // Update transformation
@@ -82,38 +86,67 @@ void le::Text::UpdateTransformation()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Update geometry
+// Удалить текст
+// ------------------------------------------------------------------------------------ //
+void le::Text::Delete()
+{
+	IFactory*			studioRenderFactory = g_studioRender->GetFactory();
+
+	if ( mesh )
+	{
+		studioRenderFactory->Delete( mesh );
+		mesh = nullptr;
+	}
+
+	if ( material )
+	{
+		delete material;
+		studioRenderFactory->Delete( materialParam_basetexture );
+		studioRenderFactory->Delete( materialParam_color );
+		studioRenderFactory->Delete( material_pass );
+		studioRenderFactory->Delete( material_techique );
+
+		materialParam_basetexture = nullptr;
+		materialParam_color = nullptr;
+		material_techique = nullptr;
+		material_pass = nullptr;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Обновить геометрию текста
 // ------------------------------------------------------------------------------------ //
 void le::Text::UpdateGeometry()
 {
-	// TODO: Отрефакторить этот говнокод
-
-	if ( !isNeedUpdateGeometry )	return;
-	LIFEENGINE_ASSERT( g_studioRender && g_studioRender->GetFactory() );
-	IFactory*		studioRenderFactory = g_studioRender->GetFactory();
-
+	// Если шрифт не указан - удаляем меш и материал, если есть
 	if ( !font )
 	{
-		if ( mesh )
-		{
-			studioRenderFactory->Delete( mesh );
-			mesh = nullptr;
-		}
-
+		Delete();
 		return;
 	}
-	
-	std::vector< VertexText >	buffer;
-	std::vector< UInt32_t >		indeces;
-	float						lineSpacing = font->GetLineSpacing( characterSize ) * lineSpacingFactor;
-	float						whitespaceWidth = font->GetGlyph( ' ', characterSize ).advance;
-	float						letterSpacing = ( whitespaceWidth / 3.f ) * ( letterSpacingFactor - 1.f );
-	float						localPositionX = 0.f;
-	float						localPositionY = 0.f;
+
+	// Если геометрия текста с размером текстуры не менялись, то ничего не делаем	
+	ITexture*			font_texture = font->GetTexture( characterSize );
+	Vector2D_t			font_textureSize;
+	if ( font_texture )
+	{
+		font_textureSize = Vector2D_t( font_texture->GetWidth(), font_texture->GetHeight() );
+		if( !isNeedUpdateGeometry && textureSize == font_textureSize )
+			return;
+	}
+
+	std::vector< VertexText >		buffer;
+	std::vector< UInt32_t >			indeces;
+	float							lineSpacing = font->GetLineSpacing( characterSize ) * lineSpacingFactor;
+	float							whitespaceWidth = font->GetGlyph( ' ', characterSize ).advance;
+	float							letterSpacing = ( whitespaceWidth / 3.f ) * ( letterSpacingFactor - 1.f );
+	float							localPositionX = 0;
+	float							localPositionY = 0;	
 
 	whitespaceWidth += letterSpacing;
 
-	for ( UInt32_t index = 0, count = text.size(); index < count; ++index )
+	// Обновляем геометрию текста
+	for ( uint32_t index = 0, vertexIndex = 0, count = text.size(); index < count; ++index )
 	{
 		switch ( text[ index ] )
 		{
@@ -141,70 +174,89 @@ void le::Text::UpdateGeometry()
 		float			u2 = static_cast< float >( glyph.textureRect.left + glyph.textureRect.width ) ;
 		float			v2 = static_cast< float >( glyph.textureRect.top + glyph.textureRect.height );
 
-		buffer.push_back( VertexText( Vector3D_t( xPosition,							yPosition + glyph.bounds.height,	1 ), Vector2D_t( u1, v1 ) ) );
-		buffer.push_back( VertexText( Vector3D_t( xPosition,							yPosition,							1 ), Vector2D_t( u1, v2 ) ) );
-		buffer.push_back( VertexText( Vector3D_t( xPosition + glyph.bounds.width,		yPosition,							1 ), Vector2D_t( u2, v2 ) ) );
-		buffer.push_back( VertexText( Vector3D_t( xPosition,							yPosition + glyph.bounds.height,	1 ), Vector2D_t( u1, v1 ) ) );
-		buffer.push_back( VertexText( Vector3D_t( xPosition + glyph.bounds.width,		yPosition,							1 ), Vector2D_t( u2, v2 ) ) );
-		buffer.push_back( VertexText( Vector3D_t( xPosition + glyph.bounds.width,		yPosition + glyph.bounds.height,	1 ), Vector2D_t( u2, v1 ) ) );
+		// Записываем вершины текста
+		buffer.push_back( VertexText( Vector3D_t( xPosition, yPosition + glyph.bounds.height, 0.f ), Vector2D_t( u1, v1 ) ) );
+		buffer.push_back( VertexText( Vector3D_t( xPosition, yPosition, 0.f ), Vector2D_t( u1, v2 ) ) );
+		buffer.push_back( VertexText( Vector3D_t( xPosition + glyph.bounds.width, yPosition, 0.f ), Vector2D_t( u2, v2 ) ) );
+		buffer.push_back( VertexText( Vector3D_t( xPosition + glyph.bounds.width, yPosition + glyph.bounds.height, 0.f ), Vector2D_t( u2, v1 ) ) );
 
+		// Записываем индексы вершин
+		indeces.push_back( vertexIndex ); 
+		indeces.push_back( vertexIndex + 1 ); 
+		indeces.push_back( vertexIndex + 2 ); 
+		indeces.push_back( vertexIndex ); 
+		indeces.push_back( vertexIndex + 2 ); 
+		indeces.push_back( vertexIndex + 3 ); 
+
+		vertexIndex += 4;
 		localPositionX += glyph.advance + letterSpacing;
-	}
+	}	
 
-	for ( UInt32_t index = 0, count = buffer.size(); index < count; ++index )
-		indeces.push_back( index );
-
-	if ( !texture )
+	// Если размеры текстуры менялись - запоминаем новые размеры
+	if ( !font_texture )
 	{
-		texture = font->GetTexture( characterSize );
-		sizeTextureFont = Vector2D_t( texture->GetWidth(), texture->GetHeight() );
+		font_texture = font->GetTexture( characterSize );
+		textureSize = Vector2D_t( font_texture->GetWidth(), font_texture->GetHeight() );
 	}
-	else if ( sizeTextureFont != Vector2D_t( texture->GetWidth(), texture->GetHeight() ) )		
-		sizeTextureFont = Vector2D_t( texture->GetWidth(), texture->GetHeight() );
-
+	else if ( textureSize != font_textureSize )
+		textureSize = font_textureSize;
+		
+	// Проходимся по буферу и нормализуем текстурные координаты в пределах [0..1], 
+	// а так же записываем индексы вершин
 	for ( UInt32_t index = 0, count = buffer.size(); index < count; ++index )
-		buffer[ index ].texCoords /= sizeTextureFont;
+		buffer[ index ].texCoords /= textureSize;
 
+	// Если ранее меш текста был создан - обновляем данные, иначе создаем
 	if ( mesh && mesh->IsCreated() )
 	{
-		// TODO: Add update mesh
+		// TODO: Реализовать в Mesh возможность обновить данные
 	}
 	else
 	{
-		mesh = ( IMesh* ) studioRenderFactory->Create( MESH_INTERFACE_VERSION );
-		renderTechique = ( IStudioRenderTechnique* ) studioRenderFactory->Create( TECHNIQUE_INTERFACE_VERSION );
-		renderPass = ( IStudioRenderPass* ) studioRenderFactory->Create( PASS_INTERFACE_VERSION );
-		IShaderParameter*		shaderParamTexture = ( IShaderParameter* ) studioRenderFactory->Create( SHADERPARAMETER_INTERFACE_VERSION );
-		IShaderParameter*		shaderParamColor = ( IShaderParameter* ) studioRenderFactory->Create( SHADERPARAMETER_INTERFACE_VERSION );
-		material = new Material();
+		IFactory*		studioRenderFactory = g_studioRender->GetFactory();
 
-		if ( !mesh || !renderTechique || !renderPass || !shaderParamTexture || !shaderParamColor ) 
-			return;
+		// Если класс меша не создан - создаем
+		if ( !mesh )	
+			mesh = ( IMesh* ) studioRenderFactory->Create( MESH_INTERFACE_VERSION );
+		
+		// Если класс материала не создан - создаем
+		if ( !material )
+		{
+			material = new Material();
+			material_techique = ( IStudioRenderTechnique* ) studioRenderFactory->Create( TECHNIQUE_INTERFACE_VERSION );
+			material_pass = ( IStudioRenderPass* ) studioRenderFactory->Create( PASS_INTERFACE_VERSION );
+			materialParam_basetexture = ( IShaderParameter* ) studioRenderFactory->Create( SHADERPARAMETER_INTERFACE_VERSION );
+			materialParam_color = ( IShaderParameter* ) studioRenderFactory->Create( SHADERPARAMETER_INTERFACE_VERSION );
 
-		shaderParamTexture->SetName( "basetexture" );
-		shaderParamTexture->SetValueTexture( texture );
-		shaderParamColor->SetName( "color" );
-		shaderParamColor->SetValueVector3D( color );
+			materialParam_basetexture->SetName( "basetexture" );
+			materialParam_basetexture->SetValueTexture( font_texture );
 
-		renderTechique->SetType( RT_DEFFERED_SHADING );
-		renderTechique->AddPass( renderPass );
-		renderPass->SetShader( "TextGeneric" );
-		renderPass->AddParameter( shaderParamTexture );
-		renderPass->AddParameter( shaderParamColor );
+			materialParam_color->SetName( "color" );
+			materialParam_color->SetValueVector3D( color / 255.f );		
 
-		material->AddTechnique( renderTechique );
+			material_pass->SetShader( "TextGeneric" );
+			material_pass->AddParameter( materialParam_basetexture );
+			material_pass->AddParameter( materialParam_color );
 
-		// Filling information about vertex element in sprite mesh
+			material_techique->SetType( RT_DEFFERED_SHADING );
+			material_techique->AddPass( material_pass );
+
+			material->AddTechnique( material_techique );
+		}
+
+		// Заполняем массив формата вершин
 		std::vector< StudioVertexElement >		vertexElements =
 		{
 			{ 3, VET_FLOAT },
 			{ 2, VET_FLOAT }
-		};
+		};	
 
+		// Заполняем информацию об поверхности меша
 		MeshSurface					surface;
 		surface.materialID = surface.lightmapID = surface.startIndex = surface.startVertexIndex = 0;
 		surface.countIndeces = indeces.size();
 
+		// Заполняем описание меша для его создания
 		MeshDescriptor			meshDescriptor;
 		meshDescriptor.countIndeces = indeces.size();
 		meshDescriptor.countMaterials = 1;
@@ -381,7 +433,10 @@ void le::Text::SetText( const char* Text )
 // ------------------------------------------------------------------------------------ //
 void le::Text::SetColor( const Vector3D_t& Color )
 {
-	color = Color / 255.f;
+	color = Color;
+
+	if ( materialParam_color )		
+		materialParam_color->SetValueVector3D( Color / 255.f );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -455,8 +510,6 @@ float le::Text::GetLineSpacingFactor() const
 // ------------------------------------------------------------------------------------ //
 le::IMesh* le::Text::GetMesh()
 {
-	if ( isNeedUpdateGeometry )
-		UpdateGeometry();
-
+	UpdateGeometry();
     return mesh;
 }

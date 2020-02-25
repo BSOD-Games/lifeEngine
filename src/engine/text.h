@@ -25,6 +25,7 @@ namespace le
     class IMaterial;
     class IStudioRenderTechnique;
     class IStudioRenderPass;
+    class IShaderParameter;
     class ITexture;
 
     //---------------------------------------------------------------------//
@@ -68,27 +69,29 @@ namespace le
         Text();
         ~Text();
 
-    private:        
+    private:
         void				UpdateTransformation();
         void                UpdateGeometry();
+        void                Delete();
 
  		bool				isNeedUpdateTransformation;
         bool                isNeedUpdateGeometry;
 
         IMesh*                      mesh;
         IFont*                      font;
-        ITexture*                   texture;
-        IMaterial*                  material;
-        IStudioRenderTechnique*     renderTechique;
-        IStudioRenderPass*          renderPass;
         std::string                 text;
-        std::string                 fontName;
         UInt32_t                    characterSize;
         float                       letterSpacingFactor;
         float                       lineSpacingFactor;
+        Vector2D_t                  textureSize;
+        Vector3D_t                  color;    
 
-        Vector2D_t                  sizeTextureFont;
-        Vector3D_t                  color;
+        IMaterial*                  material;
+        IStudioRenderTechnique*     material_techique;
+        IStudioRenderPass*          material_pass;
+        IShaderParameter*           materialParam_color;
+        IShaderParameter*           materialParam_basetexture;
+
 		Vector3D_t			        position;
 		Quaternion_t		        rotation;
 		Vector3D_t			        scale;

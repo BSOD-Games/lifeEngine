@@ -114,7 +114,11 @@ float le::FontFreeType::GetLineSpacing( UInt32_t CharacterSize ) const
 // ------------------------------------------------------------------------------------ //
 le::ITexture* le::FontFreeType::GetTexture( UInt32_t CharacterSize ) const
 {
-    return pages.at( CharacterSize ).texture;
+    auto        itFind = pages.find( CharacterSize );
+    if ( itFind == pages.end() )
+        return nullptr;
+
+    return itFind->second.texture;
 }
 
 // ------------------------------------------------------------------------------------ //
