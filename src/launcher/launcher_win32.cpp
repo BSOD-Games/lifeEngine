@@ -42,18 +42,18 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
 	le::LE_DeleteEngineFn_t					LE_DeleteEngine = nullptr;
 	le::LE_SetCriticalErrorFn_t				LE_SetCriticalError = nullptr;
 
-	SetDllDirectoryA( "engine" );
+    SetDllDirectoryA( "engine" );
 
 	try
 	{
 		// Загружаем ядро движка
-		engineDLL = LoadLibraryA( "engine/" LIFEENGINE_ENGINE_DLL );
+        engineDLL = LoadLibraryA( "engine/" LIFEENGINE_ENGINE_DLL );
 		if ( !engineDLL )
-			throw std::exception( "Faile loaded engine/" LIFEENGINE_ENGINE_DLL );
+            throw std::runtime_error( "Faile loaded engine/" LIFEENGINE_ENGINE_DLL );
 
 		LE_CreateEngine = ( le::LE_CreateEngineFn_t ) GetProcAddress( engineDLL, "LE_CreateEngine" );
 		if ( !LE_CreateEngine )
-			throw std::exception( "Faile get adress on function LE_CreateEngine" );
+			throw std::runtime_error( "Faile get adress on function LE_CreateEngine" );
 
 		LE_DeleteEngine = ( le::LE_DeleteEngineFn_t ) GetProcAddress( engineDLL, "LE_DeleteEngine" );
 		LE_SetCriticalError = ( le::LE_SetCriticalErrorFn_t ) GetProcAddress( engineDLL, "LE_SetCriticalError" );
@@ -111,11 +111,11 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
 
 			// Инициализируем движок для запуска игры
 			if ( !engine->Initialize() )
-				throw std::exception( "The engine is not initialized. See the logs for details" );
+				throw std::runtime_error( "The engine is not initialized. See the logs for details" );
 
 			// Загружаем игру
 			if ( !engine->LoadGame( gameDir.c_str() ) )
-				throw std::exception( ( std::string( "Failed to load game [" ) + gameDir + "]" ).c_str() );
+				throw std::runtime_error( ( std::string( "Failed to load game [" ) + gameDir + "]" ).c_str() );
 		}
 
 		// Если все прошло успешно - запускаем симуляцию игры

@@ -12,6 +12,7 @@
 #define IMATERIAL_H
 
 #include "common/types.h"
+#include "studiorender/istudiorendertechnique.h"
 
 //---------------------------------------------------------------------//
 
@@ -20,7 +21,6 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	class IStudioRenderTechnique;
-	enum RENDER_TECHNIQUE;
 
 	//---------------------------------------------------------------------//
 

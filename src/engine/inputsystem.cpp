@@ -61,24 +61,24 @@ void le::InputSystem::ApplyEvent( const Event& Event )
 {
 	switch ( Event.type )
 	{
-	case Event::ET_KEY_PRESSED:			buttonEvents[ Event.key.code ] = BE_PRESSED;			break;
-	case Event::ET_KEY_RELEASED:		buttonEvents[ Event.key.code ] = BE_RELEASED;			break;
+    case Event::ET_KEY_PRESSED:			buttonEvents[ Event.events.key.code ] = BE_PRESSED;			break;
+    case Event::ET_KEY_RELEASED:		buttonEvents[ Event.events.key.code ] = BE_RELEASED;			break;
 
-	case Event::ET_MOUSE_PRESSED:		buttonEvents[ Event.mouseButton.code ] = BE_PRESSED;	break;
-	case Event::ET_MOUSE_RELEASED:		buttonEvents[ Event.mouseButton.code ] = BE_RELEASED;	break;
+    case Event::ET_MOUSE_PRESSED:		buttonEvents[ Event.events.mouseButton.code ] = BE_PRESSED;	break;
+    case Event::ET_MOUSE_RELEASED:		buttonEvents[ Event.events.mouseButton.code ] = BE_RELEASED;	break;
 
 	case Event::ET_MOUSE_MOVE:
-		mouseOffset.x = Event.mouseMove.xDirection;
-		mouseOffset.y = Event.mouseMove.yDirection;
-		mousePosition.x = Event.mouseMove.x;
-		mousePosition.y = Event.mouseMove.y;
+        mouseOffset.x = Event.events.mouseMove.xDirection;
+        mouseOffset.y = Event.events.mouseMove.yDirection;
+        mousePosition.x = Event.events.mouseMove.x;
+        mousePosition.y = Event.events.mouseMove.y;
 		break;
 
 	case Event::ET_MOUSE_WHEEL:
-		if ( Event.mouseWheel.y == 0 )
+        if ( Event.events.mouseWheel.y == 0 )
 			buttonEvents[ BC_MOUSE_WHEEL_UP ] = buttonEvents[ BC_MOUSE_WHEEL_DOWN ] = BE_NONE;
 		else
-			buttonEvents[ Event.mouseWheel.y > 0 ? BC_MOUSE_WHEEL_UP : BC_MOUSE_WHEEL_DOWN ] = BE_SCROLLED;
+            buttonEvents[ Event.events.mouseWheel.y > 0 ? BC_MOUSE_WHEEL_UP : BC_MOUSE_WHEEL_DOWN ] = BE_SCROLLED;
 		break;
 
 	case Event::ET_TEXT_INPUT:

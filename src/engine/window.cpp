@@ -131,7 +131,7 @@ bool le::Window::PollEvent( Event& Event )
 	case SDL_TEXTINPUT:
 		// TODO: Эта хуйня мне не нравится, шото не уверен в таком виде хранения введеной строки
 		Event.type = Event::ET_TEXT_INPUT;
-		Event.textInputEvent.text = sdlEvent.text.text;
+        Event.events.textInputEvent.text = sdlEvent.text.text;
 		break;
 
 	// Событие нажатия и отжатия клавиш
@@ -142,13 +142,13 @@ bool le::Window::PollEvent( Event& Event )
 		else
 			Event.type = Event::ET_KEY_PRESSED;
 
-		Event.key.isAlt = sdlEvent.key.keysym.mod & KMOD_ALT;
-		Event.key.isCapsLock = sdlEvent.key.keysym.mod & KMOD_CAPS;
-		Event.key.isControl = sdlEvent.key.keysym.mod & KMOD_CTRL;
-		Event.key.isNumLock = sdlEvent.key.keysym.mod & KMOD_NUM;
-		Event.key.isShift = sdlEvent.key.keysym.mod & KMOD_SHIFT;
-		Event.key.isSuper = sdlEvent.key.keysym.mod & KMOD_GUI;
-		Event.key.code = ButtonCode_ScanCodeToButtonCode( sdlEvent.key.keysym.scancode );
+        Event.events.key.isAlt = sdlEvent.key.keysym.mod & KMOD_ALT;
+        Event.events.key.isCapsLock = sdlEvent.key.keysym.mod & KMOD_CAPS;
+        Event.events.key.isControl = sdlEvent.key.keysym.mod & KMOD_CTRL;
+        Event.events.key.isNumLock = sdlEvent.key.keysym.mod & KMOD_NUM;
+        Event.events.key.isShift = sdlEvent.key.keysym.mod & KMOD_SHIFT;
+        Event.events.key.isSuper = sdlEvent.key.keysym.mod & KMOD_GUI;
+        Event.events.key.code = ButtonCode_ScanCodeToButtonCode( sdlEvent.key.keysym.scancode );
 		break;
 
 	// Событие нажатия и отжатия кнопок мыши
@@ -159,25 +159,25 @@ bool le::Window::PollEvent( Event& Event )
 		else
 			Event.type = Event::ET_MOUSE_PRESSED;
 
-		Event.mouseButton.code = ButtonCode_MouseButtonToButtonCode( sdlEvent.button.button );
-		Event.mouseButton.x = sdlEvent.button.x;
-		Event.mouseButton.y = sdlEvent.button.y;
+        Event.events.mouseButton.code = ButtonCode_MouseButtonToButtonCode( sdlEvent.button.button );
+        Event.events.mouseButton.x = sdlEvent.button.x;
+        Event.events.mouseButton.y = sdlEvent.button.y;
 		break;
 
 	// Событие вращения колесика мыши
 	case SDL_MOUSEWHEEL:
 		Event.type = Event::ET_MOUSE_WHEEL;
-		Event.mouseWheel.x = sdlEvent.wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? sdlEvent.wheel.x * -1 : sdlEvent.wheel.x;
-		Event.mouseWheel.y = sdlEvent.wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? sdlEvent.wheel.y * -1 : sdlEvent.wheel.y;
+        Event.events.mouseWheel.x = sdlEvent.wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? sdlEvent.wheel.x * -1 : sdlEvent.wheel.x;
+        Event.events.mouseWheel.y = sdlEvent.wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? sdlEvent.wheel.y * -1 : sdlEvent.wheel.y;
 		break;
 
 	// Событие перемещения мышки
 	case SDL_MOUSEMOTION:
 		Event.type = Event::ET_MOUSE_MOVE;
-		Event.mouseMove.x = sdlEvent.motion.x;
-		Event.mouseMove.y = sdlEvent.motion.y;
-		Event.mouseMove.xDirection = sdlEvent.motion.xrel;
-		Event.mouseMove.yDirection = sdlEvent.motion.yrel;
+        Event.events.mouseMove.x = sdlEvent.motion.x;
+        Event.events.mouseMove.y = sdlEvent.motion.y;
+        Event.events.mouseMove.xDirection = sdlEvent.motion.xrel;
+        Event.events.mouseMove.yDirection = sdlEvent.motion.yrel;
 		break;
 
 	// События окна
@@ -193,8 +193,8 @@ bool le::Window::PollEvent( Event& Event )
 		case SDL_WINDOWEVENT_SIZE_CHANGED:
 		case SDL_WINDOWEVENT_RESIZED:
 			Event.type = Event::ET_WINDOW_RESIZE;
-			Event.windowResize.width = sdlEvent.window.data1;
-			Event.windowResize.height = sdlEvent.window.data2;
+            Event.events.windowResize.width = sdlEvent.window.data1;
+            Event.events.windowResize.height = sdlEvent.window.data2;
 			break;
 
 		// Событие получения фокуса 

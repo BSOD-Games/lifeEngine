@@ -762,18 +762,18 @@ le::Image le::ResourceSystem::LoadImage( const char* Path, bool& IsError, bool I
 
 	try
 	{
-		if ( loaderImages.empty() )					throw std::exception( "No image loaders" );
+        if ( loaderImages.empty() )					throw std::runtime_error( "No image loaders" );
 		std::string			path = gameDir + "/" + Path;
 
 		std::string			format = GetFormatFile( path );
-		if ( format.empty() )						throw std::exception( "In image format not found" );
+        if ( format.empty() )						throw std::runtime_error( "In image format not found" );
 
 		auto				parser = loaderImages.find( format );
-		if ( parser == loaderImages.end() )			throw std::exception( "Loader for format image not found" );
+        if ( parser == loaderImages.end() )			throw std::runtime_error( "Loader for format image not found" );
 
 		Image				image;
 		parser->second( path.c_str(), image, IsError, IsFlipVertical, IsSwitchRedAndBlueChannels );
-		if ( IsError )								throw std::exception( "Fail loading image" );
+        if ( IsError )								throw std::runtime_error( "Fail loading image" );
 
 		return image;
 	}
@@ -794,23 +794,23 @@ le::ITexture* le::ResourceSystem::LoadTexture( const char* Name, const char* Pat
 
 	try
 	{
-		if ( !studioRenderFactory )							throw std::exception( "Resource system not initialized" );
+        if ( !studioRenderFactory )							throw std::runtime_error( "Resource system not initialized" );
 
 		if ( textures.find( Name ) != textures.end() )		return textures[ Name ];
-		if ( loaderTextures.empty() )						throw std::exception( "No texture loaders" );
+        if ( loaderTextures.empty() )						throw std::runtime_error( "No texture loaders" );
 
 		std::string			path = gameDir + "/" + Path;
 
 		g_consoleSystem->PrintInfo( "Loading texture [%s] with name [%s]", Path, Name );
 
 		std::string			format = GetFormatFile( path );
-		if ( format.empty() )						throw std::exception( "In texture format not found" );
+        if ( format.empty() )						throw std::runtime_error( "In texture format not found" );
 
 		auto				parser = loaderTextures.find( format );
-		if ( parser == loaderTextures.end() )		throw std::exception( "Loader for format texture not found" );
+        if ( parser == loaderTextures.end() )		throw std::runtime_error( "Loader for format texture not found" );
 
 		ITexture* texture = parser->second( path.c_str(), studioRenderFactory );
-		if ( !texture )								throw std::exception( "Fail loading texture" );
+        if ( !texture )								throw std::runtime_error( "Fail loading texture" );
 
 		textures.insert( std::make_pair( Name, texture ) );
 		g_consoleSystem->PrintInfo( "Loaded texture [%s]", Name );
@@ -834,23 +834,23 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
 
 	try
 	{
-		if ( !studioRenderFactory )							throw std::exception( "Resource system not initialized" );
+        if ( !studioRenderFactory )							throw std::runtime_error( "Resource system not initialized" );
 
 		if ( materials.find( Name ) != materials.end() )	return materials[ Name ];
-		if ( loaderMaterials.empty() )						throw std::exception( "No material loaders" );
+        if ( loaderMaterials.empty() )						throw std::runtime_error( "No material loaders" );
 
 		std::string			path = gameDir + "/" + Path;
 
 		g_consoleSystem->PrintInfo( "Loading material [%s] with name [%s]", Path, Name );
 
 		std::string			format = GetFormatFile( path );
-		if ( format.empty() )						throw std::exception( "In material format not found" );
+        if ( format.empty() )						throw std::runtime_error( "In material format not found" );
 
 		auto				parser = loaderMaterials.find( format );
-		if ( parser == loaderMaterials.end() )		throw std::exception( "Loader for format material not found" );
+        if ( parser == loaderMaterials.end() )		throw std::runtime_error( "Loader for format material not found" );
 
 		IMaterial* material = parser->second( path.c_str(), this, studioRenderFactory );
-		if ( !material )	throw std::exception( "Fail loading material" );
+        if ( !material )	throw std::runtime_error( "Fail loading material" );
 
 		materials.insert( std::make_pair( Name, material ) );
 		g_consoleSystem->PrintInfo( "Loaded material [%s]", Name );
@@ -874,23 +874,23 @@ le::IMesh* le::ResourceSystem::LoadMesh( const char* Name, const char* Path )
 
 	try
 	{
-		if ( !studioRenderFactory )							throw std::exception( "Resource system not initialized" );
+        if ( !studioRenderFactory )							throw std::runtime_error( "Resource system not initialized" );
 
 		if ( meshes.find( Name ) != meshes.end() )			return meshes[ Name ];
-		if ( loaderMeshes.empty() )							throw std::exception( "No mesh loaders" );
+        if ( loaderMeshes.empty() )							throw std::runtime_error( "No mesh loaders" );
 
 		std::string			path = gameDir + "/" + Path;
 
 		g_consoleSystem->PrintInfo( "Loading mesh [%s] with name [%s]", Path, Name );
 
 		std::string			format = GetFormatFile( path );
-		if ( format.empty() )						throw std::exception( "In mesh format not found" );
+        if ( format.empty() )						throw std::runtime_error( "In mesh format not found" );
 
 		auto				parser = loaderMeshes.find( format );
-		if ( parser == loaderMeshes.end() )		throw std::exception( "Loader for format mesh not found" );
+        if ( parser == loaderMeshes.end() )		throw std::runtime_error( "Loader for format mesh not found" );
 
 		IMesh* mesh = parser->second( path.c_str(), this, studioRenderFactory );
-		if ( !mesh )							throw std::exception( "Fail loading mesh" );
+        if ( !mesh )							throw std::runtime_error( "Fail loading mesh" );
 
 		meshes.insert( std::make_pair( Name, mesh ) );
 		g_consoleSystem->PrintInfo( "Loaded mesh [%s]", Name );
@@ -914,23 +914,23 @@ le::ILevel* le::ResourceSystem::LoadLevel( const char* Name, const char* Path, I
 
 	try
 	{
-		if ( !studioRenderFactory )							throw std::exception( "Resource system not initialized" );
+        if ( !studioRenderFactory )							throw std::runtime_error( "Resource system not initialized" );
 
 		if ( levels.find( Name ) != levels.end() )			return levels[ Name ];
-		if ( loaderLevels.empty() )							throw std::exception( "No level loaders" );
+        if ( loaderLevels.empty() )							throw std::runtime_error( "No level loaders" );
 
 		std::string			path = gameDir + "/" + Path;
 
 		g_consoleSystem->PrintInfo( "Loading level [%s] with name [%s]", Path, Name );
 
 		std::string			format = GetFormatFile( path );
-		if ( format.empty() )						throw std::exception( "In level format not found" );
+        if ( format.empty() )						throw std::runtime_error( "In level format not found" );
 
 		auto				parser = loaderLevels.find( format );
-		if ( parser == loaderLevels.end() )		throw std::exception( "Loader for format level not found" );
+        if ( parser == loaderLevels.end() )		throw std::runtime_error( "Loader for format level not found" );
 
 		ILevel* level = parser->second( path.c_str(), GameFactory );
-		if ( !level )							throw std::exception( "Fail loading level" );
+        if ( !level )							throw std::runtime_error( "Fail loading level" );
 
 		levels.insert( std::make_pair( Name, level ) );
 		g_consoleSystem->PrintInfo( "Loaded level [%s]", Name );
@@ -955,20 +955,20 @@ le:: IFont* le::ResourceSystem::LoadFont( const char* Name, const char* Path )
 	try
 	{
 		if ( fonts.find( Name ) != fonts.end() )			return fonts[ Name ];
-		if ( loaderFonts.empty() )							throw std::exception( "No font loaders" );
+        if ( loaderFonts.empty() )							throw std::runtime_error( "No font loaders" );
 
 		std::string			path = gameDir + "/" + Path;
 
 		g_consoleSystem->PrintInfo( "Loading font [%s] with name [%s]", Path, Name );
 
 		std::string			format = GetFormatFile( path );
-		if ( format.empty() )						throw std::exception( "In font format not found" );
+        if ( format.empty() )						throw std::runtime_error( "In font format not found" );
 
 		auto				parser = loaderFonts.find( format );
-		if ( parser == loaderFonts.end() )		throw std::exception( "Loader for format font not found" );
+        if ( parser == loaderFonts.end() )		throw std::runtime_error( "Loader for format font not found" );
 
 		IFont* 		font = parser->second( path.c_str() );
-		if ( !font )							throw std::exception( "Fail loading font" );
+        if ( !font )							throw std::runtime_error( "Fail loading font" );
 
 		fonts.insert( std::make_pair( Name, font ) );
 		g_consoleSystem->PrintInfo( "Loaded font [%s]", Name );
@@ -1253,7 +1253,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 	try
 	{
 		IStudioRender* studioRender = Engine->GetStudioRender();
-		if ( !studioRender )	throw std::exception( "Resource system requared studiorender" );
+        if ( !studioRender )	throw std::runtime_error( "Resource system requared studiorender" );
 
 		studioRenderFactory = studioRender->GetFactory();
 

@@ -137,7 +137,7 @@ bool le::FontFreeType::Load( const char* Path )
     try
     {
         // If not initialized freeType library - return error
-        if ( !ftLibrary )       throw std::exception( "FreeType library not initialized" );
+        if ( !ftLibrary )       throw std::runtime_error( "FreeType library not initialized" );
 
         // If the font was previously loaded - delete 
         if ( IsLoaded() )       Unload();
@@ -145,13 +145,13 @@ bool le::FontFreeType::Load( const char* Path )
         // Loading font
         FT_Face         ftFace;
         if ( FT_New_Face( ( FT_Library ) ftLibrary, Path, 0, &ftFace ) )    
-            throw std::exception( "Font not loaded" );
+            throw std::runtime_error( "Font not loaded" );
 
         // Select Unicode character map
         if ( FT_Select_Charmap( ftFace, FT_ENCODING_UNICODE ) )
         {
             if ( ftFace )       FT_Done_Face( ftFace );
-            throw std::exception( "Failed to set the Unicode charcter set" );
+            throw std::runtime_error( "Failed to set the Unicode charcter set" );
         }
 
         this->ftFace = ftFace;

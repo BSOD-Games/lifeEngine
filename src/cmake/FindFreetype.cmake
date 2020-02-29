@@ -23,7 +23,7 @@ find_path( 		FREETYPE_INCLUDE
 				PATHS ${FREETYPE_SEARCH_PATHS} )
 find_library( 	FREETYPE_LIB 
                 NAMES freetype
-				PATH_SUFFIXES lib
+                PATH_SUFFIXES lib
                 PATHS ${FREETYPE_SEARCH_PATHS} )
 
 if ( NOT FREETYPE_INCLUDE OR NOT FREETYPE_LIB )

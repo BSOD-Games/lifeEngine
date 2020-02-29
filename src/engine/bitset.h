@@ -25,15 +25,15 @@ namespace le
 		Bitset();
 		~Bitset();
 
-		void			Resize( UInt32_t Count );
+        void			Resize( UInt32_t Count );
 		void			Set( int Byte );
 		int				On( int Byte );
 		void			Clear( int Byte );
 		void			ClearAll();
 
 	private:
-		UInt32_t*		bits;
-		UInt32_t		size;
+        UInt32_t*		bits;
+        UInt32_t		size;
 	};
 
 	//---------------------------------------------------------------------//

@@ -24,13 +24,7 @@ namespace le
 		//----------------------------------------------------------------------//
 
 		Event() :
-			type( ET_NONE ),
-			windowResize(),
-			key(), 
-			mouseButton(), 
-			mouseMove(), 
-			mouseWheel(), 
-			textInputEvent()
+            type( ET_NONE )
 		{}
 
 		~Event()
@@ -58,19 +52,6 @@ namespace le
 
 		struct KeyEvent
 		{
-			KeyEvent() : 
-				code( BC_NONE ), 
-				isAlt( false ), 
-				isControl( false ), 
-				isShift( false ), 
-				isSuper( false ), 
-				isCapsLock( false ), 
-				isNumLock( false )
-			{}
-
-			~KeyEvent()
-			{}
-
 			BUTTON_CODE			code;
 			bool				isAlt;			
 			bool				isControl;		
@@ -84,15 +65,6 @@ namespace le
 
 		struct MouseButtonEvent
 		{
-			MouseButtonEvent() : 
-				code( BC_NONE ), 
-				x( 0 ), 
-				y( 0 )
-			{}
-
-			~MouseButtonEvent()
-			{}
-
 			BUTTON_CODE			code;
 			int					x;			
 			int					y;			
@@ -102,16 +74,6 @@ namespace le
 
 		struct MouseMoveEvent
 		{	
-			MouseMoveEvent() : 
-				x( 0 ), 
-				y( 0 ), 
-				xDirection( 0 ), 
-				yDirection( 0 )
-			{}
-
-			~MouseMoveEvent()
-			{}
-
 			int			x;			
 			int			y;			
 			int			xDirection;	
@@ -122,14 +84,6 @@ namespace le
 		
 		struct MouseWheelEvent
 		{
-			MouseWheelEvent() : 
-				x( 0 ), 
-				y( 0 )
-			{}
-
-			~MouseWheelEvent()
-			{}
-
 			int			x;			
 			int			y;			
 		};
@@ -138,14 +92,6 @@ namespace le
 
 		struct WindowResizeEvent
 		{
-			WindowResizeEvent() : 
-				width( 0 ), 
-				height( 0 )
-			{}
-
-			~WindowResizeEvent()
-			{}
-
 			float		width;			
 			float		height;			
 		};
@@ -154,21 +100,12 @@ namespace le
 
 		struct TextInputEvent
 		{
-			TextInputEvent() : 
-				text( "" )
-			{}
-
-			~TextInputEvent()
-			{}
-
 			char*			text;
 		};
 
 		//----------------------------------------------------------------------//
 
-		EVENT_TYPE			type;
-
-		union
+        union Events
 		{		
 			WindowResizeEvent	windowResize;	
 			KeyEvent			key;			
@@ -177,6 +114,11 @@ namespace le
 			MouseWheelEvent		mouseWheel;		
 			TextInputEvent		textInputEvent;	
 		}; 
+
+        //----------------------------------------------------------------------//
+
+        EVENT_TYPE			type;
+        Events              events;
 	};
 
 	//----------------------------------------------------------------------//

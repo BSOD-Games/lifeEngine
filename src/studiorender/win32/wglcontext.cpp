@@ -14,7 +14,8 @@
 #include <Windows.h>
 #include <GL/glew.h>
 #include <GL/wglew.h>
-
+#include <thread>
+#include <condition_variable>
 #include "engine/iconsolesystem.h"
 #include "wglcontext.h"
 #include "settingscontext.h"
@@ -157,7 +158,7 @@ bool le::WinGL_CreateContext( WindowHandle_t WindowHandle, const SettingsContext
 
 			if ( shareContext )
 			{
-				static mutex		mutex;
+                static std::mutex		mutex;
 				mutex.lock();
 
 				if ( shareContext == currentContext )
@@ -181,7 +182,7 @@ bool le::WinGL_CreateContext( WindowHandle_t WindowHandle, const SettingsContext
 		}
 		else if ( shareContext )
 		{
-			static mutex		mutex;
+            static std::mutex		mutex;
 			mutex.lock();
 
 			if ( shareContext == currentContext )

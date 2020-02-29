@@ -19,6 +19,8 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
     set( SOURCE_FILES ${SOURCE_FILES}
                         win32/wglcontext.cpp
                         win32/wglcontext.h )
+
+    set( ICON resource.rc )
 else()
     message( SEND_ERROR "Unknow platform")
 endif()
@@ -33,8 +35,9 @@ add_definitions( -DLIFEENGINE_EXPORT )
 #   --- Настройки проекта ---
 #
 
-add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} )
+add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${ICON} )
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
+set_target_properties( ${MODULE_NAME} PROPERTIES PREFIX "" )
 include_directories( ../public )
 include_directories( ../ )
 include_directories( ./ )
@@ -76,7 +79,7 @@ if( NOT SDL2_FOUND )
     return()
 else()
     include_directories( ${SDL2_INCLUDE} )
-    target_link_libraries( ${MODULE_NAME} ${SDL2_LIB} ${SDL2MAIN_LIB} )
+    target_link_libraries( ${MODULE_NAME} ${SDL2_LIB} )
 endif()
 
 #---------------

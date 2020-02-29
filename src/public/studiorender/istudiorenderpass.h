@@ -12,6 +12,7 @@
 #define ISTUDIORENDERPASS_H
 
 #include "common/types.h"
+#include "studiorender/istudiorender.h"
 
 //---------------------------------------------------------------------//
 
@@ -21,7 +22,6 @@ namespace le
 
 	class IShader;
 	class IShaderParameter;
-	enum CULLFACE_TYPE;
 
 	//---------------------------------------------------------------------//
 

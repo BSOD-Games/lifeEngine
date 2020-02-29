@@ -1,8 +1,5 @@
 #include "../public/engine/lifeengine.h"
 
-AAAAAAAA                ICON                    "lifeEngine.ico"
-APPICON                 ICON                    "lifeEngine.ico"
-
 1 VERSIONINFO
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -19,10 +16,10 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "Life4Game"
-            VALUE "FileDescription", "Launcher lifeEngine"
-            VALUE "InternalName", "launcher.exe"
+            VALUE "FileDescription", "Core module lifeEngine"
+            VALUE "InternalName", "engine.dll"
             VALUE "LegalCopyright", "Copyright (C) 2016-2020"
-            VALUE "OriginalFilename", "launcher.exe"
+            VALUE "OriginalFilename", "engine.dll"
             VALUE "ProductName", "lifeEngine"
             VALUE "ProductVersion", LIFEENGINE_VERSION
         END

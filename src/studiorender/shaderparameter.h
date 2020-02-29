@@ -63,23 +63,27 @@ namespace le
 		}
 
 	private:
+        union Values
+        {
+            Values();
+            ~Values();
+
+            int					value_int;
+            float				value_float;
+            bool				value_shaderFlag;
+            Vector2D_t			value_vector2D;
+            Vector3D_t			value_vector3D;
+            Vector4D_t			value_vector4D;
+            Matrix4x4_t			value_matrix4x4;
+            ITexture*			value_texture;
+        };
+
 		bool					isDefined;
 
 		std::string				name;
 		SHADER_PARAMETER_TYPE	type;
 		StudioRenderPass*		studioRenderPass;
-
-		union
-		{
-			int					value_int;
-			float				value_float;
-			bool				value_shaderFlag;
-			Vector2D_t			value_vector2D;
-			Vector3D_t			value_vector3D;
-			Vector4D_t			value_vector4D;
-			Matrix4x4_t			value_matrix4x4;
-			ITexture*			value_texture;
-		};
+        Values                  values;
 	};
 
 	//---------------------------------------------------------------------//

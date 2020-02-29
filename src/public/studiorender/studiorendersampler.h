@@ -11,6 +11,7 @@
 #ifndef STUDIORENDER_SAMPLER_H
 #define STUDIORENDER_SAMPLER_H
 
+#include <memory.h>
 #include "common/types.h"
 
 //---------------------------------------------------------------------//

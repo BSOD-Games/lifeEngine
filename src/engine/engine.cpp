@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
+//			*** lifeEngine (Р”РІРёРіР°С‚РµР»СЊ Р¶РёР·РЅРё) ***
 //				Copyright (C) 2018-2019
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Р РµРїРѕР·РёС‚РѕСЂРёР№ РґРІРёР¶РєР°:  https://github.com/zombihello/lifeEngine
+// РђРІС‚РѕСЂС‹:				Р•РіРѕСЂ РџРѕРіСѓР»СЏРєР° (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -35,7 +35,7 @@
 LIFEENGINE_ENGINE_API( le::Engine );
 
 // ------------------------------------------------------------------------------------ //
-// Консольная команда выхода
+// РљРѕРЅСЃРѕР»СЊРЅР°СЏ РєРѕРјР°РЅРґР° РІС‹С…РѕРґР°
 // ------------------------------------------------------------------------------------ //
 void CMD_Exit( le::UInt32_t CountArguments, const char** Arguments )
 {
@@ -45,7 +45,7 @@ void CMD_Exit( le::UInt32_t CountArguments, const char** Arguments )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Консольная команда вывода версии движка
+// РљРѕРЅСЃРѕР»СЊРЅР°СЏ РєРѕРјР°РЅРґР° РІС‹РІРѕРґР° РІРµСЂСЃРёРё РґРІРёР¶РєР°
 // ------------------------------------------------------------------------------------ //
 void CMD_Version( le::UInt32_t CountArguments, const char** Arguments )
 {
@@ -54,7 +54,7 @@ void CMD_Version( le::UInt32_t CountArguments, const char** Arguments )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Конструктор
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ
 // ------------------------------------------------------------------------------------ //
 le::Engine::Engine() :
 	isRunSimulation( false ),
@@ -91,7 +91,7 @@ le::Engine::Engine() :
 }
 
 // ------------------------------------------------------------------------------------ //
-// Деструктор
+// Р”РµСЃС‚СЂСѓРєС‚РѕСЂ
 // ------------------------------------------------------------------------------------ //
 le::Engine::~Engine()
 {
@@ -118,33 +118,33 @@ le::Engine::~Engine()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Загрузить модуль рендера
+// Р—Р°РіСЂСѓР·РёС‚СЊ РјРѕРґСѓР»СЊ СЂРµРЅРґРµСЂР°
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::LoadModule_StudioRender( const char* PathDLL )
 {
-	// Если модуль ранее был загружен, то удаляем
+	// Р•СЃР»Рё РјРѕРґСѓР»СЊ СЂР°РЅРµРµ Р±С‹Р» Р·Р°РіСЂСѓР¶РµРЅ, С‚Рѕ СѓРґР°Р»СЏРµРј
 	if ( studioRenderDescriptor.handle ) UnloadModule_StudioRender();
 
 	consoleSystem.PrintInfo( "Loading studiorender [%s]", PathDLL );
 
 	try
 	{
-		// Загружаем модуль
+		// Р—Р°РіСЂСѓР¶Р°РµРј РјРѕРґСѓР»СЊ
 		studioRenderDescriptor.handle = SDL_LoadObject( PathDLL );
-		if ( !studioRenderDescriptor.handle )	throw std::exception( SDL_GetError() );
+        if ( !studioRenderDescriptor.handle )	throw std::runtime_error( SDL_GetError() );
 
-		// Берем из модуля API для работы с ним
+		// Р‘РµСЂРµРј РёР· РјРѕРґСѓР»СЏ API РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РЅРёРј
 		studioRenderDescriptor.LE_CreateStudioRender = ( LE_CreateStudioRenderFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_CreateStudioRender" );
 		studioRenderDescriptor.LE_DeleteStudioRender = ( LE_DeleteStudioRenderFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_DeleteStudioRender" );
 		studioRenderDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_SetCriticalError" );
-		if ( !studioRenderDescriptor.LE_CreateStudioRender )	throw std::exception( "Function LE_CreateStudioRender not found" );
+        if ( !studioRenderDescriptor.LE_CreateStudioRender )	throw std::runtime_error( "Function LE_CreateStudioRender not found" );
 
-		// Создаем рендер
+		// РЎРѕР·РґР°РµРј СЂРµРЅРґРµСЂ
 		if ( studioRenderDescriptor.LE_SetCriticalError )
 			studioRenderDescriptor.LE_SetCriticalError( g_criticalError );
 
 		studioRender = ( IStudioRenderInternal* ) studioRenderDescriptor.LE_CreateStudioRender();
-		if ( !studioRender->Initialize( this ) )				throw std::exception( "Fail initialize studiorender" );
+        if ( !studioRender->Initialize( this ) )				throw std::runtime_error( "Fail initialize studiorender" );
 		g_studioRender = studioRender;
 	}
 	catch ( std::exception& Exception )
@@ -158,7 +158,7 @@ bool le::Engine::LoadModule_StudioRender( const char* PathDLL )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Выгрузить модуль рендера
+// Р’С‹РіСЂСѓР·РёС‚СЊ РјРѕРґСѓР»СЊ СЂРµРЅРґРµСЂР°
 // ------------------------------------------------------------------------------------ //
 void le::Engine::UnloadModule_StudioRender()
 {
@@ -175,7 +175,7 @@ void le::Engine::UnloadModule_StudioRender()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Загрузить информацию об игре
+// Р—Р°РіСЂСѓР·РёС‚СЊ РёРЅС„РѕСЂРјР°С†РёСЋ РѕР± РёРіСЂРµ
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::LoadGameInfo( const char* DirGame )
 {
@@ -203,7 +203,7 @@ bool le::Engine::LoadGameInfo( const char* DirGame )
 
 	for ( auto it = document.MemberBegin(), itEnd = document.MemberEnd(); it != itEnd; ++it )
 	{
-		// Путь к модулю с игровой логикой
+		// РџСѓС‚СЊ Рє РјРѕРґСѓР»СЋ СЃ РёРіСЂРѕРІРѕР№ Р»РѕРіРёРєРѕР№
 		if ( strcmp( it->name.GetString(), "gameDLL" ) == 0 && it->value.IsString() )
 		{
 			stringLength = it->value.GetStringLength();
@@ -213,7 +213,7 @@ bool le::Engine::LoadGameInfo( const char* DirGame )
 			gameInfo.gameDLL[ stringLength ] = '\0';
 		}
 
-		// Путь к иконке
+		// РџСѓС‚СЊ Рє РёРєРѕРЅРєРµ
 		if ( strcmp( it->name.GetString(), "icon" ) == 0 && it->value.IsString() )
 		{
 			stringLength = it->value.GetStringLength();
@@ -223,7 +223,7 @@ bool le::Engine::LoadGameInfo( const char* DirGame )
 			gameInfo.icon[ stringLength ] = '\0';
 		}
 
-		// Заголовок игры	
+		// Р—Р°РіРѕР»РѕРІРѕРє РёРіСЂС‹	
 		if ( strcmp( it->name.GetString(), "title" ) == 0 && it->value.IsString() )
 		{
 			stringLength = it->value.GetStringLength();
@@ -244,33 +244,33 @@ bool le::Engine::LoadGameInfo( const char* DirGame )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Загрузить модуль игры
+// Р—Р°РіСЂСѓР·РёС‚СЊ РјРѕРґСѓР»СЊ РёРіСЂС‹
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::LoadModule_Game( const char* PathDLL )
 {
-	// Если модуль ранее был загружен, то удаляем
+	// Р•СЃР»Рё РјРѕРґСѓР»СЊ СЂР°РЅРµРµ Р±С‹Р» Р·Р°РіСЂСѓР¶РµРЅ, С‚Рѕ СѓРґР°Р»СЏРµРј
 	if ( gameDescriptor.handle ) UnloadModule_Game();
 
 	consoleSystem.PrintInfo( "Loading game [%s]", PathDLL );
 
 	try
 	{
-		// Загружаем модуль
+		// Р—Р°РіСЂСѓР¶Р°РµРј РјРѕРґСѓР»СЊ
 		gameDescriptor.handle = SDL_LoadObject( PathDLL );
-		if ( !gameDescriptor.handle )	throw std::exception( SDL_GetError() );
+        if ( !gameDescriptor.handle )	throw std::runtime_error( SDL_GetError() );
 
-		// Берем из модуля API для работы с ним
+		// Р‘РµСЂРµРј РёР· РјРѕРґСѓР»СЏ API РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РЅРёРј
 		gameDescriptor.LE_CreateGame = ( LE_CreateGameFn_t ) SDL_LoadFunction( gameDescriptor.handle, "LE_CreateGame" );
 		gameDescriptor.LE_DeleteGame = ( LE_DeleteGameFn_t ) SDL_LoadFunction( gameDescriptor.handle, "LE_DeleteGame" );
 		gameDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( gameDescriptor.handle, "LE_SetCriticalError" );
-		if ( !gameDescriptor.LE_CreateGame )	throw std::exception( "Function LE_CreateGame not found" );
+        if ( !gameDescriptor.LE_CreateGame )	throw std::runtime_error( "Function LE_CreateGame not found" );
 
-		// Создаем игровую логику
+		// РЎРѕР·РґР°РµРј РёРіСЂРѕРІСѓСЋ Р»РѕРіРёРєСѓ
 		if ( gameDescriptor.LE_SetCriticalError )
 			gameDescriptor.LE_SetCriticalError( g_criticalError );
 
 		game = gameDescriptor.LE_CreateGame();
-		if ( !game->Initialize( this ) )						throw std::exception( "Fail initialize game" );
+        if ( !game->Initialize( this ) )						throw std::runtime_error( "Fail initialize game" );
 	}
 	catch ( std::exception& Exception )
 	{
@@ -283,7 +283,7 @@ bool le::Engine::LoadModule_Game( const char* PathDLL )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Выгрузить модуль игры
+// Р’С‹РіСЂСѓР·РёС‚СЊ РјРѕРґСѓР»СЊ РёРіСЂС‹
 // ------------------------------------------------------------------------------------ //
 void le::Engine::UnloadModule_Game()
 {
@@ -300,15 +300,15 @@ void le::Engine::UnloadModule_Game()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Загрузить конфиг
+// Р—Р°РіСЂСѓР·РёС‚СЊ РєРѕРЅС„РёРі
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::LoadConfig( const char* FilePath )
 {
-	consoleSystem.PrintInfo( "Loading file configurations [%s]", FilePath );
+    consoleSystem.PrintInfo( "Loading file configurations [%s]", FilePath );
 
-	std::ifstream		file( FilePath );
+    std::ifstream		file( FilePath );
 	if ( !file.is_open() )
-	{
+    {
 		consoleSystem.PrintError( "File configurations [%s] not found", FilePath );
 		return false;
 	}
@@ -330,34 +330,34 @@ bool le::Engine::LoadConfig( const char* FilePath )
 
 		for ( auto itObject = it->value.MemberBegin(), itObjectEnd = it->value.MemberEnd(); itObject != itObjectEnd; ++itObject )
 		{
-			// Общии параметры
+			// РћР±С‰РёРё РїР°СЂР°РјРµС‚СЂС‹
 			if ( strcmp( it->name.GetString(), "general" ) == 0 )
 			{
-				// Ширина окна
+				// РЁРёСЂРёРЅР° РѕРєРЅР°
 				if ( strcmp( itObject->name.GetString(), "width" ) == 0 && itObject->value.IsNumber() )
 					configurations.windowWidth = itObject->value.GetInt();
 
-				// Высота окна
+				// Р’С‹СЃРѕС‚Р° РѕРєРЅР°
 				else if ( strcmp( itObject->name.GetString(), "height" ) == 0 && itObject->value.IsNumber() )
 					configurations.windowHeight = itObject->value.GetInt();
 
-				// Полноэкраный ли режим
+				// РџРѕР»РЅРѕСЌРєСЂР°РЅС‹Р№ Р»Рё СЂРµР¶РёРј
 				else if ( strcmp( itObject->name.GetString(), "fullscreen" ) == 0 && itObject->value.IsBool() )
 					configurations.isFullscreen = itObject->value.GetBool();
 
-				// Чувствительность мышки
+				// Р§СѓРІСЃС‚РІРёС‚РµР»СЊРЅРѕСЃС‚СЊ РјС‹С€РєРё
 				else if ( strcmp( itObject->name.GetString(), "sensitivityMouse" ) == 0 && itObject->value.IsNumber() )
 					configurations.sensitivityMouse = itObject->value.GetFloat();
 			}
 
-			// Параметры рендера
+			// РџР°СЂР°РјРµС‚СЂС‹ СЂРµРЅРґРµСЂР°
 			else if ( strcmp( it->name.GetString(), "studiorender" ) == 0 )
 			{
-				// Включена ли вертикальная синхронизация
+				// Р’РєР»СЋС‡РµРЅР° Р»Рё РІРµСЂС‚РёРєР°Р»СЊРЅР°СЏ СЃРёРЅС…СЂРѕРЅРёР·Р°С†РёСЏ
 				if ( strcmp( itObject->name.GetString(), "vsinc" ) == 0 && itObject->value.IsBool() )
 					configurations.isVerticalSinc = itObject->value.GetBool();
 
-				// Включена ли вертикальная синхронизация
+				// Р’РєР»СЋС‡РµРЅР° Р»Рё РІРµСЂС‚РёРєР°Р»СЊРЅР°СЏ СЃРёРЅС…СЂРѕРЅРёР·Р°С†РёСЏ
 				else if ( strcmp( itObject->name.GetString(), "fov" ) == 0 && itObject->value.IsNumber() )
 					configurations.fov = itObject->value.GetFloat();
 			}
@@ -369,7 +369,7 @@ bool le::Engine::LoadConfig( const char* FilePath )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Сохранить конфиг
+// РЎРѕС…СЂР°РЅРёС‚СЊ РєРѕРЅС„РёРі
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::SaveConfig( const char* FilePath )
 {
@@ -401,7 +401,7 @@ bool le::Engine::SaveConfig( const char* FilePath )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Запустить симуляцию
+// Р—Р°РїСѓСЃС‚РёС‚СЊ СЃРёРјСѓР»СЏС†РёСЋ
 // ------------------------------------------------------------------------------------ //
 void le::Engine::RunSimulation()
 {
@@ -452,7 +452,7 @@ void le::Engine::RunSimulation()
 				break;
 
 			case Event::ET_WINDOW_RESIZE:
-				studioRender->SetViewport( { 0, 0, ( UInt32_t ) event.windowResize.width, ( UInt32_t ) event.windowResize.height } );
+                studioRender->SetViewport( { 0, 0, ( UInt32_t ) event.events.windowResize.width, ( UInt32_t ) event.events.windowResize.height } );
 				break;
 
 			default: break;
@@ -463,7 +463,7 @@ void le::Engine::RunSimulation()
 
 		if ( isFocus )
 		{	
-			// TODO: Исправить счетчик прошедшего времени, не удобно с ним работать
+			// TODO: Р�СЃРїСЂР°РІРёС‚СЊ СЃС‡РµС‚С‡РёРє РїСЂРѕС€РµРґС€РµРіРѕ РІСЂРµРјРµРЅРё, РЅРµ СѓРґРѕР±РЅРѕ СЃ РЅРёРј СЂР°Р±РѕС‚Р°С‚СЊ
 
 			startTime = SDL_GetTicks();
 			studioRender->Begin();
@@ -481,7 +481,7 @@ void le::Engine::RunSimulation()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Остановить симуляцию
+// РћСЃС‚Р°РЅРѕРІРёС‚СЊ СЃРёРјСѓР»СЏС†РёСЋ
 // ------------------------------------------------------------------------------------ //
 void le::Engine::StopSimulation()
 {
@@ -490,7 +490,7 @@ void le::Engine::StopSimulation()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Задать конфигурации движка
+// Р—Р°РґР°С‚СЊ РєРѕРЅС„РёРіСѓСЂР°С†РёРё РґРІРёР¶РєР°
 // ------------------------------------------------------------------------------------ //
 void le::Engine::SetConfig( const Configurations& Configurations )
 {
@@ -498,7 +498,7 @@ void le::Engine::SetConfig( const Configurations& Configurations )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Запущена ли симуляция
+// Р—Р°РїСѓС‰РµРЅР° Р»Рё СЃРёРјСѓР»СЏС†РёСЏ
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::IsRunSimulation() const
 {
@@ -506,7 +506,7 @@ bool le::Engine::IsRunSimulation() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить систему консоли
+// РџРѕР»СѓС‡РёС‚СЊ СЃРёСЃС‚РµРјСѓ РєРѕРЅСЃРѕР»Рё
 // ------------------------------------------------------------------------------------ //
 le::IConsoleSystem* le::Engine::GetConsoleSystem() const
 {
@@ -514,7 +514,7 @@ le::IConsoleSystem* le::Engine::GetConsoleSystem() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить окно
+// РџРѕР»СѓС‡РёС‚СЊ РѕРєРЅРѕ
 // ------------------------------------------------------------------------------------ //
 le::IStudioRender* le::Engine::GetStudioRender() const
 {
@@ -522,7 +522,7 @@ le::IStudioRender* le::Engine::GetStudioRender() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить окно
+// РџРѕР»СѓС‡РёС‚СЊ РѕРєРЅРѕ
 // ------------------------------------------------------------------------------------ //
 le::IResourceSystem* le::Engine::GetResourceSystem() const
 {
@@ -530,7 +530,7 @@ le::IResourceSystem* le::Engine::GetResourceSystem() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить систему ввода
+// РџРѕР»СѓС‡РёС‚СЊ СЃРёСЃС‚РµРјСѓ РІРІРѕРґР°
 // ------------------------------------------------------------------------------------ //
 le::IInputSystem* le::Engine::GetInputSystem() const
 {
@@ -538,7 +538,7 @@ le::IInputSystem* le::Engine::GetInputSystem() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить окно
+// РџРѕР»СѓС‡РёС‚СЊ РѕРєРЅРѕ
 // ------------------------------------------------------------------------------------ //
 le::IWindow* le::Engine::GetWindow() const
 {
@@ -546,7 +546,7 @@ le::IWindow* le::Engine::GetWindow() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить фабрику движка
+// РџРѕР»СѓС‡РёС‚СЊ С„Р°Р±СЂРёРєСѓ РґРІРёР¶РєР°
 // ------------------------------------------------------------------------------------ //
 le::IFactory* le::Engine::GetFactory() const
 {
@@ -554,7 +554,7 @@ le::IFactory* le::Engine::GetFactory() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить конфигурации движка
+// РџРѕР»СѓС‡РёС‚СЊ РєРѕРЅС„РёРіСѓСЂР°С†РёРё РґРІРёР¶РєР°
 // ------------------------------------------------------------------------------------ //
 const le::Configurations& le::Engine::GetConfigurations() const
 {
@@ -562,7 +562,7 @@ const le::Configurations& le::Engine::GetConfigurations() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить версию движка
+// РџРѕР»СѓС‡РёС‚СЊ РІРµСЂСЃРёСЋ РґРІРёР¶РєР°
 // ------------------------------------------------------------------------------------ //
 const le::Version& le::Engine::GetVersion() const
 {
@@ -570,14 +570,14 @@ const le::Version& le::Engine::GetVersion() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Инициализировать движок
+// Р�РЅРёС†РёР°Р»РёР·РёСЂРѕРІР°С‚СЊ РґРІРёР¶РѕРє
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::Initialize( WindowHandle_t WindowHandle )
 {
 	if ( isInit ) return true;
 	consoleSystem.PrintInfo( "Initialization lifeEngine" );
 
-	// Выводим системную информацию
+	// Р’С‹РІРѕРґРёРј СЃРёСЃС‚РµРјРЅСѓСЋ РёРЅС„РѕСЂРјР°С†РёСЋ
 	SDL_version		sdlVersion;
 	SDL_GetVersion( &sdlVersion );
 
@@ -605,24 +605,24 @@ bool le::Engine::Initialize( WindowHandle_t WindowHandle )
 
 	try
 	{
-		// Инициализируем окно приложения. Если заголовок на окно в аргументах пуст, 
-		// то создаем свое окно, иначе запоминаем его
+		// Р�РЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РѕРєРЅРѕ РїСЂРёР»РѕР¶РµРЅРёСЏ. Р•СЃР»Рё Р·Р°РіРѕР»РѕРІРѕРє РЅР° РѕРєРЅРѕ РІ Р°СЂРіСѓРјРµРЅС‚Р°С… РїСѓСЃС‚, 
+		// С‚Рѕ СЃРѕР·РґР°РµРј СЃРІРѕРµ РѕРєРЅРѕ, РёРЅР°С‡Рµ Р·Р°РїРѕРјРёРЅР°РµРј РµРіРѕ
 
 		if ( !WindowHandle )
 		{
 			if ( !window.Create( "lifeEngine", configurations.windowWidth, configurations.windowHeight, configurations.isFullscreen ? SW_FULLSCREEN : SW_DEFAULT ) )
-				throw std::exception( SDL_GetError() );
+                throw std::runtime_error( SDL_GetError() );
 		}
 		else 
 			window.SetHandle( WindowHandle );
 
-		// Загружаем и инициализируем подсистемы
+		// Р—Р°РіСЂСѓР¶Р°РµРј Рё РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РїРѕРґСЃРёСЃС‚РµРјС‹
 
-		if ( !LoadModule_StudioRender( LIFEENGINE_STUDIORENDER_DLL ) )		throw std::exception( "Failed loading studiorender" );
+        if ( !LoadModule_StudioRender( LIFEENGINE_STUDIORENDER_DLL ) )		throw std::runtime_error( "Failed loading studiorender" );
 	
 		auto*		shaderManager = studioRender->GetShaderManager();
-		if ( !shaderManager )		throw std::exception( "In studiorender not exist shader manager" );
-		if ( !shaderManager->LoadShaderDLL( LIFEENGINE_STDSHADERS_DLL ) )	throw std::exception( "Failed loading stdshaders" );
+        if ( !shaderManager )		throw std::runtime_error( "In studiorender not exist shader manager" );
+        if ( !shaderManager->LoadShaderDLL( LIFEENGINE_STDSHADERS_DLL ) )	throw std::runtime_error( "Failed loading stdshaders" );
 
 		FontFreeType::InitializeFreeType();
 		resourceSystem.Initialize( this );
@@ -639,22 +639,22 @@ bool le::Engine::Initialize( WindowHandle_t WindowHandle )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Загрузить игру
+// Р—Р°РіСЂСѓР·РёС‚СЊ РёРіСЂСѓ
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::LoadGame( const char* DirGame )
 {
-	// Загружаем информацию об игре
+	// Р—Р°РіСЂСѓР¶Р°РµРј РёРЅС„РѕСЂРјР°С†РёСЋ РѕР± РёРіСЂРµ
 	if ( !LoadGameInfo( DirGame ) )	
 		return false;
 
-	// Задаем каталог игры для загрузки ресурсов
+	// Р—Р°РґР°РµРј РєР°С‚Р°Р»РѕРі РёРіСЂС‹ РґР»СЏ Р·Р°РіСЂСѓР·РєРё СЂРµСЃСѓСЂСЃРѕРІ
 	resourceSystem.SetGameDir( gameInfo.gameDir );
 
-	// Загружаем игровую логику
+	// Р—Р°РіСЂСѓР¶Р°РµРј РёРіСЂРѕРІСѓСЋ Р»РѕРіРёРєСѓ
 	if ( !LoadModule_Game( ( std::string( DirGame ) + "/" + gameInfo.gameDLL ).c_str() ) )
 		return false;
 
-	// Если есть иконка у игры - грузим ее
+	// Р•СЃР»Рё РµСЃС‚СЊ РёРєРѕРЅРєР° Сѓ РёРіСЂС‹ - РіСЂСѓР·РёРј РµРµ
 	if ( gameInfo.icon )
 	{
 		bool		isError = false;
@@ -672,7 +672,7 @@ bool le::Engine::LoadGame( const char* DirGame )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Выгрузить игру
+// Р’С‹РіСЂСѓР·РёС‚СЊ РёРіСЂСѓ
 // ------------------------------------------------------------------------------------ //
 void le::Engine::UnloadGame()
 {

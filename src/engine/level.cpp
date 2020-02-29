@@ -103,7 +103,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 	{
 		std::ifstream			file( Path, std::ios::binary );
 
-		if ( !file.is_open() )		throw std::exception( "Level not found" );
+        if ( !file.is_open() )		throw std::runtime_error( "Level not found" );
 		if ( isLoaded )				Clear();
 
 		BSPHeader						bspHeader;
@@ -125,7 +125,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		file.read( ( char* ) &bspLumps, BL_MAX_LUMPS * sizeof( BSPLump ) );
 
 		if ( std::string( bspHeader.strID, 4 ) != "IBSP" || bspHeader.version != 46 )
-			throw std::exception( "Not supported format bsp or version" );
+            throw std::runtime_error( "Not supported format bsp or version" );
 
 		// Вычисляем необходимые размеры массивов прд данные
 		bspEntities.entitiesData = new char[ bspLumps[ BL_ENTITIES ].length ];
@@ -343,10 +343,10 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 
 		// Загружаем меш в GPU
 		mesh = ( le::IMesh* ) g_studioRender->GetFactory()->Create( MESH_INTERFACE_VERSION );
-		if ( !mesh )				std::exception( "Interfece mesh with required version not found in factory studiorender" );
+        if ( !mesh )				std::runtime_error( "Interfece mesh with required version not found in factory studiorender" );
 
 		mesh->Create( meshDescriptor );
-		if ( !mesh->IsCreated() )	std::exception( "Mesh level not created" );
+        if ( !mesh->IsCreated() )	std::runtime_error( "Mesh level not created" );
 
 		// Добавляем на уровень модели
 		for ( UInt32_t index = 0, count = arrayBspModels.size(); index < count; ++index )

@@ -97,14 +97,14 @@ namespace le
 //---------------------------------------------------------------------//
 
 #	if defined ( LIFEENGINE_DEBUG )
-#		define LIFEENGINE_ASSERT_MSG( X, File, Function, Line ) \
+#		define LIFEENGINE_ASSERT_MSG( X, File, Line ) \
 			if ( le::g_criticalError ) \
-				le::g_criticalError( "*** LIFEENGINE_ASSERT ***" "\nFile: " File "\nFunction: " Function "\nLine: " TO_STRING( Line ) "\n\nAssertion failed: " #X )
+                le::g_criticalError( "*** LIFEENGINE_ASSERT ***" "\nFile: " File "\nLine: " TO_STRING( Line ) "\n\nAssertion failed: " #X )
 
 #		define LIFEENGINE_ASSERT( X ) \
 			if ( !( X ) ) \
 			{ \
-				LIFEENGINE_ASSERT_MSG( X, __FILE__, __FUNCTION__, __LINE__ ); \
+                LIFEENGINE_ASSERT_MSG( X, __FILE__, __LINE__ ); \
 			}		
 #	else
 #		define LIFEENGINE_ASSERT( X )

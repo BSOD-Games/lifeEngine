@@ -138,11 +138,11 @@ void le::ConVar::SetValueInt( int Value )
 	type = CVT_INT;
 
 	if ( hasMin && Value < min )
-		value_int = min;
+        values.value_int = min;
 	else if ( hasMax && Value > max )
-		value_int = max;
+        values.value_int = max;
 	else
-		value_int = Value;
+        values.value_int = Value;
 
 	if ( changeCallback )		changeCallback( this );
 }
@@ -157,11 +157,11 @@ void le::ConVar::SetValueFloat( float Value )
 	type = CVT_FLOAT;
 
 	if ( hasMin && Value < min )
-		value_float = min;
+        values.value_float = min;
 	else if ( hasMax && Value > max )
-		value_float = max;
+        values.value_float = max;
 	else
-		value_float = Value;
+        values.value_float = Value;
 
 	if ( changeCallback )		changeCallback( this );
 }
@@ -176,11 +176,11 @@ void le::ConVar::SetValueBool( bool Value )
 	type = CVT_BOOL;
 
 	if ( hasMin && Value < min )
-		value_bool = min;
+        values.value_bool = min;
 	else if ( hasMax && Value > max )
-		value_bool = max;
+        values.value_bool = max;
 	else
-		value_bool = Value;
+        values.value_bool = Value;
 
 	if ( changeCallback )		changeCallback( this );
 }
@@ -197,13 +197,13 @@ void le::ConVar::SetValueString( const char* Value )
 
 	if ( hasMin && value.size() < min )
 	{
-		value_string = value;
-		value_string.append( min - value.size(), ' ' );
+        values.value_string = value;
+        values.value_string.append( min - value.size(), ' ' );
 	}
 	else if ( hasMax && value.size() > max )
-		value_string = value.substr( 0, max );
+        values.value_string = value.substr( 0, max );
 	else
-		value_string = value;
+        values.value_string = value;
 
 	if ( changeCallback )		changeCallback( this );
 }
@@ -229,7 +229,7 @@ le::CONVAR_TYPE le::ConVar::GetType() const
 // ------------------------------------------------------------------------------------ //
 int le::ConVar::GetValueInt() const
 {
-	return value_int;
+    return values.value_int;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -237,7 +237,7 @@ int le::ConVar::GetValueInt() const
 // ------------------------------------------------------------------------------------ //
 float le::ConVar::GetValueFloat() const
 {
-	return value_float;
+    return values.value_float;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -245,7 +245,7 @@ float le::ConVar::GetValueFloat() const
 // ------------------------------------------------------------------------------------ //
 bool le::ConVar::GetValueBool() const
 {
-	return value_bool;
+    return values.value_bool;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -253,7 +253,7 @@ bool le::ConVar::GetValueBool() const
 // ------------------------------------------------------------------------------------ //
 const char* le::ConVar::GetValueString() const
 {
-	return value_string.c_str();
+    return values.value_string.c_str();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -322,15 +322,23 @@ le::ConVar::ConVar() :
 	changeCallback( nullptr ),
 	min( 0.f ),
 	max( 0.f ),
-	type( CVT_UNDEFINED ),
-	value_int( 0 ),
-	value_float( 0.f ),
-	value_bool( false ),
-	value_string( "" )
+    type( CVT_UNDEFINED )
 {}
 
 // ------------------------------------------------------------------------------------ //
 // Деструктор
 // ------------------------------------------------------------------------------------ //
 le::ConVar::~ConVar()
+{}
+
+// ------------------------------------------------------------------------------------ //
+// Конструктор
+// ------------------------------------------------------------------------------------ //
+le::ConVar::Values::Values()
+{}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+le::ConVar::Values::~Values()
 {}

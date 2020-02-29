@@ -33,5 +33,7 @@
 
 build/*
 src/build/*
+build-*/*
 src/extlibs/*
 src/.vscode/*
+CMakeLists.txt.user

@@ -27,6 +27,16 @@ if( LIFEENGINE_DEBUG )
 	add_definitions( -DLIFEENGINE_DEBUG )
 endif()
 
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
+    if ( MINGW )
+        set( CMAKE_RC_COMPILER_INIT windres )
+        enable_language( RC )
+        set( CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> <DEFINES> -i <SOURCE> -o <OBJECT>" )
+    endif()
+else()
+    message( SEND_ERROR "Unknow platform")
+endif()
+
 #
 #   --- Пути к каталогам ---
 #

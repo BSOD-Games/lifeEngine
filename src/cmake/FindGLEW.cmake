@@ -23,7 +23,7 @@ find_path( 		GLEW_INCLUDE
 				PATHS ${GLEW_SEARCH_PATHS} )
 find_library( 	GLEW_LIB 
                 NAMES glew32
-				PATH_SUFFIXES lib
+                PATH_SUFFIXES lib
                 PATHS ${GLEW_SEARCH_PATHS} )
 
 if ( NOT GLEW_INCLUDE OR NOT GLEW_LIB )

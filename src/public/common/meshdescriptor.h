@@ -12,6 +12,7 @@
 #define MESH_DESCRIPTOR_H
 
 #include "common/types.h"
+#include "studiorender/imesh.h"
 
 //---------------------------------------------------------------------//
 

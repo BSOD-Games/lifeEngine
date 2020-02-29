@@ -23,7 +23,7 @@ find_path( 		FREEIMAGE_INCLUDE
 				PATHS ${FREEIMAGE_SEARCH_PATHS} )		
 find_library( 	FREEIMAGE_LIB 
                 NAMES FreeImage
-				PATH_SUFFIXES lib
+                PATH_SUFFIXES lib
                 PATHS ${FREEIMAGE_SEARCH_PATHS} )
 		
 if ( NOT FREEIMAGE_INCLUDE OR NOT FREEIMAGE_LIB )

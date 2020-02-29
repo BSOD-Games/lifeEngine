@@ -8,6 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include <string.h>
+
 #include "engine/lifeengine.h"
 #include "engine/iconsolesystem.h"
 #include "stdshaders/ishader.h"

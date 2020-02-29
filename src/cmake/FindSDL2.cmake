@@ -24,11 +24,12 @@ find_path( 		SDL2_INCLUDE
 				PATHS ${SDL2_SEARCH_PATHS} )		
 find_library( 	SDL2_LIB 
                 NAMES SDL2
-				PATH_SUFFIXES lib
+                PATH_SUFFIXES lib
                 PATHS ${SDL2_SEARCH_PATHS} )
+
 find_library( 	SDL2MAIN_LIB
                 NAMES SDL2main
-				PATH_SUFFIXES lib
+                PATH_SUFFIXES lib
                 PATHS ${SDL2_SEARCH_PATHS} )
 		
 if ( NOT SDL2_INCLUDE OR NOT SDL2_LIB OR NOT SDL2MAIN_LIB )

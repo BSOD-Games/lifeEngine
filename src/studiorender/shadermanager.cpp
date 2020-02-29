@@ -39,20 +39,20 @@ bool le::ShaderManager::LoadShaderDLL( const char* FullPath )
 
 		// Загружаем модуль
 		shaderDLLDescriptor.handle = SDL_LoadObject( FullPath );
-		if ( !shaderDLLDescriptor.handle )	throw std::exception( SDL_GetError() );
+        if ( !shaderDLLDescriptor.handle )	throw std::runtime_error( SDL_GetError() );
 
 		// Берем из модуля API для работы с ним
 		shaderDLLDescriptor.LE_CreateShaderDLL = ( LE_CreateShaderDLLFn_t ) SDL_LoadFunction( shaderDLLDescriptor.handle, "LE_CreateShaderDLL" );
 		shaderDLLDescriptor.LE_DeleteShaderDLL = ( LE_DeleteShaderDLLFn_t ) SDL_LoadFunction( shaderDLLDescriptor.handle, "LE_DeleteShaderDLL" );
 		shaderDLLDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( shaderDLLDescriptor.handle, "LE_SetCriticalError" );
-		if ( !shaderDLLDescriptor.LE_CreateShaderDLL )	throw std::exception( "Function LE_CreateShaderDLL not found" );
+        if ( !shaderDLLDescriptor.LE_CreateShaderDLL )	throw std::runtime_error( "Function LE_CreateShaderDLL not found" );
 
 		// Создаем рендер
 		if ( shaderDLLDescriptor.LE_SetCriticalError )
 			shaderDLLDescriptor.LE_SetCriticalError( g_criticalError );
 
 		shaderDLLDescriptor.shaderDLL = ( IShaderDLL* ) shaderDLLDescriptor.LE_CreateShaderDLL();
-		if ( !shaderDLLDescriptor.shaderDLL->Initialize( g_engine ) )				throw std::exception( "Fail initialize shader dll" );
+        if ( !shaderDLLDescriptor.shaderDLL->Initialize( g_engine ) )				throw std::runtime_error( "Fail initialize shader dll" );
 
 		shaderDLLDescriptor.fileName = FullPath;
 

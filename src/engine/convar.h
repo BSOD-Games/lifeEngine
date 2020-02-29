@@ -59,6 +59,18 @@ namespace le
 		~ConVar();
 
 	private:
+
+        union Values
+        {
+            Values();
+            ~Values();
+
+            int				value_int;
+            float			value_float;
+            bool			value_bool;
+            std::string		value_string;
+        };
+
 		bool				isReadOnly;
 		bool				hasMin;	
 		bool				hasMax;	
@@ -71,14 +83,7 @@ namespace le
 		std::string			defaultValue;
 		std::string			helpString;
 		std::string			name;
-
-		union
-		{
-			int				value_int;	
-			float			value_float;
-			bool			value_bool;	
-			std::string		value_string;
-		};
+        Values              values;
 	};
 
 	//---------------------------------------------------------------------//
