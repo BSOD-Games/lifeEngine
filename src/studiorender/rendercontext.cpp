@@ -13,6 +13,8 @@
 
 #if defined( PLATFORM_WINDOWS )
 #	include "win32/wglcontext.h"
+#elif defined( PLATFORM_LINUX )
+#   include "unix/glxcontext.h"
 #else
 #	error Not supported platform
 #endif
@@ -43,6 +45,8 @@ bool le::RenderContext::Create( WindowHandle_t WindowHandle, const SettingsConte
 
 #if defined( PLATFORM_WINDOWS )
 	isCreated = WinGL_CreateContext( WindowHandle, SettingsContext, contextDescriptor );
+#elif defined( PLATFORM_LINUX )
+    isCreated = GLX_CreateContext( WindowHandle, SettingsContext, contextDescriptor );
 #endif
 
 	return isCreated;
@@ -57,6 +61,8 @@ void le::RenderContext::MakeCurrent()
 
 #if defined( PLATFORM_WINDOWS )
 	WinGL_MakeCurrentContext( contextDescriptor );
+#elif defined( PLATFORM_LINUX )
+    GLX_MakeCurrentContext( contextDescriptor );
 #endif
 }
 
@@ -70,6 +76,8 @@ void le::RenderContext::Destroy()
 
 #if defined( PLATFORM_WINDOWS )
 	WinGL_DeleteContext( contextDescriptor );
+#elif defined( PLATFORM_LINUX )
+    GLX_DeleteContext( contextDescriptor );
 #endif
 }
 
@@ -82,6 +90,8 @@ void le::RenderContext::SwapBuffers()
 
 #if defined( PLATFORM_WINDOWS )
 	WinGL_SwapBuffers( contextDescriptor );
+#elif defined( PLATFORM_LINUX )
+    GLX_SwapBuffers( contextDescriptor );
 #endif
 }
 
@@ -94,6 +104,8 @@ void le::RenderContext::SetVerticalSync( bool IsEnable )
 
 #if defined( PLATFORM_WINDOWS )
 	WinGL_SetVerticalSync( IsEnable );
+#elif defined( PLATFORM_LINUX )
+    GLX_SetVerticalSync( IsEnable );
 #endif
 }
 

@@ -11,7 +11,7 @@
 #ifndef RENDER_CONTEXT_H
 #define RENDER_CONTEXT_H
 
-#include "engine/lifeEngine.h"
+#include "engine/lifeengine.h"
 
 //----------------------------------------------------------------------//
 

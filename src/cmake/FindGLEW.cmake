@@ -9,7 +9,7 @@ SET( GLEW_SEARCH_PATHS
 	~/Library/Frameworks
 	/Library/Frameworks
 	/usr/local
-	/usr
+        /usr
 	/sw # Fink
 	/opt/local # DarwinPorts
 	/opt/csw # Blastwave
@@ -22,8 +22,8 @@ find_path( 		GLEW_INCLUDE
 				PATH_SUFFIXES include
 				PATHS ${GLEW_SEARCH_PATHS} )
 find_library( 	GLEW_LIB 
-                NAMES glew32
-                PATH_SUFFIXES lib
+                NAMES glew32 GLEW
+                PATH_SUFFIXES lib lib32 lib64 lib/x86_64-linux-gnu
                 PATHS ${GLEW_SEARCH_PATHS} )
 
 if ( NOT GLEW_INCLUDE OR NOT GLEW_LIB )

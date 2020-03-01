@@ -7,17 +7,17 @@
 # 	---------------------------------
 
 find_path( 		LIFEENGINE_SDK_INCLUDE
-				NAMES "engine/lifeEngine.h"
+                                NAMES "engine/lifeengine.h"
 				PATH_SUFFIXES src/public
 				PATHS ${LIFEENGINE_SDK_PATH} )		
 		
 find_file(		LIFEENGINE_SDK_LAUNCHER
-				NAMES "launcher.exe"
+                                NAMES "launcher.exe" "launcher"
 				PATH_SUFFIXES build
 				PATHS ${LIFEENGINE_SDK_PATH} )
 		
 find_path(		LIFEENGINE_SDK_LAUNCHER_DIR
-				NAMES "launcher.exe"
+                                NAMES "launcher.exe" "launcher"
 				PATH_SUFFIXES build
 				PATHS ${LIFEENGINE_SDK_PATH} )
 	

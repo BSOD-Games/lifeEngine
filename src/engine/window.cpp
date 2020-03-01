@@ -251,6 +251,8 @@ bool le::Window::Create( const char* Title, int Width, int Heigt, STYLE_WINDOW S
 
 #if defined( PLATFORM_WINDOWS )
 	handle = windowInfo->info.win.window;
+#elif defined( PLATFORM_LINUX )
+    handle = &windowInfo->info.x11.window;
 #else
 	#error Unknown platform
 #endif

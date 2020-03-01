@@ -33,8 +33,9 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
         enable_language( RC )
         set( CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> <DEFINES> -i <SOURCE> -o <OBJECT>" )
     endif()
+elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
 else()
-    message( SEND_ERROR "Unknow platform")
+    message( SEND_ERROR "Unknow platform" )
 endif()
 
 #
@@ -52,7 +53,7 @@ set( CMAKE_PREFIX_PATH ${QT5_DIR} )
 include_directories( ${CMAKE_BINARY_DIR} )
 
 if ( BUILD_LAUNCHER )
-	add_subdirectory( ${PROJECT_LAUNCHER} )
+        add_subdirectory( ${PROJECT_LAUNCHER} )
 endif()
 
 if ( BUILD_ENGINE )

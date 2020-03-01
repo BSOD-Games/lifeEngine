@@ -52,6 +52,8 @@ namespace le
 
 #	if defined( _WIN32 ) || defined( _WIN64 )
 #		define PLATFORM_WINDOWS
+#   elif defined( __linux__ )
+#       define PLATFORM_LINUX
 #	else
 #		error Unknown platform
 #	endif // _WIN32 или _WIN64
@@ -60,6 +62,8 @@ namespace le
 
 #	if defined( PLATFORM_WINDOWS )
 #		define LIFEENGINE_API				extern "C" __declspec( dllexport )
+#   elif defined( PLATFORM_LINUX )
+#       define LIFEENGINE_API               extern "C"
 #	else
 #		define LIFEENGINE_API
 #	endif // LIFEENGINE_EXPORT

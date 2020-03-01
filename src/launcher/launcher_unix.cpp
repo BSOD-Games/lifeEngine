@@ -8,7 +8,7 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#include <Windows.h>
+#include <SDL2/SDL.h>
 #include <exception>
 #include <fstream>
 
@@ -26,7 +26,7 @@ void Engine_CriticalError( const char* Message )
 {
     std::ofstream			fileLog( "engine.log", std::ios::app );
 
-    MessageBoxA( nullptr, Message, "Error lifeEngine", MB_OK | MB_ICONERROR );
+    SDL_ShowSimpleMessageBox( SDL_MESSAGEBOX_ERROR, "Error lifeEngine", Message, nullptr );
     fileLog << "\nCritical error: " << Message;
 
     exit( 1 );
@@ -35,26 +35,24 @@ void Engine_CriticalError( const char* Message )
 // ------------------------------------------------------------------------------------ //
 // Точка входа
 // ------------------------------------------------------------------------------------ //
-int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nCmdShow )
-{	
-    HINSTANCE								engineDLL = nullptr;
+int main( int argc, char** argv )
+{
+    void*                                   engineSO = nullptr;
     le::LE_CreateEngineFn_t					LE_CreateEngine = nullptr;
     le::LE_DeleteEngineFn_t					LE_DeleteEngine = nullptr;
     le::LE_SetCriticalErrorFn_t				LE_SetCriticalError = nullptr;
 
-    SetDllDirectoryA( "engine" );
-
     try
     {
         // Загружаем ядро движка
-        engineDLL = LoadLibraryA( "engine/" LIFEENGINE_ENGINE_DLL );
-        if ( !engineDLL )               throw std::runtime_error( "Faile loaded engine/" LIFEENGINE_ENGINE_DLL );
+        engineSO = SDL_LoadObject( "engine/" LIFEENGINE_ENGINE_DLL );
+        if ( !engineSO )            throw std::runtime_error( "Faile loaded engine/" LIFEENGINE_ENGINE_DLL );
 
-        LE_CreateEngine = ( le::LE_CreateEngineFn_t ) GetProcAddress( engineDLL, "LE_CreateEngine" );
+        LE_CreateEngine = ( le::LE_CreateEngineFn_t ) SDL_LoadFunction( engineSO, "LE_CreateEngine" );
         if ( !LE_CreateEngine )		throw std::runtime_error( "Faile get adress on function LE_CreateEngine" );
 
-        LE_DeleteEngine = ( le::LE_DeleteEngineFn_t ) GetProcAddress( engineDLL, "LE_DeleteEngine" );
-        LE_SetCriticalError = ( le::LE_SetCriticalErrorFn_t ) GetProcAddress( engineDLL, "LE_SetCriticalError" );
+        LE_DeleteEngine = ( le::LE_DeleteEngineFn_t ) SDL_LoadFunction( engineSO, "LE_DeleteEngine" );
+        LE_SetCriticalError = ( le::LE_SetCriticalErrorFn_t ) SDL_LoadFunction( engineSO, "LE_SetCriticalError" );
         // Если нет функции LE_DeleteEngine или LE_SetCriticalErrorCallback, то это не критично
 
         LE_SetCriticalError( Engine_CriticalError );
@@ -65,21 +63,8 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
             if ( !engine->LoadConfig( "config.cfg" ) )
                 engine->SaveConfig( "config.cfg" );
 
-            std::string				gameDir = DEFAULT_GAME;
-            le::Configurations                  configurations = engine->GetConfigurations();
-
-            // Cчитываем аргументы запуска лаунчера
-            int				argc;
-            LPWSTR*			argList = CommandLineToArgvW( GetCommandLineW(), &argc );
-            char**			argv = new char* [ argc ];
-
-            for ( int index = 0; index < argc; ++index )
-            {
-                int			size = wcslen( argList[ index ] ) + 1;
-                argv[ index ] = new char[ size ];
-
-                wcstombs( argv[ index ], argList[ index ], size );
-            }
+            std::string                 gameDir = DEFAULT_GAME;
+            le::Configurations          configurations = engine->GetConfigurations();
 
             // Парсим аргументы запуска и меняем конфигурации
             for ( int index = 0; index < argc; ++index )
@@ -103,10 +88,6 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
 
             engine->SetConfig( configurations );
 
-            // Удаляем выделенную память под аргументы и запускаем игру
-            LocalFree( argList );
-            delete[] argv;
-
             // Инициализируем движок для запуска игры
             if ( !engine->Initialize( "engine" ) )
                 throw std::runtime_error( "The engine is not initialized. See the logs for details" );
@@ -120,9 +101,9 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
         engine->RunSimulation();
 
         if ( LE_DeleteEngine ) LE_DeleteEngine( engine );
-        FreeLibrary( engineDLL );
+        SDL_UnloadObject( engineSO );
     }
-    catch ( const std::exception& Exception )
+    catch ( std::exception& Exception )
     {
         Engine_CriticalError( Exception.what() );
         return 1;

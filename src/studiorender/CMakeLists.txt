@@ -21,6 +21,14 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
                         win32/wglcontext.h )
 
     set( ICON resource.rc )
+
+#   Платформозависимые исходники для Linux
+elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
+    set( SOURCE_FILES ${SOURCE_FILES}
+                        unix/glxcontext.cpp
+                        unix/glxcontext.h )
+
+    set( ICON "" )
 else()
     message( SEND_ERROR "Unknow platform")
 endif()

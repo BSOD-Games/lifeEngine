@@ -206,7 +206,7 @@ bool le::ConsoleSystem::Exec( const char* Command )
 void le::ConsoleSystem::PrintInfo( const char* Message, ... )
 {
 	if ( !fileLog ) return;
-	va_list			argList = nullptr;	
+    va_list			argList = {};
 
 	va_start( argList, Message );	
 	vfprintf( fileLog, ( "[Info] " + std::string( Message ) + "\n" ).c_str(), argList );
@@ -221,7 +221,7 @@ void le::ConsoleSystem::PrintInfo( const char* Message, ... )
 void le::ConsoleSystem::PrintWarning( const char* Message, ... )
 {
 	if ( !fileLog ) return;
-	va_list			argList = nullptr;
+    va_list			argList = {};
 
 	va_start( argList, Message );
 	vfprintf( fileLog, ( "[Warning] " + std::string( Message ) + "\n" ).c_str(), argList );
@@ -236,7 +236,7 @@ void le::ConsoleSystem::PrintWarning( const char* Message, ... )
 void le::ConsoleSystem::PrintError( const char* Message, ... )
 {
 	if ( !fileLog ) return;
-	va_list			argList = nullptr;
+    va_list			argList = {};
 
 	va_start( argList, Message );
 	vfprintf( fileLog, ( "[Error] " + std::string( Message ) + "\n" ).c_str(), argList );

@@ -18,12 +18,12 @@ SET( FREETYPE_SEARCH_PATHS
 )
 
 find_path( 		FREETYPE_INCLUDE
-				NAMES "ft2build.h" "freetype.h"
-				PATH_SUFFIXES include/freetype include
+                                NAMES "ft2build.h" "freetype.h"
+				PATH_SUFFIXES include/freetype include/freetype2 include
 				PATHS ${FREETYPE_SEARCH_PATHS} )
 find_library( 	FREETYPE_LIB 
                 NAMES freetype
-                PATH_SUFFIXES lib
+                PATH_SUFFIXES lib lib32 lib64 lib/x86_64-linux-gnu
                 PATHS ${FREETYPE_SEARCH_PATHS} )
 
 if ( NOT FREETYPE_INCLUDE OR NOT FREETYPE_LIB )

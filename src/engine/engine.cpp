@@ -206,11 +206,24 @@ bool le::Engine::LoadGameInfo( const char* DirGame )
 		// РџСѓС‚СЊ Рє РјРѕРґСѓР»СЋ СЃ РёРіСЂРѕРІРѕР№ Р»РѕРіРёРєРѕР№
 		if ( strcmp( it->name.GetString(), "gameDLL" ) == 0 && it->value.IsString() )
 		{
-			stringLength = it->value.GetStringLength();
+            UInt32_t            sizeExnesion;
+            UInt32_t            sizeJsonString = it->value.GetStringLength();
+            const char*         extension;
 
-			gameInfo.gameDLL = new char[ stringLength + 1 ];
-			memcpy( gameInfo.gameDLL, it->value.GetString(), stringLength );
-			gameInfo.gameDLL[ stringLength ] = '\0';
+#       if defined( PLATFORM_WINDOWS )
+            extension = ".dll";
+            sizeExnesion = 4;
+#       elif defined( PLATFORM_LINUX )
+            extension = ".so";
+            sizeExnesion = 3;
+#       endif // PLATFORM_WINDOWS
+
+            stringLength = sizeJsonString + sizeExnesion;
+
+            gameInfo.gameDLL = new char[ stringLength + 1 ];
+            memcpy( gameInfo.gameDLL, it->value.GetString(), sizeJsonString );
+            memcpy( gameInfo.gameDLL + sizeJsonString, extension, sizeExnesion );
+            gameInfo.gameDLL[ stringLength ] = '\0';
 		}
 
 		// РџСѓС‚СЊ Рє РёРєРѕРЅРєРµ
@@ -572,7 +585,7 @@ const le::Version& le::Engine::GetVersion() const
 // ------------------------------------------------------------------------------------ //
 // Р�РЅРёС†РёР°Р»РёР·РёСЂРѕРІР°С‚СЊ РґРІРёР¶РѕРє
 // ------------------------------------------------------------------------------------ //
-bool le::Engine::Initialize( WindowHandle_t WindowHandle )
+bool le::Engine::Initialize( const char* EngineDirectory, WindowHandle_t WindowHandle )
 {
 	if ( isInit ) return true;
 	consoleSystem.PrintInfo( "Initialization lifeEngine" );
@@ -617,12 +630,12 @@ bool le::Engine::Initialize( WindowHandle_t WindowHandle )
 			window.SetHandle( WindowHandle );
 
 		// Р—Р°РіСЂСѓР¶Р°РµРј Рё РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РїРѕРґСЃРёСЃС‚РµРјС‹
-
-        if ( !LoadModule_StudioRender( LIFEENGINE_STUDIORENDER_DLL ) )		throw std::runtime_error( "Failed loading studiorender" );
+        std::string         engineDir = EngineDirectory;
+        if ( !LoadModule_StudioRender( ( engineDir + "/" + LIFEENGINE_STUDIORENDER_DLL ).c_str() ) )      throw std::runtime_error( "Failed loading studiorender" );
 	
 		auto*		shaderManager = studioRender->GetShaderManager();
         if ( !shaderManager )		throw std::runtime_error( "In studiorender not exist shader manager" );
-        if ( !shaderManager->LoadShaderDLL( LIFEENGINE_STDSHADERS_DLL ) )	throw std::runtime_error( "Failed loading stdshaders" );
+        if ( !shaderManager->LoadShaderDLL( ( engineDir + "/" + LIFEENGINE_STDSHADERS_DLL ).c_str() ) )   throw std::runtime_error( "Failed loading stdshaders" );
 
 		FontFreeType::InitializeFreeType();
 		resourceSystem.Initialize( this );
@@ -651,7 +664,7 @@ bool le::Engine::LoadGame( const char* DirGame )
 	resourceSystem.SetGameDir( gameInfo.gameDir );
 
 	// Р—Р°РіСЂСѓР¶Р°РµРј РёРіСЂРѕРІСѓСЋ Р»РѕРіРёРєСѓ
-	if ( !LoadModule_Game( ( std::string( DirGame ) + "/" + gameInfo.gameDLL ).c_str() ) )
+    if ( !LoadModule_Game( ( std::string( DirGame ) + "/" + gameInfo.gameDLL ).c_str() ) )
 		return false;
 
 	// Р•СЃР»Рё РµСЃС‚СЊ РёРєРѕРЅРєР° Сѓ РёРіСЂС‹ - РіСЂСѓР·РёРј РµРµ

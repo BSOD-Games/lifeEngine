@@ -10,6 +10,10 @@ set( MODULE_NAME stdshaders )
 #   Платформозависимые исходники для Windows
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
     set( ICON resource.rc )
+
+#   Платформозависимые исходники для Linux
+elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
+    set( ICON "" )
 else()
     message( SEND_ERROR "Unknow platform")
 endif()

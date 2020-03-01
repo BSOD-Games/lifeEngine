@@ -75,7 +75,7 @@ namespace le
 		virtual const Version&			GetVersion() const;
 
 		// IEngineInternal
-		virtual bool					Initialize( WindowHandle_t WindowHandle = nullptr );
+        virtual bool					Initialize( const char* EngineDirectory, WindowHandle_t WindowHandle = nullptr );
 		virtual bool					LoadGame( const char* DirGame );
 		virtual void					UnloadGame();
 

@@ -14,16 +14,17 @@ SET( FREEIMAGE_SEARCH_PATHS
 	/opt/local # DarwinPorts
 	/opt/csw # Blastwave
 	/opt
+        /lib
 	${FREEIMAGE_PATH}
 )
 
 find_path( 		FREEIMAGE_INCLUDE
-				NAMES "FreeImage/FreeImage.h"
+                                NAMES "FreeImage.h"
 				PATH_SUFFIXES include
 				PATHS ${FREEIMAGE_SEARCH_PATHS} )		
 find_library( 	FREEIMAGE_LIB 
-                NAMES FreeImage
-                PATH_SUFFIXES lib
+                NAMES FreeImage freeimage
+                PATH_SUFFIXES lib lib32 lib64 lib/x86_64-linux-gnu
                 PATHS ${FREEIMAGE_SEARCH_PATHS} )
 		
 if ( NOT FREEIMAGE_INCLUDE OR NOT FREEIMAGE_LIB )

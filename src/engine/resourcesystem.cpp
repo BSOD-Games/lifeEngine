@@ -10,7 +10,7 @@
 
 #include <exception>
 #include <fstream>
-#include <FreeImage/FreeImage.h>
+#include <FreeImage.h>
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
