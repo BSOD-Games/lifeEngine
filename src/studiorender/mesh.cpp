@@ -81,6 +81,132 @@ void le::Mesh::Create( const MeshDescriptor& MeshDescriptor )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Обновить меш
+// ------------------------------------------------------------------------------------ //
+void le::Mesh::Update( const void* Verteces, UInt32_t SizeVerteces, UInt32_t OffsetVerteces )
+{
+    if ( !isCreated ) return;
+
+    UInt32_t        maxSize = OffsetVerteces + SizeVerteces;
+    bool            isResizeVertexBuffer = OffsetVerteces == 0 && ( vertexBufferObject.GetSize() != maxSize );
+    LIFEENGINE_ASSERT( !isResizeVertexBuffer && vertexBufferObject.GetSize() > maxSize );
+
+    vertexBufferObject.Bind();
+
+    if ( !isResizeVertexBuffer )
+        vertexBufferObject.Update( Verteces, SizeVerteces, OffsetVerteces );
+    else
+        vertexBufferObject.Allocate( Verteces, SizeVerteces );
+
+    vertexBufferObject.Unbind();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Обновить меш
+// ------------------------------------------------------------------------------------ //
+void le::Mesh::Update( UInt32_t* Indeces, UInt32_t CountIndeces, UInt32_t StartIdIndex )
+{
+    if ( !isCreated ) return;
+
+    UInt32_t        maxCount = ( StartIdIndex + CountIndeces ) * sizeof( UInt32_t );
+    bool            isResizeIndexBuffer = StartIdIndex == 0 && ( indexBufferObject.GetSize() != maxCount );
+    LIFEENGINE_ASSERT( !isResizeIndexBuffer && indexBufferObject.GetSize() > maxCount );
+
+    indexBufferObject.Bind();
+
+    if ( !isResizeIndexBuffer )
+        indexBufferObject.Update( Indeces, CountIndeces * sizeof( UInt32_t ), StartIdIndex * sizeof( UInt32_t ) );
+    else
+        indexBufferObject.Allocate( Indeces, CountIndeces * sizeof( UInt32_t ) );
+
+    indexBufferObject.Unbind();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Обновить меш
+// ------------------------------------------------------------------------------------ //
+void le::Mesh::Update( MeshSurface* Surfaces, UInt32_t CountSurfaces, UInt32_t StartIdSurface )
+{
+    if ( !isCreated ) return;
+
+    UInt32_t           maxCount = StartIdSurface + CountSurfaces;
+    bool               isResizeSurfaces = StartIdSurface == 0 && ( surfaces.size() != maxCount );
+    LIFEENGINE_ASSERT( !isResizeSurfaces && surfaces.size() > maxCount );
+
+    if ( isResizeSurfaces )
+    {
+        UInt32_t        localIndex = 0;
+        for ( UInt32_t count = surfaces.size(); localIndex < count; ++localIndex )
+            surfaces[ localIndex ] = Surfaces[ localIndex ];
+
+        if ( localIndex < CountSurfaces-1 )
+            for ( ; localIndex < CountSurfaces; ++localIndex )
+                surfaces.push_back( Surfaces[ localIndex ] );
+    }
+    else
+    {
+        for ( UInt32_t indexLocalSurface = 0, indexSurface = StartIdSurface; indexSurface < maxCount; ++indexSurface, ++indexLocalSurface )
+            surfaces[ indexSurface ] = Surfaces[ indexLocalSurface ];
+    }
+}
+
+// ------------------------------------------------------------------------------------ //
+// Обновить меш
+// ------------------------------------------------------------------------------------ //
+void le::Mesh::Update( IMaterial** Materials, UInt32_t CountMaterials, UInt32_t StartIdMaterial )
+{
+    if ( !isCreated ) return;
+
+    UInt32_t           maxCount = StartIdMaterial + CountMaterials;
+    bool               isResizeMaterials = StartIdMaterial == 0 && ( materials.size() != maxCount );
+    LIFEENGINE_ASSERT( !isResizeMaterials && materials.size() > maxCount );
+
+    if ( isResizeMaterials )
+    {
+        UInt32_t        localIndex = 0;
+        for ( UInt32_t count = materials.size(); localIndex < count; ++localIndex )
+            materials[ localIndex ] = Materials[ localIndex ];
+
+        if ( localIndex < CountMaterials-1 )
+            for ( ; localIndex < CountMaterials; ++localIndex )
+                materials.push_back( Materials[ localIndex ] );
+    }
+    else
+    {
+        for ( UInt32_t indexLocalMaterial = 0, indexMaterial = StartIdMaterial; indexMaterial < maxCount; ++indexMaterial, ++indexLocalMaterial )
+            materials[ indexMaterial ] = Materials[ indexLocalMaterial ];
+    }
+}
+
+// ------------------------------------------------------------------------------------ //
+// Обновить меш
+// ------------------------------------------------------------------------------------ //
+void le::Mesh::Update( ITexture** Lightmaps, UInt32_t CountLighmaps, UInt32_t StartIdLightmap )
+{
+    if ( !isCreated ) return;
+
+    UInt32_t           maxCount = StartIdLightmap + CountLighmaps;
+    bool               isResizeLightmaps = StartIdLightmap == 0 && ( lightmaps.size() != maxCount );
+    LIFEENGINE_ASSERT( !isResizeLightmaps && lightmaps.size() > maxCount );
+
+    if ( isResizeLightmaps )
+    {
+        UInt32_t        localIndex = 0;
+        for ( UInt32_t count = materials.size(); localIndex < count; ++localIndex )
+            lightmaps[ localIndex ] = Lightmaps[ localIndex ];
+
+        if ( localIndex < CountLighmaps-1 )
+            for ( ; localIndex < CountLighmaps; ++localIndex )
+                lightmaps.push_back( Lightmaps[ localIndex ] );
+    }
+    else
+    {
+        for ( UInt32_t indexLocalLightmap = 0, indexLightmap = StartIdLightmap, countLightmap = StartIdLightmap + CountLighmaps; indexLightmap < countLightmap; ++indexLightmap, ++indexLocalLightmap )
+            lightmaps[ indexLightmap ] = Lightmaps[ indexLocalLightmap ];
+    }
+}
+
+// ------------------------------------------------------------------------------------ //
 // Удалить меш
 // ------------------------------------------------------------------------------------ //
 void le::Mesh::Delete()
@@ -118,7 +244,7 @@ le::UInt32_t le::Mesh::GetCountSurfaces() const
 // ------------------------------------------------------------------------------------ //
 const le::MeshSurface& le::Mesh::GetSurface( UInt32_t Index ) const
 {
-	if ( Index >= surfaces.size() ) return le::MeshSurface();
+    if ( Index >= surfaces.size() ) return MeshSurface();
 	return surfaces[ Index ];
 }
 

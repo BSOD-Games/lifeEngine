@@ -15,7 +15,8 @@
 // ------------------------------------------------------------------------------------ //
 le::IndexBufferObject::IndexBufferObject( TYPE_USAGE_BUFFER TypeUsage ) :
 	typeUsage( TypeUsage ),
-	handle( 0 )
+    handle( 0 ),
+    size( 0 )
 {}
 
 // ------------------------------------------------------------------------------------ //

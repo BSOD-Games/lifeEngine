@@ -38,6 +38,8 @@ namespace le
 		inline void					Delete()
 		{
 			if ( handle == 0 ) return;
+
+            size = 0;
 			glDeleteBuffers( 1, &handle );
 		}
 
@@ -46,6 +48,7 @@ namespace le
 			if ( handle == 0 ) return;
 			LIFEENGINE_ASSERT( Data );
 
+            size = Size;
 			glBufferData( GL_ELEMENT_ARRAY_BUFFER, Size, Data, typeUsage );
 		}
 
@@ -68,28 +71,34 @@ namespace le
 			glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 		}
 
-		inline void					SetTypeUsage( TYPE_USAGE_BUFFER TypeUsage )
+        inline void					SetTypeUsage( TYPE_USAGE_BUFFER TypeUsage )
 		{
 			typeUsage = TypeUsage;
 		}
 			
-		inline UInt32_t				GetHandle()
+        inline UInt32_t             GetSize() const
+        {
+            return size;
+        }
+
+        inline UInt32_t				GetHandle() const
 		{
 			return handle;
 		}
 
-		inline TYPE_USAGE_BUFFER	GetTypeUsage()
+        inline TYPE_USAGE_BUFFER	GetTypeUsage() const
 		{
 			return typeUsage;
 		}
 
-		inline bool					IsCreate()
+        inline bool					IsCreate() const
 		{
 			return handle > 0;
 		}
 
 	private:
 		TYPE_USAGE_BUFFER		typeUsage;	
+        UInt32_t                size;
 		UInt32_t				handle;
 	};
 

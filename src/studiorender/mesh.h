@@ -29,6 +29,11 @@ namespace le
 	public:
 		// IMesh
 		virtual void							Create( const MeshDescriptor& MeshDescriptor );
+        virtual void                            Update( const void* Verteces, UInt32_t SizeVerteces, UInt32_t OffsetVerteces );
+        virtual void                            Update( UInt32_t* Indeces, UInt32_t CountIndeces, UInt32_t StartIdIndex );
+        virtual void                            Update( MeshSurface* Surfaces, UInt32_t CountSurfaces, UInt32_t StartIdSurface );
+        virtual void                            Update( IMaterial** Materials, UInt32_t CountMaterials, UInt32_t StartIdMaterial );
+        virtual void                            Update( ITexture** Lightmaps, UInt32_t CountLighmaps, UInt32_t StartIdLightmap );
 		virtual void							Delete();
 
 		virtual bool							IsCreated() const;

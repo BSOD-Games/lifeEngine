@@ -130,6 +130,9 @@ void le::Text::UpdateGeometry()
 	Vector2D_t			font_textureSize;
 	if ( font_texture )
 	{
+        if ( materialParam_basetexture && materialParam_basetexture->GetValueTexture() != font_texture )
+            materialParam_basetexture->SetValueTexture( font_texture );
+
 		font_textureSize = Vector2D_t( font_texture->GetWidth(), font_texture->GetHeight() );
 		if( !isNeedUpdateGeometry && textureSize == font_textureSize )
 			return;
@@ -209,7 +212,7 @@ void le::Text::UpdateGeometry()
 	// Если ранее меш текста был создан - обновляем данные, иначе создаем
 	if ( mesh && mesh->IsCreated() )
 	{
-		// TODO: Реализовать в Mesh возможность обновить данные
+        mesh->Update( buffer.data(), buffer.size() * sizeof( VertexText ), 0 );
 	}
 	else
 	{
