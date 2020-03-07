@@ -53,6 +53,7 @@ void le::StudioRenderPass::Clear()
 
 	shader = nullptr;
 	parameters.clear();
+    materialProxes.clear();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -262,4 +263,47 @@ le::StudioRenderPass::StudioRenderPass() :
 le::StudioRenderPass::~StudioRenderPass()
 {
 	Clear();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Добавить прокси-материал в проход
+// ------------------------------------------------------------------------------------ //
+void le::StudioRenderPass::AddProxy( IMaterialProxy* MaterialProxy )
+{
+    LIFEENGINE_ASSERT( MaterialProxy );
+    materialProxes.push_back( MaterialProxy );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Удалить прокси-материал из прохода
+// ------------------------------------------------------------------------------------ //
+void le::StudioRenderPass::RemoveProxy( UInt32_t Index )
+{
+    LIFEENGINE_ASSERT( Index < materialProxes.size() );
+    materialProxes.erase( materialProxes.begin() + Index );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить количество прокси-материалов
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::StudioRenderPass::GetCountProxes() const
+{
+    return materialProxes.size();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить массив прокси-материалов
+// ------------------------------------------------------------------------------------ //
+le::IMaterialProxy** le::StudioRenderPass::GetProxes() const
+{
+    return ( IMaterialProxy** ) materialProxes.data();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить прокси-материавл
+// ------------------------------------------------------------------------------------ //
+le::IMaterialProxy* le::StudioRenderPass::GetProxy( UInt32_t Index ) const
+{
+    LIFEENGINE_ASSERT( Index < materialProxes.size() );
+    return ( IMaterialProxy* ) materialProxes[ Index ];
 }

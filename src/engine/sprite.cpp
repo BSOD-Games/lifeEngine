@@ -38,6 +38,7 @@ struct VertexSprite
 // ------------------------------------------------------------------------------------ //
 le::Sprite::Sprite() :
     isNeedUpdateTransformation( true ),
+    isNeedUpdateBoundingBox( true ),
 	mesh( nullptr ),
     type( ST_SPRITE_ROTATING ),
 	size( 1.f ),
@@ -60,7 +61,23 @@ void le::Sprite::UpdateTransformation()
 	if ( !isNeedUpdateTransformation ) return;
 
 	transformation = glm::translate( position ) * glm::mat4_cast( rotation ) * glm::scale( scale );
-	isNeedUpdateTransformation = false;
+    isNeedUpdateTransformation = false;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Обновить ограничивающее тело
+// ------------------------------------------------------------------------------------ //
+void le::Sprite::UpdateBoundingBox()
+{
+    if ( !mesh || !mesh->IsCreated() || !isNeedUpdateBoundingBox ) return;
+
+    Vector3D_t		min = ( rotation * mesh->GetMin() * scale ) + position;
+    Vector3D_t		max = ( rotation * mesh->GetMax() * scale ) + position;
+
+    this->min = Vector3D_t( glm::min( min.x, max.x ), glm::min( min.y, max.y ), glm::min( min.z, max.z ) );
+    this->max = Vector3D_t( glm::max( max.x, min.x ), glm::max( max.y, min.y ), glm::max( max.z, min.z ) );
+
+    isNeedUpdateBoundingBox = false;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -148,8 +165,8 @@ bool le::Sprite::Initialize( const Vector2D_t& Size, IMaterial* Material, SPRITE
 	meshDescriptor.surfaces = &surface;
 	meshDescriptor.verteces = verteces.data();
 
-	meshDescriptor.min = Vector3D_t( -Size.x, -Size.y, 1.0f );
-	meshDescriptor.max = Vector3D_t( Size.x, Size.y, 1.0f );
+    meshDescriptor.min = Vector3D_t( -Size.x, -Size.y, 0.0f );
+    meshDescriptor.max = Vector3D_t( Size.x, Size.y, 0.0f );
 	meshDescriptor.primitiveType = le::PT_TRIANGLE_FAN;
 	meshDescriptor.countVertexElements = vertexElements.size();
 	meshDescriptor.vertexElements = vertexElements.data();
@@ -160,6 +177,7 @@ bool le::Sprite::Initialize( const Vector2D_t& Size, IMaterial* Material, SPRITE
 	mesh->Create( meshDescriptor );
 	if ( !mesh->IsCreated() )		return false;
 
+    isNeedUpdateBoundingBox = true;
 	size = Size;
 	type = SpriteType;
 	return true;
@@ -349,4 +367,26 @@ const le::Matrix4x4_t& le::Sprite::GetTransformation()
 		UpdateTransformation();
 
 	return transformation;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить минимальную вершину
+// ------------------------------------------------------------------------------------ //
+const le::Vector3D_t& le::Sprite::GetMin()
+{
+    if ( isNeedUpdateBoundingBox )
+        UpdateBoundingBox();
+
+    return min;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Получить максимальную вершину
+// ------------------------------------------------------------------------------------ //
+const le::Vector3D_t& le::Sprite::GetMax()
+{
+    if ( isNeedUpdateBoundingBox )
+        UpdateBoundingBox();
+
+    return max;
 }

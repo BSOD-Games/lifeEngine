@@ -26,12 +26,14 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class StudioRenderPass : public IStudioRenderPass
+    class StudioRenderPass : public IStudioRenderPass
 	{
 	public:
 		// IStudioRenderPass
 		virtual void				AddParameter( IShaderParameter* Parameter );
-		virtual void				RemoveParameter( UInt32_t Index );
+        virtual void				RemoveParameter( UInt32_t Index );
+        virtual void                AddProxy( IMaterialProxy* MaterialProxy );
+        virtual void                RemoveProxy( UInt32_t Index );
 		virtual void				Clear(); 			
 		virtual void				EnableDepthTest( bool Enable = true );
 		virtual void				EnableDepthWrite( bool Enable = true );
@@ -49,7 +51,10 @@ namespace le
 		virtual const char*			GetNameShader() const;
 		virtual UInt32_t			GetCountParameters() const;
 		virtual IShaderParameter**	GetParameters() const;
-		virtual IShaderParameter*	GetParameter( UInt32_t Index ) const;
+        virtual IShaderParameter*	GetParameter( UInt32_t Index ) const;
+        virtual UInt32_t            GetCountProxes() const;
+        virtual IMaterialProxy**    GetProxes() const;
+        virtual IMaterialProxy*     GetProxy(UInt32_t Index) const;
 
 		// StudioRenderPass
 		StudioRenderPass();
@@ -58,14 +63,16 @@ namespace le
 		void						Apply( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr );
 		void						InitStates();
 		bool						Refrash();
-		inline void					NeadRefrash()
-		{
-			isNeadRefrash = true;
-		}
-		inline bool					IsNeadRefrash() const
-		{
-			return isNeadRefrash;
-		}
+
+        inline void					NeadRefrash()
+        {
+            isNeadRefrash = true;
+        }
+
+        inline bool					IsNeadRefrash() const
+        {
+            return isNeadRefrash;
+        }
 
 	private:
 		bool								isNeadRefrash;
@@ -76,8 +83,9 @@ namespace le
 		CULLFACE_TYPE						cullFaceType;
 
 		IShader*							shader;
-		std::vector< ShaderParameter* >		parameters;
-	};
+        std::vector< ShaderParameter* >		parameters;
+        std::vector< IMaterialProxy* >      materialProxes;
+    };
 
 	//---------------------------------------------------------------------//
 }

@@ -15,6 +15,7 @@
 #include <unordered_map>
 
 #include "engine/iresourcesysteminternal.h"
+#include "engine/materialmanager.h"
 
 //---------------------------------------------------------------------//
 
@@ -106,6 +107,7 @@ namespace le
 		typedef			std::unordered_map< std::string, IFont* >					FontMap_t;
 
 		IFactory*					studioRenderFactory;
+        MaterialManager*            materialManager;
 
 		std::string					gameDir;
 		LoaderImageMap_t			loaderImages;

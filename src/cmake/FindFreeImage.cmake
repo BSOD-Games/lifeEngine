@@ -20,7 +20,7 @@ SET( FREEIMAGE_SEARCH_PATHS
 
 find_path( 		FREEIMAGE_INCLUDE
                                 NAMES "FreeImage.h"
-				PATH_SUFFIXES include
+                                PATH_SUFFIXES include include/FreeImage
 				PATHS ${FREEIMAGE_SEARCH_PATHS} )		
 find_library( 	FREEIMAGE_LIB 
                 NAMES FreeImage freeimage

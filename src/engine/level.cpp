@@ -466,8 +466,13 @@ void le::Level::Update( UInt32_t DeltaTime )
 		for ( UInt32_t index = 0, count = arraySprites.size(); index < count; ++index )
 		{
 			Sprite*			sprite = arraySprites[ index ];
-			// TODO: add check on visible
-			
+            Vector3D_t      max = sprite->GetMax();
+            Vector3D_t      min = sprite->GetMin();
+            int				cluster = arrayBspLeafs[ FindLeaf( ( max + min ) / 2.f ) ].cluster;
+
+            if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( min, max ) )
+                continue;
+
 			g_studioRender->SubmitMesh( sprite->GetMesh(), sprite->GetTransformation( camera ) );
 		}
 

@@ -482,6 +482,7 @@ void le::Engine::RunSimulation()
 			studioRender->Begin();
 
 			inputSystem.Update();
+            materialManager.Update( deltaTime );
 			game->Update( deltaTime );
 
 			studioRender->End();
@@ -547,7 +548,15 @@ le::IResourceSystem* le::Engine::GetResourceSystem() const
 // ------------------------------------------------------------------------------------ //
 le::IInputSystem* le::Engine::GetInputSystem() const
 {
-	return ( IInputSystem* ) &inputSystem;
+    return ( IInputSystem* ) &inputSystem;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Return material manager
+// ------------------------------------------------------------------------------------ //
+le::IMaterialManager* le::Engine::GetMaterialManager() const
+{
+    return ( IMaterialManager* ) &materialManager;
 }
 
 // ------------------------------------------------------------------------------------ //

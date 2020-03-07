@@ -32,6 +32,8 @@ namespace le
         virtual bool                    IsCreated() const;
         virtual IMaterial*              GetMaterial() const;
         virtual IMesh*                  GetMesh() const;
+        virtual const Vector3D_t&       GetMin();
+        virtual const Vector3D_t&       GetMax();
         virtual const Vector2D_t&       GetSize() const;
         virtual SPRITE_TYPE             GetType() const;
         virtual Matrix4x4_t             GetTransformation( ICamera* Camera );
@@ -58,17 +60,21 @@ namespace le
 
     private:
         void				UpdateTransformation();
+        void                UpdateBoundingBox();
 
  		bool				isNeedUpdateTransformation;
+        bool                isNeedUpdateBoundingBox;
 
         SPRITE_TYPE         type;
         Vector2D_t          size;
+        Vector3D_t          min;
+        Vector3D_t          max;
         IMesh*              mesh;
 
 		Vector3D_t			position;
 		Quaternion_t		rotation;
 		Vector3D_t			scale;
-		Matrix4x4_t			transformation;       
+		Matrix4x4_t			transformation;                 
     };
 
     //---------------------------------------------------------------------//

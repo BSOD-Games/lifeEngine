@@ -22,6 +22,8 @@
 #include "engine/lifeengine.h"
 #include "engine/engine.h"
 #include "engine/material.h"
+#include "engine/imaterialproxy.h"
+#include "engine/materialproxyvar.h"
 #include "studiorender/istudiorender.h"
 #include "studiorender/itexture.h"
 #include "studiorender/imesh.h"
@@ -50,6 +52,12 @@ struct Vertex
 	le::Vector3D_t			bitangent;
 };
 
+struct MaterialProxy
+{
+    std::string                                                 name;
+    std::unordered_map< std::string, rapidjson::Value* >        values;
+};
+
 struct MaterialPass
 {
 	MaterialPass() :
@@ -67,6 +75,7 @@ struct MaterialPass
 	le::CULLFACE_TYPE											cullFaceType;
 	std::string													shader;
 	std::unordered_map< std::string, rapidjson::Value* >		parameters;
+    std::vector< MaterialProxy >                                proxes;
 };
 
 struct MaterialTechnique
@@ -267,7 +276,7 @@ le::ITexture* LE_LoadTexture( const char* Path, le::IFactory* StudioRenderFactor
 // ------------------------------------------------------------------------------------ //
 // Загрузить материал
 // ------------------------------------------------------------------------------------ //
-le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceSystem, le::IFactory* StudioRenderFactory )
+le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceSystem, le::IMaterialManager* MaterialManager, le::IFactory* StudioRenderFactory )
 {
 	std::ifstream		file( Path );
 	if ( !file.is_open() )						return nullptr;
@@ -340,7 +349,22 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 						else if ( strcmp( itPass->name.GetString(), "parameters" ) == 0 && itPass->value.IsObject() )
 							for ( auto itParameter = itPass->value.GetObject().MemberBegin(), itParameterEnd = itPass->value.GetObject().MemberEnd(); itParameter != itParameterEnd; ++itParameter )
 								pass.parameters[ itParameter->name.GetString() ] = &itParameter->value;
-					}
+
+                        // Прокси-материалы для прохода
+                        else if ( strcmp( itPass->name.GetString(), "proxies" ) == 0 && itPass->value.IsObject() )
+                            for ( auto itProxy = itPass->value.GetObject().MemberBegin(), itProxyEnd = itPass->value.GetObject().MemberEnd(); itProxy != itProxyEnd; ++itProxy )
+                            {
+                                MaterialProxy           proxy;
+                                if ( !itProxy->name.IsString() || !itProxy->value.IsObject() ) continue;
+
+                                proxy.name = itProxy->name.GetString();
+                                for ( auto itProxyValue = itProxy->value.GetObject().MemberBegin(), itProxyValueEnd = itProxy->value.GetObject().MemberEnd(); itProxyValue != itProxyValueEnd; ++itProxyValue )
+                                    proxy.values[ itProxyValue->name.GetString() ] = &itProxyValue->value;
+
+                                pass.proxes.push_back( proxy );
+                            }
+
+                    }
 
 					technique.passes.push_back( pass );
 				}
@@ -408,6 +432,11 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 
 				pass->AddParameter( parameter );
 			}
+
+            for ( auto itProxies = materialPass.proxes.begin(), itProxiesEnd = materialPass.proxes.end(); itProxies != itProxiesEnd; ++itProxies )
+            {
+                // TODO: Add prxies-materials to StudioRenderPass and add to material manager factory for create and destroy material-proxy
+            }
 
 			technique->AddPass( pass );
 		}
@@ -849,7 +878,7 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
 		auto				parser = loaderMaterials.find( format );
         if ( parser == loaderMaterials.end() )		throw std::runtime_error( "Loader for format material not found" );
 
-		IMaterial* material = parser->second( path.c_str(), this, studioRenderFactory );
+        IMaterial* material = parser->second( path.c_str(), this, materialManager, studioRenderFactory );
         if ( !material )	throw std::runtime_error( "Fail loading material" );
 
 		materials.insert( std::make_pair( Name, material ) );
@@ -1256,6 +1285,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
         if ( !studioRender )	throw std::runtime_error( "Resource system requared studiorender" );
 
 		studioRenderFactory = studioRender->GetFactory();
+        materialManager = ( MaterialManager* ) Engine->GetMaterialManager();
 
 		RegisterLoader_Image( "png", LE_LoadImage );
 		RegisterLoader_Image( "jpg", LE_LoadImage );
@@ -1288,7 +1318,8 @@ void le::ResourceSystem::SetGameDir( const char* GameDir )
 // Конструктор
 // ------------------------------------------------------------------------------------ //
 le::ResourceSystem::ResourceSystem() :
-	studioRenderFactory( nullptr )
+    studioRenderFactory( nullptr ),
+    materialManager( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //

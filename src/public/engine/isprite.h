@@ -51,7 +51,9 @@ namespace le
 
         virtual bool                IsCreated() const = 0;
         virtual IMaterial*          GetMaterial() const = 0;
-        virtual IMesh*              GetMesh() const = 0;      
+        virtual IMesh*              GetMesh() const = 0;
+        virtual const Vector3D_t&   GetMin() = 0;
+        virtual const Vector3D_t&   GetMax() = 0;
         virtual const Vector2D_t&   GetSize() const = 0;
         virtual SPRITE_TYPE         GetType() const = 0;
         virtual Matrix4x4_t         GetTransformation( ICamera* Camera ) = 0;
