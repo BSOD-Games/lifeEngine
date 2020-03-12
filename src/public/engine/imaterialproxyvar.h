@@ -25,6 +25,7 @@ namespace le
 
     enum MATERIAL_PROXY_VAR_TYPE
     {
+        MPVT_NONE,
         MPVT_FLOAT,
         MPVT_INT,
         MPVT_BOOL,
@@ -55,27 +56,27 @@ namespace le
         virtual void					SetValueVector3D( const Vector3D_t& Value ) = 0;
         virtual void					SetValueVector4D( const Vector4D_t& Value ) = 0;
         virtual void					SetValueShaderParameter( IShaderParameter* Value ) = 0;
-        virtual void                    SetValueArrayFloat( float* Array, UInt32_t Count ) = 0;
-        virtual void                    SetValueArrayInt( int* Array, UInt32_t Count ) = 0;
-        virtual void                    SetValueArrayVector2D( Vector2D_t* Array, UInt32_t Count ) = 0;
-        virtual void                    SetValueArrayVector3D( Vector3D_t* Array, UInt32_t Count ) = 0;
-        virtual void                    SetValueArrayVector4D( Vector4D_t* Array, UInt32_t Count ) = 0;
+        virtual void                                    SetValueArrayFloat( float* Array, UInt32_t Count ) = 0;
+        virtual void                                    SetValueArrayInt( int* Array, UInt32_t Count ) = 0;
+        virtual void                                    SetValueArrayVector2D( Vector2D_t* Array, UInt32_t Count ) = 0;
+        virtual void                                    SetValueArrayVector3D( Vector3D_t* Array, UInt32_t Count ) = 0;
+        virtual void                                    SetValueArrayVector4D( Vector4D_t* Array, UInt32_t Count ) = 0;
 
         virtual bool					IsDefined() const = 0;
         virtual const char*				GetName() const = 0;
-        virtual MATERIAL_PROXY_VAR_TYPE	GetType() const = 0;
-        virtual int						GetValueInt() const = 0;
+        virtual MATERIAL_PROXY_VAR_TYPE                 GetType() const = 0;
+        virtual int					GetValueInt() const = 0;
         virtual float					GetValueFloat() const = 0;
         virtual bool					GetValueBool() const = 0;
-        virtual const Vector2D_t&		GetValueVector2D() const = 0;
-        virtual const Vector3D_t&		GetValueVector3D() const = 0;
-        virtual const Vector4D_t&		GetValueVector4D() const = 0;
-        virtual IShaderParameter*       GetValueShaderParameter() const = 0;
-        virtual float*                  GetValueArrayFloat( UInt32_t& Count ) = 0;
-        virtual int*                    GetValueArrayInt( UInt32_t& Count ) = 0;
-        virtual Vector2D_t*             GetValueArrayVector2D( UInt32_t& Count ) = 0;
-        virtual Vector3D_t*             GetValueArrayVector3D( UInt32_t& Count ) = 0;
-        virtual Vector4D_t*             GetValueArrayVector4D( UInt32_t& Count ) = 0;
+        virtual const Vector2D_t&                       GetValueVector2D() const = 0;
+        virtual const Vector3D_t&                       GetValueVector3D() const = 0;
+        virtual const Vector4D_t&                       GetValueVector4D() const = 0;
+        virtual IShaderParameter*                       GetValueShaderParameter() const = 0;
+        virtual float*                                  GetValueArrayFloat( UInt32_t& Count ) = 0;
+        virtual int*                                    GetValueArrayInt( UInt32_t& Count ) = 0;
+        virtual Vector2D_t*                             GetValueArrayVector2D( UInt32_t& Count ) = 0;
+        virtual Vector3D_t*                             GetValueArrayVector3D( UInt32_t& Count ) = 0;
+        virtual Vector4D_t*                             GetValueArrayVector4D( UInt32_t& Count ) = 0;
     };
 
     //---------------------------------------------------------------------//

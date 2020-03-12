@@ -8,28 +8,62 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include "global.h"
 #include "engine/lifeengine.h"
 #include "engine/imaterialproxy.h"
+#include "engine/consolesystem.h"
 #include "engine/materialmanager.h"
 
 // ------------------------------------------------------------------------------------ //
-// Register proxy-material to manager materials
+// Register game factory proxy-materials
 // ------------------------------------------------------------------------------------ //
-void le::MaterialManager::RegisterProxy( IMaterialProxy* MaterialProxy )
+void le::MaterialManager::RegisterGameProxyFactory( IMaterialProxyFactory* MaterialProxyFactory )
 {
-    proxes.push_back( MaterialProxy );
+    gameProxyFactory = MaterialProxyFactory;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Unregister proxy-material from manager materials
+// Unregister game factory proxy-materials
 // ------------------------------------------------------------------------------------ //
-void le::MaterialManager::UnregisterProxy( IMaterialProxy* MaterialProxy )
+void le::MaterialManager::UnregisterGameProxyFactory()
+{
+    gameProxyFactory = nullptr;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Create proxy-material
+// ------------------------------------------------------------------------------------ //
+le::IMaterialProxy* le::MaterialManager::CreateProxy( const char* NameProxy )
+{
+    IMaterialProxy*             materialProxy = nullptr;
+
+    if ( gameProxyFactory )
+        materialProxy = gameProxyFactory->CreateProxy( NameProxy );
+
+    if ( !materialProxy )
+        materialProxy = proxyFactory.CreateProxy( NameProxy );
+
+    if ( materialProxy )
+    {
+        proxes.push_back( materialProxy );
+        return materialProxy;
+    }
+
+    g_consoleSystem->PrintError( "Not found proxy-material [%s] in material manager", NameProxy );
+    return nullptr;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Delete proxy-material
+// ------------------------------------------------------------------------------------ //
+void le::MaterialManager::DeleteProxy( IMaterialProxy* MaterialProxy )
 {
     for ( UInt32_t index = 0, count = proxes.size(); index < count; ++index )
     {
         IMaterialProxy*         proxy = proxes[ index ];
         if ( proxy == MaterialProxy )
         {
+            delete proxy;
             proxes.erase( proxes.begin() + index );
             return;
         }
@@ -37,19 +71,23 @@ void le::MaterialManager::UnregisterProxy( IMaterialProxy* MaterialProxy )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Unregister proxy-material from manager materials
+// Delete proxy-material
 // ------------------------------------------------------------------------------------ //
-void le::MaterialManager::UnregisterProxy( UInt32_t Index )
+void le::MaterialManager::DeleteProxy( UInt32_t Index )
 {
     LIFEENGINE_ASSERT( Index < proxes.size() );
+    delete proxes[ Index ];
     proxes.erase( proxes.begin() + Index );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Clear all proxy-materials from manager
+// Delete all proxy-materials
 // ------------------------------------------------------------------------------------ //
-void le::MaterialManager::ClearProxes()
+void le::MaterialManager::DeleteAllProxes()
 {
+    for ( UInt32_t index = 0, count = proxes.size(); index < count; ++index )
+        delete proxes[ index ];
+
     proxes.clear();
 }
 
@@ -81,7 +119,8 @@ le::IMaterialProxy* le::MaterialManager::GetProxy( UInt32_t Index ) const
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
-le::MaterialManager::MaterialManager()
+le::MaterialManager::MaterialManager() :
+    gameProxyFactory( nullptr )
 {
 
 }
@@ -91,7 +130,7 @@ le::MaterialManager::MaterialManager()
 // ------------------------------------------------------------------------------------ //
 le::MaterialManager::~MaterialManager()
 {
-
+    DeleteAllProxes();
 }
 
 // ------------------------------------------------------------------------------------ //

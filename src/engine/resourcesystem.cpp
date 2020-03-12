@@ -433,10 +433,28 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 				pass->AddParameter( parameter );
 			}
 
-            for ( auto itProxies = materialPass.proxes.begin(), itProxiesEnd = materialPass.proxes.end(); itProxies != itProxiesEnd; ++itProxies )
+            /*for ( auto itProxies = materialPass.proxes.begin(), itProxiesEnd = materialPass.proxes.end(); itProxies != itProxiesEnd; ++itProxies )
             {
-                // TODO: Add prxies-materials to StudioRenderPass and add to material manager factory for create and destroy material-proxy
-            }
+                bool                        isProxyValid = true;
+                le::IMaterialProxy*         proxy = MaterialManager->CreateProxy( itProxies->name.c_str() );
+                if ( !proxy ) continue;
+
+                for ( auto itProxiesVar = itProxies->values.begin(), itProxiesVarEnd = itProxies->values.end(); itProxiesVar != itProxiesVarEnd; ++itProxiesVar )
+                {
+                    le::MaterialProxyVar*           var = new le::MaterialProxyVar();
+                    var->SetName( itProxiesVar->first.c_str() );
+
+
+                }
+
+                if ( !isProxyValid )
+                {
+                    MaterialManager->DeleteProxy( proxy );
+                    continue;
+                }
+
+                pass->AddProxy( proxy );
+            }*/
 
 			technique->AddPass( pass );
 		}

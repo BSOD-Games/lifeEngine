@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "engine/imaterialmanager.h"
+#include "engine/materialproxyfactory.h"
 
 //---------------------------------------------------------------------//
 
@@ -25,10 +26,12 @@ namespace le
     {
     public:
         // IMaterialManager
-        virtual void                    RegisterProxy( IMaterialProxy* MaterialProxy );
-        virtual void                    UnregisterProxy( IMaterialProxy* MaterialProxy );
-        virtual void                    UnregisterProxy( UInt32_t Index );
-        virtual void                    ClearProxes();
+        virtual void                    RegisterGameProxyFactory( IMaterialProxyFactory* MaterialProxyFactory );
+        virtual void                    UnregisterGameProxyFactory();
+        virtual IMaterialProxy*         CreateProxy( const char* NameProxy );
+        virtual void                    DeleteProxy( IMaterialProxy* MaterialProxy );
+        virtual void                    DeleteProxy( UInt32_t Index );
+        virtual void                    DeleteAllProxes();
 
         virtual UInt32_t                GetCountProxes() const;
         virtual IMaterialProxy**        GetProxes() const;
@@ -41,6 +44,8 @@ namespace le
         void                            Update( UInt32_t DeltaTime );
 
     private:
+        MaterialProxyFactory                    proxyFactory;
+        IMaterialProxyFactory*                  gameProxyFactory;
         std::vector< IMaterialProxy* >          proxes;
     };
 

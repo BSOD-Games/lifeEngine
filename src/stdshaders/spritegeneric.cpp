@@ -100,10 +100,14 @@ bool le::SpriteGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** S
 	\n\
 	void main()\n\
 	{\n\
+        vec4            colorPixel = texture2D( basetexture, texCoords ); \n\
+        if ( colorPixel.a < 0.01 ) \n\
+                discard; \n\
+        \n\
 		#ifdef SPECULAR_MAP\n\
-			out_albedoSpecular = vec4( texture2D( basetexture, texCoords ).rgb, texture2D( specularmap, texCoords ).r ); \n \
+            out_albedoSpecular = vec4( colorPixel.rgb, texture2D( specularmap, texCoords ).r ); \n \
 		#else\n\
-			out_albedoSpecular = vec4( texture2D( basetexture, texCoords ).rgb, 0.f ); \n \
+            out_albedoSpecular = vec4( colorPixel.rgb, 0.f ); \n \
 		#endif \n\
 		\n\
 		#ifdef NORMAL_MAP \n\
@@ -112,7 +116,7 @@ bool le::SpriteGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** S
 			out_normalShininess = vec4( normal, 32.f );\n\
 		#endif\n\
 		\n\
-		out_emission = vec4( 0.f );\n\
+        out_emission = vec4( 0.f );\n\
 	}\n";
 
 	std::vector< const char* >			defines;
@@ -175,7 +179,7 @@ void le::SpriteGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** Sha
 			flags |= SF_SPECULAR_MAP;	
 			shaderParameter->GetValueTexture()->Bind( 2 );
 		}
-		else if ( strcmp( shaderParameter->GetName(), "textureRect" ) == 0  )  
+        else if ( strcmp( shaderParameter->GetName(), "textureRect" ) == 0  )
 			textureRect = shaderParameter;   
 	}
 
@@ -184,7 +188,7 @@ void le::SpriteGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** Sha
 
 	gpuProgram->Bind();
 
-	if ( !textureRect )
+    if ( textureRect )
 		gpuProgram->SetUniform( "textureRect", textureRect->GetValueVector4D() );
 	else
 		gpuProgram->SetUniform( "textureRect", Vector4D_t( 0.f, 0.f, 1.f, 1.f ) );

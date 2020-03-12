@@ -19,16 +19,20 @@
 // ------------------------------------------------------------------------------------ //
 void le::ShaderParameter::Clear()
 {
-    values.value_int = 0;
-    values.value_float = 0.f;
-    values.value_shaderFlag = false;
-    values.value_texture = nullptr;
-    values.value_matrix4x4 = Matrix4x4_t( 0.f );
-    values.value_vector2D = Vector2D_t( 0.f );
-    values.value_vector3D = Vector3D_t( 0.f );
-    values.value_vector4D = Vector4D_t( 0.f );
+    if ( !isDefined ) return;
 
-	isDefined = false;
+    switch ( type )
+    {
+    case SPT_INT:             delete static_cast< int* >( value );               break;
+    case SPT_FLOAT:           delete static_cast< float* >( value );             break;
+    case SPT_SHADER_FLAG:     delete static_cast< bool* >( value );              break;
+    case SPT_VECTOR_2D:       delete static_cast< Vector2D_t* >( value );        break;
+    case SPT_VECTOR_3D:       delete static_cast< Vector3D_t* >( value );        break;
+    case SPT_VECTOR_4D:       delete static_cast< Vector4D_t* >( value );        break;
+    case SPT_MATRIX:          delete static_cast< Matrix4x4_t* >( value );       break;
+    }
+
+    isDefined = false;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -36,7 +40,7 @@ void le::ShaderParameter::Clear()
 // ------------------------------------------------------------------------------------ //
 void le::ShaderParameter::SetName( const char* Name )
 {
-	name = Name;
+    name = Name;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -44,11 +48,14 @@ void le::ShaderParameter::SetName( const char* Name )
 // ------------------------------------------------------------------------------------ //
 void le::ShaderParameter::SetValueInt( int Value )
 {
-	type = SPT_INT;
-    values.value_int = Value;
-	if ( studioRenderPass )		studioRenderPass->NeadRefrash();
+    if ( isDefined && type != SPT_INT )         Clear();
+    if ( !isDefined )                           value = new int;
 
-	isDefined = true;
+    *static_cast< int* >( value ) = Value;
+    if ( studioRenderPass )		studioRenderPass->NeadRefrash();
+
+    type = SPT_INT;
+    isDefined = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -56,11 +63,14 @@ void le::ShaderParameter::SetValueInt( int Value )
 // ------------------------------------------------------------------------------------ //
 void le::ShaderParameter::SetValueFloat( float Value )
 {
-	type = SPT_FLOAT;
-    values.value_float = Value;
-	if ( studioRenderPass )		studioRenderPass->NeadRefrash();
+    if ( isDefined && type != SPT_FLOAT )       Clear();
+    if ( !isDefined )                           value = new float;
 
-	isDefined = true;
+    *static_cast< float* >( value ) = Value;
+    if ( studioRenderPass )		studioRenderPass->NeadRefrash();
+
+    type = SPT_FLOAT;
+    isDefined = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -68,11 +78,14 @@ void le::ShaderParameter::SetValueFloat( float Value )
 // ------------------------------------------------------------------------------------ //
 void le::ShaderParameter::SetValueShaderFlag( bool Value )
 {
-	type = SPT_SHADER_FLAG;
-    values.value_shaderFlag = Value;
-	if ( studioRenderPass )		studioRenderPass->NeadRefrash();
+    if ( isDefined && type != SPT_SHADER_FLAG )       Clear();
+    if ( !isDefined )                                 value = new bool;
 
-	isDefined = true;
+    *static_cast< bool* >( value ) = Value;
+    if ( studioRenderPass )		studioRenderPass->NeadRefrash();
+
+    type = SPT_SHADER_FLAG;
+    isDefined = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -80,11 +93,14 @@ void le::ShaderParameter::SetValueShaderFlag( bool Value )
 // ------------------------------------------------------------------------------------ //
 void le::ShaderParameter::SetValueVector2D( const Vector2D_t& Value )
 {
-	type = SPT_VECTOR_2D;
-    values.value_vector2D = Value;
-	if ( studioRenderPass )		studioRenderPass->NeadRefrash();
+    if ( isDefined && type != SPT_VECTOR_2D )       Clear();
+    if ( !isDefined )                               value = new Vector2D_t();
 
-	isDefined = true;
+    *static_cast< Vector2D_t* >( value ) = Value;
+    if ( studioRenderPass )		studioRenderPass->NeadRefrash();
+
+    type = SPT_VECTOR_2D;
+    isDefined = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -92,11 +108,14 @@ void le::ShaderParameter::SetValueVector2D( const Vector2D_t& Value )
 // ------------------------------------------------------------------------------------ //
 void le::ShaderParameter::SetValueVector3D( const Vector3D_t& Value )
 {
-	type = SPT_VECTOR_3D;
-    values.value_vector3D = Value;
-	if ( studioRenderPass )		studioRenderPass->NeadRefrash();
+    if ( isDefined && type != SPT_VECTOR_3D )       Clear();
+    if ( !isDefined )                               value = new Vector3D_t();
 
-	isDefined = true;
+    *static_cast< Vector3D_t* >( value ) = Value;
+    if ( studioRenderPass )		studioRenderPass->NeadRefrash();
+
+    type = SPT_VECTOR_3D;
+    isDefined = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -104,11 +123,14 @@ void le::ShaderParameter::SetValueVector3D( const Vector3D_t& Value )
 // ------------------------------------------------------------------------------------ //
 void le::ShaderParameter::SetValueVector4D( const Vector4D_t& Value )
 {
-	type = SPT_VECTOR_4D;
-    values.value_vector4D = Value;
-	if ( studioRenderPass )		studioRenderPass->NeadRefrash();
+    if ( isDefined && type != SPT_VECTOR_4D )       Clear();
+    if ( !isDefined )                               value = new Vector4D_t();
 
-	isDefined = true;
+    *static_cast< Vector4D_t* >( value ) = Value;
+    if ( studioRenderPass )		studioRenderPass->NeadRefrash();
+
+    type = SPT_VECTOR_4D;
+    isDefined = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -116,11 +138,14 @@ void le::ShaderParameter::SetValueVector4D( const Vector4D_t& Value )
 // ------------------------------------------------------------------------------------ //
 void le::ShaderParameter::SetValueMatrix( const Matrix4x4_t& Value )
 {
-	type = SPT_MATRIX;
-    values.value_matrix4x4 = Value;
-	if ( studioRenderPass )		studioRenderPass->NeadRefrash();
+    if ( isDefined && type != SPT_VECTOR_4D )       Clear();
+    if ( !isDefined )                               value = new Matrix4x4_t();
 
-	isDefined = true;
+    *static_cast< Matrix4x4_t* >( value ) = Value;
+    if ( studioRenderPass )		studioRenderPass->NeadRefrash();
+
+    type = SPT_MATRIX;
+    isDefined = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -128,11 +153,13 @@ void le::ShaderParameter::SetValueMatrix( const Matrix4x4_t& Value )
 // ------------------------------------------------------------------------------------ //
 void le::ShaderParameter::SetValueTexture( ITexture* Value )
 {
-	type = SPT_TEXTURE;
-    values.value_texture = Value;
-	if ( studioRenderPass )		studioRenderPass->NeadRefrash();
+    if ( isDefined && type != SPT_VECTOR_4D )       Clear();
 
-	isDefined = true;
+    value = Value;
+    if ( studioRenderPass )		studioRenderPass->NeadRefrash();
+
+    type = SPT_TEXTURE;
+    isDefined = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -140,7 +167,7 @@ void le::ShaderParameter::SetValueTexture( ITexture* Value )
 // ------------------------------------------------------------------------------------ //
 bool le::ShaderParameter::IsDefined() const
 {
-	return isDefined;
+    return isDefined;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -148,7 +175,7 @@ bool le::ShaderParameter::IsDefined() const
 // ------------------------------------------------------------------------------------ //
 const char* le::ShaderParameter::GetName() const
 {
-	return name.c_str();
+    return name.c_str();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -156,7 +183,7 @@ const char* le::ShaderParameter::GetName() const
 // ------------------------------------------------------------------------------------ //
 le::SHADER_PARAMETER_TYPE le::ShaderParameter::GetType() const
 {
-	return type;
+    return type;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -164,7 +191,8 @@ le::SHADER_PARAMETER_TYPE le::ShaderParameter::GetType() const
 // ------------------------------------------------------------------------------------ //
 int le::ShaderParameter::GetValueInt() const
 {
-    return values.value_int;
+    if ( type != SPT_INT )     return 0;
+    return *static_cast< int* >( value );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -172,7 +200,8 @@ int le::ShaderParameter::GetValueInt() const
 // ------------------------------------------------------------------------------------ //
 float le::ShaderParameter::GetValueFloat() const
 {
-    return values.value_float;
+    if ( type != SPT_FLOAT )     return 0.f;
+    return *static_cast< float* >( value );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -180,7 +209,8 @@ float le::ShaderParameter::GetValueFloat() const
 // ------------------------------------------------------------------------------------ //
 bool le::ShaderParameter::GetValueShaderFlag() const
 {
-    return values.value_shaderFlag;
+    if ( type != SPT_SHADER_FLAG )     return false;
+    return *static_cast< bool* >( value );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -188,7 +218,7 @@ bool le::ShaderParameter::GetValueShaderFlag() const
 // ------------------------------------------------------------------------------------ //
 const le::Vector2D_t& le::ShaderParameter::GetValueVector2D() const
 {
-    return values.value_vector2D;
+    return *static_cast< Vector2D_t* >( value );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -196,7 +226,7 @@ const le::Vector2D_t& le::ShaderParameter::GetValueVector2D() const
 // ------------------------------------------------------------------------------------ //
 const le::Vector3D_t& le::ShaderParameter::GetValueVector3D() const
 {
-    return values.value_vector3D;
+    return *static_cast< Vector3D_t* >( value );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -204,7 +234,7 @@ const le::Vector3D_t& le::ShaderParameter::GetValueVector3D() const
 // ------------------------------------------------------------------------------------ //
 const le::Vector4D_t& le::ShaderParameter::GetValueVector4D() const
 {
-    return values.value_vector4D;
+    return *static_cast< Vector4D_t* >( value );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -212,7 +242,7 @@ const le::Vector4D_t& le::ShaderParameter::GetValueVector4D() const
 // ------------------------------------------------------------------------------------ //
 const le::Matrix4x4_t& le::ShaderParameter::GetValueMatrix() const
 {
-    return values.value_matrix4x4;
+    return *static_cast< Matrix4x4_t* >( value );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -220,7 +250,8 @@ const le::Matrix4x4_t& le::ShaderParameter::GetValueMatrix() const
 // ------------------------------------------------------------------------------------ //
 le::ITexture* le::ShaderParameter::GetValueTexture() const
 {
-    return values.value_texture;
+    if ( type != SPT_TEXTURE )     return nullptr;
+    return static_cast< ITexture* >( value );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -228,23 +259,14 @@ le::ITexture* le::ShaderParameter::GetValueTexture() const
 // ------------------------------------------------------------------------------------ //
 le::ShaderParameter::ShaderParameter() :
     isDefined( false ),
-	studioRenderPass( nullptr )
+    studioRenderPass( nullptr ),
+    value( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //
 // Деструктор
 // ------------------------------------------------------------------------------------ //
 le::ShaderParameter::~ShaderParameter()
-{}
-
-// ------------------------------------------------------------------------------------ //
-// Конструктор
-// ------------------------------------------------------------------------------------ //
-le::ShaderParameter::Values::Values()
-{}
-
-// ------------------------------------------------------------------------------------ //
-// Деструктор
-// ------------------------------------------------------------------------------------ //
-le::ShaderParameter::Values::~Values()
-{}
+{
+    Clear();
+}

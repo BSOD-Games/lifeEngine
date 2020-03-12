@@ -8,10 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IMATERIAL_MANAGER_H
-#define IMATERIAL_MANAGER_H
-
-#include "common/types.h"
+#ifndef IMATERIAL_PROXY_FACTORY_H
+#define IMATERIAL_PROXY_FACTORY_H
 
 //---------------------------------------------------------------------//
 
@@ -20,24 +18,15 @@ namespace le
     //---------------------------------------------------------------------//
 
     class IMaterialProxy;
-    class IMaterialProxyFactory;
 
     //---------------------------------------------------------------------//
 
-    class IMaterialManager
+    class IMaterialProxyFactory
     {
     public:
-        virtual ~IMaterialManager() {}
-        virtual void                    RegisterGameProxyFactory( IMaterialProxyFactory* MaterialProxyFactory ) = 0;
-        virtual void                    UnregisterGameProxyFactory() = 0;
-        virtual IMaterialProxy*         CreateProxy( const char* NameProxy ) = 0;
+        virtual ~IMaterialProxyFactory() {}
+        virtual IMaterialProxy*			CreateProxy( const char* NameProxy ) = 0;
         virtual void                    DeleteProxy( IMaterialProxy* MaterialProxy ) = 0;
-        virtual void                    DeleteProxy( UInt32_t Index ) = 0;
-        virtual void                    DeleteAllProxes() = 0;
-
-        virtual UInt32_t                GetCountProxes() const = 0;
-        virtual IMaterialProxy**        GetProxes() const = 0;
-        virtual IMaterialProxy*         GetProxy( UInt32_t Index ) const = 0;
     };
 
     //---------------------------------------------------------------------//
@@ -45,4 +34,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !IMATERIAL_MANAGER_H
+#endif // !IMATERIAL_PROXY_FACTORY_H

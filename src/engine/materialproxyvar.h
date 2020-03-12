@@ -63,30 +63,11 @@ namespace le
         ~MaterialProxyVar();
 
     private:
-        union Values
-        {
-            Values();
-            ~Values();
-
-            int                                 value_int;
-            float                               value_float;
-            bool                                value_bool;
-            Vector2D_t                          value_vector2D;
-            Vector3D_t                          value_vector3D;
-            Vector4D_t                          value_vector4D;
-            IShaderParameter*                   value_shaderParameter;
-            std::vector< float >                value_arrayFloat;
-            std::vector< int >                  value_arrayInt;
-            std::vector< Vector2D_t >           value_arrayVector2D;
-            std::vector< Vector3D_t >           value_arrayVector3D;
-            std::vector< Vector4D_t >           value_arrayVector4D;
-        };
-
         bool                            isDefined;
 
         std::string                     name;
         MATERIAL_PROXY_VAR_TYPE         type;
-        Values                          values;
+        void*                           value;
     };
 
     //---------------------------------------------------------------------//

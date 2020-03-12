@@ -59,17 +59,7 @@ namespace le
 		~ConVar();
 
 	private:
-
-        union Values
-        {
-            Values();
-            ~Values();
-
-            int				value_int;
-            float			value_float;
-            bool			value_bool;
-            std::string		value_string;
-        };
+        void                        DeleteValue();
 
 		bool				isReadOnly;
 		bool				hasMin;	
@@ -83,7 +73,7 @@ namespace le
 		std::string			defaultValue;
 		std::string			helpString;
 		std::string			name;
-        Values              values;
+        void*               value;
 	};
 
 	//---------------------------------------------------------------------//

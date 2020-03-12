@@ -8,10 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IMATERIAL_PROXY_H
-#define IMATERIAL_PROXY_H
+#ifndef MATERIAL_PROXY_FACTORY_H
+#define MATERIAL_PROXY_FACTORY_H
 
-#include "common/types.h"
+#include "engine/imaterialproxyfactory.h"
 
 //---------------------------------------------------------------------//
 
@@ -19,21 +19,16 @@ namespace le
 {
     //---------------------------------------------------------------------//
 
-    class IMaterialProxyVar;
+    class IMaterialProxy;
 
     //---------------------------------------------------------------------//
 
-    class IMaterialProxy
+    class MaterialProxyFactory : public IMaterialProxyFactory
     {
     public:
-        virtual ~IMaterialProxy() {}
-        virtual void                        SetVar( IMaterialProxyVar* MaterialProxyVar ) = 0;
-        virtual void                        ClearVar( const char* NameVar ) = 0;
-        virtual void                        ClearAllVars() = 0;
-        virtual void                        Update( UInt32_t DeltaTime ) = 0;
-
-        virtual const char*                 GetName() const = 0;
-        virtual IMaterialProxyVar*          GetVar( const char* NameVar ) const = 0;
+        // IMaterialProxyFactory
+        virtual IMaterialProxy*			CreateProxy( const char* NameProxy );
+        virtual void                    DeleteProxy( IMaterialProxy* MaterialProxy );
     };
 
     //---------------------------------------------------------------------//
@@ -41,4 +36,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !IMATERIAL_PROXY_H
+#endif // !MATERIAL_PROXY_FACTORY_H

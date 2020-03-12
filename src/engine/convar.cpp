@@ -53,6 +53,24 @@ void le::ConVar::Revert()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Delete value
+// ------------------------------------------------------------------------------------ //
+void le::ConVar::DeleteValue()
+{
+    if ( type == CVT_UNDEFINED )    return;
+
+    switch ( type )
+    {
+    case CVT_INT:       delete static_cast< int* >( value );            break;
+    case CVT_BOOL:      delete static_cast< bool* >( value );           break;
+    case CVT_FLOAT:     delete static_cast< float* >( value );          break;
+    case CVT_STRING:    delete static_cast< std::string* >( value );    break;
+    }
+
+    type = CVT_UNDEFINED;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Задать функцию смены значения
 // ------------------------------------------------------------------------------------ //
 void le::ConVar::SetChangeCallback( ChangeCallbackFn_t ChangeCallback )
@@ -135,16 +153,20 @@ void le::ConVar::SetValueInt( int Value )
 {
 	if ( isReadOnly ) return;
 
-	type = CVT_INT;
+    if ( type != CVT_UNDEFINED && type != CVT_INT )         DeleteValue();
+    if ( type == CVT_UNDEFINED )                            value = new int;
+
+    auto        intValue = static_cast< int* >( value );
 
 	if ( hasMin && Value < min )
-        values.value_int = min;
+        *intValue = min;
 	else if ( hasMax && Value > max )
-        values.value_int = max;
+        *intValue = max;
 	else
-        values.value_int = Value;
+        *intValue = Value;
 
-	if ( changeCallback )		changeCallback( this );
+    type = CVT_INT;
+	if ( changeCallback )		changeCallback( this );   
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -154,15 +176,19 @@ void le::ConVar::SetValueFloat( float Value )
 {
 	if ( isReadOnly ) return;
 
-	type = CVT_FLOAT;
+    if ( type != CVT_UNDEFINED && type != CVT_FLOAT )       DeleteValue();
+    if ( type == CVT_UNDEFINED )                            value = new float;
+
+    auto        floatValue = static_cast< float* >( value );
 
 	if ( hasMin && Value < min )
-        values.value_float = min;
+        *floatValue = min;
 	else if ( hasMax && Value > max )
-        values.value_float = max;
+        *floatValue = max;
 	else
-        values.value_float = Value;
+        *floatValue = Value;
 
+    type = CVT_FLOAT;
 	if ( changeCallback )		changeCallback( this );
 }
 
@@ -173,15 +199,19 @@ void le::ConVar::SetValueBool( bool Value )
 {
 	if ( isReadOnly ) return;
 
-	type = CVT_BOOL;
+    if ( type != CVT_UNDEFINED && type != CVT_BOOL )        DeleteValue();
+    if ( type == CVT_UNDEFINED )                            value = new bool;
+
+    auto        boolValue = static_cast< bool* >( value );
 
 	if ( hasMin && Value < min )
-        values.value_bool = min;
+        *boolValue = min;
 	else if ( hasMax && Value > max )
-        values.value_bool = max;
+        *boolValue = max;
 	else
-        values.value_bool = Value;
+        *boolValue = Value;
 
+    type = CVT_BOOL;
 	if ( changeCallback )		changeCallback( this );
 }
 
@@ -192,19 +222,23 @@ void le::ConVar::SetValueString( const char* Value )
 {
 	if ( isReadOnly ) return;
 
-	type = CVT_STRING;
+    if ( type != CVT_UNDEFINED && type != CVT_STRING )          DeleteValue();
+    if ( type == CVT_UNDEFINED )                                value = new std::string();
+
 	std::string			value = Value;
+    auto                stringValue = static_cast< std::string* >( this->value );
 
 	if ( hasMin && value.size() < min )
 	{
-        values.value_string = value;
-        values.value_string.append( min - value.size(), ' ' );
+        *stringValue = value;
+        stringValue->append( min - value.size(), ' ' );
 	}
 	else if ( hasMax && value.size() > max )
-        values.value_string = value.substr( 0, max );
+        *stringValue = value.substr( 0, max );
 	else
-        values.value_string = value;
+        *stringValue = value;
 
+    type = CVT_STRING;
 	if ( changeCallback )		changeCallback( this );
 }
 
@@ -229,7 +263,8 @@ le::CONVAR_TYPE le::ConVar::GetType() const
 // ------------------------------------------------------------------------------------ //
 int le::ConVar::GetValueInt() const
 {
-    return values.value_int;
+    if ( type != CVT_INT )      return 0;
+    return *static_cast< int* >( value );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -237,7 +272,8 @@ int le::ConVar::GetValueInt() const
 // ------------------------------------------------------------------------------------ //
 float le::ConVar::GetValueFloat() const
 {
-    return values.value_float;
+    if ( type != CVT_FLOAT )      return 0.f;
+    return *static_cast< float* >( value );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -245,7 +281,8 @@ float le::ConVar::GetValueFloat() const
 // ------------------------------------------------------------------------------------ //
 bool le::ConVar::GetValueBool() const
 {
-    return values.value_bool;
+    if ( type != CVT_BOOL )      return false;
+    return *static_cast< bool* >( value );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -253,7 +290,8 @@ bool le::ConVar::GetValueBool() const
 // ------------------------------------------------------------------------------------ //
 const char* le::ConVar::GetValueString() const
 {
-    return values.value_string.c_str();
+    if ( type != CVT_STRING )      return "";
+    return static_cast< std::string* >( value )->c_str();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -315,10 +353,11 @@ bool le::ConVar::HasMax() const
 // ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
-le::ConVar::ConVar() :
+le::ConVar::ConVar() :    
 	isReadOnly( false ),
 	hasMin( false ),
 	hasMax( false ),
+    value( nullptr ),
 	changeCallback( nullptr ),
 	min( 0.f ),
 	max( 0.f ),
@@ -329,16 +368,6 @@ le::ConVar::ConVar() :
 // Деструктор
 // ------------------------------------------------------------------------------------ //
 le::ConVar::~ConVar()
-{}
-
-// ------------------------------------------------------------------------------------ //
-// Конструктор
-// ------------------------------------------------------------------------------------ //
-le::ConVar::Values::Values()
-{}
-
-// ------------------------------------------------------------------------------------ //
-// Деструктор
-// ------------------------------------------------------------------------------------ //
-le::ConVar::Values::~Values()
-{}
+{
+    DeleteValue();
+}
