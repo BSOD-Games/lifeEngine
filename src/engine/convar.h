@@ -24,6 +24,12 @@ namespace le
 	class ConVar : public IConVar
 	{
 	public:
+        // IReferenceObject
+        virtual void                IncrementReference();
+        virtual void                DecrementReference();
+        virtual void                Release();
+        virtual UInt32_t            GetCountReferences() const;
+
 		// IConVar
 		virtual void				Initialize( const char* Name, const char* DefaultValue, CONVAR_TYPE VarType, const char* HelpString, ChangeCallbackFn_t ChangeCallback, bool IsReadOnly = false );
 		virtual void				Initialize( const char* Name, const char* DefaultValue, CONVAR_TYPE VarType, const char* HelpString, bool HasMin, float Min, bool HasMax, float Max, ChangeCallbackFn_t ChangeCallback, bool IsReadOnly = false );
@@ -67,14 +73,15 @@ namespace le
 
 		float				min;	
 		float				max;	
+        UInt32_t            countReference;
 
 		CONVAR_TYPE			type;
 		ChangeCallbackFn_t	changeCallback;
 		std::string			defaultValue;
 		std::string			helpString;
 		std::string			name;
-        void*               value;
-	};
+        void*               value;       
+    };
 
 	//---------------------------------------------------------------------//
 }

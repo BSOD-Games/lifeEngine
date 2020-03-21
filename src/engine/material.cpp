@@ -27,6 +27,7 @@ void le::Material::AddTechnique( IStudioRenderTechnique* Technique )
 		if ( technique[ index ]->GetType() == typeTechnique )
 			return;
 
+    Technique->IncrementReference();
 	technique.push_back( Technique );
 }
 
@@ -36,9 +37,14 @@ void le::Material::AddTechnique( IStudioRenderTechnique* Technique )
 void le::Material::RemoveTechnique( UInt32_t Index )
 {
 	LIFEENGINE_ASSERT( Index < technique.size() );
-	
-	g_studioRender->GetFactory()->Delete( technique[ Index ] );
-	technique.erase( technique.begin() + Index );
+    IStudioRenderTechnique*         technique = this->technique[ Index ];
+
+    if ( technique->GetCountReferences() <= 1 )
+        technique->Release();
+    else
+        technique->DecrementReference();
+
+    this->technique.erase( this->technique.begin() + Index );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -47,7 +53,14 @@ void le::Material::RemoveTechnique( UInt32_t Index )
 void le::Material::Clear()
 {
 	for ( UInt32_t index = 0, count = technique.size(); index < count; ++index )
-		g_studioRender->GetFactory()->Delete( technique[ index ] );
+    {
+        IStudioRenderTechnique*         technique = this->technique[ index ];
+
+        if ( technique->GetCountReferences() <= 1 )
+            technique->Release();
+        else
+            technique->DecrementReference();
+    }
 
 	surface = "unknow";
 	technique.clear();
@@ -110,7 +123,8 @@ le::IStudioRenderTechnique* le::Material::GetTechnique( RENDER_TECHNIQUE Type ) 
 // Конструктор
 // ------------------------------------------------------------------------------------ //
 le::Material::Material() :
-	surface( "unknow" )
+    surface( "unknow" ),
+    countReferences( 0 )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -119,4 +133,36 @@ le::Material::Material() :
 le::Material::~Material()
 {
 	Clear();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Increment reference
+// ------------------------------------------------------------------------------------ //
+void le::Material::IncrementReference()
+{
+    ++countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Decrement reference
+// ------------------------------------------------------------------------------------ //
+void le::Material::DecrementReference()
+{
+    --countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Delete
+// ------------------------------------------------------------------------------------ //
+void le::Material::Release()
+{
+    delete this;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get count references
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::Material::GetCountReferences() const
+{
+    return countReferences;
 }

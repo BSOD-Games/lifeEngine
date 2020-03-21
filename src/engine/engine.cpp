@@ -510,7 +510,9 @@ void le::Engine::RunSimulation()
 void le::Engine::StopSimulation()
 {
 	isRunSimulation = false;
+
 	consoleSystem.PrintInfo( "*** Game logic end ***" );
+    resourceSystem.UnloadAll();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -590,7 +592,15 @@ le::IFactory* le::Engine::GetFactory() const
 // ------------------------------------------------------------------------------------ //
 const le::Configurations& le::Engine::GetConfigurations() const
 {
-	return configurations;
+    return configurations;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get game info
+// ------------------------------------------------------------------------------------ //
+const le::GameInfo& le::Engine::GetGameInfo() const
+{
+    return gameInfo;
 }
 
 // ------------------------------------------------------------------------------------ //

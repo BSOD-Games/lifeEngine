@@ -26,6 +26,12 @@ namespace le
 	class GPUProgram : public IGPUProgram
 	{
 	public:
+        // IReferenceObject
+        virtual void                IncrementReference();
+        virtual void                DecrementReference();
+        virtual void                Release();
+        virtual UInt32_t            GetCountReferences() const;
+
 		// IGPUProgram
 		virtual bool				Compile( const ShaderDescriptor& ShaderDescriptor, UInt32_t CountDefines = 0, const char** Defines = nullptr );
 		virtual void				Bind();
@@ -59,9 +65,10 @@ namespace le
 		GLuint						geometryShaderID;
 		GLuint						fragmentShaderID;
 		GLuint						programID;
+        UInt32_t                    countReferences;
 
-		std::unordered_map< std::string, UInt32_t >		uniforms;
-	};
+		std::unordered_map< std::string, UInt32_t >		uniforms;       
+    };
 
 	//---------------------------------------------------------------------//
 }

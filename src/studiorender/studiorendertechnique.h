@@ -28,6 +28,12 @@ namespace le
 	class StudioRenderTechnique : public IStudioRenderTechnique
 	{
 	public:
+        // IReferenceObject
+        virtual void                    IncrementReference();
+        virtual void                    DecrementReference();
+        virtual void                    Release();
+        virtual UInt32_t                GetCountReferences() const;
+
 		// IStudioRenderTechnique
 		virtual void					AddPass( IStudioRenderPass* Pass );
 		virtual void					RemovePass( UInt32_t Index );
@@ -47,7 +53,8 @@ namespace le
 	private:
 		RENDER_TECHNIQUE						type;
 		std::vector< StudioRenderPass* >		passes;
-	};
+        UInt32_t                                countReferences;
+    };
 
 	//---------------------------------------------------------------------//
 }

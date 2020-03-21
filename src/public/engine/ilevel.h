@@ -12,6 +12,7 @@
 #define ILEVEL_H
 
 #include "common/types.h"
+#include "engine/ireferenceobject.h"
 
 //---------------------------------------------------------------------//
 
@@ -30,12 +31,13 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class ILevel
+    class ILevel : public IReferenceObject
 	{
 	public:
+        virtual ~ILevel() {}
 		virtual bool					Load( const char* Path, IFactory* GameFactory ) = 0;
-                virtual void					Update() = 0;
-                virtual void                                    Render() = 0;
+        virtual void					Update() = 0;
+        virtual void                    Render() = 0;
 		virtual void					Clear() = 0;
 		virtual void					AddCamera( ICamera* Camera ) = 0;
 		virtual void					AddModel( IModel* Model ) = 0;

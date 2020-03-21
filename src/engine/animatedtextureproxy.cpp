@@ -143,7 +143,8 @@ le::AnimatedTextureProxy::AnimatedTextureProxy() :
     delay( nullptr ),
     isInitialized( false ),
     isNeadUpdate( false ),
-    currentFrameFire( 0.f )
+    currentFrameFire( 0.f ),
+    countReference( 0 )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -152,8 +153,34 @@ le::AnimatedTextureProxy::AnimatedTextureProxy() :
 le::AnimatedTextureProxy::~AnimatedTextureProxy()
 {}
 
+// ------------------------------------------------------------------------------------ //
+// Increment reference
+// ------------------------------------------------------------------------------------ //
+void le::AnimatedTextureProxy::IncrementReference()
+{
+    ++countReference;
+}
 
+// ------------------------------------------------------------------------------------ //
+// Decrement reference
+// ------------------------------------------------------------------------------------ //
+void le::AnimatedTextureProxy::DecrementReference()
+{
+    --countReference;
+}
 
+// ------------------------------------------------------------------------------------ //
+// Delete object
+// ------------------------------------------------------------------------------------ //
+void le::AnimatedTextureProxy::Release()
+{
+    delete this;
+}
 
-
-
+// ------------------------------------------------------------------------------------ //
+// Get count reference
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::AnimatedTextureProxy::GetCountReferences() const
+{
+    return countReference;
+}

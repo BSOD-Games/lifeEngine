@@ -22,6 +22,7 @@ namespace le
 	class ITransformable
 	{
 	public:
+        virtual ~ITransformable() {}
 		virtual void					Move( const Vector3D_t& FactorMove ) = 0;
 		virtual void					Rotate( const Vector3D_t& FactorRotate ) = 0;
 		virtual void					Rotate( const Quaternion_t& FactorRotate ) = 0;

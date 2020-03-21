@@ -22,6 +22,12 @@ namespace le
 	class DirectionalLight : public IDirectionalLight
 	{
 	public:
+        // IReferenceObject
+        virtual void                        IncrementReference();
+        virtual void                        DecrementReference();
+        virtual void                        Release();
+        virtual UInt32_t                    GetCountReferences() const;
+
 		// IDirectionalLight
 		virtual void						SetDirection( const Vector3D_t& Direction );
 
@@ -46,7 +52,8 @@ namespace le
 		Vector3D_t		direction;
 		Vector4D_t		color;
 		Vector4D_t		specular;
-	};
+        UInt32_t        countReferences;
+    };
 
 	//---------------------------------------------------------------------//
 }

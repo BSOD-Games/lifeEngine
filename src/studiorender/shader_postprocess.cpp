@@ -72,8 +72,13 @@ bool le::ShaderPostprocess::Create()
 	// Компилируем шейдер для точечного освещения
 
 	gpuProgram = new GPUProgram();
+    gpuProgram->IncrementReference();
+
 	if ( !gpuProgram->Compile( shaderDescriptor ) )
-		return false;
+    {
+        delete gpuProgram;
+        return false;
+    }
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "albedoSpecular", 0 );
@@ -91,6 +96,10 @@ void le::ShaderPostprocess::Delete()
 {
     Unbind();
 
-    delete gpuProgram;
+    if ( gpuProgram->GetCountReferences() <= 1 )
+        gpuProgram->Release();
+    else
+        gpuProgram->DecrementReference();
+
     gpuProgram = nullptr;
 }

@@ -16,15 +16,24 @@
 // ------------------------------------------------------------------------------------ //
 void le::Model::SetMesh( IMesh* Mesh )
 {
+    if ( mesh )
+    {
+        if ( mesh->GetCountReferences() <= 1 )
+            mesh->Release();
+        else
+            mesh->DecrementReference();
+    }
+
 	mesh = Mesh;
 
 	if ( mesh )
-	{
+	{        
 		localMin = mesh->GetMin();
 		localMax = mesh->GetMax();
 		countFace = mesh->GetCountSurfaces();
 		startFace = 0;
 
+        mesh->IncrementReference();
 		isNeedUpdateBoundingBox = true;
 	}
 }
@@ -253,7 +262,8 @@ le::Model::Model() :
 	rotation( 1.f, 0.f, 0.f, 0.f ),
 	scale( 1.f ),
 	startFace( 0 ),
-	countFace( 0 )
+    countFace( 0 ),
+    countReferences( 0 )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -287,4 +297,36 @@ void le::Model::UpdateBoundingBox()
 	this->max = Vector3D_t( glm::max( max.x, min.x ), glm::max( max.y, min.y ), glm::max( max.z, min.z ) );
 
 	isNeedUpdateBoundingBox = false;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Increment reference
+// ------------------------------------------------------------------------------------ //
+void le::Model::IncrementReference()
+{
+    ++countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Decrement reference
+// ------------------------------------------------------------------------------------ //
+void le::Model::DecrementReference()
+{
+    --countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Delete
+// ------------------------------------------------------------------------------------ //
+void le::Model::Release()
+{
+    delete this;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get count references
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::Model::GetCountReferences() const
+{
+    return countReferences;
 }

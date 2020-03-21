@@ -12,6 +12,7 @@
 #define ITEXTURE_H
 
 #include "common/types.h"
+#include "engine/ireferenceobject.h"
 
 //---------------------------------------------------------------------//
 
@@ -45,9 +46,10 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class ITexture
+    class ITexture : public IReferenceObject
 	{
 	public:
+        virtual ~ITexture() {}
 		virtual void							Initialize( TEXTURE_TYPE TextureType, IMAGE_FORMAT ImageFormat, UInt32_t Width, UInt32_t Height, UInt32_t CountMipmap = 1 ) = 0;
 		virtual void							Delete() = 0;
 		virtual void							Bind( UInt32_t Layer = 0 ) = 0;

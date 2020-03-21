@@ -44,7 +44,8 @@ le::Sprite::Sprite() :
 	size( 1.f ),
 	position( 0.f ),
 	rotation( 1.f, 0.f, 0.f, 0.f ),
-	scale( 1.f )
+    scale( 1.f ),
+    countReferences( 0 )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -121,10 +122,13 @@ le::Matrix4x4_t le::Sprite::GetTransformation( ICamera* Camera )
 bool le::Sprite::Initialize( const Vector2D_t& Size, IMaterial* Material, SPRITE_TYPE SpriteType )
 {
 	LIFEENGINE_ASSERT( g_studioRender );
-	if ( IsCreated() )		mesh->Delete();
-
-	mesh = ( IMesh* ) g_studioRender->GetFactory()->Create( MESH_INTERFACE_VERSION );
-	if ( !mesh ) 		return false;
+    if ( IsCreated() )
+    {
+        if ( mesh->GetCountReferences() <= 1 )
+            mesh->Release();
+        else
+            mesh->DecrementReference();
+    }
 
 	// Filling vertices array for sprite mesh 
 	std::vector< VertexSprite >				verteces =
@@ -174,8 +178,14 @@ bool le::Sprite::Initialize( const Vector2D_t& Size, IMaterial* Material, SPRITE
 	mesh = ( le::IMesh* ) g_studioRender->GetFactory()->Create( MESH_INTERFACE_VERSION );
 	if ( !mesh ) 		return false;
 
+    mesh->IncrementReference();
 	mesh->Create( meshDescriptor );
-	if ( !mesh->IsCreated() )		return false;
+
+    if ( !mesh->IsCreated() )
+    {
+        mesh->Release();
+        return false;
+    }
 
     isNeedUpdateBoundingBox = true;
 	size = Size;
@@ -190,7 +200,8 @@ void le::Sprite::SetMaterial( IMaterial* Material )
 {
 	if ( !IsCreated() )		return;
     LIFEENGINE_ASSERT( Material );
-    
+
+    // TODO: Implement this
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -389,4 +400,36 @@ const le::Vector3D_t& le::Sprite::GetMax()
         UpdateBoundingBox();
 
     return max;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Increment reference
+// ------------------------------------------------------------------------------------ //
+void le::Sprite::IncrementReference()
+{
+    ++countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Decrement reference
+// ------------------------------------------------------------------------------------ //
+void le::Sprite::DecrementReference()
+{
+    --countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Delete
+// ------------------------------------------------------------------------------------ //
+void le::Sprite::Release()
+{
+    delete this;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get count references
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::Sprite::GetCountReferences() const
+{
+    return countReferences;
 }

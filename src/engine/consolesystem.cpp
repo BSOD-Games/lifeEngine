@@ -69,6 +69,7 @@ void le::ConsoleSystem::RegisterVar( IConVar* ConVar )
 	LIFEENGINE_ASSERT( ConVar );
 	
 	if ( vars.find( ConVar->GetName() ) != vars.end() ) return;
+    ConVar->IncrementReference();
 	vars[ ConVar->GetName() ] = ConVar;
 }
 
@@ -80,6 +81,7 @@ void le::ConsoleSystem::RegisterCommand( IConCmd* ConCmd )
 	LIFEENGINE_ASSERT( ConCmd );
 
 	if ( commands.find( ConCmd->GetName() ) != commands.end() ) return;
+    ConCmd->IncrementReference();
 	commands[ ConCmd->GetName() ] = ConCmd;
 }
 
@@ -91,6 +93,11 @@ void le::ConsoleSystem::UnregisterVar( const char* Name )
 	auto			it = vars.find( Name );
 
 	if ( it == vars.end() ) return;
+    if ( it->second->GetCountReferences() <= 1 )
+        it->second->Release();
+    else
+        it->second->DecrementReference();
+
 	vars.erase( it );
 }
 
@@ -102,6 +109,11 @@ void le::ConsoleSystem::UnregisterCommand( const char* Name )
 	auto			it = commands.find( Name );
 
 	if ( it == commands.end() ) return;
+    if ( it->second->GetCountReferences() <= 1 )
+        it->second->Release();
+    else
+        it->second->DecrementReference();
+
 	commands.erase( it );
 }
 

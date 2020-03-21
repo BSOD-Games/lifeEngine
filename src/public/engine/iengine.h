@@ -21,6 +21,7 @@ namespace le
 
 	struct Configurations;
 	struct Version;
+    struct GameInfo;
 	class IConsoleSystem;
 	class IStudioRender;
 	class IWindow;
@@ -34,6 +35,7 @@ namespace le
 	class IEngine
 	{
 	public:
+        virtual ~IEngine() {}
 		virtual bool					LoadConfig( const char* FilePath ) = 0;
 		virtual bool					SaveConfig( const char* FilePath ) = 0;	
 		virtual void					RunSimulation() = 0;
@@ -50,6 +52,7 @@ namespace le
 		virtual IWindow*				GetWindow() const = 0;
 		virtual IFactory*				GetFactory() const = 0;
 		virtual const Configurations&	GetConfigurations() const = 0;
+        virtual const GameInfo&         GetGameInfo() const = 0;
 		virtual const Version&			GetVersion() const = 0;
 	};
 

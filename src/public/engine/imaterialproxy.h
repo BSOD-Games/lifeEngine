@@ -12,6 +12,7 @@
 #define IMATERIAL_PROXY_H
 
 #include "common/types.h"
+#include "engine/ireferenceobject.h"
 
 //---------------------------------------------------------------------//
 
@@ -23,7 +24,7 @@ namespace le
 
     //---------------------------------------------------------------------//
 
-    class IMaterialProxy
+    class IMaterialProxy : public IReferenceObject
     {
     public:
         virtual ~IMaterialProxy() {}       

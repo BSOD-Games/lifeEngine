@@ -12,6 +12,7 @@
 #define ISTUDIORENDERTECHNIQUE_H
 
 #include "common/types.h"
+#include "engine/ireferenceobject.h"
 
 //---------------------------------------------------------------------//
 
@@ -29,7 +30,7 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class IStudioRenderTechnique
+    class IStudioRenderTechnique : public IReferenceObject
 	{
 	public:
 		virtual ~IStudioRenderTechnique() {}

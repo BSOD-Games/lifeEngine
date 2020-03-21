@@ -13,6 +13,7 @@
 
 #include "common/rect.h"
 #include "engine/itransformable.h"
+#include "engine/ireferenceobject.h"
 
 //---------------------------------------------------------------------//
 
@@ -35,15 +36,11 @@ namespace le
 
     //---------------------------------------------------------------------//
 
-    class ISprite : public ITransformable
+    class ISprite : public ITransformable, public IReferenceObject
     {
     public:
         virtual ~ISprite() {}
         virtual bool                Initialize( const Vector2D_t& Size, IMaterial* Material, SPRITE_TYPE SpriteType = ST_SPRITE_ROTATING ) = 0;
-
-        // TODO: Implement this function with help MaterialProxy
-        // virtual void                 SetTextureRect( const FloatRect_t& Rect ) = 0;
-        // virtual const FloatRect_t&   GetTextureRect() const = 0;
 
         virtual void                SetMaterial( IMaterial* Material ) = 0;
         virtual void                SetSize( const Vector2D_t& Size ) = 0;

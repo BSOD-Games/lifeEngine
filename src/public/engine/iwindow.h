@@ -24,6 +24,7 @@ namespace le
 	class IWindow
 	{
 	public:
+        virtual ~IWindow() {}
 		virtual void				ResetCursor() = 0;
 		
 		virtual void				SetTitle( const char* Title ) = 0;

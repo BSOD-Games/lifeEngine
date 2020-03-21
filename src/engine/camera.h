@@ -23,6 +23,12 @@ namespace le
 	class Camera : public ICamera
 	{
 	public:
+        // IReferenceObject
+        virtual void                            IncrementReference();
+        virtual void                            DecrementReference();
+        virtual void                            Release();
+        virtual UInt32_t                        GetCountReferences() const;
+
 		// ICamera
 		virtual void							InitProjection_Perspective( float FOV, float Aspect, float Near, float Far );
 		virtual void							InitProjection_Ortho( float Left, float Right, float Bottom, float Top, float Near = 0.f, float Far = 1.f );
@@ -66,6 +72,7 @@ namespace le
 		void									Update();
 
 		bool				isNeedUpdate;
+        UInt32_t            countReference;
 		float				near;
 		float				far;
 
@@ -82,8 +89,7 @@ namespace le
 
 		Matrix4x4_t			matrixView;
 		Matrix4x4_t			matrixProjection;
-
-	};
+    };
 
 	//---------------------------------------------------------------------//
 }

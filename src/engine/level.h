@@ -11,7 +11,9 @@
 #ifndef LEVEL_H
 #define LEVEL_H
 
+#include <string>
 #include <vector>
+#include <unordered_map>
 
 #include "engine/ilevel.h"
 #include "engine/camera.h"
@@ -31,9 +33,15 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class Level : public ILevel
+    class Level : public ILevel
 	{
 	public:
+        // IReferenceObject
+        virtual void                    IncrementReference();
+        virtual void                    DecrementReference();
+        virtual void                    Release();
+        virtual UInt32_t                GetCountReferences() const;
+
 		// ILevel
 		virtual bool					Load( const char* Path, IFactory* GameFactory );
         virtual void					Update();
@@ -116,7 +124,8 @@ namespace le
 		BSPVisData							visData;
 		Bitset								facesDraw;
 		IMesh*								mesh;
-				
+        UInt32_t                            countReferences;
+
 		std::vector< BSPNode >				arrayBspNodes;
 		std::vector< BSPLeaf >				arrayBspLeafs;
 		std::vector< BSPPlane >				arrayBspPlanes;	
@@ -129,8 +138,8 @@ namespace le
 		std::vector< IPointLight* >			arrayPointLights;
 		std::vector< ISpotLight* >			arraySpotLights;
 		std::vector< IDirectionalLight* >	arrayDirectionalLights;
-		std::vector< Sprite* >				arraySprites;
-	};
+		std::vector< Sprite* >				arraySprites;       
+    };
 
 	//---------------------------------------------------------------------//
 }

@@ -29,6 +29,12 @@ namespace le
     class StudioRenderPass : public IStudioRenderPass
 	{
 	public:
+        // IReferenceObject
+        virtual void                        IncrementReference();
+        virtual void                        DecrementReference();
+        virtual void                        Release();
+        virtual UInt32_t                    GetCountReferences() const;
+
 		// IStudioRenderPass
         virtual void                        AddParameter( IShaderParameter* Parameter );
         virtual void                        RemoveParameter( UInt32_t Index );
@@ -86,6 +92,7 @@ namespace le
 		IShader*							shader;
         std::vector< ShaderParameter* >		parameters;
         std::vector< IMaterialProxy* >      materialProxes;
+        UInt32_t                            countReferences;
     };
 
 	//---------------------------------------------------------------------//

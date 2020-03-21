@@ -27,6 +27,12 @@ namespace le
 	class Mesh : public IMesh
 	{
 	public:
+        // IReferenceObject
+        virtual void                            IncrementReference();
+        virtual void                            DecrementReference();
+        virtual void                            Release();
+        virtual UInt32_t                        GetCountReferences() const;
+
 		// IMesh
 		virtual void							Create( const MeshDescriptor& MeshDescriptor );
         virtual void                            Update( const void* Verteces, UInt32_t SizeVerteces, UInt32_t OffsetVerteces );
@@ -67,11 +73,12 @@ namespace le
 		IndexBufferObject				indexBufferObject;
 		Vector3D_t						min;
 		Vector3D_t						max;
+        UInt32_t                        countReferences;
 
 		std::vector< IMaterial* >		materials;
 		std::vector< ITexture* >		lightmaps;
 		std::vector< MeshSurface >		surfaces;
-	};
+    };
 
 	//---------------------------------------------------------------------//
 }

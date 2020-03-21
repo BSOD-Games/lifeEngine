@@ -8,7 +8,9 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include "engine/lifeengine.h"
 #include "materialproxyvar.h"
+#include "studiorender/ishaderparameter.h"
 
 // ------------------------------------------------------------------------------------ //
 // Очистить переменную
@@ -30,10 +32,20 @@ void le::MaterialProxyVar::Clear()
     case MPVT_ARRAY_VECTOR_2D:      delete static_cast< std::vector< Vector2D_t >* >( value );  break;
     case MPVT_ARRAY_VECTOR_3D:      delete static_cast< std::vector< Vector3D_t >* >( value );  break;
     case MPVT_ARRAY_VECTOR_4D:      delete static_cast< std::vector< Vector4D_t >* >( value );  break;
+    case MPVT_SHADER_PARAMETER:
+    {
+        IShaderParameter*           value = static_cast< IShaderParameter* >( this->value );
+
+        if ( value->GetCountReferences() <= 1 )     value->Release();
+        else                                        value->DecrementReference();
+
+        break;
+    }
     }
 
     type = MPVT_NONE;
     isDefined = false;
+    value = nullptr;
 }
 
 //------------------------------------------------------------------------------------ //
@@ -49,8 +61,8 @@ void le::MaterialProxyVar::SetName( const char* Name )
 // ------------------------------------------------------------------------------------ //
 void le::MaterialProxyVar::SetValueInt( int Value )
 {   
-   if ( isDefined && type != MPVT_INT )     Clear();
-   if ( !isDefined )                        value = new int;
+    if ( isDefined && type != MPVT_INT )     Clear();
+    if ( !isDefined )                        value = new int;
 
     *static_cast< int* >( value ) = Value;
     type = MPVT_INT;
@@ -127,8 +139,10 @@ void le::MaterialProxyVar::SetValueVector4D( const Vector4D_t& Value )
 // ------------------------------------------------------------------------------------ //
 void le::MaterialProxyVar::SetValueShaderParameter( IShaderParameter* Value )
 {
+    LIFEENGINE_ASSERT( Value );
     if ( isDefined && type != MPVT_SHADER_PARAMETER )          Clear();
 
+    Value->IncrementReference();
     value = Value;
     type = MPVT_SHADER_PARAMETER;
     isDefined = true;
@@ -380,7 +394,8 @@ le::Vector4D_t* le::MaterialProxyVar::GetValueArrayVector4D( UInt32_t& Count )
 le::MaterialProxyVar::MaterialProxyVar() :
     isDefined( false ),
     value( nullptr ),
-    type( MPVT_NONE )
+    type( MPVT_NONE ),
+    countReferences( 0 )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -389,4 +404,36 @@ le::MaterialProxyVar::MaterialProxyVar() :
 le::MaterialProxyVar::~MaterialProxyVar()
 {
     Clear();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Increment reference
+// ------------------------------------------------------------------------------------ //
+void le::MaterialProxyVar::IncrementReference()
+{
+    ++countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Decrement reference
+// ------------------------------------------------------------------------------------ //
+void le::MaterialProxyVar::DecrementReference()
+{
+    --countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Delete
+// ------------------------------------------------------------------------------------ //
+void le::MaterialProxyVar::Release()
+{
+    delete this;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get count references
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::MaterialProxyVar::GetCountReferences() const
+{
+    return countReferences;
 }

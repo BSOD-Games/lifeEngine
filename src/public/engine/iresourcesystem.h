@@ -41,6 +41,7 @@ namespace le
 	class IResourceSystem
 	{
 	public:
+        virtual ~IResourceSystem() {}
 		virtual void					RegisterLoader_Image( const char* Format, LoadImageFn_t LoadImage ) = 0;
 		virtual void					RegisterLoader_Texture( const char* Format, LoadTextureFn_t LoadTexture ) = 0;
 		virtual void					RegisterLoader_Material( const char* Format, LoadMaterialFn_t LoadMaterial ) = 0;

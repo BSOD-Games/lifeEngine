@@ -21,7 +21,6 @@ namespace le
 	class IStudioRender;
 	class IGame;
 	class IShaderDLL;
-	class IMaterialSystem;
 
 	//---------------------------------------------------------------------//
 

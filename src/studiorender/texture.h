@@ -23,6 +23,12 @@ namespace le
 	class Texture : public ITexture
 	{
 	public:
+        // IReferenceObject
+        virtual void                            IncrementReference();
+        virtual void                            DecrementReference();
+        virtual void                            Release();
+        virtual UInt32_t                        GetCountReferences() const;
+
 		// ITexture
 		virtual void							Initialize( TEXTURE_TYPE TextureType, IMAGE_FORMAT ImageFormat, UInt32_t Width, UInt32_t Height, UInt32_t CountMipmap = 1 );
 		virtual void							Delete();
@@ -61,10 +67,11 @@ namespace le
 		UInt32_t			height;
 		UInt32_t			layer;
 		UInt32_t			countMipmaps;
+        UInt32_t            countReferences;
 		StudioRenderSampler	sampler;
 		IMAGE_FORMAT		imageFormat;
-		TEXTURE_TYPE		type;
-	};
+		TEXTURE_TYPE		type;       
+    };
 
 	//---------------------------------------------------------------------//
 }

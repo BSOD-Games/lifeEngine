@@ -22,6 +22,12 @@ namespace le
 	class PointLight : public IPointLight
 	{
 	public:
+        // IReferenceObject
+        virtual void                    IncrementReference();
+        virtual void                    DecrementReference();
+        virtual void                    Release();
+        virtual UInt32_t                GetCountReferences() const;
+
 		// IPointLight
 		virtual void					SetPosition( const Vector3D_t& Position );
 		virtual void					SetRadius( float Radius );
@@ -63,7 +69,8 @@ namespace le
 		Vector3D_t		position;
 		Vector4D_t		color;
 		Vector4D_t		specular;
-	};
+        UInt32_t        countReferences;
+    };
 
 	//---------------------------------------------------------------------//
 }

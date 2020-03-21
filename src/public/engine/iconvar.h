@@ -11,6 +11,8 @@
 #ifndef ICONVAR_H
 #define ICONVAR_H
 
+#include "engine/ireferenceobject.h"
+
 //---------------------------------------------------------------------//
 
 namespace le
@@ -33,9 +35,10 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class IConVar
+    class IConVar : public IReferenceObject
 	{
 	public:
+        virtual ~IConVar() {}
 		virtual void				Initialize( const char* Name, const char* DefaultValue, CONVAR_TYPE VarType, const char* HelpString, ChangeCallbackFn_t ChangeCallback, bool IsReadOnly = false ) = 0;
 		virtual void				Initialize( const char* Name, const char* DefaultValue, CONVAR_TYPE VarType, const char* HelpString, bool HasMin, float Min, bool HasMax, float Max, ChangeCallbackFn_t ChangeCallback, bool IsReadOnly = false ) = 0;
 		virtual void				Revert() = 0;

@@ -12,6 +12,7 @@
 #define IMODEL_H
 
 #include "engine/itransformable.h"
+#include "engine/ireferenceobject.h"
 
 //---------------------------------------------------------------------//
 
@@ -23,9 +24,10 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class IModel : public ITransformable
+    class IModel : public ITransformable, public IReferenceObject
 	{
 	public:
+        virtual ~IModel() {}
 		virtual void					SetMesh( IMesh* Mesh ) = 0;
 		virtual void					SetMin( const Vector3D_t& MinPosition ) = 0;
 		virtual void					SetMax( const Vector3D_t& MaxPosition ) = 0;

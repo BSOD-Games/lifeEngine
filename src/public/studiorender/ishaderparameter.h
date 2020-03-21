@@ -12,6 +12,7 @@
 #define ISHADERPARAMETER_H
 
 #include "common/types.h"
+#include "engine/ireferenceobject.h"
 
 //---------------------------------------------------------------------//
 
@@ -37,9 +38,10 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class IShaderParameter
+    class IShaderParameter : public IReferenceObject
 	{
 	public:
+        virtual ~IShaderParameter() {}
 		virtual void					Clear() = 0;
 
 		virtual void					SetName( const char* Name ) = 0;

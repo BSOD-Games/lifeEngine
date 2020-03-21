@@ -198,7 +198,8 @@ le::GPUProgram::GPUProgram() :
 	vertexShaderID( 0 ),
 	geometryShaderID( 0 ),
 	fragmentShaderID( 0 ),
-	programID( 0 )
+    programID( 0 ),
+    countReferences( 0 )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -395,4 +396,36 @@ le::UInt32_t le::GPUProgram::GetUniformLocation( const char* Name )
 		if ( location == -1 )	g_consoleSystem->PrintError( "Uniform [%s] not found in shader", Name );
 		return location;
 	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Increment reference
+// ------------------------------------------------------------------------------------ //
+void le::GPUProgram::IncrementReference()
+{
+    ++countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Decrement reference
+// ------------------------------------------------------------------------------------ //
+void le::GPUProgram::DecrementReference()
+{
+    --countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Delete
+// ------------------------------------------------------------------------------------ //
+void le::GPUProgram::Release()
+{
+    delete this;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get count references
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::GPUProgram::GetCountReferences() const
+{
+    return countReferences;
 }

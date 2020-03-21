@@ -54,8 +54,6 @@ le::Text::Text() :
 	scale( 1.f ),
 	font( nullptr ),
 	material( nullptr ),
-	material_techique( nullptr ),
-	material_pass( nullptr ),
 	mesh( nullptr ),
 	materialParam_color( nullptr ),
 	materialParam_basetexture( nullptr ),
@@ -63,7 +61,8 @@ le::Text::Text() :
 	lineSpacingFactor( 1.f ),
 	letterSpacingFactor( 1.f ),
 	color( 1.f ),
-	textureSize( 0.f )
+    textureSize( 0.f ),
+    countReferences( 0 )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -90,26 +89,27 @@ void le::Text::UpdateTransformation()
 // ------------------------------------------------------------------------------------ //
 void le::Text::Delete()
 {
-	IFactory*			studioRenderFactory = g_studioRender->GetFactory();
-
 	if ( mesh )
 	{
-		studioRenderFactory->Delete( mesh );
-		mesh = nullptr;
+        if ( mesh->GetCountReferences() <= 1 )  mesh->Release();
+        else                                    mesh->DecrementReference();
+
+        mesh = nullptr;
 	}
 
 	if ( material )
 	{
-		delete material;
-		studioRenderFactory->Delete( materialParam_basetexture );
-		studioRenderFactory->Delete( materialParam_color );
-		studioRenderFactory->Delete( material_pass );
-		studioRenderFactory->Delete( material_techique );
+        if ( material->GetCountReferences() <= 1 )      material->Release();
+        else                                            material->DecrementReference();
+
+        if ( materialParam_basetexture->GetCountReferences() <= 1 )     materialParam_basetexture->Release();
+        else                                                            materialParam_basetexture->DecrementReference();
+
+        if ( materialParam_color->GetCountReferences() <= 1 )       materialParam_color->Release();
+        else                                                        materialParam_color->DecrementReference();
 
 		materialParam_basetexture = nullptr;
 		materialParam_color = nullptr;
-		material_techique = nullptr;
-		material_pass = nullptr;
 	}
 }
 
@@ -226,14 +226,16 @@ void le::Text::UpdateGeometry()
 		if ( !material )
 		{
 			material = new Material();
-			material_techique = ( IStudioRenderTechnique* ) studioRenderFactory->Create( TECHNIQUE_INTERFACE_VERSION );
-			material_pass = ( IStudioRenderPass* ) studioRenderFactory->Create( PASS_INTERFACE_VERSION );
+            IStudioRenderTechnique*         material_techique = ( IStudioRenderTechnique* ) studioRenderFactory->Create( TECHNIQUE_INTERFACE_VERSION );
+            IStudioRenderPass*              material_pass = ( IStudioRenderPass* ) studioRenderFactory->Create( PASS_INTERFACE_VERSION );
 			materialParam_basetexture = ( IShaderParameter* ) studioRenderFactory->Create( SHADERPARAMETER_INTERFACE_VERSION );
 			materialParam_color = ( IShaderParameter* ) studioRenderFactory->Create( SHADERPARAMETER_INTERFACE_VERSION );
 
+            materialParam_basetexture->IncrementReference();
 			materialParam_basetexture->SetName( "basetexture" );
 			materialParam_basetexture->SetValueTexture( font_texture );
 
+            materialParam_color->IncrementReference();
 			materialParam_color->SetName( "color" );
 			materialParam_color->SetValueVector3D( color / 255.f );		
 
@@ -244,6 +246,7 @@ void le::Text::UpdateGeometry()
 			material_techique->SetType( RT_DEFFERED_SHADING );
 			material_techique->AddPass( material_pass );
 
+            material->IncrementReference();
 			material->AddTechnique( material_techique );
 		}
 
@@ -279,6 +282,7 @@ void le::Text::UpdateGeometry()
 		meshDescriptor.countVertexElements = vertexElements.size();
 		meshDescriptor.vertexElements = vertexElements.data();
 
+        mesh->IncrementReference();
 		mesh->Create( meshDescriptor );
 	}
 
@@ -409,7 +413,16 @@ const le::Matrix4x4_t& le::Text::GetTransformation()
 // ------------------------------------------------------------------------------------ //
 void le::Text::SetFont( IFont* Font )
 {
+    if ( font )
+    {
+        if ( font->GetCountReferences() <= 1 )
+            font->Release();
+        else
+            font->DecrementReference();
+    }
+
 	font = Font;
+    font->IncrementReference();
 	isNeedUpdateGeometry = true;
 }
 
@@ -515,4 +528,36 @@ le::IMesh* le::Text::GetMesh()
 {
 	UpdateGeometry();
     return mesh;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Increment reference
+// ------------------------------------------------------------------------------------ //
+void le::Text::IncrementReference()
+{
+    ++countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Decrement reference
+// ------------------------------------------------------------------------------------ //
+void le::Text::DecrementReference()
+{
+    --countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Delete
+// ------------------------------------------------------------------------------------ //
+void le::Text::Release()
+{
+    delete this;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get mesh
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::Text::GetCountReferences() const
+{
+    return countReferences;
 }

@@ -22,6 +22,12 @@ namespace le
 	class SpotLight : public ISpotLight
 	{
 	public:
+        // IReferenceObject
+        virtual void                        IncrementReference();
+        virtual void                        DecrementReference();
+        virtual void                        Release();
+        virtual UInt32_t                    GetCountReferences() const;
+
 		// ISpotLight
 		virtual void						SetPosition( const Vector3D_t& Position );
 		virtual void						SetRotation( const Quaternion_t& Quaternion );
@@ -97,7 +103,8 @@ namespace le
 		Quaternion_t	rotation;
 		Vector4D_t		color;
 		Vector4D_t		specular;
-	};
+        UInt32_t        countReferences;
+    };
 
 	//---------------------------------------------------------------------//
 }

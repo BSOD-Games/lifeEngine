@@ -34,6 +34,12 @@ namespace le
         virtual const char*                 GetName() const;
         virtual IMaterialProxyVar*          GetVar( const char* NameVar ) const;
 
+        // IReferenceObject
+        virtual void                        IncrementReference();
+        virtual void                        DecrementReference();
+        virtual void                        Release();
+        virtual UInt32_t                    GetCountReferences() const;
+
         // AnimatedTextureProxy
         AnimatedTextureProxy();
         ~AnimatedTextureProxy();
@@ -42,6 +48,7 @@ namespace le
         bool                            isInitialized;
         bool                            isNeadUpdate;
         float                           currentFrameFire;
+        UInt32_t                        countReference;
 
         IMaterialProxyVar*              frames;
         IMaterialProxyVar*              textureRectVar;

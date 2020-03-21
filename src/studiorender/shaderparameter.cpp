@@ -9,6 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "engine/iconsolesystem.h"
+#include "studiorender/itexture.h"
 
 #include "global.h"
 #include "studiorenderpass.h"
@@ -30,8 +31,18 @@ void le::ShaderParameter::Clear()
     case SPT_VECTOR_3D:       delete static_cast< Vector3D_t* >( value );        break;
     case SPT_VECTOR_4D:       delete static_cast< Vector4D_t* >( value );        break;
     case SPT_MATRIX:          delete static_cast< Matrix4x4_t* >( value );       break;
+    case SPT_TEXTURE:
+    {
+        ITexture*           texture = static_cast< ITexture* >( value );
+
+        if ( texture->GetCountReferences() <= 1 )       texture->Release();
+        else                                            texture->DecrementReference();
+
+        break;
+    }
     }
 
+    value = nullptr;
     isDefined = false;
 }
 
@@ -155,6 +166,7 @@ void le::ShaderParameter::SetValueTexture( ITexture* Value )
 {
     if ( isDefined && type != SPT_VECTOR_4D )       Clear();
 
+    Value->IncrementReference();
     value = Value;
     if ( studioRenderPass )		studioRenderPass->NeadRefrash();
 
@@ -260,7 +272,8 @@ le::ITexture* le::ShaderParameter::GetValueTexture() const
 le::ShaderParameter::ShaderParameter() :
     isDefined( false ),
     studioRenderPass( nullptr ),
-    value( nullptr )
+    value( nullptr ),
+    countReferences( 0 )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -269,4 +282,36 @@ le::ShaderParameter::ShaderParameter() :
 le::ShaderParameter::~ShaderParameter()
 {
     Clear();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Increment reference
+// ------------------------------------------------------------------------------------ //
+void le::ShaderParameter::IncrementReference()
+{
+    ++countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Decrement reference
+// ------------------------------------------------------------------------------------ //
+void le::ShaderParameter::DecrementReference()
+{
+    --countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Delete
+// ------------------------------------------------------------------------------------ //
+void le::ShaderParameter::Release()
+{
+    delete this;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get count references
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::ShaderParameter::GetCountReferences() const
+{
+    return countReferences;
 }

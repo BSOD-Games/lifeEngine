@@ -26,6 +26,7 @@ namespace le
     class IEntity
     {
     public:
+        virtual ~IEntity() {}
         virtual void				Update() = 0;
         virtual void				KeyValue( const char* Key, const char* Value ) = 0;
 

@@ -26,6 +26,7 @@ namespace le
 	class IConsoleSystem
 	{
 	public:
+        virtual ~IConsoleSystem() {}
 		virtual void		RegisterVar( IConVar* ConVar ) = 0;
 		virtual void		RegisterCommand( IConCmd* ConCmd ) = 0;
 		virtual void		UnregisterVar( const char* Name ) = 0;

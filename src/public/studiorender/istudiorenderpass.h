@@ -12,6 +12,7 @@
 #define ISTUDIORENDERPASS_H
 
 #include "common/types.h"
+#include "engine/ireferenceobject.h"
 #include "studiorender/istudiorender.h"
 
 //---------------------------------------------------------------------//
@@ -26,7 +27,7 @@ namespace le
 
     //---------------------------------------------------------------------//
 
-    class IStudioRenderPass
+    class IStudioRenderPass : public IReferenceObject
     {
     public:
         virtual ~IStudioRenderPass() {}

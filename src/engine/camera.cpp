@@ -328,6 +328,7 @@ const le::Matrix4x4_t& le::Camera::GetProjectionMatrix() const
 // ------------------------------------------------------------------------------------ //
 le::Camera::Camera() :
 	isNeedUpdate( true ),
+    countReference( 0 ),
 	near( 0.f ),
 	far( 0.f ),
 	up( 0.f, 1.f, 0.f ),
@@ -361,4 +362,36 @@ void le::Camera::Update()
 	frustum.Update( matrixProjection, matrixView );
 
 	isNeedUpdate = false;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Increment reference
+// ------------------------------------------------------------------------------------ //
+void le::Camera::IncrementReference()
+{
+    ++countReference;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Decrement reference
+// ------------------------------------------------------------------------------------ //
+void le::Camera::DecrementReference()
+{
+    --countReference;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Delete camera
+// ------------------------------------------------------------------------------------ //
+void le::Camera::Release()
+{
+    delete this;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get count reference
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::Camera::GetCountReferences() const
+{
+    return countReference;
 }

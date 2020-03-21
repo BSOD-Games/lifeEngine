@@ -13,6 +13,7 @@
 
 #include "common/types.h"
 #include "engine/itransformable.h"
+#include "engine/ireferenceobject.h"
 
 //---------------------------------------------------------------------//
 
@@ -25,7 +26,7 @@ namespace le
     
     //---------------------------------------------------------------------//
 
-    class IText : public ITransformable
+    class IText : public ITransformable, public IReferenceObject
     {
     public:
         virtual ~IText() {}

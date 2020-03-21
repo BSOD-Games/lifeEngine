@@ -12,6 +12,7 @@
 #define IMATERIAL_H
 
 #include "common/types.h"
+#include "engine/ireferenceobject.h"
 #include "studiorender/istudiorendertechnique.h"
 
 //---------------------------------------------------------------------//
@@ -24,7 +25,7 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class IMaterial
+    class IMaterial : public IReferenceObject
 	{
 	public:
 		virtual ~IMaterial() {}

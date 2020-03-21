@@ -50,7 +50,7 @@ le::IMaterialProxy* le::MaterialManager::CreateProxy( const char* NameProxy )
 
     if ( proxy )
     {
-        g_consoleSystem->PrintInfo("sasa");
+        proxy->IncrementReference();
         proxes.push_back( proxy );
         return proxy;
     }
@@ -71,7 +71,11 @@ void le::MaterialManager::RemoveProxy( le::IMaterialProxy* MaterialProxy )
         IMaterialProxy*         proxy = proxes[ index ];
         if ( proxy == MaterialProxy )
         {
-            delete proxy;
+            if ( MaterialProxy->GetCountReferences() <= 1 )
+                MaterialProxy->Release();
+            else
+                MaterialProxy->DecrementReference();
+
             proxes.erase( proxes.begin() + index );
             return;
         }
@@ -83,10 +87,16 @@ void le::MaterialManager::RemoveProxy( le::IMaterialProxy* MaterialProxy )
 // ------------------------------------------------------------------------------------ //
 void le::MaterialManager::RemoveAllProxes()
 {
-    for ( UInt32_t index = 0, count = proxes.size(); index < count; ++index )
-        delete proxes[ index ];
+    for ( auto it = proxes.begin(), itEnd = proxes.end(); it != itEnd; )
+        if ( (*it)->GetCountReferences() <= 1 )
+        {
+            (*it)->Release();
 
-    proxes.clear();
+            it = proxes.erase( it );
+            itEnd = proxes.end();
+        }
+        else
+            ++it;
 }
 
 // ------------------------------------------------------------------------------------ //

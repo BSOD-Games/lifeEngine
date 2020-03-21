@@ -13,6 +13,7 @@
 
 #include "common/types.h"
 #include "common/shaderdescriptor.h"
+#include "engine/ireferenceobject.h"
 
 //---------------------------------------------------------------------//
 
@@ -20,9 +21,10 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IGPUProgram
+    class IGPUProgram : public IReferenceObject
 	{
 	public:
+        virtual ~IGPUProgram() {}
 		virtual bool				Compile( const ShaderDescriptor& ShaderDescriptor, UInt32_t CountDefines = 0, const char** Defines = nullptr ) = 0;
 		virtual void				Bind() = 0;
 		virtual void				Unbind() = 0;

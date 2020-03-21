@@ -11,6 +11,8 @@
 #include "common/meshsurface.h"
 #include "common/meshdescriptor.h"
 #include "engine/lifeengine.h"
+#include "engine/imaterial.h"
+#include "studiorender/itexture.h"
 #include "studiorender/studiovertexelement.h"
 
 #include "mesh.h"
@@ -20,64 +22,70 @@
 // ------------------------------------------------------------------------------------ //
 void le::Mesh::Create( const MeshDescriptor& MeshDescriptor )
 {
-	if ( ( MeshDescriptor.sizeVerteces > 0 && !MeshDescriptor.verteces ) || 
-		( MeshDescriptor.countIndeces > 0 && !MeshDescriptor.indeces ) )
-		return;
+    if ( ( MeshDescriptor.sizeVerteces > 0 && !MeshDescriptor.verteces ) ||
+         ( MeshDescriptor.countIndeces > 0 && !MeshDescriptor.indeces ) )
+        return;
 
-	if ( isCreated )		Delete();
+    if ( isCreated )		Delete();
 
-	// Запоминаем материалы
-	for ( UInt32_t index = 0; index < MeshDescriptor.countMaterials; ++index )
-		materials.push_back( MeshDescriptor.materials[ index ] );
+    // Запоминаем материалы
+    for ( UInt32_t index = 0; index < MeshDescriptor.countMaterials; ++index )
+    {
+        materials.push_back( MeshDescriptor.materials[ index ] );
+        materials.back()->IncrementReference();
+    }
 
-	// Запоминаем карты освещений
-	for ( UInt32_t index = 0; index < MeshDescriptor.countLightmaps; ++index )
-		lightmaps.push_back( MeshDescriptor.lightmaps[ index ] );
+    // Запоминаем карты освещений
+    for ( UInt32_t index = 0; index < MeshDescriptor.countLightmaps; ++index )
+    {
+        lightmaps.push_back( MeshDescriptor.lightmaps[ index ] );
+        lightmaps.back()->IncrementReference();
+    }
 
-	// Запоминаем поверхности
-	for ( UInt32_t index = 0; index < MeshDescriptor.countSurfaces; ++index )
-		surfaces.push_back( MeshDescriptor.surfaces[ index ] );
+    // Запоминаем поверхности
+    for ( UInt32_t index = 0; index < MeshDescriptor.countSurfaces; ++index )
+        surfaces.push_back( MeshDescriptor.surfaces[ index ] );
 
-	// Загружаем информацию о меше в GPU
-	vertexArrayObject.Create();
-	vertexBufferObject.Create();
-	indexBufferObject.Create();
+    // Загружаем информацию о меше в GPU
+    vertexArrayObject.Create();
+    vertexBufferObject.Create();
+    indexBufferObject.Create();
 
-	vertexBufferObject.Bind();
-	vertexBufferObject.Allocate( MeshDescriptor.verteces, MeshDescriptor.sizeVerteces );
+    vertexBufferObject.Bind();
+    vertexBufferObject.Allocate( MeshDescriptor.verteces, MeshDescriptor.sizeVerteces );
 
-	indexBufferObject.Bind();
-	indexBufferObject.Allocate( MeshDescriptor.indeces, MeshDescriptor.countIndeces * sizeof( UInt32_t ) );
+    indexBufferObject.Bind();
+    indexBufferObject.Allocate( MeshDescriptor.indeces, MeshDescriptor.countIndeces * sizeof( UInt32_t ) );
 
-	VertexBufferLayout				vertexBufferLayout;
-	for ( UInt32_t index = 0; index < MeshDescriptor.countVertexElements; ++index )
-		switch ( MeshDescriptor.vertexElements[ index ].type )
-		{
-		case VET_FLOAT:
-			vertexBufferLayout.PushFloat( MeshDescriptor.vertexElements[ index ].count );
-			break;
+    VertexBufferLayout				vertexBufferLayout;
+    for ( UInt32_t index = 0; index < MeshDescriptor.countVertexElements; ++index )
+        switch ( MeshDescriptor.vertexElements[ index ].type )
+        {
+        case VET_FLOAT:
+            vertexBufferLayout.PushFloat( MeshDescriptor.vertexElements[ index ].count );
+            break;
 
-		case VET_UNSIGNED_INT:
-			vertexBufferLayout.PushUInt( MeshDescriptor.vertexElements[ index ].count );
-			break;
+        case VET_UNSIGNED_INT:
+            vertexBufferLayout.PushUInt( MeshDescriptor.vertexElements[ index ].count );
+            break;
 
-		case VET_UNSIGNED_BYTE:
-			vertexBufferLayout.PushUByte( MeshDescriptor.vertexElements[ index ].count );
-			break;
-		}
-	
-	vertexArrayObject.Bind();
-	vertexArrayObject.AddBuffer( vertexBufferObject, vertexBufferLayout );
-	vertexArrayObject.AddBuffer( indexBufferObject );
+        case VET_UNSIGNED_BYTE:
+            vertexBufferLayout.PushUByte( MeshDescriptor.vertexElements[ index ].count );
+            break;
+        }
 
-	vertexArrayObject.Unbind();
-	vertexBufferObject.Unbind();
-	indexBufferObject.Unbind();
+    vertexArrayObject.Bind();
+    vertexArrayObject.AddBuffer( vertexBufferObject, vertexBufferLayout );
+    vertexArrayObject.AddBuffer( indexBufferObject );
 
-	min = MeshDescriptor.min;
-	max = MeshDescriptor.max;
-	primitiveType = MeshDescriptor.primitiveType;
-	isCreated = true;
+    vertexArrayObject.Unbind();
+    vertexBufferObject.Unbind();
+    indexBufferObject.Unbind();
+
+    min = MeshDescriptor.min;
+    max = MeshDescriptor.max;
+    primitiveType = MeshDescriptor.primitiveType;
+    isCreated = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -165,16 +173,43 @@ void le::Mesh::Update( IMaterial** Materials, UInt32_t CountMaterials, UInt32_t 
     {
         UInt32_t        localIndex = 0;
         for ( UInt32_t count = materials.size(); localIndex < count; ++localIndex )
-            materials[ localIndex ] = Materials[ localIndex ];
+        {
+            IMaterial*              oldMaterial = materials[ localIndex ];
+            IMaterial*              newMaterial = Materials[ localIndex ];
+
+            if ( oldMaterial->GetCountReferences() <= 1 )
+                oldMaterial->Release();
+            else
+                oldMaterial->DecrementReference();
+
+            newMaterial->IncrementReference();
+            materials[ localIndex ] = newMaterial;
+        }
 
         if ( localIndex < CountMaterials-1 )
             for ( ; localIndex < CountMaterials; ++localIndex )
-                materials.push_back( Materials[ localIndex ] );
+            {
+                IMaterial*              material = Materials[ localIndex ];
+
+                material->IncrementReference();
+                materials.push_back( material );
+            }
     }
     else
     {
         for ( UInt32_t indexLocalMaterial = 0, indexMaterial = StartIdMaterial; indexMaterial < maxCount; ++indexMaterial, ++indexLocalMaterial )
-            materials[ indexMaterial ] = Materials[ indexLocalMaterial ];
+        {
+            IMaterial*              oldMaterial = materials[ indexMaterial ];
+            IMaterial*              newMaterial = Materials[ indexLocalMaterial ];
+
+            if ( oldMaterial->GetCountReferences() <= 1 )
+                oldMaterial->Release();
+            else
+                oldMaterial->DecrementReference();
+
+            newMaterial->IncrementReference();
+            materials[ indexMaterial ] = newMaterial;
+        }
     }
 }
 
@@ -193,16 +228,43 @@ void le::Mesh::Update( ITexture** Lightmaps, UInt32_t CountLighmaps, UInt32_t St
     {
         UInt32_t        localIndex = 0;
         for ( UInt32_t count = materials.size(); localIndex < count; ++localIndex )
-            lightmaps[ localIndex ] = Lightmaps[ localIndex ];
+        {
+            ITexture*           oldLightmap = lightmaps[ localIndex ];
+            ITexture*           newLightmap = Lightmaps[ localIndex ];
+
+            if ( oldLightmap->GetCountReferences() <= 1 )
+                oldLightmap->Release();
+            else
+                oldLightmap->DecrementReference();
+
+            newLightmap->IncrementReference();
+            lightmaps[ localIndex ] = newLightmap;
+        }
 
         if ( localIndex < CountLighmaps-1 )
             for ( ; localIndex < CountLighmaps; ++localIndex )
-                lightmaps.push_back( Lightmaps[ localIndex ] );
+            {
+                ITexture*       lightmap = Lightmaps[ localIndex ];
+
+                lightmap->IncrementReference();
+                lightmaps.push_back( lightmap );
+            }
     }
     else
     {
         for ( UInt32_t indexLocalLightmap = 0, indexLightmap = StartIdLightmap, countLightmap = StartIdLightmap + CountLighmaps; indexLightmap < countLightmap; ++indexLightmap, ++indexLocalLightmap )
-            lightmaps[ indexLightmap ] = Lightmaps[ indexLocalLightmap ];
+        {
+            ITexture*           oldLightmap = lightmaps[ indexLightmap ];
+            ITexture*           newLightmap = Lightmaps[ indexLocalLightmap ];
+
+            if ( oldLightmap->GetCountReferences() <= 1 )
+                oldLightmap->Release();
+            else
+                oldLightmap->DecrementReference();
+
+            newLightmap->IncrementReference();
+            lightmaps[ indexLightmap ] = newLightmap;
+        }
     }
 }
 
@@ -211,16 +273,34 @@ void le::Mesh::Update( ITexture** Lightmaps, UInt32_t CountLighmaps, UInt32_t St
 // ------------------------------------------------------------------------------------ //
 void le::Mesh::Delete()
 {
-	vertexArrayObject.Delete();
-	vertexBufferObject.Delete();
-	indexBufferObject.Delete();
+    vertexArrayObject.Delete();
+    vertexBufferObject.Delete();
+    indexBufferObject.Delete();
 
-	// TODO: Реализовать удаление материалов и карт освещений
+    for ( auto it = materials.begin(), itEnd = materials.end(); it != itEnd; )
+        if ( (*it)->GetCountReferences() <= 1 )
+        {
+            (*it)->Release();
 
-	surfaces.clear();
-	materials.clear();
-	lightmaps.clear();
-	isCreated = false;
+            it = materials.erase( it );
+            itEnd = materials.end();
+        }
+        else
+            ++it;
+
+    for ( auto it = lightmaps.begin(), itEnd = lightmaps.end(); it != itEnd; )
+        if ( (*it)->GetCountReferences() <= 1 )
+        {
+            (*it)->Release();
+
+            it = lightmaps.erase( it );
+            itEnd = lightmaps.end();
+        }
+        else
+            ++it;
+
+    surfaces.clear();
+    isCreated = false;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -228,7 +308,7 @@ void le::Mesh::Delete()
 // ------------------------------------------------------------------------------------ //
 bool le::Mesh::IsCreated() const
 {
-	return isCreated;
+    return isCreated;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -236,7 +316,7 @@ bool le::Mesh::IsCreated() const
 // ------------------------------------------------------------------------------------ //
 le::UInt32_t le::Mesh::GetCountSurfaces() const
 {
-	return surfaces.size();
+    return surfaces.size();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -245,7 +325,7 @@ le::UInt32_t le::Mesh::GetCountSurfaces() const
 const le::MeshSurface& le::Mesh::GetSurface( UInt32_t Index ) const
 {
     if ( Index >= surfaces.size() ) return MeshSurface();
-	return surfaces[ Index ];
+    return surfaces[ Index ];
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -253,7 +333,7 @@ const le::MeshSurface& le::Mesh::GetSurface( UInt32_t Index ) const
 // ------------------------------------------------------------------------------------ //
 le::MeshSurface* le::Mesh::GetSurfaces() const
 {
-	return ( MeshSurface* ) surfaces.data();
+    return ( MeshSurface* ) surfaces.data();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -261,7 +341,7 @@ le::MeshSurface* le::Mesh::GetSurfaces() const
 // ------------------------------------------------------------------------------------ //
 le::UInt32_t le::Mesh::GetCountMaterials() const
 {
-	return materials.size();
+    return materials.size();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -269,8 +349,8 @@ le::UInt32_t le::Mesh::GetCountMaterials() const
 // ------------------------------------------------------------------------------------ //
 le::IMaterial* le::Mesh::GetMaterial( UInt32_t Index ) const
 {
-	if ( Index >= materials.size() ) return nullptr;
-	return materials[ Index ];
+    if ( Index >= materials.size() ) return nullptr;
+    return materials[ Index ];
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -278,7 +358,7 @@ le::IMaterial* le::Mesh::GetMaterial( UInt32_t Index ) const
 // ------------------------------------------------------------------------------------ //
 le::IMaterial** le::Mesh::GetMaterials() const
 {
-	return ( IMaterial** ) materials.data();
+    return ( IMaterial** ) materials.data();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -286,7 +366,7 @@ le::IMaterial** le::Mesh::GetMaterials() const
 // ------------------------------------------------------------------------------------ //
 le::UInt32_t le::Mesh::GetCountLightmaps() const
 {
-	return lightmaps.size();
+    return lightmaps.size();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -294,8 +374,8 @@ le::UInt32_t le::Mesh::GetCountLightmaps() const
 // ------------------------------------------------------------------------------------ //
 le::ITexture* le::Mesh::GetLightmap( UInt32_t Index ) const
 {
-	if ( Index >= lightmaps.size() ) return nullptr;
-	return lightmaps[ Index ];
+    if ( Index >= lightmaps.size() ) return nullptr;
+    return lightmaps[ Index ];
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -303,7 +383,7 @@ le::ITexture* le::Mesh::GetLightmap( UInt32_t Index ) const
 // ------------------------------------------------------------------------------------ //
 le::ITexture** le::Mesh::GetLightmaps() const
 {
-	return ( ITexture** ) lightmaps.data();
+    return ( ITexture** ) lightmaps.data();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -311,7 +391,7 @@ le::ITexture** le::Mesh::GetLightmaps() const
 // ------------------------------------------------------------------------------------ //
 const le::Vector3D_t& le::Mesh::GetMin() const
 {
-	return min;
+    return min;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -319,15 +399,16 @@ const le::Vector3D_t& le::Mesh::GetMin() const
 // ------------------------------------------------------------------------------------ //
 const le::Vector3D_t& le::Mesh::GetMax() const
 {
-	return max;
+    return max;
 }
 
 // ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
 le::Mesh::Mesh() :
-	isCreated( false ),
-	primitiveType( PT_TRIANGLES )
+    isCreated( false ),
+    primitiveType( PT_TRIANGLES ),
+    countReferences( 0 )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -335,5 +416,37 @@ le::Mesh::Mesh() :
 // ------------------------------------------------------------------------------------ //
 le::Mesh::~Mesh()
 {
-	Delete();
+    Delete();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Increment reference
+// ------------------------------------------------------------------------------------ //
+void le::Mesh::IncrementReference()
+{
+    ++countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Decrement reference
+// ------------------------------------------------------------------------------------ //
+void le::Mesh::DecrementReference()
+{
+    --countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Delete
+// ------------------------------------------------------------------------------------ //
+void le::Mesh::Release()
+{
+    delete this;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get count references
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::Mesh::GetCountReferences() const
+{
+    return countReferences;
 }

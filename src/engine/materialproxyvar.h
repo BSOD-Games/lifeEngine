@@ -25,6 +25,12 @@ namespace le
     class MaterialProxyVar : public IMaterialProxyVar
     {
     public:
+        // IReferenceObject
+        virtual void                            IncrementReference();
+        virtual void                            DecrementReference();
+        virtual void                            Release();
+        virtual UInt32_t                        GetCountReferences() const;
+
         // IMaterialProxyVar
         virtual void                            Clear();
 
@@ -64,10 +70,11 @@ namespace le
 
     private:
         bool                            isDefined;
+        UInt32_t                        countReferences;
 
         std::string                     name;
         MATERIAL_PROXY_VAR_TYPE         type;
-        void*                           value;
+        void*                           value;        
     };
 
     //---------------------------------------------------------------------//

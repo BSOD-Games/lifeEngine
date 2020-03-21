@@ -22,6 +22,12 @@ namespace le
     class Sprite : public ISprite
     {
     public:
+        // IReferenceObject
+        virtual void                    IncrementReference();
+        virtual void                    DecrementReference();
+        virtual void                    Release();
+        virtual UInt32_t                GetCountReferences() const;
+
         // ISprite
         virtual bool                    Initialize( const Vector2D_t& Size, IMaterial* Material, SPRITE_TYPE SpriteType = ST_SPRITE_ROTATING );
 
@@ -70,11 +76,12 @@ namespace le
         Vector3D_t          min;
         Vector3D_t          max;
         IMesh*              mesh;
+        UInt32_t            countReferences;
 
 		Vector3D_t			position;
 		Quaternion_t		rotation;
 		Vector3D_t			scale;
-		Matrix4x4_t			transformation;                 
+		Matrix4x4_t			transformation;                        
     };
 
     //---------------------------------------------------------------------//

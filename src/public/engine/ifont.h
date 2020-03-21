@@ -12,6 +12,7 @@
 #define IFONT_H
 
 #include "common/rect.h"
+#include "engine/ireferenceobject.h"
 
 //---------------------------------------------------------------------//
 
@@ -23,7 +24,7 @@ namespace le
 
     //---------------------------------------------------------------------//
 
-    class IFont
+    class IFont : public IReferenceObject
     {
     public:
 

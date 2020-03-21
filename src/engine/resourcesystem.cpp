@@ -953,6 +953,7 @@ le::ITexture* le::ResourceSystem::LoadTexture( const char* Name, const char* Pat
         ITexture* texture = parser->second( path.c_str(), studioRenderFactory );
         if ( !texture )								throw std::runtime_error( "Fail loading texture" );
 
+        texture->IncrementReference();
         textures.insert( std::make_pair( Name, texture ) );
         g_consoleSystem->PrintInfo( "Loaded texture [%s]", Name );
 
@@ -993,6 +994,7 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
         IMaterial* material = parser->second( path.c_str(), this, materialManager, studioRenderFactory );
         if ( !material )	throw std::runtime_error( "Fail loading material" );
 
+        material->IncrementReference();
         materials.insert( std::make_pair( Name, material ) );
         g_consoleSystem->PrintInfo( "Loaded material [%s]", Name );
 
@@ -1033,6 +1035,7 @@ le::IMesh* le::ResourceSystem::LoadMesh( const char* Name, const char* Path )
         IMesh* mesh = parser->second( path.c_str(), this, studioRenderFactory );
         if ( !mesh )							throw std::runtime_error( "Fail loading mesh" );
 
+        mesh->IncrementReference();
         meshes.insert( std::make_pair( Name, mesh ) );
         g_consoleSystem->PrintInfo( "Loaded mesh [%s]", Name );
 
@@ -1073,6 +1076,7 @@ le::ILevel* le::ResourceSystem::LoadLevel( const char* Name, const char* Path, I
         ILevel* level = parser->second( path.c_str(), GameFactory );
         if ( !level )							throw std::runtime_error( "Fail loading level" );
 
+        level->IncrementReference();
         levels.insert( std::make_pair( Name, level ) );
         g_consoleSystem->PrintInfo( "Loaded level [%s]", Name );
 
@@ -1111,6 +1115,7 @@ le:: IFont* le::ResourceSystem::LoadFont( const char* Name, const char* Path )
         IFont* 		font = parser->second( path.c_str() );
         if ( !font )							throw std::runtime_error( "Fail loading font" );
 
+        font->IncrementReference();
         fonts.insert( std::make_pair( Name, font ) );
         g_consoleSystem->PrintInfo( "Loaded font [%s]", Name );
 
@@ -1148,9 +1153,9 @@ void le::ResourceSystem::UnloadTexture( const char* Name )
     }
 
     auto				it = textures.find( Name );
-    if ( it == textures.end() )	return;
+    if ( it == textures.end() || it->second->GetCountReferences() > 1 )	return;
 
-    studioRenderFactory->Delete( it->second );
+    it->second->Release();
     textures.erase( it );
 
     g_consoleSystem->PrintInfo( "Unloaded texture [%s]", Name );
@@ -1164,9 +1169,9 @@ void le::ResourceSystem::UnloadMaterial( const char* Name )
     LIFEENGINE_ASSERT( Name );
 
     auto				it = materials.find( Name );
-    if ( it == materials.end() )	return;
+    if ( it == materials.end() || it->second->GetCountReferences() > 1 )	return;
 
-    delete it->second;
+    it->second->Release();
     materials.erase( it );
 
     g_consoleSystem->PrintInfo( "Unloaded material [%s]", Name );
@@ -1186,9 +1191,9 @@ void le::ResourceSystem::UnloadMesh( const char* Name )
     }
 
     auto				it = meshes.find( Name );
-    if ( it == meshes.end() )	return;
+    if ( it == meshes.end() || it->second->GetCountReferences() > 1 )	return;
 
-    studioRenderFactory->Delete( it->second );
+    it->second->Release();
     meshes.erase( it );
 
     g_consoleSystem->PrintInfo( "Unloaded mesh [%s]", Name );
@@ -1202,10 +1207,9 @@ void le::ResourceSystem::UnloadLevel( const char* Name )
     LIFEENGINE_ASSERT( Name );
 
     auto				it = levels.find( Name );
-    if ( it == levels.end() )	return;
+    if ( it == levels.end() || it->second->GetCountReferences() > 1 )	return;
 
-    // TODO: Сделать правильное удаление, ибо объект может быть создан в другом модуле
-    delete it->second;
+    it->second->Release();
     levels.erase( it );
 
     g_consoleSystem->PrintInfo( "Unloaded level [%s]", Name );
@@ -1219,10 +1223,9 @@ void le::ResourceSystem::UnloadFont( const char* Name )
     LIFEENGINE_ASSERT( Name );
 
     auto				it = fonts.find( Name );
-    if ( it == fonts.end() )	return;
+    if ( it == fonts.end() || it->second->GetCountReferences() > 1 )	return;
 
-    // TODO: Сделать правильное удаление, ибо объект может быть создан в другом модуле
-    delete it->second;
+    it->second->Release();
     fonts.erase( it );
 
     g_consoleSystem->PrintInfo( "Unloaded font [%s]", Name );
@@ -1235,11 +1238,17 @@ void le::ResourceSystem::UnloadMaterials()
 {
     if ( materials.empty() ) return;
 
-    for ( auto it = materials.begin(), itEnd = materials.end(); it != itEnd; ++it )
-        delete it->second;
+    for ( auto it = materials.begin(), itEnd = materials.end(); it != itEnd; )
+        if ( it->second->GetCountReferences() <= 1 )
+        {
+            it->second->Release();
 
-    g_consoleSystem->PrintInfo( "Unloaded all materials" );
-    materials.clear();
+            g_consoleSystem->PrintInfo( "Unloaded material [%s]", it->first.c_str() );
+            it = materials.erase( it );
+            itEnd = materials.end();
+        }
+        else
+            ++it;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1255,11 +1264,17 @@ void le::ResourceSystem::UnloadMeshes()
         return;
     }
 
-    for ( auto it = meshes.begin(), itEnd = meshes.end(); it != itEnd; ++it )
-        studioRenderFactory->Delete( it->second );
+    for ( auto it = meshes.begin(), itEnd = meshes.end(); it != itEnd; )
+        if ( it->second->GetCountReferences() <= 1 )
+        {
+            it->second->Release();
 
-    g_consoleSystem->PrintInfo( "Unloaded all meshes" );
-    meshes.clear();
+            g_consoleSystem->PrintInfo( "Unloaded mesh [%s]", it->first.c_str() );
+            it = meshes.erase( it );
+            itEnd = meshes.end();
+        }
+        else
+            ++it;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1269,11 +1284,17 @@ void le::ResourceSystem::UnloadLevels()
 {
     if ( levels.empty() ) return;
 
-    for ( auto it = levels.begin(), itEnd = levels.end(); it != itEnd; ++it )
-        delete it->second;
+    for ( auto it = levels.begin(), itEnd = levels.end(); it != itEnd; )
+        if ( it->second->GetCountReferences() <= 1 )
+        {
+            it->second->Release();
 
-    g_consoleSystem->PrintInfo( "Unloaded all levels" );
-    levels.clear();
+            g_consoleSystem->PrintInfo( "Unloaded level [%s]", it->first.c_str() );
+            it = levels.erase( it );
+            itEnd = levels.end();
+        }
+        else
+            ++it;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1283,11 +1304,17 @@ void le::ResourceSystem::UnloadFonts()
 {
     if ( fonts.empty() ) return;
 
-    for ( auto it = fonts.begin(), itEnd = fonts.end(); it != itEnd; ++it )
-        delete it->second;
+    for ( auto it = fonts.begin(), itEnd = fonts.end(); it != itEnd; )
+        if ( it->second->GetCountReferences() <= 1 )
+        {
+            it->second->Release();
 
-    g_consoleSystem->PrintInfo( "Unloaded all fonts" );
-    fonts.clear();
+            g_consoleSystem->PrintInfo( "Unloaded font [%s]", it->first.c_str() );
+            it = fonts.erase( it );
+            itEnd = fonts.end();
+        }
+        else
+            ++it;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1303,11 +1330,17 @@ void le::ResourceSystem::UnloadTextures()
         return;
     }
 
-    for ( auto it = textures.begin(), itEnd = textures.end(); it != itEnd; ++it )
-        studioRenderFactory->Delete( it->second );
+    for ( auto it = textures.begin(), itEnd = textures.end(); it != itEnd;)
+        if ( it->second->GetCountReferences() <= 1 )
+        {
+            it->second->Release();
 
-    g_consoleSystem->PrintInfo( "Unloaded all textures" );
-    textures.clear();
+            g_consoleSystem->PrintInfo( "Unloaded texture [%s]", it->first.c_str() );
+            it = textures.erase( it );
+            itEnd = textures.end();
+        }
+        else
+            ++it;
 }
 
 // ------------------------------------------------------------------------------------ //

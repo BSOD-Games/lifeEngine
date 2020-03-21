@@ -43,6 +43,7 @@ namespace le
 	class IStudioRender
 	{
 	public:
+        virtual ~IStudioRender() {}
 		virtual void											BeginScene( ICamera* Camera ) = 0;
 		virtual void											SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation ) = 0;
 		virtual void											SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation, UInt32_t StartSurface, UInt32_t CountSurface ) = 0;

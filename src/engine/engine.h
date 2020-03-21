@@ -74,6 +74,7 @@ namespace le
 		virtual IWindow*				GetWindow() const;
 		virtual IFactory*				GetFactory() const;
 		virtual const Configurations&	GetConfigurations() const;
+        virtual const GameInfo&         GetGameInfo() const;
 		virtual const Version&			GetVersion() const;
 
 		// IEngineInternal
@@ -84,8 +85,6 @@ namespace le
 		// Engine
 		Engine();
 		~Engine();
-
-		inline const GameInfo&			GetGameInfo() const { return gameInfo; }
 
 	private:
 		bool							LoadModule_StudioRender( const char* PathDLL );

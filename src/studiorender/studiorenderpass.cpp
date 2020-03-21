@@ -26,11 +26,12 @@
 // ------------------------------------------------------------------------------------ //
 void le::StudioRenderPass::AddParameter( IShaderParameter* Parameter )
 {
-	LIFEENGINE_ASSERT( Parameter );
-	
-	parameters.push_back( ( ShaderParameter* ) Parameter );
-	parameters.back()->SetPass( this );
-	isNeadRefrash = true;
+    LIFEENGINE_ASSERT( Parameter );
+
+    Parameter->IncrementReference();
+    parameters.push_back( ( ShaderParameter* ) Parameter );
+    parameters.back()->SetPass( this );
+    isNeadRefrash = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -38,11 +39,16 @@ void le::StudioRenderPass::AddParameter( IShaderParameter* Parameter )
 // ------------------------------------------------------------------------------------ //
 void le::StudioRenderPass::RemoveParameter( UInt32_t Index )
 {
-	LIFEENGINE_ASSERT( Index < parameters.size() );
+    LIFEENGINE_ASSERT( Index < parameters.size() );
+    ShaderParameter*            parameter = parameters[ Index ];
 
-	delete parameters[ Index ];
-	parameters.erase( parameters.begin() + Index );
-	isNeadRefrash = true;
+    if ( parameter->GetCountReferences() <= 1 )
+        parameter->Release();
+    else
+        parameter->DecrementReference();
+
+    parameters.erase( parameters.begin() + Index );
+    isNeadRefrash = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -50,12 +56,29 @@ void le::StudioRenderPass::RemoveParameter( UInt32_t Index )
 // ------------------------------------------------------------------------------------ //
 void le::StudioRenderPass::Clear()
 {
-	for ( UInt32_t index = 0, count = parameters.size(); index < count; ++index )
-		delete parameters[ index ];
+    for ( auto it = parameters.begin(), itEnd = parameters.end(); it != itEnd; )
+        if ( (*it)->GetCountReferences() <= 1 )
+        {
+            (*it)->Release();
 
-	shader = nullptr;
-	parameters.clear();
-    materialProxes.clear();
+            it = parameters.erase( it );
+            itEnd = parameters.end();
+        }
+        else
+            ++it;
+
+    for ( auto it = materialProxes.begin(), itEnd = materialProxes.end(); it != itEnd; )
+        if ( (*it)->GetCountReferences() <= 1 )
+        {
+            (*it)->Release();
+
+            it = materialProxes.erase( it );
+            itEnd = materialProxes.end();
+        }
+        else
+            ++it;
+
+    shader = nullptr;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -63,14 +86,14 @@ void le::StudioRenderPass::Clear()
 // ------------------------------------------------------------------------------------ //
 void le::StudioRenderPass::Apply( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
-	InitStates();
+    InitStates();
 
-	if ( shader && ( !isNeadRefrash || Refrash() ) )
+    if ( shader && ( !isNeadRefrash || Refrash() ) )
     {
         for ( UInt32_t index = 0, count = materialProxes.size(); index < count; ++index )
             materialProxes[ index ]->NeadUpdate();
 
-		shader->OnDrawMesh( parameters.size(), ( IShaderParameter** ) parameters.data(), Transformation, Camera, Lightmap );
+        shader->OnDrawMesh( parameters.size(), ( IShaderParameter** ) parameters.data(), Transformation, Camera, Lightmap );
     }
 }
 
@@ -79,11 +102,11 @@ void le::StudioRenderPass::Apply( const Matrix4x4_t& Transformation, ICamera* Ca
 // ------------------------------------------------------------------------------------ //
 void le::StudioRenderPass::InitStates()
 {
-	OpenGLState::EnableDepthTest( isDepthTest );
-	OpenGLState::EnableDepthWrite( isDepthWrite );
-	OpenGLState::EnableBlend( isBlend );
-	OpenGLState::EnableCullFace( isCullFace );
-	OpenGLState::SetCullFaceType( cullFaceType );
+    OpenGLState::EnableDepthTest( isDepthTest );
+    OpenGLState::EnableDepthWrite( isDepthWrite );
+    OpenGLState::EnableBlend( isBlend );
+    OpenGLState::EnableCullFace( isCullFace );
+    OpenGLState::SetCullFaceType( cullFaceType );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -91,28 +114,28 @@ void le::StudioRenderPass::InitStates()
 // ------------------------------------------------------------------------------------ //
 bool le::StudioRenderPass::Refrash()
 {
-	if ( !isNeadRefrash )		return true;
+    if ( !isNeadRefrash )		return true;
 
-	try
-	{
-		if ( !shader )			throw;
+    try
+    {
+        if ( !shader )			throw;
 
-		while ( !shader->InitInstance( parameters.size(), ( IShaderParameter** ) parameters.data() ) )
-		{
-			const char* fallbackShader = shader->GetFallbackShader();
-			if ( !fallbackShader || strcmp( fallbackShader, "" ) == 0 )		throw;
+        while ( !shader->InitInstance( parameters.size(), ( IShaderParameter** ) parameters.data() ) )
+        {
+            const char* fallbackShader = shader->GetFallbackShader();
+            if ( !fallbackShader || strcmp( fallbackShader, "" ) == 0 )		throw;
 
-			SetShader( fallbackShader );
-			if ( !shader )		throw;
-		}
-	}
-	catch ( ... )
-	{
-		return false;
-	}
+            SetShader( fallbackShader );
+            if ( !shader )		throw;
+        }
+    }
+    catch ( ... )
+    {
+        return false;
+    }
 
-	isNeadRefrash = false;
-	return true;
+    isNeadRefrash = false;
+    return true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -120,29 +143,29 @@ bool le::StudioRenderPass::Refrash()
 // ------------------------------------------------------------------------------------ //
 void le::StudioRenderPass::SetShader( const char* NameShader )
 {
-	if ( !NameShader || NameShader == "" )
-	{
-		shader = nullptr;
-		return;
-	}
+    if ( !NameShader || NameShader == "" )
+    {
+        shader = nullptr;
+        return;
+    }
 
-	ShaderManager*			shaderManager = ( ShaderManager* ) g_studioRender->GetShaderManager();
-	IShader*				tempShader = shaderManager->FindShader( NameShader );
-	
-	if ( tempShader )
-	{
-		shader = tempShader;
-		isNeadRefrash = true;
-	}
-	else
-		g_consoleSystem->PrintError( "Shader [%s] not found in system", NameShader );
+    ShaderManager*			shaderManager = ( ShaderManager* ) g_studioRender->GetShaderManager();
+    IShader*				tempShader = shaderManager->FindShader( NameShader );
+
+    if ( tempShader )
+    {
+        shader = tempShader;
+        isNeadRefrash = true;
+    }
+    else
+        g_consoleSystem->PrintError( "Shader [%s] not found in system", NameShader );
 }
 // ------------------------------------------------------------------------------------ //
 // Включить ли тест глубины
 // ------------------------------------------------------------------------------------ //
 void le::StudioRenderPass::EnableDepthTest( bool Enable )
 {
-	isDepthTest = Enable;
+    isDepthTest = Enable;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -150,7 +173,7 @@ void le::StudioRenderPass::EnableDepthTest( bool Enable )
 // ------------------------------------------------------------------------------------ //
 void le::StudioRenderPass::EnableDepthWrite( bool Enable )
 {
-	isDepthWrite = Enable;
+    isDepthWrite = Enable;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -158,7 +181,7 @@ void le::StudioRenderPass::EnableDepthWrite( bool Enable )
 // ------------------------------------------------------------------------------------ //
 void le::StudioRenderPass::EnableBlend( bool Enable )
 {
-	isBlend = Enable;
+    isBlend = Enable;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -188,7 +211,7 @@ le::IShaderParameter* le::StudioRenderPass::FindParameter( const char* Name ) co
 // ------------------------------------------------------------------------------------ //
 void le::StudioRenderPass::SetCullFaceType( CULLFACE_TYPE CullFaceType )
 {
-	cullFaceType = CullFaceType;
+    cullFaceType = CullFaceType;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -196,7 +219,7 @@ void le::StudioRenderPass::SetCullFaceType( CULLFACE_TYPE CullFaceType )
 // ------------------------------------------------------------------------------------ //
 bool le::StudioRenderPass::IsDepthTest() const
 {
-	return isDepthTest;
+    return isDepthTest;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -204,7 +227,7 @@ bool le::StudioRenderPass::IsDepthTest() const
 // ------------------------------------------------------------------------------------ //
 bool le::StudioRenderPass::IsDepthWrite() const
 {
-	return isDepthWrite;
+    return isDepthWrite;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -212,7 +235,7 @@ bool le::StudioRenderPass::IsDepthWrite() const
 // ------------------------------------------------------------------------------------ //
 bool le::StudioRenderPass::IsBlend() const
 {
-	return isBlend;
+    return isBlend;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -220,7 +243,7 @@ bool le::StudioRenderPass::IsBlend() const
 // ------------------------------------------------------------------------------------ //
 bool le::StudioRenderPass::IsCullFace() const
 {
-	return isCullFace;
+    return isCullFace;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -228,7 +251,7 @@ bool le::StudioRenderPass::IsCullFace() const
 // ------------------------------------------------------------------------------------ //
 le::CULLFACE_TYPE le::StudioRenderPass::GetCullFaceType() const
 {
-	return cullFaceType;
+    return cullFaceType;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -236,8 +259,8 @@ le::CULLFACE_TYPE le::StudioRenderPass::GetCullFaceType() const
 // ------------------------------------------------------------------------------------ //
 const char* le::StudioRenderPass::GetNameShader() const
 {
-	if ( !shader )		return "";
-	return shader->GetName();
+    if ( !shader )		return "";
+    return shader->GetName();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -245,7 +268,7 @@ const char* le::StudioRenderPass::GetNameShader() const
 // ------------------------------------------------------------------------------------ //
 le::UInt32_t le::StudioRenderPass::GetCountParameters() const
 {
-	return parameters.size();
+    return parameters.size();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -253,7 +276,7 @@ le::UInt32_t le::StudioRenderPass::GetCountParameters() const
 // ------------------------------------------------------------------------------------ //
 le::IShaderParameter** le::StudioRenderPass::GetParameters() const
 {
-	return ( IShaderParameter** ) parameters.data();
+    return ( IShaderParameter** ) parameters.data();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -261,21 +284,22 @@ le::IShaderParameter** le::StudioRenderPass::GetParameters() const
 // ------------------------------------------------------------------------------------ //
 le::IShaderParameter* le::StudioRenderPass::GetParameter( UInt32_t Index ) const
 {
-	LIFEENGINE_ASSERT( Index < parameters.size() );
-	return ( IShaderParameter* ) parameters[ Index ];
+    LIFEENGINE_ASSERT( Index < parameters.size() );
+    return ( IShaderParameter* ) parameters[ Index ];
 }
 
 // ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
 le::StudioRenderPass::StudioRenderPass() : 
-	isNeadRefrash( true ),
-	isDepthTest( true ),
-	isDepthWrite( true ),
-	isBlend( false ),
-	isCullFace( true ),
-	cullFaceType( CT_BACK ),
-	shader( nullptr )
+    isNeadRefrash( true ),
+    isDepthTest( true ),
+    isDepthWrite( true ),
+    isBlend( false ),
+    isCullFace( true ),
+    cullFaceType( CT_BACK ),
+    shader( nullptr ),
+    countReferences( 0 )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -283,7 +307,7 @@ le::StudioRenderPass::StudioRenderPass() :
 // ------------------------------------------------------------------------------------ //
 le::StudioRenderPass::~StudioRenderPass()
 {
-	Clear();
+    Clear();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -292,6 +316,8 @@ le::StudioRenderPass::~StudioRenderPass()
 void le::StudioRenderPass::AddProxy( IMaterialProxy* MaterialProxy )
 {
     LIFEENGINE_ASSERT( MaterialProxy );
+
+    MaterialProxy->IncrementReference();
     materialProxes.push_back( MaterialProxy );
 }
 
@@ -301,6 +327,13 @@ void le::StudioRenderPass::AddProxy( IMaterialProxy* MaterialProxy )
 void le::StudioRenderPass::RemoveProxy( UInt32_t Index )
 {
     LIFEENGINE_ASSERT( Index < materialProxes.size() );
+    IMaterialProxy*         proxy = materialProxes[ Index ];
+
+    if ( proxy->GetCountReferences() <= 1 )
+        proxy->Release();
+    else
+        proxy->DecrementReference();
+
     materialProxes.erase( materialProxes.begin() + Index );
 }
 
@@ -327,4 +360,36 @@ le::IMaterialProxy* le::StudioRenderPass::GetProxy( UInt32_t Index ) const
 {
     LIFEENGINE_ASSERT( Index < materialProxes.size() );
     return ( IMaterialProxy* ) materialProxes[ Index ];
+}
+
+// ------------------------------------------------------------------------------------ //
+// Increment reference
+// ------------------------------------------------------------------------------------ //
+void le::StudioRenderPass::IncrementReference()
+{
+    ++countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Decrement reference
+// ------------------------------------------------------------------------------------ //
+void le::StudioRenderPass::DecrementReference()
+{
+    --countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Delete
+// ------------------------------------------------------------------------------------ //
+void le::StudioRenderPass::Release()
+{
+    delete this;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get count references
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::StudioRenderPass::GetCountReferences() const
+{
+    return countReferences;
 }

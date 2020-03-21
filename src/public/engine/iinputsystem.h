@@ -23,6 +23,7 @@ namespace le
 	class IInputSystem
 	{
 	public:
+        virtual ~IInputSystem() {}
 		virtual bool				IsKeyDown( BUTTON_CODE Key ) = 0;
 		virtual bool				IsKeyUp( BUTTON_CODE Key ) = 0;
 		virtual	bool				IsMouseKeyDown( BUTTON_CODE Key ) = 0;

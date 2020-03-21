@@ -33,6 +33,12 @@ namespace le
     class Text : public IText
     {
     public:
+        // IReferenceObject
+        virtual void                    IncrementReference();
+        virtual void                    DecrementReference();
+        virtual void                    Release();
+        virtual UInt32_t                GetCountReferences() const;
+
         // IText
         virtual void                    SetFont( IFont* Font );
         virtual void                    SetCharacterSize( UInt32_t CharacterSize );
@@ -81,21 +87,20 @@ namespace le
         IFont*                      font;
         std::string                 text;
         UInt32_t                    characterSize;
+        UInt32_t                    countReferences;
         float                       letterSpacingFactor;
         float                       lineSpacingFactor;
         Vector2D_t                  textureSize;
         Vector3D_t                  color;    
 
         IMaterial*                  material;
-        IStudioRenderTechnique*     material_techique;
-        IStudioRenderPass*          material_pass;
         IShaderParameter*           materialParam_color;
         IShaderParameter*           materialParam_basetexture;
 
 		Vector3D_t			        position;
 		Quaternion_t		        rotation;
 		Vector3D_t			        scale;
-		Matrix4x4_t			        transformation;  
+		Matrix4x4_t			        transformation;          
     };
 
     //---------------------------------------------------------------------//

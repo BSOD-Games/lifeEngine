@@ -28,6 +28,12 @@ namespace le
 	class ShaderParameter : public IShaderParameter
 	{
 	public:
+        // IReferenceObject
+        virtual void                    IncrementReference();
+        virtual void                    DecrementReference();
+        virtual void                    Release();
+        virtual UInt32_t                GetCountReferences() const;
+
 		// IShaderParameter
 		virtual void					Clear();
 
@@ -69,7 +75,8 @@ namespace le
 		SHADER_PARAMETER_TYPE	type;
 		StudioRenderPass*		studioRenderPass;
         void*                   value;
-	};
+        UInt32_t                countReferences;
+    };
 
 	//---------------------------------------------------------------------//
 }

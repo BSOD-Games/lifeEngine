@@ -12,6 +12,7 @@
 #define ICAMERA_H
 
 #include "common/types.h"
+#include "engine/ireferenceobject.h"
 
 //---------------------------------------------------------------------//
 
@@ -34,11 +35,10 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class ICamera
+    class ICamera : public IReferenceObject
 	{
 	public:
 		virtual ~ICamera() {}
-
 		virtual void							InitProjection_Perspective( float FOV, float Aspect, float Near, float Far ) = 0;
 		virtual void							InitProjection_Ortho( float Left, float Right, float Bottom, float Top, float Near = 0.f, float Far = 1.f ) = 0;
 		virtual void							Move( const Vector3D_t& FactorMove ) = 0;

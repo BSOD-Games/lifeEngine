@@ -12,6 +12,7 @@
 #define ICONCMD_H
 
 #include "common/types.h"
+#include "engine/ireferenceobject.h"
 
 //---------------------------------------------------------------------//
 
@@ -23,9 +24,10 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class IConCmd
+    class IConCmd : public IReferenceObject
 	{
 	public:
+        virtual ~IConCmd() {}
 		virtual void					Initialize( const char* Name, const char* HelpText, ExecCallbackFn_t ExecCallback ) = 0;
 		virtual void					Exec( UInt32_t CountArguments, const char** Arguments ) = 0;
 		

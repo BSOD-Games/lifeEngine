@@ -18,6 +18,7 @@ namespace le
 	class IFactory
 	{
 	public:
+        virtual ~IFactory() {}
 		virtual void*			Create( const char* NameInterface ) = 0;
 		virtual void			Delete( void* Object ) = 0;
 	};

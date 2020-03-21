@@ -23,6 +23,12 @@ namespace le
 	class ConCmd : public IConCmd
 	{
 	public:
+        // IReferenceObject
+        virtual void                    IncrementReference();
+        virtual void                    DecrementReference();
+        virtual void                    Release();
+        virtual UInt32_t                GetCountReferences() const;
+
 		// IConCmd
 		virtual void					Initialize( const char* Name, const char* HelpText, ExecCallbackFn_t ExecCallback );
 		virtual void					Exec( UInt32_t CountArguments, const char** Arguments );
@@ -38,10 +44,11 @@ namespace le
 		~ConCmd();
 
 	private:
+        UInt32_t                    countReference;
 		std::string					name;
 		std::string					helpText;
 		ExecCallbackFn_t			execCallback;
-	};
+    };
 
 	//---------------------------------------------------------------------//
 }

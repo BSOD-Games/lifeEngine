@@ -26,6 +26,12 @@ namespace le
     class FontFreeType : public IFont
     {
     public:
+        // IReferenceObject
+        virtual void                    IncrementReference();
+        virtual void                    DecrementReference();
+        virtual void                    Release();
+        virtual UInt32_t                GetCountReferences() const;
+
         // IFont
         virtual const Glyph&            GetGlyph( UInt32_t CodePoint, UInt32_t CharacterSize );
         virtual float                   GetLineSpacing( UInt32_t CharacterSize ) const;
@@ -83,6 +89,7 @@ namespace le
         void*                                           ftFace;
         std::string                                     familyName;
         std::unordered_map< UInt32_t, Page >            pages;
+        UInt32_t                                        countReferences;
     };
 
     //---------------------------------------------------------------------//

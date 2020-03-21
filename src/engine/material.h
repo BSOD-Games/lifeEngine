@@ -26,6 +26,12 @@ namespace le
 	class Material : public IMaterial
 	{
 	public:
+        // IReferenceObject
+        virtual void                            IncrementReference();
+        virtual void                            DecrementReference();
+        virtual void                            Release();
+        virtual UInt32_t                        GetCountReferences() const;
+
 		// IMaterial
 		virtual void							AddTechnique( IStudioRenderTechnique* Technique );
 		virtual void							RemoveTechnique( UInt32_t Index );
@@ -44,9 +50,10 @@ namespace le
 		~Material();
 
 	private:
+        UInt32_t                                        countReferences;
 		std::string										surface;
-		std::vector< IStudioRenderTechnique* >			technique;
-	};
+		std::vector< IStudioRenderTechnique* >			technique;       
+    };
 
 	//---------------------------------------------------------------------//
 }

@@ -22,6 +22,12 @@ namespace le
 	class Model : public IModel
 	{
 	public:
+        // IReferenceObject
+        virtual void                    IncrementReference();
+        virtual void                    DecrementReference();
+        virtual void                    Release();
+        virtual UInt32_t                GetCountReferences() const;
+
 		// IModel
 		virtual void					SetMesh( IMesh* Mesh );
 		virtual void					SetMin( const Vector3D_t& MinPosition );
@@ -69,12 +75,13 @@ namespace le
 		Vector3D_t			max;
 		UInt32_t			startFace;
 		UInt32_t			countFace;
+        UInt32_t            countReferences;
 
 		Vector3D_t			position;
 		Quaternion_t		rotation;
 		Vector3D_t			scale;
-		Matrix4x4_t			transformation;
-	};
+		Matrix4x4_t			transformation;        
+    };
 
 	//---------------------------------------------------------------------//
 }
