@@ -34,7 +34,8 @@ namespace le
 	{
 	public:
 		virtual bool					Load( const char* Path, IFactory* GameFactory ) = 0;
-		virtual void					Update( UInt32_t DeltaTime ) = 0;
+                virtual void					Update() = 0;
+                virtual void                                    Render() = 0;
 		virtual void					Clear() = 0;
 		virtual void					AddCamera( ICamera* Camera ) = 0;
 		virtual void					AddModel( IModel* Model ) = 0;

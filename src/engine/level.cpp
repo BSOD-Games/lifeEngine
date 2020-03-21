@@ -294,7 +294,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		for ( UInt32_t index = 0, count = arrayBspTextures.size(); index < count; ++index )
 		{
 			BSPTexture* bspTexture = &arrayBspTextures[ index ];
-			arrayMaterials.push_back( g_resourceSystem->LoadMaterial( bspTexture->strName, ( std::string( bspTexture->strName ) + ".lmt" ).c_str() ) );
+            arrayMaterials.push_back( g_resourceSystem->LoadMaterial( bspTexture->strName, ( std::string( bspTexture->strName ) + ".lmt" ).c_str(), GameFactory ) );
 		}
 
 		// Инициализируем плоскости
@@ -402,70 +402,81 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 // ------------------------------------------------------------------------------------ //
 // Обновить уровень
 // ------------------------------------------------------------------------------------ //
-void le::Level::Update( UInt32_t DeltaTime )
+void le::Level::Update()
 {
 	for ( UInt32_t indexCamera = 0, countCameras = arrayCameras.size(); indexCamera < countCameras; ++indexCamera )
 	{
 		Camera* camera = arrayCameras[ indexCamera ];
 
-		g_studioRender->BeginScene( camera );
-
-		// Определяем в каком кластере находится камера
-		int			currentCluster = arrayBspLeafs[ FindLeaf( camera ) ].cluster;
-		facesDraw.ClearAll();
-
 		// Обновляем логику сущностей
 		for ( UInt32_t index = 0, count = arrayEntities.size(); index < count; ++index )
 		{
-			IEntity* entity = arrayEntities[ index ];
+            IEntity*        entity = arrayEntities[ index ];
 
 			// TODO: Сделать динамический (изменяемый из вне) дистанцию обновления
 			if ( glm::distance( camera->GetPosition(), entity->GetPosition() ) < 2500 )
-				entity->Update( DeltaTime );
+                entity->Update();
 		}
+	}
+}
 
-		// Посылаем на отрисовку видимые части статичной геометрии уровня
-		for ( UInt32_t indexLeaf = 0, countLeafs = arrayBspLeafs.size(); indexLeaf < countLeafs; ++indexLeaf )
-		{
-			BSPLeaf& bspLeaf = arrayBspLeafs[ indexLeaf ];
-			if ( !IsClusterVisible( currentCluster, bspLeaf.cluster ) || !camera->IsVisible( bspLeaf.min, bspLeaf.max ) )
-				continue;
+// ------------------------------------------------------------------------------------ //
+// Отрендерить уровень
+// ------------------------------------------------------------------------------------ //
+void le::Level::Render()
+{
+    for ( UInt32_t indexCamera = 0, countCameras = arrayCameras.size(); indexCamera < countCameras; ++indexCamera )
+    {
+        Camera* camera = arrayCameras[ indexCamera ];
 
-			for ( UInt32_t indexFace = 0; indexFace < bspLeaf.numOfLeafFaces; ++indexFace )
-			{
-				int			faceIndex = arrayBspLeafsFaces[ bspLeaf.leafFace + indexFace ];
-				if ( !facesDraw.On( faceIndex ) )
-				{
-					facesDraw.Set( faceIndex );
-					g_studioRender->SubmitMesh( mesh, Matrix4x4_t( 1.f ), faceIndex, 1 );
-				}
-			}
-		}
+        g_studioRender->BeginScene( camera );
 
-		// Посылаем на отрисовку видимые части динамической геометрии уровня
-		for ( UInt32_t index = 1, count = arrayModels.size(); index < count; ++index )
-		{
-			ModelDescriptor&		modelDescriptor = arrayModels[ index ];
-			int						cluster = arrayBspLeafs[ FindLeaf( ( modelDescriptor.model->GetMax() + modelDescriptor.model->GetMin() ) / 2.f ) ].cluster;
+        // Определяем в каком кластере находится камера
+        int			currentCluster = arrayBspLeafs[ FindLeaf( camera ) ].cluster;
+        facesDraw.ClearAll();
 
-			if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( modelDescriptor.model->GetMin(), modelDescriptor.model->GetMax() ) )
-				continue;
+        // Посылаем на отрисовку видимые части статичной геометрии уровня
+        for ( UInt32_t indexLeaf = 0, countLeafs = arrayBspLeafs.size(); indexLeaf < countLeafs; ++indexLeaf )
+        {
+            BSPLeaf& bspLeaf = arrayBspLeafs[ indexLeaf ];
+            if ( !IsClusterVisible( currentCluster, bspLeaf.cluster ) || !camera->IsVisible( bspLeaf.min, bspLeaf.max ) )
+                continue;
 
-			if ( !modelDescriptor.isBspModel )
-				g_studioRender->SubmitMesh( modelDescriptor.model->GetMesh(), modelDescriptor.model->GetTransformation(), modelDescriptor.model->GetStartFace(), modelDescriptor.model->GetCountFace() );
-			else
-				for ( UInt32_t indexFace = modelDescriptor.model->GetStartFace(), countFace = modelDescriptor.model->GetStartFace() + modelDescriptor.model->GetCountFace(); indexFace < countFace; ++indexFace )
-					if ( !facesDraw.On( indexFace ) )
-					{
-						facesDraw.Set( indexFace );
-						g_studioRender->SubmitMesh( modelDescriptor.model->GetMesh(), modelDescriptor.model->GetTransformation(), indexFace, 1 );
-					}
-		}
+            for ( UInt32_t indexFace = 0; indexFace < bspLeaf.numOfLeafFaces; ++indexFace )
+            {
+                int			faceIndex = arrayBspLeafsFaces[ bspLeaf.leafFace + indexFace ];
+                if ( !facesDraw.On( faceIndex ) )
+                {
+                    facesDraw.Set( faceIndex );
+                    g_studioRender->SubmitMesh( mesh, Matrix4x4_t( 1.f ), faceIndex, 1 );
+                }
+            }
+        }
 
-		// Send to render visible sprites
-		for ( UInt32_t index = 0, count = arraySprites.size(); index < count; ++index )
-		{
-			Sprite*			sprite = arraySprites[ index ];
+        // Посылаем на отрисовку видимые части динамической геометрии уровня
+        for ( UInt32_t index = 1, count = arrayModels.size(); index < count; ++index )
+        {
+            ModelDescriptor&		modelDescriptor = arrayModels[ index ];
+            int						cluster = arrayBspLeafs[ FindLeaf( ( modelDescriptor.model->GetMax() + modelDescriptor.model->GetMin() ) / 2.f ) ].cluster;
+
+            if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( modelDescriptor.model->GetMin(), modelDescriptor.model->GetMax() ) )
+                continue;
+
+            if ( !modelDescriptor.isBspModel )
+                g_studioRender->SubmitMesh( modelDescriptor.model->GetMesh(), modelDescriptor.model->GetTransformation(), modelDescriptor.model->GetStartFace(), modelDescriptor.model->GetCountFace() );
+            else
+                for ( UInt32_t indexFace = modelDescriptor.model->GetStartFace(), countFace = modelDescriptor.model->GetStartFace() + modelDescriptor.model->GetCountFace(); indexFace < countFace; ++indexFace )
+                    if ( !facesDraw.On( indexFace ) )
+                    {
+                        facesDraw.Set( indexFace );
+                        g_studioRender->SubmitMesh( modelDescriptor.model->GetMesh(), modelDescriptor.model->GetTransformation(), indexFace, 1 );
+                    }
+        }
+
+        // Send to render visible sprites
+        for ( UInt32_t index = 0, count = arraySprites.size(); index < count; ++index )
+        {
+            Sprite*			sprite = arraySprites[ index ];
             Vector3D_t      max = sprite->GetMax();
             Vector3D_t      min = sprite->GetMin();
             int				cluster = arrayBspLeafs[ FindLeaf( ( max + min ) / 2.f ) ].cluster;
@@ -473,36 +484,36 @@ void le::Level::Update( UInt32_t DeltaTime )
             if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( min, max ) )
                 continue;
 
-			g_studioRender->SubmitMesh( sprite->GetMesh(), sprite->GetTransformation( camera ) );
-		}
+            g_studioRender->SubmitMesh( sprite->GetMesh(), sprite->GetTransformation( camera ) );
+        }
 
-		// Посылаем на отрисовку видимые точечные источники света
-		for ( UInt32_t index = 0, count = arrayPointLights.size(); index < count; ++index )
-		{
-			IPointLight*	pointLight = arrayPointLights[ index ];
-			int				cluster = arrayBspLeafs[ FindLeaf( pointLight->GetPosition() ) ].cluster;
+        // Посылаем на отрисовку видимые точечные источники света
+        for ( UInt32_t index = 0, count = arrayPointLights.size(); index < count; ++index )
+        {
+            IPointLight*	pointLight = arrayPointLights[ index ];
+            int				cluster = arrayBspLeafs[ FindLeaf( pointLight->GetPosition() ) ].cluster;
 
-			if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( pointLight->GetPosition(), pointLight->GetRadius() ) )
-				continue;
+            if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( pointLight->GetPosition(), pointLight->GetRadius() ) )
+                continue;
 
-			g_studioRender->SubmitLight( pointLight );
-		}
+            g_studioRender->SubmitLight( pointLight );
+        }
 
-		// Посылаем на отрисовку видимые прожекторные источники света
-		for ( UInt32_t index = 0, count = arraySpotLights.size(); index < count; ++index )
-		{
-			ISpotLight*		spotLight = arraySpotLights[ index ];
-			int				cluster = arrayBspLeafs[ FindLeaf( spotLight->GetPosition() ) ].cluster;
+        // Посылаем на отрисовку видимые прожекторные источники света
+        for ( UInt32_t index = 0, count = arraySpotLights.size(); index < count; ++index )
+        {
+            ISpotLight*		spotLight = arraySpotLights[ index ];
+            int				cluster = arrayBspLeafs[ FindLeaf( spotLight->GetPosition() ) ].cluster;
 
-			g_studioRender->SubmitLight( spotLight );
-		}
+            g_studioRender->SubmitLight( spotLight );
+        }
 
-		// Посылаем на отрисовку направленые источники света
-		for ( UInt32_t index = 0, count = arrayDirectionalLights.size(); index < count; ++index )
-			g_studioRender->SubmitLight( arrayDirectionalLights[ index ] );
+        // Посылаем на отрисовку направленые источники света
+        for ( UInt32_t index = 0, count = arrayDirectionalLights.size(); index < count; ++index )
+            g_studioRender->SubmitLight( arrayDirectionalLights[ index ] );
 
-		g_studioRender->EndScene();
-	}
+        g_studioRender->EndScene();
+    }
 }
 
 // ------------------------------------------------------------------------------------ //

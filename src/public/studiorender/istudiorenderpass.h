@@ -39,6 +39,7 @@ namespace le
         virtual void                        EnableDepthWrite( bool Enable = true ) = 0;
         virtual void                        EnableBlend( bool Enable = true ) = 0;
         virtual void                        EnableCullFace( bool Enable = true ) = 0;
+        virtual IShaderParameter*           FindParameter( const char* Name ) const = 0;
 
         virtual void                        SetShader( const char* NameShader ) = 0;
         virtual void                        SetCullFaceType( CULLFACE_TYPE CullFaceType ) = 0;

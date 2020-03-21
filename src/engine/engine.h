@@ -21,7 +21,6 @@
 #include "engine/window.h"
 #include "engine/enginefactory.h"
 #include "engine/inputsystem.h"
-#include "engine/materialmanager.h"
 
 //---------------------------------------------------------------------//
 
@@ -70,11 +69,11 @@ namespace le
 		virtual IStudioRender*			GetStudioRender() const;
 		virtual IResourceSystem*		GetResourceSystem() const;
 		virtual IInputSystem*			GetInputSystem() const;
-        virtual IMaterialManager*       GetMaterialManager() const;
 		virtual IWindow*				GetWindow() const;
 		virtual IFactory*				GetFactory() const;
 		virtual const Configurations&	GetConfigurations() const;
 		virtual const Version&			GetVersion() const;
+        virtual double                  GetDeltaTime() const;
 
 		// IEngineInternal
         virtual bool					Initialize( const char* EngineDirectory, WindowHandle_t WindowHandle = nullptr );
@@ -110,11 +109,11 @@ namespace le
 		ConsoleSystem					consoleSystem;
 		ResourceSystem					resourceSystem;
 		InputSystem						inputSystem;
-        MaterialManager                 materialManager;
 		Window							window;
 		EngineFactory					engineFactory;
 		GameInfo						gameInfo;
 		Configurations					configurations;
+        double                          deltaTime;
 	};
 
 	//---------------------------------------------------------------------//

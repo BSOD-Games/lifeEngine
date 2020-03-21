@@ -17,26 +17,26 @@
 
 namespace le
 {
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 
-	class ILevel;
+    class ILevel;
 
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 
-	class IEntity
-	{
-	public:
-		virtual void				Update( UInt32_t DeltaTime ) = 0;
-		virtual void				KeyValue( const char* Key, const char* Value ) = 0;
+    class IEntity
+    {
+    public:
+        virtual void				Update() = 0;
+        virtual void				KeyValue( const char* Key, const char* Value ) = 0;
 
-		virtual void				SetLevel( ILevel* Level ) = 0;
-		virtual void				SetPosition( const Vector3D_t& Position ) = 0;
+        virtual void				SetLevel( ILevel* Level ) = 0;
+        virtual void				SetPosition( const Vector3D_t& Position ) = 0;
 
-		virtual ILevel*				GetLevel() const = 0;
-		virtual const Vector3D_t&	GetPosition() const = 0;
-	};
+        virtual ILevel*				GetLevel() const = 0;
+        virtual const Vector3D_t&	GetPosition() const = 0;
+    };
 
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 }
 
 //---------------------------------------------------------------------//

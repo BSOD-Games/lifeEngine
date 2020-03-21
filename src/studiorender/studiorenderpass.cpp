@@ -12,6 +12,8 @@
 
 #include "engine/lifeengine.h"
 #include "engine/iconsolesystem.h"
+#include "engine/imaterialproxy.h"
+#include "engine/iengine.h"
 #include "stdshaders/ishader.h"
 #include "global.h"
 #include "studiorender.h"
@@ -64,7 +66,12 @@ void le::StudioRenderPass::Apply( const Matrix4x4_t& Transformation, ICamera* Ca
 	InitStates();
 
 	if ( shader && ( !isNeadRefrash || Refrash() ) )
+    {
+        for ( UInt32_t index = 0, count = materialProxes.size(); index < count; ++index )
+            materialProxes[ index ]->OnApply( g_engine->GetDeltaTime() );
+
 		shader->OnDrawMesh( parameters.size(), ( IShaderParameter** ) parameters.data(), Transformation, Camera, Lightmap );
+    }
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -159,7 +166,21 @@ void le::StudioRenderPass::EnableBlend( bool Enable )
 // ------------------------------------------------------------------------------------ //
 void le::StudioRenderPass::EnableCullFace( bool Enable )
 {
-	isCullFace = Enable;
+    isCullFace = Enable;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Включить ли отсечение полигонов
+// ------------------------------------------------------------------------------------ //
+le::IShaderParameter* le::StudioRenderPass::FindParameter( const char* Name ) const
+{
+    if ( parameters.empty() )       return nullptr;
+
+    for ( UInt32_t index = 0, count = parameters.size(); index < count; ++index )
+        if ( strcmp( Name, parameters[ index ]->GetName() ) == 0 )
+            return parameters[ index ];
+
+    return nullptr;
 }
 
 // ------------------------------------------------------------------------------------ //

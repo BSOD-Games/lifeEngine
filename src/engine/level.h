@@ -36,7 +36,8 @@ namespace le
 	public:
 		// ILevel
 		virtual bool					Load( const char* Path, IFactory* GameFactory );
-		virtual void					Update( UInt32_t DeltaTime );
+        virtual void					Update();
+        virtual void                    Render();
 		virtual void					Clear();
 		virtual void					AddCamera( ICamera* Camera );
 		virtual void					AddModel( IModel* Model );

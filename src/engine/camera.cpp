@@ -113,7 +113,7 @@ void le::Camera::RotateByMouse( const Vector2D_t& MouseOffset, float MouseSensit
 
 	if ( MouseOffset.x != 0 )
 	{
-		eulerRotation.y += glm::radians( MouseOffset.x * MouseSensitivit );
+        eulerRotation.y += glm::radians( MouseOffset.x * MouseSensitivit );
 
 		if ( eulerRotation.x < -6.28319f || eulerRotation.x > 6.28319f )
 			eulerRotation.x = 0.f;
@@ -121,7 +121,7 @@ void le::Camera::RotateByMouse( const Vector2D_t& MouseOffset, float MouseSensit
 
 	if ( MouseOffset.y != 0 )
 	{
-		eulerRotation.x += glm::radians( MouseOffset.y * MouseSensitivit );
+        eulerRotation.x += glm::radians( MouseOffset.y * MouseSensitivit );
 
 		if ( ConstrainYaw )
 		{

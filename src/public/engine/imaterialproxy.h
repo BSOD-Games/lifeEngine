@@ -30,7 +30,7 @@ namespace le
         virtual void                        SetVar( IMaterialProxyVar* MaterialProxyVar ) = 0;
         virtual void                        ClearVar( const char* NameVar ) = 0;
         virtual void                        ClearAllVars() = 0;
-        virtual void                        Update( UInt32_t DeltaTime ) = 0;
+        virtual void                        OnApply( double DeltaTime ) = 0;
 
         virtual const char*                 GetName() const = 0;
         virtual IMaterialProxyVar*          GetVar( const char* NameVar ) const = 0;

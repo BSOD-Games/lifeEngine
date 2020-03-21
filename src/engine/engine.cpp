@@ -65,7 +65,8 @@ le::Engine::Engine() :
 	gameDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
 	criticalError( nullptr ),
 	cmd_Exit( new ConCmd() ),
-	cmd_Version( new ConCmd() )
+    cmd_Version( new ConCmd() ),
+    deltaTime( 0 )
 {
 	LIFEENGINE_ASSERT( !g_engine );
 
@@ -400,7 +401,7 @@ bool le::Engine::SaveConfig( const char* FilePath )
 		\"width\": " << configurations.windowWidth << ",\n\
 		\"height\" : " << configurations.windowHeight << ",\n\
 		\"fullscreen\" : " << ( configurations.isFullscreen ? "true" : "false" ) << ",\n\
-		\"sensitivityMouse\" : " << configurations.sensitivityMouse << ",\n\
+        \"sensitivityMouse\" : " << configurations.sensitivityMouse << "\n\
 	},\n\
 \n\
 	\"studiorender\": {\n\
@@ -428,14 +429,16 @@ void le::Engine::RunSimulation()
 
 	consoleSystem.PrintInfo( "*** Game logic start ***" );
 	
-	UInt32_t			startTime = 0;
-	UInt32_t			deltaTime = 0;
+    double              gameClock = SDL_GetTicks() / 1000.f;
+    float               fixedTick = 1.f / 60.f;
 	Event				event;
 	bool				isFocus = true;
-	isRunSimulation = true;	
+
+    isRunSimulation = true;
 
 	while ( isRunSimulation )
 	{
+        deltaTime = SDL_GetTicks() / 1000.f - gameClock;
 		inputSystem.Clear();
 
 		while ( window.PollEvent( event ) )
@@ -475,20 +478,21 @@ void le::Engine::RunSimulation()
 		}
 
 		if ( isFocus )
-		{	
-			// TODO: Р�СЃРїСЂР°РІРёС‚СЊ СЃС‡РµС‚С‡РёРє РїСЂРѕС€РµРґС€РµРіРѕ РІСЂРµРјРµРЅРё, РЅРµ СѓРґРѕР±РЅРѕ СЃ РЅРёРј СЂР°Р±РѕС‚Р°С‚СЊ
+        {
+            while ( deltaTime >= fixedTick )
+            {
+                deltaTime -= fixedTick;
+                gameClock += fixedTick;
 
-			startTime = SDL_GetTicks();
-			studioRender->Begin();
+                inputSystem.Update();
+                game->Update();
+            }
 
-			inputSystem.Update();
-            materialManager.Update( deltaTime );
-			game->Update( deltaTime );
-
+            studioRender->Begin();
+            game->Render();
 			studioRender->End();
-			studioRender->Present();
-			deltaTime = ( SDL_GetTicks() - startTime );
-		}
+            studioRender->Present();
+		}     
 	}
 
 	StopSimulation();
@@ -552,11 +556,11 @@ le::IInputSystem* le::Engine::GetInputSystem() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Return material manager
+// Return delta time
 // ------------------------------------------------------------------------------------ //
-le::IMaterialManager* le::Engine::GetMaterialManager() const
+double le::Engine::GetDeltaTime() const
 {
-    return ( IMaterialManager* ) &materialManager;
+    return deltaTime;
 }
 
 // ------------------------------------------------------------------------------------ //

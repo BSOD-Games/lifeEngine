@@ -26,7 +26,7 @@ namespace le
         virtual void                        SetVar( IMaterialProxyVar* MaterialProxyVar );
         virtual void                        ClearVar( const char* NameVar );
         virtual void                        ClearAllVars();
-        virtual void                        Update( UInt32_t DeltaTime );
+        virtual void                        OnApply( double DeltaTime );
 
         virtual const char*                 GetName() const;
         virtual IMaterialProxyVar*          GetVar( const char* NameVar ) const;
@@ -42,7 +42,7 @@ namespace le
 
         IMaterialProxyVar*              frames;
         IMaterialProxyVar*              textureRectVar;
-        IMaterialProxyVar*              frameRate;
+        IMaterialProxyVar*              speed;
     };
 
     //---------------------------------------------------------------------//
