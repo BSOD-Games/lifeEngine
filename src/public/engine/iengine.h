@@ -29,6 +29,7 @@ namespace le
 	class IResourceSystem;
 	class IInputSystem;
     class IMaterialManager;
+    class IPhysicsSystem;
 
 	//---------------------------------------------------------------------//
 
@@ -49,6 +50,7 @@ namespace le
 		virtual IResourceSystem*		GetResourceSystem() const = 0;
 		virtual IInputSystem*			GetInputSystem() const = 0;
         virtual IMaterialManager*       GetMaterialManager() const = 0;
+        virtual IPhysicsSystem*         GetPhysicsSystem() const = 0;
 		virtual IWindow*				GetWindow() const = 0;
 		virtual IFactory*				GetFactory() const = 0;
 		virtual const Configurations&	GetConfigurations() const = 0;

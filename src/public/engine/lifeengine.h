@@ -21,6 +21,7 @@ namespace le
 	class IStudioRender;
 	class IGame;
 	class IShaderDLL;
+    class IPhysicsSystem;
 
 	//---------------------------------------------------------------------//
 
@@ -35,6 +36,8 @@ namespace le
 	typedef		void						( *LE_SetCriticalErrorFn_t )( CriticalErrorFn_t CriticalError );
 	typedef		IShaderDLL*					( *LE_CreateShaderDLLFn_t )();
 	typedef		void						( *LE_DeleteShaderDLLFn_t )( IShaderDLL* ShaderDLL );
+    typedef     IPhysicsSystem*             ( *LE_CreatePhysicsSystemFn_t )( );
+    typedef     void                        ( *LE_DeletePhysicsSystemFn_t )( IPhysicsSystem* PhysicsSystem );
 
 	//---------------------------------------------------------------------//
 
@@ -96,6 +99,12 @@ namespace le
 		LIFEENGINE_API le::IShaderDLL* LE_CreateShaderDLL() { return new ShaderDLLClass(); } \
 		LIFEENGINE_API void LE_DeleteShaderDLL( le::IShaderDLL* Object ) { delete static_cast<ShaderDLLClass*>( Object ); } \
 		LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
+
+#	define LIFEENGINE_PHYSICSSYSTEM_API( PhysicsSystemClass ) \
+        namespace le { class IPhysicsSystem; } \
+        LIFEENGINE_API le::IPhysicsSystem* LE_CreatePhysicsSystem() { return new PhysicsSystemClass(); } \
+        LIFEENGINE_API void LE_DeletePhysicsSystem( le::IPhysicsSystem* Object ) { delete static_cast<PhysicsSystemClass*>( Object ); } \
+        LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
 
 //---------------------------------------------------------------------//
 

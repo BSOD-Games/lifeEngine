@@ -9,6 +9,7 @@ set( PROJECT_LAUNCHER launcher )
 set( PROJECT_ENGINE engine )
 set( PROJECT_STUDIORENDER studiorender )
 set( PROJECT_STDSHADERS stdshaders )
+set( PROJECT_PHYSICS physics )
 
 #
 #   --- Настройки сборки ---
@@ -20,6 +21,7 @@ option( LIFEENGINE_DEBUG "Enable debug mode" OFF )
 option( BUILD_LAUNCHER "Build launcher engine" OFF )
 option( BUILD_ENGINE "Build engine" OFF )
 option( BUILD_STUDIORENDER "Build studiorender" OFF )
+option( BUILD_PHYSICS "Build physics" OFF )
 option( BUILD_STDSHADERS "Build stdshaders" OFF )
 
 if( LIFEENGINE_DEBUG )
@@ -62,6 +64,10 @@ endif()
 
 if ( BUILD_STUDIORENDER )
 	add_subdirectory( ${PROJECT_STUDIORENDER} )
+endif()
+
+if ( BUILD_PHYSICS )
+	add_subdirectory( ${PROJECT_PHYSICS} )
 endif()
 
 if ( BUILD_STDSHADERS )

@@ -31,6 +31,7 @@
 #include "studiorender/istudiorenderinternal.h"
 #include "studiorender/studiorenderviewport.h"
 #include "studiorender/ishadermanager.h"
+#include "physics/iphysicssysteminternal.h"
 
 LIFEENGINE_ENGINE_API( le::Engine );
 
@@ -61,6 +62,8 @@ le::Engine::Engine() :
 	isInit( false ),
 	studioRender( nullptr ),
 	studioRenderDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
+    physicSystem( nullptr ),
+    physicSystemDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
 	game( nullptr ),
 	gameDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
 	criticalError( nullptr ),
@@ -99,6 +102,7 @@ le::Engine::~Engine()
 
 	resourceSystem.UnloadAll();
 
+    if ( physicSystem )     UnloadModule_PhysicsSystem();
 	if ( studioRender )		UnloadModule_StudioRender();	
 	if ( window.IsOpen() )	window.Close();
 
@@ -171,7 +175,63 @@ void le::Engine::UnloadModule_StudioRender()
 	studioRender = nullptr;
 	studioRenderDescriptor = { nullptr, nullptr, nullptr, nullptr };
 
-	consoleSystem.PrintInfo( "Unloaded studiorender" );
+    consoleSystem.PrintInfo( "Unloaded studiorender" );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Load module physics system
+// ------------------------------------------------------------------------------------ //
+bool le::Engine::LoadModule_PhysicsSystem( const char *PathDLL )
+{
+    // Р•СЃР»Рё РјРѕРґСѓР»СЊ СЂР°РЅРµРµ Р±С‹Р» Р·Р°РіСЂСѓР¶РµРЅ, С‚Рѕ СѓРґР°Р»СЏРµРј
+    if ( physicSystemDescriptor.handle ) UnloadModule_PhysicsSystem();
+
+    consoleSystem.PrintInfo( "Loading physics system [%s]", PathDLL );
+
+    try
+    {
+        // Р—Р°РіСЂСѓР¶Р°РµРј РјРѕРґСѓР»СЊ
+        physicSystemDescriptor.handle = SDL_LoadObject( PathDLL );
+        if ( !physicSystemDescriptor.handle )	throw std::runtime_error( SDL_GetError() );
+
+        // Р‘РµСЂРµРј РёР· РјРѕРґСѓР»СЏ API РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РЅРёРј
+        physicSystemDescriptor.LE_CreatePhysicsSystem = ( LE_CreatePhysicsSystemFn_t ) SDL_LoadFunction( physicSystemDescriptor.handle, "LE_CreatePhysicsSystem" );
+        physicSystemDescriptor.LE_DeletePhysicsSystem = ( LE_DeletePhysicsSystemFn_t ) SDL_LoadFunction( physicSystemDescriptor.handle, "LE_DeletePhysicsSystem" );
+        physicSystemDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_SetCriticalError" );
+        if ( !physicSystemDescriptor.LE_CreatePhysicsSystem )	throw std::runtime_error( "Function LE_CreatePhysicsSystem not found" );
+
+        // РЎРѕР·РґР°РµРј СЂРµРЅРґРµСЂ
+        if ( physicSystemDescriptor.LE_SetCriticalError )
+            physicSystemDescriptor.LE_SetCriticalError( g_criticalError );
+
+        physicSystem = ( IPhysicsSystemInternal* )  physicSystemDescriptor.LE_CreatePhysicsSystem();
+        if ( !physicSystem->Initialize( this ) )	throw std::runtime_error( "Fail initialize physics system" );
+    }
+    catch ( std::exception& Exception )
+    {
+        consoleSystem.PrintError( Exception.what() );
+        return false;
+    }
+
+    consoleSystem.PrintInfo( "Loaded physics system [%s]", PathDLL );
+    return true;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Unload module physics system
+// ------------------------------------------------------------------------------------ //
+void le::Engine::UnloadModule_PhysicsSystem()
+{
+    if ( !physicSystem ) return;
+
+    if ( physicSystemDescriptor.LE_DeletePhysicsSystem )
+        physicSystemDescriptor.LE_DeletePhysicsSystem( physicSystem );
+
+    SDL_UnloadObject( physicSystemDescriptor.handle );
+    physicSystem = nullptr;
+    physicSystemDescriptor = { nullptr, nullptr, nullptr, nullptr };
+
+    consoleSystem.PrintInfo( "Unloaded physics system" );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -491,6 +551,7 @@ void le::Engine::RunSimulation()
 
                 inputSystem.Update();
                 game->Update();
+                physicSystem->Update();
                 materialManager.UpdateProxes();
             }
 
@@ -569,6 +630,14 @@ le::IInputSystem* le::Engine::GetInputSystem() const
 le::IMaterialManager* le::Engine::GetMaterialManager() const
 {
     return ( IMaterialManager* ) &materialManager;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Return physics system
+// ------------------------------------------------------------------------------------ //
+le::IPhysicsSystem *le::Engine::GetPhysicsSystem() const
+{
+    return physicSystem;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -660,8 +729,9 @@ bool le::Engine::Initialize( const char* EngineDirectory, WindowHandle_t WindowH
 
 		// Р—Р°РіСЂСѓР¶Р°РµРј Рё РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РїРѕРґСЃРёСЃС‚РµРјС‹
         std::string         engineDir = EngineDirectory;
-        if ( !LoadModule_StudioRender( ( engineDir + "/" + LIFEENGINE_STUDIORENDER_DLL ).c_str() ) )      throw std::runtime_error( "Failed loading studiorender" );
-	
+        if ( !LoadModule_StudioRender( ( engineDir + "/" + LIFEENGINE_STUDIORENDER_DLL ).c_str() ) )        throw std::runtime_error( "Failed loading studiorender" );
+        if ( !LoadModule_PhysicsSystem( ( engineDir + "/" + LIFEENGINE_PHYSICSSYSTEM_DLL ).c_str() ) )      throw std::runtime_error( "Failed loading physics system" );
+
 		auto*		shaderManager = studioRender->GetShaderManager();
         if ( !shaderManager )		throw std::runtime_error( "In studiorender not exist shader manager" );
         if ( !shaderManager->LoadShaderDLL( ( engineDir + "/" + LIFEENGINE_STDSHADERS_DLL ).c_str() ) )   throw std::runtime_error( "Failed loading stdshaders" );

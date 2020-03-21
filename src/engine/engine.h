@@ -30,6 +30,7 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	class IStudioRenderInternal;
+    class IPhysicsSystemInternal;
 	class IConCmd;
 
 	//---------------------------------------------------------------------//
@@ -43,6 +44,16 @@ namespace le
 	};
 
 	//---------------------------------------------------------------------//
+
+    struct PhysicsSystemDescriptor
+    {
+        void*								handle;
+        LE_CreatePhysicsSystemFn_t			LE_CreatePhysicsSystem;
+        LE_DeletePhysicsSystemFn_t			LE_DeletePhysicsSystem;
+        LE_SetCriticalErrorFn_t				LE_SetCriticalError;
+    };
+
+    //---------------------------------------------------------------------//
 
 	struct GameDescriptor
 	{
@@ -71,6 +82,7 @@ namespace le
 		virtual IResourceSystem*		GetResourceSystem() const;
 		virtual IInputSystem*			GetInputSystem() const;
         virtual IMaterialManager*       GetMaterialManager() const;
+        virtual IPhysicsSystem*         GetPhysicsSystem() const;
 		virtual IWindow*				GetWindow() const;
 		virtual IFactory*				GetFactory() const;
 		virtual const Configurations&	GetConfigurations() const;
@@ -89,6 +101,8 @@ namespace le
 	private:
 		bool							LoadModule_StudioRender( const char* PathDLL );
 		void							UnloadModule_StudioRender();
+        bool							LoadModule_PhysicsSystem( const char* PathDLL );
+        void							UnloadModule_PhysicsSystem();
 		bool							LoadGameInfo( const char* GameDir );
 		bool							LoadModule_Game( const char* PathDLL );
 		void							UnloadModule_Game();
@@ -101,6 +115,9 @@ namespace le
 
 		IStudioRenderInternal*			studioRender;
 		StudioRenderDescriptor			studioRenderDescriptor;
+
+        IPhysicsSystemInternal*         physicSystem;
+        PhysicsSystemDescriptor         physicSystemDescriptor;
 
 		IGame*							game;
 		GameDescriptor					gameDescriptor;
