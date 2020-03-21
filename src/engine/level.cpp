@@ -294,7 +294,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		for ( UInt32_t index = 0, count = arrayBspTextures.size(); index < count; ++index )
 		{
 			BSPTexture* bspTexture = &arrayBspTextures[ index ];
-            arrayMaterials.push_back( g_resourceSystem->LoadMaterial( bspTexture->strName, ( std::string( bspTexture->strName ) + ".lmt" ).c_str(), GameFactory ) );
+            arrayMaterials.push_back( g_resourceSystem->LoadMaterial( bspTexture->strName, ( std::string( bspTexture->strName ) + ".lmt" ).c_str() ) );
 		}
 
 		// Инициализируем плоскости

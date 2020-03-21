@@ -46,8 +46,8 @@ namespace le
 
 		virtual Image					LoadImage( const char* Path, bool& IsError, bool IsFlipVertical = false, bool IsSwitchRedAndBlueChannels = false );
 		virtual ITexture*				LoadTexture( const char* Name, const char* Path );
-        virtual IMaterial*				LoadMaterial( const char* Name, const char* Path, IFactory* GameFactory );
-        virtual IMesh*					LoadMesh( const char* Name, const char* Path, IFactory* GameFactory );
+        virtual IMaterial*				LoadMaterial( const char* Name, const char* Path );
+        virtual IMesh*					LoadMesh( const char* Name, const char* Path );
         virtual ILevel*					LoadLevel( const char* Name, const char* Path, IFactory* GameFactory );
 		virtual IFont*					LoadFont( const char* Name, const char* Path );
 		virtual void					UnloadImage( Image& Image );
@@ -106,7 +106,7 @@ namespace le
 		typedef			std::unordered_map< std::string, IFont* >					FontMap_t;
 
 		IFactory*					studioRenderFactory;
-        IFactory*                   engineFactory;
+        IMaterialManager*           materialManager;
 
 		std::string					gameDir;
 		LoaderImageMap_t			loaderImages;

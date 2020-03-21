@@ -23,11 +23,14 @@ namespace le
     {
     public:
         // IMaterialProxy
-        virtual void                        SetVar( IMaterialProxyVar* MaterialProxyVar );
+        virtual void                        Update();
+        virtual void                        NeadUpdate();
         virtual void                        ClearVar( const char* NameVar );
         virtual void                        ClearAllVars();
-        virtual void                        OnApply( double DeltaTime );
 
+        virtual void                        SetVar( IMaterialProxyVar* MaterialProxyVar );
+
+        virtual bool                        IsNeadUpdate() const;
         virtual const char*                 GetName() const;
         virtual IMaterialProxyVar*          GetVar( const char* NameVar ) const;
 
@@ -37,12 +40,12 @@ namespace le
 
     private:
         bool                            isInitialized;
-
+        bool                            isNeadUpdate;
         float                           currentFrameFire;
 
         IMaterialProxyVar*              frames;
         IMaterialProxyVar*              textureRectVar;
-        IMaterialProxyVar*              speed;
+        IMaterialProxyVar*              delay;
     };
 
     //---------------------------------------------------------------------//

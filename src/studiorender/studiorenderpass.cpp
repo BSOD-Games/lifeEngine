@@ -68,7 +68,7 @@ void le::StudioRenderPass::Apply( const Matrix4x4_t& Transformation, ICamera* Ca
 	if ( shader && ( !isNeadRefrash || Refrash() ) )
     {
         for ( UInt32_t index = 0, count = materialProxes.size(); index < count; ++index )
-            materialProxes[ index ]->OnApply( g_engine->GetDeltaTime() );
+            materialProxes[ index ]->NeadUpdate();
 
 		shader->OnDrawMesh( parameters.size(), ( IShaderParameter** ) parameters.data(), Transformation, Camera, Lightmap );
     }

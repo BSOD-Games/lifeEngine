@@ -27,6 +27,7 @@ namespace le
 	class IFactory;
 	class IResourceSystem;
 	class IInputSystem;
+    class IMaterialManager;
 
 	//---------------------------------------------------------------------//
 
@@ -45,11 +46,11 @@ namespace le
 		virtual IStudioRender*			GetStudioRender() const = 0;
 		virtual IResourceSystem*		GetResourceSystem() const = 0;
 		virtual IInputSystem*			GetInputSystem() const = 0;
+        virtual IMaterialManager*       GetMaterialManager() const = 0;
 		virtual IWindow*				GetWindow() const = 0;
 		virtual IFactory*				GetFactory() const = 0;
 		virtual const Configurations&	GetConfigurations() const = 0;
 		virtual const Version&			GetVersion() const = 0;
-        virtual double                  GetDeltaTime() const = 0;
 	};
 
 	//---------------------------------------------------------------------//

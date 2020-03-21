@@ -27,11 +27,12 @@ namespace le
 	class ILevel;
 	class IFont;
 	class IResourceSystem;
+    class IMaterialManager;
 
 	typedef		void			( *LoadImageFn_t )( const char* Path, Image& Image, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels );
 	typedef		ITexture*		( *LoadTextureFn_t )( const char* Path, IFactory* StudioRenderFactory );
-    typedef		IMaterial*		( *LoadMaterialFn_t )( const char* Path, IResourceSystem* ResourceSystem, IFactory* EngineFactory, IFactory* GameFactory, IFactory* StudioRenderFactory );
-    typedef		IMesh*			( *LoadMeshFn_t )( const char* Path, IResourceSystem* ResourceSystem, IFactory* GameFactory, IFactory* StudioRenderFactory );
+    typedef		IMaterial*		( *LoadMaterialFn_t )( const char* Path, IResourceSystem* ResourceSystem, IMaterialManager* MaterialManager, IFactory* StudioRenderFactory );
+    typedef		IMesh*			( *LoadMeshFn_t )( const char* Path, IResourceSystem* ResourceSystem, IFactory* StudioRenderFactory );
     typedef		ILevel*			( *LoadLevelFn_t )( const char* Path, IFactory* GameFactory );
 	typedef		IFont*			( *LoadFontFn_t )( const char* Path );
 
@@ -55,8 +56,8 @@ namespace le
 
 		virtual Image					LoadImage( const char* Path, bool& IsError, bool IsFlipVertical = false, bool IsSwitchRedAndBlueChannels = false ) = 0;		
 		virtual ITexture*				LoadTexture( const char* Name, const char* Path ) = 0;
-        virtual IMaterial*				LoadMaterial( const char* Name, const char* Path, IFactory* GameFactory ) = 0;
-        virtual IMesh*					LoadMesh( const char* Name, const char* Path, IFactory* GameFactory ) = 0;
+        virtual IMaterial*				LoadMaterial( const char* Name, const char* Path ) = 0;
+        virtual IMesh*					LoadMesh( const char* Name, const char* Path ) = 0;
         virtual ILevel*					LoadLevel( const char* Name, const char* Path, IFactory* GameFactory ) = 0;
 		virtual IFont*					LoadFont( const char* Name, const char* Path ) = 0;
 		virtual void					UnloadImage( Image& Image ) = 0;

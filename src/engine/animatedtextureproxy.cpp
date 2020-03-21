@@ -43,21 +43,29 @@ void le::AnimatedTextureProxy::SetVar( IMaterialProxyVar* MaterialProxyVar )
         textureRectVar = MaterialProxyVar;
     }
 
-    else if ( strcmp( MaterialProxyVar->GetName(), "speed" ) == 0 )
+    else if ( strcmp( MaterialProxyVar->GetName(), "delay" ) == 0 )
     {
         if ( MaterialProxyVar->GetType() != MPVT_FLOAT )
         {
-            g_consoleSystem->PrintError( "In variable [speed] mast be type float" );
+            g_consoleSystem->PrintError( "In variable [delay] mast be type float" );
             return;
         }
 
-        speed = MaterialProxyVar;
+        delay = MaterialProxyVar;
     }
     else
         g_consoleSystem->PrintError( "Variable [%s] not used in proxy-material le::AnimatedTextureProxy", MaterialProxyVar->GetName() );
 
-    if ( frames && textureRectVar && speed )
+    if ( frames && textureRectVar && delay )
         isInitialized = true;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Is nead update
+// ------------------------------------------------------------------------------------ //
+bool le::AnimatedTextureProxy::IsNeadUpdate() const
+{
+    return isNeadUpdate;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -67,7 +75,7 @@ void le::AnimatedTextureProxy::ClearVar( const char* NameVar )
 {
     if ( strcmp( NameVar, "frames" ) )                  frames = nullptr;
     else if ( strcmp( NameVar, "textureRectVar" ) )     textureRectVar = nullptr;
-    else if ( strcmp( NameVar, "speed" ) )              speed = nullptr;
+    else if ( strcmp( NameVar, "delay" ) )              delay = nullptr;
     else return;
 
     isInitialized = false;
@@ -78,24 +86,32 @@ void le::AnimatedTextureProxy::ClearVar( const char* NameVar )
 // ------------------------------------------------------------------------------------ //
 void le::AnimatedTextureProxy::ClearAllVars()
 {
-    frames = textureRectVar = speed = nullptr;
+    frames = textureRectVar = delay = nullptr;
     isInitialized = false;
 }
 
 // ------------------------------------------------------------------------------------ //
 // Update animation
 // ------------------------------------------------------------------------------------ //
-void le::AnimatedTextureProxy::OnApply( double DeltaTime )
+void le::AnimatedTextureProxy::Update()
 {
     if ( !isInitialized ) return;
 
     le::UInt32_t        count;
     le::Vector4D_t*     arrayFrames = frames->GetValueArrayVector4D( count );
 
-    currentFrameFire += speed->GetValueFloat() * DeltaTime;
+    currentFrameFire += 1.f / delay->GetValueFloat();
     if ( currentFrameFire > count ) currentFrameFire = 0;
 
-     textureRectVar->GetValueShaderParameter()->SetValueVector4D( arrayFrames[ ( int ) currentFrameFire ] );
+    textureRectVar->GetValueShaderParameter()->SetValueVector4D( arrayFrames[ ( int ) currentFrameFire ] );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set nead update proxy-material
+// ------------------------------------------------------------------------------------ //
+void le::AnimatedTextureProxy::NeadUpdate()
+{
+    isNeadUpdate = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -111,9 +127,9 @@ const char* le::AnimatedTextureProxy::GetName() const
 // ------------------------------------------------------------------------------------ //
 le::IMaterialProxyVar* le::AnimatedTextureProxy::GetVar( const char* NameVar ) const
 {
-    if ( strcmp( NameVar, "frames" ) )                  return frames;
-    else if ( strcmp( NameVar, "textureRectVar" ) )     return textureRectVar;
-    else if ( strcmp( NameVar, "speed" ) )              return speed;
+    if ( strcmp( NameVar, "frames" ) )                      return frames;
+    else if ( strcmp( NameVar, "textureRectVar" ) )         return textureRectVar;
+    else if ( strcmp( NameVar, "delay" ) )                  return delay;
 
     return nullptr;
 }
@@ -124,8 +140,9 @@ le::IMaterialProxyVar* le::AnimatedTextureProxy::GetVar( const char* NameVar ) c
 le::AnimatedTextureProxy::AnimatedTextureProxy() :
     frames( nullptr ),
     textureRectVar( nullptr ),
-    speed( nullptr ),
+    delay( nullptr ),
     isInitialized( false ),
+    isNeadUpdate( false ),
     currentFrameFire( 0.f )
 {}
 

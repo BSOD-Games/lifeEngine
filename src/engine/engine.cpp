@@ -65,8 +65,7 @@ le::Engine::Engine() :
 	gameDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
 	criticalError( nullptr ),
 	cmd_Exit( new ConCmd() ),
-    cmd_Version( new ConCmd() ),
-    deltaTime( 0 )
+    cmd_Version( new ConCmd() )
 {
 	LIFEENGINE_ASSERT( !g_engine );
 
@@ -429,17 +428,23 @@ void le::Engine::RunSimulation()
 
 	consoleSystem.PrintInfo( "*** Game logic start ***" );
 	
-    double              gameClock = SDL_GetTicks() / 1000.f;
-    float               fixedTick = 1.f / 60.f;
-	Event				event;
-	bool				isFocus = true;
+    float                   currentTick = 0.f;
+    float                   lastTick = 0.f;
+    float                   delayFrame = 0.f;
+    float                   deltaTime = 0.f;
+    const float             frameDuration = 1.f / 60.f;
+    Event                   event;
+    bool                    isFocus = true;
 
     isRunSimulation = true;
 
 	while ( isRunSimulation )
 	{
-        deltaTime = SDL_GetTicks() / 1000.f - gameClock;
-		inputSystem.Clear();
+        currentTick = SDL_GetTicks();
+        deltaTime = ( currentTick - lastTick ) / 1000.f;
+        lastTick = currentTick;
+
+        inputSystem.Clear();
 
 		while ( window.PollEvent( event ) )
 		{
@@ -479,18 +484,19 @@ void le::Engine::RunSimulation()
 
 		if ( isFocus )
         {
-            while ( deltaTime >= fixedTick )
+            delayFrame += deltaTime;
+            while ( delayFrame >= frameDuration )
             {
-                deltaTime -= fixedTick;
-                gameClock += fixedTick;
+                delayFrame -= frameDuration;
 
                 inputSystem.Update();
                 game->Update();
+                materialManager.UpdateProxes();
             }
 
             studioRender->Begin();
             game->Render();
-			studioRender->End();
+            studioRender->End();
             studioRender->Present();
 		}     
 	}
@@ -556,11 +562,11 @@ le::IInputSystem* le::Engine::GetInputSystem() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Return delta time
+// Return material manager
 // ------------------------------------------------------------------------------------ //
-double le::Engine::GetDeltaTime() const
+le::IMaterialManager* le::Engine::GetMaterialManager() const
 {
-    return deltaTime;
+    return ( IMaterialManager* ) &materialManager;
 }
 
 // ------------------------------------------------------------------------------------ //

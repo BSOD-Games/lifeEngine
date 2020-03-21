@@ -8,8 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IMATERIAL_PROXY_H
-#define IMATERIAL_PROXY_H
+#ifndef IMATERIAL_MANAGER_H
+#define IMATERIAL_MANAGER_H
 
 #include "common/types.h"
 
@@ -19,24 +19,23 @@ namespace le
 {
     //---------------------------------------------------------------------//
 
-    class IMaterialProxyVar;
+    class IMaterialProxy;
+    class IFactory;
 
     //---------------------------------------------------------------------//
 
-    class IMaterialProxy
+    class IMaterialManager
     {
     public:
-        virtual ~IMaterialProxy() {}       
-        virtual void                        Update() = 0;
-        virtual void                        NeadUpdate() = 0;
-        virtual void                        ClearVar( const char* NameVar ) = 0;
-        virtual void                        ClearAllVars() = 0;
+        virtual ~IMaterialManager() {}
+        virtual void                            RegisterProxyFactory( IFactory* MaterialProxyFactory ) = 0;
+        virtual void                            UnregisterProxyFactory() = 0;
+        virtual IMaterialProxy*                 CreateProxy( const char* NameProxy ) = 0;
+        virtual void                            RemoveProxy( IMaterialProxy* MaterialProxy ) = 0;
+        virtual void                            RemoveAllProxes() = 0;
 
-        virtual void                        SetVar( IMaterialProxyVar* MaterialProxyVar ) = 0;
-
-        virtual bool                        IsNeadUpdate() const = 0;
-        virtual const char*                 GetName() const = 0;
-        virtual IMaterialProxyVar*          GetVar( const char* NameVar ) const = 0;
+        virtual UInt32_t                        GetCountProxes() const = 0;
+        virtual IMaterialProxy**                GetProxes() const = 0;
     };
 
     //---------------------------------------------------------------------//
@@ -44,4 +43,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !IMATERIAL_PROXY_H
+#endif // !IMATERIAL_MANAGER_H

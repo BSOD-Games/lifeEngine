@@ -276,7 +276,7 @@ le::ITexture* LE_LoadTexture( const char* Path, le::IFactory* StudioRenderFactor
 // ------------------------------------------------------------------------------------ //
 // Загрузить материал
 // ------------------------------------------------------------------------------------ //
-le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceSystem, le::IFactory* EngineFactory, le::IFactory* GameFactory, le::IFactory* StudioRenderFactory )
+le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceSystem, le::IMaterialManager* MaterialManager, le::IFactory* StudioRenderFactory )
 {
     std::ifstream		file( Path );
     if ( !file.is_open() )						return nullptr;
@@ -439,10 +439,7 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
             for ( auto itProxies = materialPass.proxes.begin(), itProxiesEnd = materialPass.proxes.end(); itProxies != itProxiesEnd; ++itProxies )
             {
                 bool                        isProxyValid = true;
-                le::IMaterialProxy*         proxy = nullptr;
-
-                if ( GameFactory )      proxy = ( le::IMaterialProxy* ) GameFactory->Create( itProxies->name.c_str() );
-                if ( !proxy )           proxy = ( le::IMaterialProxy* ) EngineFactory->Create( itProxies->name.c_str() );
+                le::IMaterialProxy*         proxy = MaterialManager->CreateProxy( itProxies->name.c_str() );
                 if ( !proxy ) continue;
 
                 for ( auto itProxiesVar = itProxies->values.begin(), itProxiesVarEnd = itProxies->values.end(); itProxiesVar != itProxiesVarEnd; ++itProxiesVar )
@@ -565,7 +562,7 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 // ------------------------------------------------------------------------------------ //
 // Загрузить меш
 // ------------------------------------------------------------------------------------ //
-le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, le::IFactory* GameFactory, le::IFactory* StudioRenderFactory )
+le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, le::IFactory* StudioRenderFactory )
 {
     std::ifstream				file( Path, std::ios::binary );
     if ( !file.is_open() )		return nullptr;
@@ -600,7 +597,7 @@ le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, l
     // Загружаем материалы
     for ( le::UInt32_t index = 0; index < sizeArrayMaterials; ++index )
     {
-        le::IMaterial* material = ResourceSystem->LoadMaterial( arrayRouteMaterials[ index ].c_str(), arrayRouteMaterials[ index ].c_str(), GameFactory );
+        le::IMaterial* material = ResourceSystem->LoadMaterial( arrayRouteMaterials[ index ].c_str(), arrayRouteMaterials[ index ].c_str() );
         if ( !material ) continue;
 
         arrayMaterials.push_back( material );
@@ -971,7 +968,7 @@ le::ITexture* le::ResourceSystem::LoadTexture( const char* Name, const char* Pat
 // ------------------------------------------------------------------------------------ //
 // Загрузить материал
 // ------------------------------------------------------------------------------------ //
-le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* Path, IFactory* GameFactory )
+le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* Path )
 {
     LIFEENGINE_ASSERT( Name );
     LIFEENGINE_ASSERT( Path );
@@ -993,7 +990,7 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
         auto				parser = loaderMaterials.find( format );
         if ( parser == loaderMaterials.end() )		throw std::runtime_error( "Loader for format material not found" );
 
-        IMaterial* material = parser->second( path.c_str(), this, engineFactory, GameFactory, studioRenderFactory );
+        IMaterial* material = parser->second( path.c_str(), this, materialManager, studioRenderFactory );
         if ( !material )	throw std::runtime_error( "Fail loading material" );
 
         materials.insert( std::make_pair( Name, material ) );
@@ -1011,7 +1008,7 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
 // ------------------------------------------------------------------------------------ //
 // Загрузить меш
 // ------------------------------------------------------------------------------------ //
-le::IMesh* le::ResourceSystem::LoadMesh( const char* Name, const char* Path, IFactory* GameFactory )
+le::IMesh* le::ResourceSystem::LoadMesh( const char* Name, const char* Path )
 {
     LIFEENGINE_ASSERT( Name );
     LIFEENGINE_ASSERT( Path );
@@ -1033,7 +1030,7 @@ le::IMesh* le::ResourceSystem::LoadMesh( const char* Name, const char* Path, IFa
         auto				parser = loaderMeshes.find( format );
         if ( parser == loaderMeshes.end() )		throw std::runtime_error( "Loader for format mesh not found" );
 
-        IMesh* mesh = parser->second( path.c_str(), this, GameFactory, studioRenderFactory );
+        IMesh* mesh = parser->second( path.c_str(), this, studioRenderFactory );
         if ( !mesh )							throw std::runtime_error( "Fail loading mesh" );
 
         meshes.insert( std::make_pair( Name, mesh ) );
@@ -1400,7 +1397,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
         if ( !studioRender )	throw std::runtime_error( "Resource system requared studiorender" );
 
         studioRenderFactory = studioRender->GetFactory();
-        engineFactory = Engine->GetFactory();
+        materialManager = Engine->GetMaterialManager();
 
         RegisterLoader_Image( "png", LE_LoadImage );
         RegisterLoader_Image( "jpg", LE_LoadImage );
@@ -1433,7 +1430,8 @@ void le::ResourceSystem::SetGameDir( const char* GameDir )
 // Конструктор
 // ------------------------------------------------------------------------------------ //
 le::ResourceSystem::ResourceSystem() :
-    studioRenderFactory( nullptr )
+    studioRenderFactory( nullptr ),
+    materialManager( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //
