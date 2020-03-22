@@ -8,8 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#ifndef SHAPECONEDESCRIPTOR_H
+#define SHAPECONEDESCRIPTOR_H
 
 //---------------------------------------------------------------------//
 
@@ -17,23 +17,15 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IConsoleSystem;
-	extern IConsoleSystem*					g_consoleSystem;
-
-	//---------------------------------------------------------------------//
-
-	class IStudioRender;
-	extern IStudioRender*					g_studioRender;
-
-	//---------------------------------------------------------------------//
-
-	class IEngine;
-	extern IEngine*							g_engine;
+	struct ShapeConeDescriptor
+	{
+		float       radius;
+		float       height;
+	};
 
 	//---------------------------------------------------------------------//
 }
 
 //---------------------------------------------------------------------//
 
-#endif // !GLOBAL_H
-
+#endif // !SHAPECONEDESCRIPTOR_H

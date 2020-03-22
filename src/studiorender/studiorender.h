@@ -48,6 +48,8 @@ namespace le
 
 		// IStudioRender				
 		virtual void											BeginScene( ICamera* Camera );
+		virtual void											SubmitLine( const Vector3D_t& From, const Vector3D_t& To, const Vector3D_t& Color, const Matrix4x4_t& Transformation );
+		virtual void											SubmitPoint( const Vector3D_t& Position, const Vector3D_t& Color );
 		virtual void											SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation );
 		virtual void											SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation, UInt32_t StartSurface, UInt32_t CountSurface );
 		virtual void											SubmitLight( IPointLight* PointLight );
@@ -88,7 +90,7 @@ namespace le
 		ShaderPostprocess					shaderPostrocess;
 
 		UInt32_t							currentScene;
-		std::vector< SceneDescriptor >		scenes;
+		std::vector< SceneDescriptor >		scenes;		
 	};
 
 	//---------------------------------------------------------------------//

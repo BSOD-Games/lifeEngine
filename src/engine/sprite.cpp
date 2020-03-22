@@ -52,7 +52,12 @@ le::Sprite::Sprite() :
 // Destructor
 // ------------------------------------------------------------------------------------ //
 le::Sprite::~Sprite()
-{}
+{
+    if ( mesh->GetCountReferences() <= 1 )
+        mesh->Release();
+    else
+        mesh->DecrementReference();
+}
 
 // ------------------------------------------------------------------------------------ //
 // Update transformation

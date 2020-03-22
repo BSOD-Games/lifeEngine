@@ -89,6 +89,14 @@ void le::Text::UpdateTransformation()
 // ------------------------------------------------------------------------------------ //
 void le::Text::Delete()
 {
+    if ( font )
+    {
+        if ( font->GetCountReferences() <= 1 )      font->Release();
+        else                                        font->DecrementReference();
+
+        font = nullptr;
+    }
+
 	if ( mesh )
 	{
         if ( mesh->GetCountReferences() <= 1 )  mesh->Release();

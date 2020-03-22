@@ -19,8 +19,8 @@ SET( BULLET_SEARCH_PATHS
 )
 
 find_path( 		BULLET_INCLUDE
-			NAMES "bullet/btBulletDynamicsCommon.h"
-			PATH_SUFFIXES src include
+                        NAMES "btBulletDynamicsCommon.h"
+                        PATH_SUFFIXES src include/bullet
 			PATHS ${BULLET_SEARCH_PATHS} )
 
 find_library( 		BULLET_LIB_DYNAMICS 
@@ -42,5 +42,5 @@ if ( NOT BULLET_INCLUDE OR NOT BULLET_LIB_DYNAMICS OR NOT BULLET_LIB_COLLISION O
     message( SEND_ERROR "Failed to find Bullet3" )
     return()
 else()
-	set( BULLET_FOUND true )	
+    set( BULLET_FOUND true )
 endif()

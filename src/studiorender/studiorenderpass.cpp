@@ -56,28 +56,20 @@ void le::StudioRenderPass::RemoveParameter( UInt32_t Index )
 // ------------------------------------------------------------------------------------ //
 void le::StudioRenderPass::Clear()
 {
-    for ( auto it = parameters.begin(), itEnd = parameters.end(); it != itEnd; )
+    for ( auto it = parameters.begin(), itEnd = parameters.end(); it != itEnd; ++it )
         if ( (*it)->GetCountReferences() <= 1 )
-        {
             (*it)->Release();
-
-            it = parameters.erase( it );
-            itEnd = parameters.end();
-        }
         else
-            ++it;
+            (*it)->DecrementReference();
 
-    for ( auto it = materialProxes.begin(), itEnd = materialProxes.end(); it != itEnd; )
+    for ( auto it = materialProxes.begin(), itEnd = materialProxes.end(); it != itEnd; ++it )
         if ( (*it)->GetCountReferences() <= 1 )
-        {
             (*it)->Release();
-
-            it = materialProxes.erase( it );
-            itEnd = materialProxes.end();
-        }
         else
-            ++it;
+            (*it)->DecrementReference();
 
+    parameters.clear();
+    materialProxes.clear();
     shader = nullptr;
 }
 

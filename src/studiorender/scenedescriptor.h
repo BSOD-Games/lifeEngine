@@ -29,6 +29,14 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
+	struct Line
+	{
+		Vector3D_t			from;
+		Vector3D_t			to;
+	};
+
+	//---------------------------------------------------------------------//
+
 	struct SceneDescriptor
 	{
 		ICamera*							camera;
@@ -36,6 +44,7 @@ namespace le
 		std::vector< PointLight* >			pointLights;
 		std::vector< SpotLight* >			spotLights;
 		std::vector< DirectionalLight* >	directionalLights;
+		std::vector< Line >					lines;
 	};
 
 	//---------------------------------------------------------------------//

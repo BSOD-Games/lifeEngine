@@ -22,6 +22,7 @@ namespace le
 	IWindow*				g_window = nullptr;
 	InputSystem*			g_inputSystem = nullptr;
 	ResourceSystem*			g_resourceSystem = nullptr;
+	IPhysicsSystem*			g_physicsSystem = nullptr;
 
 	//---------------------------------------------------------------------//
 }

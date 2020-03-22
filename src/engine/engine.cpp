@@ -33,6 +33,8 @@
 #include "studiorender/ishadermanager.h"
 #include "physics/iphysicssysteminternal.h"
 
+#define	FIXED_TIME_UPDATE		( 1 / 60.f )
+
 LIFEENGINE_ENGINE_API( le::Engine );
 
 // ------------------------------------------------------------------------------------ //
@@ -68,7 +70,8 @@ le::Engine::Engine() :
 	gameDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
 	criticalError( nullptr ),
 	cmd_Exit( new ConCmd() ),
-    cmd_Version( new ConCmd() )
+	cmd_Version( new ConCmd() ),
+	deltaTime( 0.f )
 {
 	LIFEENGINE_ASSERT( !g_engine );
 
@@ -204,8 +207,9 @@ bool le::Engine::LoadModule_PhysicsSystem( const char *PathDLL )
         if ( physicSystemDescriptor.LE_SetCriticalError )
             physicSystemDescriptor.LE_SetCriticalError( g_criticalError );
 
-        physicSystem = ( IPhysicsSystemInternal* )  physicSystemDescriptor.LE_CreatePhysicsSystem();
+		physicSystem = ( IPhysicsSystemInternal* ) physicSystemDescriptor.LE_CreatePhysicsSystem();
         if ( !physicSystem->Initialize( this ) )	throw std::runtime_error( "Fail initialize physics system" );
+		g_physicsSystem = physicSystem;
     }
     catch ( std::exception& Exception )
     {
@@ -229,6 +233,7 @@ void le::Engine::UnloadModule_PhysicsSystem()
 
     SDL_UnloadObject( physicSystemDescriptor.handle );
     physicSystem = nullptr;
+	g_physicsSystem = nullptr;
     physicSystemDescriptor = { nullptr, nullptr, nullptr, nullptr };
 
     consoleSystem.PrintInfo( "Unloaded physics system" );
@@ -362,7 +367,7 @@ void le::Engine::UnloadModule_Game()
 {
 	if ( !game ) return;
 
-	if ( gameDescriptor.LE_DeleteGame )
+    if ( game && gameDescriptor.LE_DeleteGame )
 		gameDescriptor.LE_DeleteGame( game );
 
 	SDL_UnloadObject( gameDescriptor.handle );
@@ -490,9 +495,7 @@ void le::Engine::RunSimulation()
 	
     float                   currentTick = 0.f;
     float                   lastTick = 0.f;
-    float                   delayFrame = 0.f;
-    float                   deltaTime = 0.f;
-    const float             frameDuration = 1.f / 60.f;
+	float                   delayFrame = 0.f;
     Event                   event;
     bool                    isFocus = true;
 
@@ -545,17 +548,17 @@ void le::Engine::RunSimulation()
 		if ( isFocus )
         {
             delayFrame += deltaTime;
-            while ( delayFrame >= frameDuration )
+			while ( delayFrame >= FIXED_TIME_UPDATE )
             {
-                delayFrame -= frameDuration;
+				delayFrame -= FIXED_TIME_UPDATE;
 
-                inputSystem.Update();
-                game->Update();
-                physicSystem->Update();
+				inputSystem.Update();
+				game->Update();
                 materialManager.UpdateProxes();
             }
 
-            studioRender->Begin();
+			studioRender->Begin();
+			physicSystem->Update();
             game->Render();
             studioRender->End();
             studioRender->Present();
@@ -570,10 +573,11 @@ void le::Engine::RunSimulation()
 // ------------------------------------------------------------------------------------ //
 void le::Engine::StopSimulation()
 {
-	isRunSimulation = false;
+    consoleSystem.PrintInfo( "*** Game logic end ***" );
 
-	consoleSystem.PrintInfo( "*** Game logic end ***" );
+    if ( game && gameDescriptor.LE_DeleteGame )     gameDescriptor.LE_DeleteGame( game );
     resourceSystem.UnloadAll();
+    isRunSimulation = false;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -794,4 +798,20 @@ void le::Engine::UnloadGame()
 	resourceSystem.SetGameDir( "" );
 
 	if ( game ) UnloadModule_Game();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get delta time
+// ------------------------------------------------------------------------------------ //
+float le::Engine::GetDeltaTime() const
+{
+	return deltaTime;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get rate game update
+// ------------------------------------------------------------------------------------ //
+float le::Engine::GetRateGameUpdate() const
+{
+	return FIXED_TIME_UPDATE;
 }

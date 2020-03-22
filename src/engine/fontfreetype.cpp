@@ -179,10 +179,14 @@ void le::FontFreeType::Unload()
     FT_Done_Face( ( FT_Face ) ftFace );
 
     // Destroy all created textures
-    IFactory*       studioRenderFactory = g_studioRender->GetFactory();
     for ( auto it = pages.begin(), itEnd = pages.end(); it != itEnd; ++it )
         if ( it->second.texture )
-            studioRenderFactory->Delete( it->second.texture );
+        {
+            if ( it->second.texture->GetCountReferences() <= 1 )
+                it->second.texture->Release();
+            else
+                it->second.texture->DecrementReference();
+        }
 
     ftFace = nullptr;
     familyName = "";
@@ -239,6 +243,7 @@ le::FontFreeType::Glyph le::FontFreeType::LoadGlyph( UInt32_t CodePoint, UInt32_
         page.texture->Append( nullptr );
         page.texture->SetSampler( sampler );
         page.texture->Unbind();
+        page.texture->IncrementReference();
     }
 
     // Find the position where to place the new glyph

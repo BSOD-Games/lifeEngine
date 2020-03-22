@@ -73,17 +73,17 @@ void le::StudioRender::SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformatio
 void le::StudioRender::SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation, UInt32_t StartSurface, UInt32_t CountSurface )
 {
 	LIFEENGINE_ASSERT( Mesh );
-	if ( !Mesh->IsCreated() )	
+	if ( !Mesh->IsCreated() )
 		return;
 
 	le::Mesh*			mesh = ( le::Mesh* ) Mesh;
 	MeshSurface*		surfaces = mesh->GetSurfaces();
-	MeshSurface*		surface;	
+	MeshSurface*		surface;
 
 	if ( StartSurface + CountSurface > Mesh->GetCountSurfaces() )
 	{
 		return;
-	//	CountSurface = Mesh->GetCountSurfaces() - StartSurface;
+		//	CountSurface = Mesh->GetCountSurfaces() - StartSurface;
 	}
 
 	RenderObject		renderObject;
@@ -152,7 +152,9 @@ void le::StudioRender::SubmitLight( IDirectionalLight* DirectionalLight )
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::EndScene()
 {}
-
+le::IGPUProgram* sh;
+le::VertexArrayObject vao;
+le::VertexBufferObject	ob;
 // ------------------------------------------------------------------------------------ //
 // Инициализировать рендер
 // ------------------------------------------------------------------------------------ //
@@ -222,12 +224,12 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 	r_wireframe = ( IConVar* ) g_consoleSystem->GetFactory()->Create( CONVAR_INTERFACE_VERSION );
 	r_wireframe->Initialize( "r_wireframe", "0", CVT_BOOL, "Enable wireframe mode", true, 0, true, 1,
 							 []( le::IConVar* Var )
-							 {
-								 if ( Var->GetValueBool() )
-									 glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-								 else
-									 glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-							 } );
+	{
+		if ( Var->GetValueBool() )
+			glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+		else
+			glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+	} );
 
 	r_showgbuffer = ( IConVar* ) g_consoleSystem->GetFactory()->Create( CONVAR_INTERFACE_VERSION );
 	r_showgbuffer->Initialize( "r_showgbuffer", "0", CVT_BOOL, "Enable view GBuffer", true, 0, true, 1, nullptr );
@@ -253,6 +255,43 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 	shaderLighting.SetSizeViewport( Vector2D_t( viewport.width, viewport.height ) );
 
 	shaderPostrocess.SetSizeViewport( Vector2D_t( viewport.width, viewport.height ) );
+
+	sh = new GPUProgram();
+	ShaderDescriptor			sd;
+	sd.vertexShaderSource = "\
+		#version 330 core\n\
+							\
+							layout ( location = 0 )         in vec3 vertex_position;\n\
+							uniform mat4		matrixProjection;\n\
+							void main()\n\
+	{\n\
+							gl_Position = matrixProjection * vec4( vertex_position, 1.f ); \n \
+}";
+
+			sd.fragmentShaderSource = "\
+		#version 330 core\n\
+									  \
+									  out vec4 color;\n\
+									  \
+									  void main()\n\
+	{\n\
+									  color = vec4( 1.f, 0.f, 0.f, 1.f );\n\
+}";
+
+			sh->Compile(sd);
+
+	vao.Create();
+	ob.Create();
+
+	float a[] = { 0, 0, 0, 1, 1, 0 };
+
+	VertexBufferLayout s;
+	s.PushFloat( 3 );
+
+	ob.Bind();
+	ob.Allocate( a, sizeof( float ) * 6 );
+	vao.AddBuffer( ob, s );
+	vao.Unbind();
 
 	return true;
 }
@@ -293,6 +332,29 @@ void le::StudioRender::Present()
 	// Показать финальный кадр
 	Render_FinalPass();
 
+	// Render debug lines and points
+	glClear( GL_DEPTH_BUFFER_BIT );
+
+	for ( UInt32_t indexScene = 0, countScenes = scenes.size(); indexScene < countScenes; ++indexScene )
+	{
+		// TODO: Оптимизировать рендер линий, убрать z-fight и реализовать рендер точек
+		SceneDescriptor&				sceneDescriptor = scenes[ indexScene ];
+
+		if ( !sceneDescriptor.lines.empty() )
+		{
+			vao.Bind();
+			ob.Bind();
+			sh->Bind();
+			sh->SetUniform( "matrixProjection", sceneDescriptor.camera->GetProjectionMatrix() * sceneDescriptor.camera->GetViewMatrix() );
+
+			for ( UInt32_t indexLine = 0, countLines = sceneDescriptor.lines.size(); indexLine < countLines; ++indexLine )
+			{
+				ob.Allocate( &sceneDescriptor.lines[ indexLine ], sizeof( Line ) );
+				glDrawArrays( GL_LINES, 0, 2 );
+			}
+		}
+	}
+
 	if ( r_showgbuffer->GetValueBool() )		gbuffer.ShowBuffers();
 	renderContext.SwapBuffers();
 }
@@ -332,7 +394,7 @@ void le::StudioRender::Render_GeometryPass()
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::Render_LightPass() 
 {
-	gbuffer.Bind( GBuffer::BT_LIGHT ); 
+	gbuffer.Bind( GBuffer::BT_LIGHT );
 	glClear( GL_COLOR_BUFFER_BIT );
 
 	OpenGLState::EnableStencilTest( true );
@@ -363,10 +425,10 @@ void le::StudioRender::Render_LightPass()
 			shaderDepth.SetRadius( light->GetRadius() );
 			shaderDepth.Bind();
 			glDrawElements( GL_TRIANGLES, sphere.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( sphere.GetStartIndex() * sizeof( UInt32_t ) ) );
-		
+
 			shaderLighting.SetPVTMatrix( sceneDescriptor.camera->GetProjectionMatrix() * sceneDescriptor.camera->GetViewMatrix() * light->GetTransformation() );
 			shaderLighting.SetLight( light );
-			shaderLighting.Bind();	
+			shaderLighting.Bind();
 			
 			OpenGLState::SetColorMask( true, true, true, true );
 			OpenGLState::SetStencilFunc( GL_NOTEQUAL, 0, 0xFF );
@@ -390,16 +452,16 @@ void le::StudioRender::Render_LightPass()
 			OpenGLState::EnableDepthTest( true );
 			glClear( GL_STENCIL_BUFFER_BIT );
 			OpenGLState::SetStencilFunc( GL_ALWAYS, 0, 0 );
-		
+
 			shaderDepth.SetPVTMatrix( sceneDescriptor.camera->GetProjectionMatrix() * sceneDescriptor.camera->GetViewMatrix() * light->GetTransformation() );
 			shaderDepth.SetRadius( light->GetRadius() );
 			shaderDepth.SetHeight( light->GetHeight() );
 			shaderDepth.Bind();
 			glDrawElements( GL_TRIANGLES, cone.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( cone.GetStartIndex() * sizeof( UInt32_t ) ) );
-		
+
 			shaderLighting.SetPVTMatrix( sceneDescriptor.camera->GetProjectionMatrix() * sceneDescriptor.camera->GetViewMatrix() * light->GetTransformation() );
 			shaderLighting.SetLight( light );
-			shaderLighting.Bind();	
+			shaderLighting.Bind();
 			
 			OpenGLState::SetColorMask( true, true, true, true );
 			OpenGLState::SetStencilFunc( GL_NOTEQUAL, 0, 0xFF );
@@ -423,7 +485,7 @@ void le::StudioRender::Render_LightPass()
 			auto*			light = sceneDescriptor.directionalLights[ indexLight ];
 			
 			shaderLighting.SetLight( light );
-			shaderLighting.Bind();	
+			shaderLighting.Bind();
 			glDrawElements( GL_TRIANGLES, quad.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( quad.GetStartIndex() * sizeof( UInt32_t ) ) );
 		}
 	}
@@ -516,4 +578,19 @@ le::StudioRender::StudioRender() :
 le::StudioRender::~StudioRender()
 {
 	if ( renderContext.IsCreated() )		renderContext.Destroy();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Submit line
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::SubmitLine( const Vector3D_t& From, const Vector3D_t& To, const Vector3D_t& Color, const Matrix4x4_t& Transformation )
+{
+	scenes[ currentScene ].lines.push_back( { From, To } );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Submit point
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::SubmitPoint( const Vector3D_t& Position, const Vector3D_t& Color )
+{
 }

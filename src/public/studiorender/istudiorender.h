@@ -27,6 +27,7 @@ namespace le
 	class IPointLight;
 	class ISpotLight;
 	class IDirectionalLight;
+	class IMaterial;
 	struct StudioRenderViewport;
 	struct StudioRenderDeviceConfigurations;
 
@@ -45,6 +46,8 @@ namespace le
 	public:
         virtual ~IStudioRender() {}
 		virtual void											BeginScene( ICamera* Camera ) = 0;
+		virtual void											SubmitLine( const Vector3D_t& From, const Vector3D_t& To, const Vector3D_t& Color, const Matrix4x4_t& Transformation ) = 0;
+		virtual void											SubmitPoint( const Vector3D_t& Position, const Vector3D_t& Color ) = 0;
 		virtual void											SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation ) = 0;
 		virtual void											SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation, UInt32_t StartSurface, UInt32_t CountSurface ) = 0;
 		virtual void											SubmitLight( IPointLight* PointLight ) = 0;

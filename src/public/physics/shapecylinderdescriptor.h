@@ -8,32 +8,24 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#ifndef SHAPECYLINDERDESCRIPTOR_H
+#define SHAPECYLINDERDESCRIPTOR_H
 
 //---------------------------------------------------------------------//
 
 namespace le
 {
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 
-	class IConsoleSystem;
-	extern IConsoleSystem*					g_consoleSystem;
+    struct ShapeCylinderDescriptor
+    {
+        float       radius;
+        float       height;
+    };
 
-	//---------------------------------------------------------------------//
-
-	class IStudioRender;
-	extern IStudioRender*					g_studioRender;
-
-	//---------------------------------------------------------------------//
-
-	class IEngine;
-	extern IEngine*							g_engine;
-
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 }
 
 //---------------------------------------------------------------------//
 
-#endif // !GLOBAL_H
-
+#endif // !SHAPECYLINDERDESCRIPTOR_H

@@ -44,16 +44,13 @@ void le::StudioRenderTechnique::RemovePass( UInt32_t Index )
 // ------------------------------------------------------------------------------------ //
 void le::StudioRenderTechnique::Clear()
 {
-    for ( auto it = passes.begin(), itEnd = passes.end(); it != itEnd; )
+    for ( auto it = passes.begin(), itEnd = passes.end(); it != itEnd; ++it )
         if ( (*it)->GetCountReferences() <= 1 )
-        {
             (*it)->Release();
-
-            it = passes.erase( it );
-            itEnd = passes.end();
-        }
         else
-            ++it;
+            (*it)->DecrementReference();
+
+    passes.clear();
 }
 
 // ------------------------------------------------------------------------------------ //

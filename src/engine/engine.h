@@ -85,6 +85,8 @@ namespace le
         virtual IPhysicsSystem*         GetPhysicsSystem() const;
 		virtual IWindow*				GetWindow() const;
 		virtual IFactory*				GetFactory() const;
+		virtual float					GetDeltaTime() const;
+		virtual float					GetRateGameUpdate() const;
 		virtual const Configurations&	GetConfigurations() const;
         virtual const GameInfo&         GetGameInfo() const;
 		virtual const Version&			GetVersion() const;
@@ -109,6 +111,7 @@ namespace le
 
 		bool							isInit;
 		bool							isRunSimulation;
+		float							deltaTime;
 
 		IConCmd*						cmd_Exit;
 		IConCmd*						cmd_Version;

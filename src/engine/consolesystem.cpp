@@ -25,28 +25,28 @@ le::ConCmd*     con_help = nullptr;
 
 namespace le
 {
-	// ------------------------------------------------------------------------------------ //
-	// Консольная комманда помощи
-	// ------------------------------------------------------------------------------------ //
-	void CMD_Help( le::UInt32_t CountArguments, const char** Arguments )
-	{
-		g_consoleSystem->PrintInfo( "** Console variables **" );
+// ------------------------------------------------------------------------------------ //
+// Консольная комманда помощи
+// ------------------------------------------------------------------------------------ //
+void CMD_Help( le::UInt32_t CountArguments, const char** Arguments )
+{
+    g_consoleSystem->PrintInfo( "** Console variables **" );
 
-		for ( auto it = g_consoleSystem->vars.begin(), itEnd = g_consoleSystem->vars.end(); it != itEnd; ++it )
-		{
-		    ConVar*             conVar = ( ConVar* ) it->second;
-            g_consoleSystem->PrintInfo("%s : %s. Default value: %s", conVar->GetName(), conVar->GetHelpText(), conVar->GetValueDefault() );
-        }
+    for ( auto it = g_consoleSystem->vars.begin(), itEnd = g_consoleSystem->vars.end(); it != itEnd; ++it )
+    {
+        ConVar*             conVar = ( ConVar* ) it->second;
+        g_consoleSystem->PrintInfo("%s : %s. Default value: %s", conVar->GetName(), conVar->GetHelpText(), conVar->GetValueDefault() );
+    }
 
-		g_consoleSystem->PrintInfo( "" );
-		g_consoleSystem->PrintInfo( "** Console commands **" );
+    g_consoleSystem->PrintInfo( "" );
+    g_consoleSystem->PrintInfo( "** Console commands **" );
 
-		for ( auto it = g_consoleSystem->commands.begin(), itEnd = g_consoleSystem->commands.end(); it != itEnd; ++it )
-        {
-		    ConCmd*         conCmd = ( ConCmd* ) it->second;
-		    g_consoleSystem->PrintInfo( "%s : %s", conCmd->GetName(), conCmd->GetHelpText() );
-        }
-	}
+    for ( auto it = g_consoleSystem->commands.begin(), itEnd = g_consoleSystem->commands.end(); it != itEnd; ++it )
+    {
+        ConCmd*         conCmd = ( ConCmd* ) it->second;
+        g_consoleSystem->PrintInfo( "%s : %s", conCmd->GetName(), conCmd->GetHelpText() );
+    }
+}
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -54,11 +54,11 @@ namespace le
 // ------------------------------------------------------------------------------------ //
 void le::ConsoleSystem::Initialize()
 {
-	fileLog = fopen( "engine.log", "w" );
+    fileLog = fopen( "engine.log", "w" );
 
-	con_help = new ConCmd();
-	con_help->Initialize( "help", "Show help variables and comands", CMD_Help );
-	RegisterCommand( con_help );
+    con_help = new ConCmd();
+    con_help->Initialize( "help", "Show help variables and comands", CMD_Help );
+    RegisterCommand( con_help );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -66,11 +66,11 @@ void le::ConsoleSystem::Initialize()
 // ------------------------------------------------------------------------------------ //
 void le::ConsoleSystem::RegisterVar( IConVar* ConVar )
 {
-	LIFEENGINE_ASSERT( ConVar );
-	
-	if ( vars.find( ConVar->GetName() ) != vars.end() ) return;
+    LIFEENGINE_ASSERT( ConVar );
+
+    if ( vars.find( ConVar->GetName() ) != vars.end() ) return;
     ConVar->IncrementReference();
-	vars[ ConVar->GetName() ] = ConVar;
+    vars[ ConVar->GetName() ] = ConVar;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -78,11 +78,11 @@ void le::ConsoleSystem::RegisterVar( IConVar* ConVar )
 // ------------------------------------------------------------------------------------ //
 void le::ConsoleSystem::RegisterCommand( IConCmd* ConCmd )
 {
-	LIFEENGINE_ASSERT( ConCmd );
+    LIFEENGINE_ASSERT( ConCmd );
 
-	if ( commands.find( ConCmd->GetName() ) != commands.end() ) return;
+    if ( commands.find( ConCmd->GetName() ) != commands.end() ) return;
     ConCmd->IncrementReference();
-	commands[ ConCmd->GetName() ] = ConCmd;
+    commands[ ConCmd->GetName() ] = ConCmd;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -90,15 +90,15 @@ void le::ConsoleSystem::RegisterCommand( IConCmd* ConCmd )
 // ------------------------------------------------------------------------------------ //
 void le::ConsoleSystem::UnregisterVar( const char* Name )
 {
-	auto			it = vars.find( Name );
+    auto			it = vars.find( Name );
 
-	if ( it == vars.end() ) return;
+    if ( it == vars.end() ) return;
     if ( it->second->GetCountReferences() <= 1 )
         it->second->Release();
     else
         it->second->DecrementReference();
 
-	vars.erase( it );
+    vars.erase( it );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -106,15 +106,15 @@ void le::ConsoleSystem::UnregisterVar( const char* Name )
 // ------------------------------------------------------------------------------------ //
 void le::ConsoleSystem::UnregisterCommand( const char* Name )
 {
-	auto			it = commands.find( Name );
+    auto			it = commands.find( Name );
 
-	if ( it == commands.end() ) return;
+    if ( it == commands.end() ) return;
     if ( it->second->GetCountReferences() <= 1 )
         it->second->Release();
     else
         it->second->DecrementReference();
 
-	commands.erase( it );
+    commands.erase( it );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -122,94 +122,94 @@ void le::ConsoleSystem::UnregisterCommand( const char* Name )
 // ------------------------------------------------------------------------------------ //
 bool le::ConsoleSystem::Exec( const char* Command )
 {
-	std::string			command( Command );
-	if ( command.empty() ) return false;
+    std::string			command( Command );
+    if ( command.empty() ) return false;
 
-	// Находим название комманды или переменной в строке
+    // Находим название комманды или переменной в строке
 
-	UInt32_t		startIndexName = command.find_first_not_of( ' ' );
-	UInt32_t		endIndexName = command.find_first_of( ' ', startIndexName );
-	std::string		name = command.substr( startIndexName, endIndexName - startIndexName );
-	std::string		arguments = endIndexName != std::string::npos ? command.substr( endIndexName + 1, command.size() - endIndexName ) : "";
+    UInt32_t		startIndexName = command.find_first_not_of( ' ' );
+    UInt32_t		endIndexName = command.find_first_of( ' ', startIndexName );
+    std::string		name = command.substr( startIndexName, endIndexName - startIndexName );
+    std::string		arguments = endIndexName != std::string::npos ? command.substr( endIndexName + 1, command.size() - endIndexName ) : "";
 
-	// Ищем по названию переменную, если нашли то меняем ее значение
+    // Ищем по названию переменную, если нашли то меняем ее значение
 
-	auto		itVar = vars.find( name );
-	if ( itVar != vars.end() )
-	{
-		IConVar*		var = itVar->second;
+    auto		itVar = vars.find( name );
+    if ( itVar != vars.end() )
+    {
+        IConVar*		var = itVar->second;
 
-		if ( !arguments.empty() && arguments.find_first_not_of( ' ' ) != std::string::npos )
-			var->SetValue( arguments.c_str(), var->GetType() );
-		else
-		{
-			std::string		conVar;
-			if ( var->GetType() == CVT_STRING )
-				conVar = var->GetValueString();
-			else
-				switch ( var->GetType() )
-				{
-				case CVT_INT:		conVar = std::to_string( var->GetValueInt() ); break;
-				case CVT_FLOAT:		conVar = std::to_string( var->GetValueFloat() ); break;
-				case CVT_BOOL:		conVar = var->GetValueBool() ? "true" : "fasle"; break;
-				default:			conVar = ""; break;
-				}
+        if ( !arguments.empty() && arguments.find_first_not_of( ' ' ) != std::string::npos )
+            var->SetValue( arguments.c_str(), var->GetType() );
+        else
+        {
+            std::string		conVar;
+            if ( var->GetType() == CVT_STRING )
+                conVar = var->GetValueString();
+            else
+                switch ( var->GetType() )
+                {
+                case CVT_INT:		conVar = std::to_string( var->GetValueInt() ); break;
+                case CVT_FLOAT:		conVar = std::to_string( var->GetValueFloat() ); break;
+                case CVT_BOOL:		conVar = var->GetValueBool() ? "true" : "fasle"; break;
+                default:			conVar = ""; break;
+                }
 
-			PrintInfo( "%s: %s", name.c_str(), itVar->second->GetHelpText() );
-			PrintInfo( "Value: %s", conVar.c_str() );
-			PrintInfo( "Default value: %s", itVar->second->GetValueDefault() );
-		}
+            PrintInfo( "%s: %s", name.c_str(), itVar->second->GetHelpText() );
+            PrintInfo( "Value: %s", conVar.c_str() );
+            PrintInfo( "Default value: %s", itVar->second->GetValueDefault() );
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	// Ищем по названию комманду, если нашли то выполняем ее
+    // Ищем по названию комманду, если нашли то выполняем ее
 
-	auto		itCommand = commands.find( name );
-	if ( itCommand != commands.end() )
-	{	
-		// Разбиваем строку на подстроки
+    auto		itCommand = commands.find( name );
+    if ( itCommand != commands.end() )
+    {
+        // Разбиваем строку на подстроки
 
-		bool							isFindApostrof = false;
-		bool							isEndSubstring = false;
-		std::string						tempString;
-		std::vector<const char*>		arrayArguments;
+        bool							isFindApostrof = false;
+        bool							isEndSubstring = false;
+        std::string						tempString;
+        std::vector<const char*>		arrayArguments;
 
-		for ( UInt32_t index = 0, count = arguments.size(); index < count; ++index )
-		{
-			if ( arguments[ index ] == '\"' )
-			{
-				isFindApostrof = !isFindApostrof;
+        for ( UInt32_t index = 0, count = arguments.size(); index < count; ++index )
+        {
+            if ( arguments[ index ] == '\"' )
+            {
+                isFindApostrof = !isFindApostrof;
 
-				if ( isFindApostrof )	continue;
-				else					isEndSubstring = true;
-			}
-			else if ( !isFindApostrof && arguments[ index ] == ' ' && !tempString.empty() )
-				isEndSubstring = true;
+                if ( isFindApostrof )	continue;
+                else					isEndSubstring = true;
+            }
+            else if ( !isFindApostrof && arguments[ index ] == ' ' && !tempString.empty() )
+                isEndSubstring = true;
 
-			if ( !isEndSubstring )		tempString += arguments[ index ];
-			if ( isEndSubstring || index + 1 >= count )
-			{
-				arrayArguments.push_back( new char[ tempString.size() ] );
-				strcpy( ( char* ) arrayArguments[ arrayArguments.size() - 1 ], tempString.data() );
+            if ( !isEndSubstring )		tempString += arguments[ index ];
+            if ( isEndSubstring || index + 1 >= count )
+            {
+                arrayArguments.push_back( new char[ tempString.size() ] );
+                strcpy( ( char* ) arrayArguments[ arrayArguments.size() - 1 ], tempString.data() );
 
-				tempString.clear();
-				isEndSubstring = false;
-			}
-		}
+                tempString.clear();
+                isEndSubstring = false;
+            }
+        }
 
-		// Выполняем команду
+        // Выполняем команду
 
-		itCommand->second->Exec( arrayArguments.size(), arrayArguments.data() );
+        itCommand->second->Exec( arrayArguments.size(), arrayArguments.data() );
 
-		for ( UInt32_t index = 0, count = arrayArguments.size(); index < count; index++ )	
-			delete[] arrayArguments[ index ];
+        for ( UInt32_t index = 0, count = arrayArguments.size(); index < count; index++ )
+            delete[] arrayArguments[ index ];
 
-		return true;
-	}
+        return true;
+    }
 
-	PrintError( "Not correct command: \"%s\"", Command );
-	return false;
+    PrintError( "Not correct command: \"%s\"", Command );
+    return false;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -217,14 +217,14 @@ bool le::ConsoleSystem::Exec( const char* Command )
 // ------------------------------------------------------------------------------------ //
 void le::ConsoleSystem::PrintInfo( const char* Message, ... )
 {
-	if ( !fileLog ) return;
+    if ( !fileLog ) return;
     va_list			argList = {};
 
-	va_start( argList, Message );	
-	vfprintf( fileLog, ( "[Info] " + std::string( Message ) + "\n" ).c_str(), argList );
-	va_end( argList );
+    va_start( argList, Message );
+    vfprintf( fileLog, ( "[Info] " + std::string( Message ) + "\n" ).c_str(), argList );
+    va_end( argList );
 
-	fflush( fileLog );
+    fflush( fileLog );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -232,14 +232,14 @@ void le::ConsoleSystem::PrintInfo( const char* Message, ... )
 // ------------------------------------------------------------------------------------ //
 void le::ConsoleSystem::PrintWarning( const char* Message, ... )
 {
-	if ( !fileLog ) return;
+    if ( !fileLog ) return;
     va_list			argList = {};
 
-	va_start( argList, Message );
-	vfprintf( fileLog, ( "[Warning] " + std::string( Message ) + "\n" ).c_str(), argList );
-	va_end( argList );
+    va_start( argList, Message );
+    vfprintf( fileLog, ( "[Warning] " + std::string( Message ) + "\n" ).c_str(), argList );
+    va_end( argList );
 
-	fflush( fileLog );
+    fflush( fileLog );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -247,14 +247,14 @@ void le::ConsoleSystem::PrintWarning( const char* Message, ... )
 // ------------------------------------------------------------------------------------ //
 void le::ConsoleSystem::PrintError( const char* Message, ... )
 {
-	if ( !fileLog ) return;
+    if ( !fileLog ) return;
     va_list			argList = {};
 
-	va_start( argList, Message );
-	vfprintf( fileLog, ( "[Error] " + std::string( Message ) + "\n" ).c_str(), argList );
-	va_end( argList );
+    va_start( argList, Message );
+    vfprintf( fileLog, ( "[Error] " + std::string( Message ) + "\n" ).c_str(), argList );
+    va_end( argList );
 
-	fflush( fileLog );
+    fflush( fileLog );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -262,10 +262,10 @@ void le::ConsoleSystem::PrintError( const char* Message, ... )
 // ------------------------------------------------------------------------------------ //
 le::IConVar* le::ConsoleSystem::GetVar( const char* Name ) const
 {
-	auto			it = vars.find( Name );
+    auto			it = vars.find( Name );
 
-	if ( it == vars.end() ) return nullptr;
-	return it->second;
+    if ( it == vars.end() ) return nullptr;
+    return it->second;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -273,10 +273,10 @@ le::IConVar* le::ConsoleSystem::GetVar( const char* Name ) const
 // ------------------------------------------------------------------------------------ //
 le::IConCmd* le::ConsoleSystem::GetCommand( const char* Name ) const
 {
-	auto			it = commands.find( Name );
+    auto			it = commands.find( Name );
 
-	if ( it == commands.end() ) return nullptr;
-	return it->second;
+    if ( it == commands.end() ) return nullptr;
+    return it->second;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -284,14 +284,14 @@ le::IConCmd* le::ConsoleSystem::GetCommand( const char* Name ) const
 // ------------------------------------------------------------------------------------ //
 le::IFactory* le::ConsoleSystem::GetFactory() const
 {
-	return ( IFactory* ) &consoleSystemFactory;
+    return ( IFactory* ) &consoleSystemFactory;
 }
 
 // ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
 le::ConsoleSystem::ConsoleSystem() :
-	fileLog( nullptr )
+    fileLog( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -299,10 +299,26 @@ le::ConsoleSystem::ConsoleSystem() :
 // ------------------------------------------------------------------------------------ //
 le::ConsoleSystem::~ConsoleSystem()
 {
-	if ( fileLog )		fclose( fileLog );
-	if ( con_help )
+    if ( fileLog )		fclose( fileLog );
+    for ( auto it = vars.begin(), itEnd = vars.end(); it != itEnd; ++it )
     {
-	    UnregisterCommand( "help" );
-	    delete con_help;
+        if ( it->second->GetCountReferences() <= 1 )
+            it->second->Release();
+        else
+            it->second->DecrementReference();
+
+        UnregisterVar( it->first.c_str() );
     }
+
+    for ( auto it = commands.begin(), itEnd = commands.end(); it != itEnd; ++it )
+    {
+        if ( it->second->GetCountReferences() <= 1 )
+            it->second->Release();
+        else
+            it->second->DecrementReference();
+
+        UnregisterCommand( it->first.c_str() );
+    }
+
+    con_help = nullptr;
 }

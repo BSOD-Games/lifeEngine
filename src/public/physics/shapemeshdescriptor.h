@@ -8,32 +8,26 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#ifndef SHAPEMESHDESCRIPTOR_H
+#define SHAPEMESHDESCRIPTOR_H
 
 //---------------------------------------------------------------------//
 
 namespace le
 {
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 
-	class IConsoleSystem;
-	extern IConsoleSystem*					g_consoleSystem;
+    struct ShapeMeshDescriptor
+    {
+        int         countVerteces;
+        float*      verteces;
+        int         countIndeces;
+        int*        indeces;
+    };
 
-	//---------------------------------------------------------------------//
-
-	class IStudioRender;
-	extern IStudioRender*					g_studioRender;
-
-	//---------------------------------------------------------------------//
-
-	class IEngine;
-	extern IEngine*							g_engine;
-
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 }
 
 //---------------------------------------------------------------------//
 
-#endif // !GLOBAL_H
-
+#endif // !SHAPEMESHDESCRIPTOR_H

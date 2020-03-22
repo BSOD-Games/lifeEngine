@@ -26,6 +26,9 @@
 #include "studiorender/ipointlight.h"
 #include "studiorender/ispotlight.h"
 #include "studiorender/idirectionallight.h"
+#include "physics/iphysicssystem.h"
+#include "physics/ibody.h"
+#include "physics/shapemeshdescriptor.h"
 
 #include "global.h"
 #include "consolesystem.h"
@@ -90,7 +93,7 @@ le::ITexture* Lightmap_Create( le::Byte_t* ImageBits, uint32_t Width, uint32_t H
 	texture->SetSampler( sampler );
 
 	texture->Unbind();
-    texture->IncrementReference();
+	texture->IncrementReference();
 
 	return texture;
 }
@@ -104,7 +107,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 	{
 		std::ifstream			file( Path, std::ios::binary );
 
-        if ( !file.is_open() )		throw std::runtime_error( "Level not found" );
+		if ( !file.is_open() )		throw std::runtime_error( "Level not found" );
 		if ( isLoaded )				Clear();
 
 		BSPHeader						bspHeader;
@@ -126,7 +129,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		file.read( ( char* ) &bspLumps, BL_MAX_LUMPS * sizeof( BSPLump ) );
 
 		if ( std::string( bspHeader.strID, 4 ) != "IBSP" || bspHeader.version != 46 )
-            throw std::runtime_error( "Not supported format bsp or version" );
+			throw std::runtime_error( "Not supported format bsp or version" );
 
 		// Вычисляем необходимые размеры массивов прд данные
 		bspEntities.entitiesData = new char[ bspLumps[ BL_ENTITIES ].length ];
@@ -182,7 +185,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		file.seekg( bspLumps[ BL_NODES ].offset, std::ios::beg );
 		file.read( ( char* ) &arrayBspNodes[ 0 ], arrayBspNodes.size() * sizeof( BSPNode ) );
 
-		// Считываем информацию о моделях уровня 
+		// Считываем информацию о моделях уровня
 		file.seekg( bspLumps[ BL_MODELS ].offset, std::ios::beg );
 		file.read( ( char* ) &arrayBspModels[ 0 ], arrayBspModels.size() * sizeof( BSPModel ) );
 
@@ -249,11 +252,11 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		// Меняем ось Z и Y местами
 		for ( UInt32_t index = 0, count = arrayBspPlanes.size(); index < count; ++index )
 		{
-            BSPPlane* plane = &arrayBspPlanes[ index ];
+			BSPPlane* plane = &arrayBspPlanes[ index ];
 
-            float			temp = plane->normal.y;
-            plane->normal.y = plane->normal.z;
-            plane->normal.z = -temp;
+			float			temp = plane->normal.y;
+			plane->normal.y = plane->normal.z;
+			plane->normal.z = -temp;
 		}
 
 		// Считываем информацию о видимой геометрии
@@ -295,10 +298,13 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		for ( UInt32_t index = 0, count = arrayBspTextures.size(); index < count; ++index )
 		{
 			BSPTexture* bspTexture = &arrayBspTextures[ index ];
-            arrayMaterials.push_back( g_resourceSystem->LoadMaterial( bspTexture->strName, ( std::string( bspTexture->strName ) + ".lmt" ).c_str() ) );
+			arrayMaterials.push_back( g_resourceSystem->LoadMaterial( bspTexture->strName, ( std::string( bspTexture->strName ) + ".lmt" ).c_str() ) );
 		}
 
 		// Инициализируем плоскости
+		IFactory*				physicsFactory = g_physicsSystem->GetFactory();
+
+
 		for ( UInt32_t index = 0, count = arrayFaces.size(); index < count; ++index )
 		{
 			BSPFace* bspFace = &arrayFaces[ index ];
@@ -310,7 +316,29 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 			meshSurface.startIndex = bspFace->startIndex;
 			meshSurface.countIndeces = bspFace->numOfIndices;
 			arrayMeshSurfaces.push_back( meshSurface );
+			std::vector<float>		vertecesBody;
+			std::vector<int>		indecesBody;
+			for (int index = bspFace->startIndex, count = bspFace->startIndex + bspFace->numOfIndices; index < count; ++index)
+			{
+				indecesBody.push_back(vertecesBody.size());
+
+				vertecesBody.push_back(arrayVerteces[bspFace->startVertIndex + arrayIndices[index]].position.x);
+				vertecesBody.push_back(arrayVerteces[bspFace->startVertIndex + arrayIndices[index]].position.y);
+				vertecesBody.push_back(arrayVerteces[bspFace->startVertIndex + arrayIndices[index]].position.z);
+			}		ShapeMeshDescriptor shapeMeshDescriptor;
+			shapeMeshDescriptor.verteces = vertecesBody.data();
+			shapeMeshDescriptor.countVerteces = vertecesBody.size();
+			shapeMeshDescriptor.indeces = indecesBody.data();
+			shapeMeshDescriptor.countIndeces = indecesBody.size();
+
+			IBody*		body = ( IBody* ) physicsFactory->Create( BODY_INTERFACE_VERSION );
+			if ( !body )		return false;
+
+			body->Initialize( shapeMeshDescriptor, 0.0, Vector3D_t( 0.f, 0.f, 0.f ) );
+			g_physicsSystem->AddBody( body );
 		}
+
+
 
 		// Создаем описание для формата вершин
 		std::vector< le::StudioVertexElement >			vertexElements =
@@ -344,11 +372,11 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 
 		// Загружаем меш в GPU
 		mesh = ( le::IMesh* ) g_studioRender->GetFactory()->Create( MESH_INTERFACE_VERSION );
-        if ( !mesh )				std::runtime_error( "Interfece mesh with required version not found in factory studiorender" );
+		if ( !mesh )				throw std::runtime_error( "Interfece mesh with required version not found in factory studiorender" );
 
-        mesh->IncrementReference();
+		mesh->IncrementReference();
 		mesh->Create( meshDescriptor );
-        if ( !mesh->IsCreated() )	std::runtime_error( "Mesh level not created" );
+		if ( !mesh->IsCreated() )	throw std::runtime_error( "Mesh level not created" );
 
 		// Добавляем на уровень модели
 		for ( UInt32_t index = 0, count = arrayBspModels.size(); index < count; ++index )
@@ -356,7 +384,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 			Model* model = new Model();
 			BSPModel& bspModel = arrayBspModels[ index ];
 
-            model->IncrementReference();
+			model->IncrementReference();
 			model->SetMesh( mesh );
 			model->SetMin( bspModel.min );
 			model->SetMax( bspModel.max );
@@ -384,7 +412,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 				}
 
 				entity->SetLevel( this );
-				
+
 				for ( auto it = levelEntity.values.begin(), itEnd = levelEntity.values.end(); it != itEnd; ++it )
 					entity->KeyValue( it->first.c_str(), it->second.c_str() );
 
@@ -395,6 +423,8 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 	catch ( std::exception& Exception )
 	{
 		g_consoleSystem->PrintError( "Level not loaded: %s", Exception.what() );
+
+		Clear();
 		return false;
 	}
 
@@ -414,11 +444,11 @@ void le::Level::Update()
 		// Обновляем логику сущностей
 		for ( UInt32_t index = 0, count = arrayEntities.size(); index < count; ++index )
 		{
-            IEntity*        entity = arrayEntities[ index ];
+			IEntity*        entity = arrayEntities[ index ];
 
 			// TODO: Сделать динамический (изменяемый из вне) дистанцию обновления
 			if ( glm::distance( camera->GetPosition(), entity->GetPosition() ) < 2500 )
-                entity->Update();
+				entity->Update();
 		}
 	}
 }
@@ -428,95 +458,95 @@ void le::Level::Update()
 // ------------------------------------------------------------------------------------ //
 void le::Level::Render()
 {
-    for ( UInt32_t indexCamera = 0, countCameras = arrayCameras.size(); indexCamera < countCameras; ++indexCamera )
-    {
-        Camera* camera = arrayCameras[ indexCamera ];
+	for ( UInt32_t indexCamera = 0, countCameras = arrayCameras.size(); indexCamera < countCameras; ++indexCamera )
+	{
+		Camera* camera = arrayCameras[ indexCamera ];
 
-        g_studioRender->BeginScene( camera );
+		g_studioRender->BeginScene( camera );
 
-        // Определяем в каком кластере находится камера
-        int			currentCluster = arrayBspLeafs[ FindLeaf( camera ) ].cluster;
-        facesDraw.ClearAll();
+		// Определяем в каком кластере находится камера
+		int			currentCluster = arrayBspLeafs[ FindLeaf( camera ) ].cluster;
+		facesDraw.ClearAll();
 
-        // Посылаем на отрисовку видимые части статичной геометрии уровня
-        for ( UInt32_t indexLeaf = 0, countLeafs = arrayBspLeafs.size(); indexLeaf < countLeafs; ++indexLeaf )
-        {
-            BSPLeaf& bspLeaf = arrayBspLeafs[ indexLeaf ];
-            if ( !IsClusterVisible( currentCluster, bspLeaf.cluster ) || !camera->IsVisible( bspLeaf.min, bspLeaf.max ) )
-                continue;
+		// Посылаем на отрисовку видимые части статичной геометрии уровня
+		for ( UInt32_t indexLeaf = 0, countLeafs = arrayBspLeafs.size(); indexLeaf < countLeafs; ++indexLeaf )
+		{
+			BSPLeaf& bspLeaf = arrayBspLeafs[ indexLeaf ];
+			if ( !IsClusterVisible( currentCluster, bspLeaf.cluster ) || !camera->IsVisible( bspLeaf.min, bspLeaf.max ) )
+				continue;
 
-            for ( UInt32_t indexFace = 0; indexFace < bspLeaf.numOfLeafFaces; ++indexFace )
-            {
-                int			faceIndex = arrayBspLeafsFaces[ bspLeaf.leafFace + indexFace ];
-                if ( !facesDraw.On( faceIndex ) )
-                {
-                    facesDraw.Set( faceIndex );
-                    g_studioRender->SubmitMesh( mesh, Matrix4x4_t( 1.f ), faceIndex, 1 );
-                }
-            }
-        }
+			for ( UInt32_t indexFace = 0; indexFace < bspLeaf.numOfLeafFaces; ++indexFace )
+			{
+				int			faceIndex = arrayBspLeafsFaces[ bspLeaf.leafFace + indexFace ];
+				if ( !facesDraw.On( faceIndex ) )
+				{
+					facesDraw.Set( faceIndex );
+					g_studioRender->SubmitMesh( mesh, Matrix4x4_t( 1.f ), faceIndex, 1 );
+				}
+			}
+		}
 
-        // Посылаем на отрисовку видимые части динамической геометрии уровня
-        for ( UInt32_t index = 1, count = arrayModels.size(); index < count; ++index )
-        {
-            ModelDescriptor&		modelDescriptor = arrayModels[ index ];
-            int						cluster = arrayBspLeafs[ FindLeaf( ( modelDescriptor.model->GetMax() + modelDescriptor.model->GetMin() ) / 2.f ) ].cluster;
+		// Посылаем на отрисовку видимые части динамической геометрии уровня
+		for ( UInt32_t index = 1, count = arrayModels.size(); index < count; ++index )
+		{
+			ModelDescriptor&		modelDescriptor = arrayModels[ index ];
+			int						cluster = arrayBspLeafs[ FindLeaf( ( modelDescriptor.model->GetMax() + modelDescriptor.model->GetMin() ) / 2.f ) ].cluster;
 
-            if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( modelDescriptor.model->GetMin(), modelDescriptor.model->GetMax() ) )
-                continue;
+			if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( modelDescriptor.model->GetMin(), modelDescriptor.model->GetMax() ) )
+				continue;
 
-            if ( !modelDescriptor.isBspModel )
-                g_studioRender->SubmitMesh( modelDescriptor.model->GetMesh(), modelDescriptor.model->GetTransformation(), modelDescriptor.model->GetStartFace(), modelDescriptor.model->GetCountFace() );
-            else
-                for ( UInt32_t indexFace = modelDescriptor.model->GetStartFace(), countFace = modelDescriptor.model->GetStartFace() + modelDescriptor.model->GetCountFace(); indexFace < countFace; ++indexFace )
-                    if ( !facesDraw.On( indexFace ) )
-                    {
-                        facesDraw.Set( indexFace );
-                        g_studioRender->SubmitMesh( modelDescriptor.model->GetMesh(), modelDescriptor.model->GetTransformation(), indexFace, 1 );
-                    }
-        }
+			if ( !modelDescriptor.isBspModel )
+				g_studioRender->SubmitMesh( modelDescriptor.model->GetMesh(), modelDescriptor.model->GetTransformation(), modelDescriptor.model->GetStartFace(), modelDescriptor.model->GetCountFace() );
+			else
+				for ( UInt32_t indexFace = modelDescriptor.model->GetStartFace(), countFace = modelDescriptor.model->GetStartFace() + modelDescriptor.model->GetCountFace(); indexFace < countFace; ++indexFace )
+					if ( !facesDraw.On( indexFace ) )
+					{
+						facesDraw.Set( indexFace );
+						g_studioRender->SubmitMesh( modelDescriptor.model->GetMesh(), modelDescriptor.model->GetTransformation(), indexFace, 1 );
+					}
+		}
 
-        // Send to render visible sprites
-        for ( UInt32_t index = 0, count = arraySprites.size(); index < count; ++index )
-        {
-            Sprite*			sprite = arraySprites[ index ];
-            Vector3D_t      max = sprite->GetMax();
-            Vector3D_t      min = sprite->GetMin();
-            int				cluster = arrayBspLeafs[ FindLeaf( ( max + min ) / 2.f ) ].cluster;
+		// Send to render visible sprites
+		for ( UInt32_t index = 0, count = arraySprites.size(); index < count; ++index )
+		{
+			Sprite*			sprite = arraySprites[ index ];
+			Vector3D_t      max = sprite->GetMax();
+			Vector3D_t      min = sprite->GetMin();
+			int				cluster = arrayBspLeafs[ FindLeaf( ( max + min ) / 2.f ) ].cluster;
 
-            if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( min, max ) )
-                continue;
+			if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( min, max ) )
+				continue;
 
-            g_studioRender->SubmitMesh( sprite->GetMesh(), sprite->GetTransformation( camera ) );
-        }
+			g_studioRender->SubmitMesh( sprite->GetMesh(), sprite->GetTransformation( camera ) );
+		}
 
-        // Посылаем на отрисовку видимые точечные источники света
-        for ( UInt32_t index = 0, count = arrayPointLights.size(); index < count; ++index )
-        {
-            IPointLight*	pointLight = arrayPointLights[ index ];
-            int				cluster = arrayBspLeafs[ FindLeaf( pointLight->GetPosition() ) ].cluster;
+		// Посылаем на отрисовку видимые точечные источники света
+		for ( UInt32_t index = 0, count = arrayPointLights.size(); index < count; ++index )
+		{
+			IPointLight*	pointLight = arrayPointLights[ index ];
+			int				cluster = arrayBspLeafs[ FindLeaf( pointLight->GetPosition() ) ].cluster;
 
-            if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( pointLight->GetPosition(), pointLight->GetRadius() ) )
-                continue;
+			if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( pointLight->GetPosition(), pointLight->GetRadius() ) )
+				continue;
 
-            g_studioRender->SubmitLight( pointLight );
-        }
+			g_studioRender->SubmitLight( pointLight );
+		}
 
-        // Посылаем на отрисовку видимые прожекторные источники света
-        for ( UInt32_t index = 0, count = arraySpotLights.size(); index < count; ++index )
-        {
-            ISpotLight*		spotLight = arraySpotLights[ index ];
-            int				cluster = arrayBspLeafs[ FindLeaf( spotLight->GetPosition() ) ].cluster;
+		// Посылаем на отрисовку видимые прожекторные источники света
+		for ( UInt32_t index = 0, count = arraySpotLights.size(); index < count; ++index )
+		{
+			ISpotLight*		spotLight = arraySpotLights[ index ];
+			int				cluster = arrayBspLeafs[ FindLeaf( spotLight->GetPosition() ) ].cluster;
 
-            g_studioRender->SubmitLight( spotLight );
-        }
+			g_studioRender->SubmitLight( spotLight );
+		}
 
-        // Посылаем на отрисовку направленые источники света
-        for ( UInt32_t index = 0, count = arrayDirectionalLights.size(); index < count; ++index )
-            g_studioRender->SubmitLight( arrayDirectionalLights[ index ] );
+		// Посылаем на отрисовку направленые источники света
+		for ( UInt32_t index = 0, count = arrayDirectionalLights.size(); index < count; ++index )
+			g_studioRender->SubmitLight( arrayDirectionalLights[ index ] );
 
-        g_studioRender->EndScene();
-    }
+		g_studioRender->EndScene();
+	}
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -525,35 +555,82 @@ void le::Level::Render()
 void le::Level::Clear()
 {
 	for ( UInt32_t index = 0, count = arrayLightmaps.size(); index < count; ++index )
-    {
-        ITexture*           lightmap = arrayLightmaps[ index ];
+	{
+		ITexture*           lightmap = arrayLightmaps[ index ];
 
-        if ( lightmap->GetCountReferences() <= 1 )
-            arrayLightmaps[ index ]->Release();
-        else
-            lightmap->DecrementReference();
-    }
+		if ( lightmap->GetCountReferences() <= 1 )
+			arrayLightmaps[ index ]->Release();
+		else
+			lightmap->DecrementReference();
+	}
 
 	for ( UInt32_t index = 0, count = arrayModels.size(); index < count; ++index )
-    {
-        auto&         model = arrayModels[ index ];
+	{
+		auto&         model = arrayModels[ index ];
 
-        if ( model.isBspModel )
-        {
-            if ( model.model->GetCountReferences() <= 1 )
-                model.model->Release();
-            else
-                model.model->DecrementReference();
-        }
-    }
+		if ( model.model->GetCountReferences() <= 1 )
+			model.model->Release();
+		else
+			model.model->DecrementReference();
+	}
 
-    if ( mesh )
-    {
-        if ( mesh->GetCountReferences() <= 1 )
-            mesh->Release();
-        else
-            mesh->DecrementReference();
-    }
+	for ( UInt32_t index = 0, count = arrayCameras.size(); index < count; ++index )
+	{
+		auto*           camera = arrayCameras[ index ];
+
+		if ( camera->GetCountReferences() <= 1 )
+			camera->Release();
+		else
+			camera->DecrementReference();
+	}
+
+	for ( UInt32_t index = 0, count = arrayPointLights.size(); index < count; ++index )
+	{
+		auto*           pointLight = arrayPointLights[ index ];
+
+		if ( pointLight->GetCountReferences() <= 1 )
+			pointLight->Release();
+		else
+			pointLight->DecrementReference();
+	}
+
+	for ( UInt32_t index = 0, count = arraySpotLights.size(); index < count; ++index )
+	{
+		auto*           spotLight = arraySpotLights[ index ];
+
+		if ( spotLight->GetCountReferences() <= 1 )
+			spotLight->Release();
+		else
+			spotLight->DecrementReference();
+	}
+
+	for ( UInt32_t index = 0, count = arrayDirectionalLights.size(); index < count; ++index )
+	{
+		auto*           directionalLight = arrayDirectionalLights[ index ];
+
+		if ( directionalLight->GetCountReferences() <= 1 )
+			directionalLight->Release();
+		else
+			directionalLight->DecrementReference();
+	}
+
+	for ( UInt32_t index = 0, count = arraySprites.size(); index < count; ++index )
+	{
+		auto*           sprite = arraySprites[ index ];
+
+		if ( sprite->GetCountReferences() <= 1 )
+			sprite->Release();
+		else
+			sprite->DecrementReference();
+	}
+
+	if ( mesh )
+	{
+		if ( mesh->GetCountReferences() <= 1 )
+			mesh->Release();
+		else
+			mesh->DecrementReference();
+	}
 
 	arrayBspLeafs.clear();
 	arrayBspLeafsFaces.clear();
@@ -565,6 +642,7 @@ void le::Level::Clear()
 	arrayPointLights.clear();
 	arraySpotLights.clear();
 	arrayDirectionalLights.clear();
+	arraySprites.clear();
 
 	mesh = nullptr;
 	isLoaded = false;
@@ -577,7 +655,7 @@ void le::Level::AddCamera( ICamera* Camera )
 {
 	LIFEENGINE_ASSERT( Camera );
 
-    Camera->IncrementReference();
+	Camera->IncrementReference();
 	arrayCameras.push_back( ( le::Camera* ) Camera );
 }
 
@@ -588,7 +666,7 @@ void le::Level::AddModel( IModel* Model )
 {
 	LIFEENGINE_ASSERT( Model );
 
-    Model->IncrementReference();
+	Model->IncrementReference();
 	arrayModels.push_back( { false, ( le::Model* ) Model } );
 }
 
@@ -608,7 +686,7 @@ void le::Level::AddPointLight( IPointLight* PointLight )
 {
 	LIFEENGINE_ASSERT( PointLight );
 
-    PointLight->IncrementReference();
+	PointLight->IncrementReference();
 	arrayPointLights.push_back( PointLight );
 }
 
@@ -619,7 +697,7 @@ void le::Level::AddSpotLight( ISpotLight* SpotLight )
 {
 	LIFEENGINE_ASSERT( SpotLight );
 
-    SpotLight->IncrementReference();
+	SpotLight->IncrementReference();
 	arraySpotLights.push_back( SpotLight );
 }
 
@@ -630,7 +708,7 @@ void le::Level::AddDirectionalLight( IDirectionalLight* DirectionalLight )
 {
 	LIFEENGINE_ASSERT( DirectionalLight );
 
-    DirectionalLight->IncrementReference();
+	DirectionalLight->IncrementReference();
 	arrayDirectionalLights.push_back( DirectionalLight );
 }
 
@@ -641,7 +719,7 @@ void le::Level::AddSprite( ISprite* Sprite )
 {
 	LIFEENGINE_ASSERT( Sprite );
 
-    Sprite->IncrementReference();
+	Sprite->IncrementReference();
 	arraySprites.push_back( ( le::Sprite* ) Sprite );
 }
 
@@ -655,13 +733,13 @@ void le::Level::RemoveCamera( ICamera* Camera )
 	for ( UInt32_t index = 0, count = arrayCameras.size(); index < count; ++index )
 		if ( arrayCameras[ index ] == Camera )
 		{
-            if ( Camera->GetCountReferences() <= 1 )
-                Camera->Release();
-            else
-                Camera->DecrementReference();
+			if ( Camera->GetCountReferences() <= 1 )
+				Camera->Release();
+			else
+				Camera->DecrementReference();
 
 			arrayCameras.erase( arrayCameras.begin() + index );
-			break;
+			return;
 		}
 }
 
@@ -671,12 +749,12 @@ void le::Level::RemoveCamera( ICamera* Camera )
 void le::Level::RemoveCamera( UInt32_t Index )
 {
 	if ( Index >= arrayCameras.size() ) return;
-    Camera*         camera = arrayCameras[ Index ];
+	Camera*         camera = arrayCameras[ Index ];
 
-    if ( camera->GetCountReferences() <= 1 )
-        camera->Release();
-    else
-        camera->DecrementReference();
+	if ( camera->GetCountReferences() <= 1 )
+		camera->Release();
+	else
+		camera->DecrementReference();
 
 	arrayCameras.erase( arrayCameras.begin() + Index );
 }
@@ -691,10 +769,10 @@ void le::Level::RemoveModel( IModel* Model )
 	for ( UInt32_t index = 0, count = arrayModels.size(); index < count; ++index )
 		if ( arrayModels[ index ].model == Model )
 		{
-            if ( Model->GetCountReferences() <= 1 )
-                Model->Release();
-            else
-                Model->DecrementReference();
+			if ( Model->GetCountReferences() <= 1 )
+				Model->Release();
+			else
+				Model->DecrementReference();
 
 			arrayModels.erase( arrayModels.begin() + index );
 			break;
@@ -707,12 +785,12 @@ void le::Level::RemoveModel( IModel* Model )
 void le::Level::RemoveModel( UInt32_t Index )
 {
 	if ( Index >= arrayModels.size() ) return;
-    Model*          model = arrayModels[ Index ].model;
+	Model*          model = arrayModels[ Index ].model;
 
-    if ( model->GetCountReferences() <= 1 )
-        model->Release();
-    else
-        model->DecrementReference();
+	if ( model->GetCountReferences() <= 1 )
+		model->Release();
+	else
+		model->DecrementReference();
 
 	arrayModels.erase( arrayModels.begin() + Index );
 }
@@ -747,13 +825,13 @@ void le::Level::RemovePointLight( IPointLight* PointLight )
 	for ( UInt32_t index = 0, count = arrayPointLights.size(); index < count; ++index )
 		if ( arrayPointLights[ index ] == PointLight )
 		{
-            if ( PointLight->GetCountReferences() <= 1 )
-                PointLight->Release();
-            else
-                PointLight->DecrementReference();
+			if ( PointLight->GetCountReferences() <= 1 )
+				PointLight->Release();
+			else
+				PointLight->DecrementReference();
 
 			arrayPointLights.erase( arrayPointLights.begin() + index );
-			break;
+			return;
 		}
 }
 
@@ -763,12 +841,12 @@ void le::Level::RemovePointLight( IPointLight* PointLight )
 void le::Level::RemovePointLight( UInt32_t Index )
 {
 	if ( Index >= arrayPointLights.size() ) return;
-    IPointLight*            pointLight = arrayPointLights[ Index ];
+	IPointLight*            pointLight = arrayPointLights[ Index ];
 
-    if ( pointLight->GetCountReferences() <= 1 )
-        pointLight->Release();
-    else
-        pointLight->DecrementReference();
+	if ( pointLight->GetCountReferences() <= 1 )
+		pointLight->Release();
+	else
+		pointLight->DecrementReference();
 
 	arrayPointLights.erase( arrayPointLights.begin() + Index );
 }
@@ -781,13 +859,13 @@ void le::Level::RemoveSpotLight( ISpotLight* SpotLight )
 	for ( UInt32_t index = 0, count = arraySpotLights.size(); index < count; ++index )
 		if ( arraySpotLights[ index ] == SpotLight )
 		{
-            if ( SpotLight->GetCountReferences() <= 1 )
-                SpotLight->Release();
-            else
-                SpotLight->DecrementReference();
+			if ( SpotLight->GetCountReferences() <= 1 )
+				SpotLight->Release();
+			else
+				SpotLight->DecrementReference();
 
 			arraySpotLights.erase( arraySpotLights.begin() + index );
-			break;
+			return;
 		}
 }
 
@@ -797,12 +875,12 @@ void le::Level::RemoveSpotLight( ISpotLight* SpotLight )
 void le::Level::RemoveSpotLight( UInt32_t Index )
 {
 	if ( Index >= arraySpotLights.size() ) return;
-    ISpotLight*             spotLight = arraySpotLights[ Index ];
+	ISpotLight*             spotLight = arraySpotLights[ Index ];
 
-    if ( spotLight->GetCountReferences() <= 1 )
-        spotLight->Release();
-    else
-        spotLight->DecrementReference();
+	if ( spotLight->GetCountReferences() <= 1 )
+		spotLight->Release();
+	else
+		spotLight->DecrementReference();
 
 	arraySpotLights.erase( arraySpotLights.begin() + Index );
 }
@@ -815,13 +893,13 @@ void le::Level::RemoveDirectionalLight( IDirectionalLight* DirectionalLight )
 	for ( UInt32_t index = 0, count = arrayDirectionalLights.size(); index < count; ++index )
 		if ( arrayDirectionalLights[ index ] == DirectionalLight )
 		{
-            if ( DirectionalLight->GetCountReferences() <= 1 )
-                DirectionalLight->Release();
-            else
-                DirectionalLight->DecrementReference();
+			if ( DirectionalLight->GetCountReferences() <= 1 )
+				DirectionalLight->Release();
+			else
+				DirectionalLight->DecrementReference();
 
 			arrayDirectionalLights.erase( arrayDirectionalLights.begin() + index );
-			break;
+			return;
 		}
 }
 
@@ -831,12 +909,12 @@ void le::Level::RemoveDirectionalLight( IDirectionalLight* DirectionalLight )
 void le::Level::RemoveDirectionalLight( UInt32_t Index )
 {
 	if ( Index >= arrayDirectionalLights.size() ) return;
-    IDirectionalLight*          directionalLight = arrayDirectionalLights[ Index ];
+	IDirectionalLight*          directionalLight = arrayDirectionalLights[ Index ];
 
-    if ( directionalLight->GetCountReferences() <= 1 )
-        directionalLight->Release();
-    else
-        directionalLight->DecrementReference();
+	if ( directionalLight->GetCountReferences() <= 1 )
+		directionalLight->Release();
+	else
+		directionalLight->DecrementReference();
 
 	arrayDirectionalLights.erase( arrayDirectionalLights.begin() + Index );
 }
@@ -849,13 +927,13 @@ void le::Level::RemoveSprite( ISprite* Sprite )
 	for ( UInt32_t index = 0, count = arraySprites.size(); index < count; ++index )
 		if ( arraySprites[ index ] == Sprite )
 		{
-            if ( Sprite->GetCountReferences() <= 1 )
-                Sprite->Release();
-            else
-                Sprite->DecrementReference();
+			if ( Sprite->GetCountReferences() <= 1 )
+				Sprite->Release();
+			else
+				Sprite->DecrementReference();
 
 			arraySprites.erase( arraySprites.begin() + index );
-			break;
+			return;
 		}
 }
 
@@ -865,12 +943,12 @@ void le::Level::RemoveSprite( ISprite* Sprite )
 void le::Level::RemoveSprite( UInt32_t Index )
 {
 	if ( Index >= arraySprites.size() ) return;
-    Sprite*         sprite = arraySprites[ Index ];
+	Sprite*         sprite = arraySprites[ Index ];
 
-    if ( sprite->GetCountReferences() <= 1 )
-        sprite->Release();
-    else
-        sprite->DecrementReference();
+	if ( sprite->GetCountReferences() <= 1 )
+		sprite->Release();
+	else
+		sprite->DecrementReference();
 
 	arraySprites.erase( arraySprites.begin() + Index );
 }
@@ -1028,8 +1106,8 @@ le::ISprite* le::Level::GetSprite( UInt32_t Index ) const
 // ------------------------------------------------------------------------------------ //
 le::Level::Level() :
 	mesh( nullptr ),
-    isLoaded( false ),
-    countReferences( 0 )
+	isLoaded( false ),
+	countReferences( 0 )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -1158,7 +1236,7 @@ void le::Level::EntitiesParse( std::vector< Entity >& ArrayEntities, BSPEntities
 // ------------------------------------------------------------------------------------ //
 void le::Level::IncrementReference()
 {
-    ++countReferences;
+	++countReferences;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1166,7 +1244,7 @@ void le::Level::IncrementReference()
 // ------------------------------------------------------------------------------------ //
 void le::Level::DecrementReference()
 {
-    --countReferences;
+	--countReferences;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1174,7 +1252,7 @@ void le::Level::DecrementReference()
 // ------------------------------------------------------------------------------------ //
 void le::Level::Release()
 {
-    delete this;
+	delete this;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1182,5 +1260,5 @@ void le::Level::Release()
 // ------------------------------------------------------------------------------------ //
 le::UInt32_t le::Level::GetCountReferences() const
 {
-    return countReferences;
+	return countReferences;
 }

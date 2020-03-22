@@ -277,28 +277,20 @@ void le::Mesh::Delete()
     vertexBufferObject.Delete();
     indexBufferObject.Delete();
 
-    for ( auto it = materials.begin(), itEnd = materials.end(); it != itEnd; )
+    for ( auto it = materials.begin(), itEnd = materials.end(); it != itEnd; ++it )
         if ( (*it)->GetCountReferences() <= 1 )
-        {
             (*it)->Release();
-
-            it = materials.erase( it );
-            itEnd = materials.end();
-        }
         else
-            ++it;
+            (*it)->DecrementReference();
 
-    for ( auto it = lightmaps.begin(), itEnd = lightmaps.end(); it != itEnd; )
+    for ( auto it = lightmaps.begin(), itEnd = lightmaps.end(); it != itEnd; ++it )
         if ( (*it)->GetCountReferences() <= 1 )
-        {
             (*it)->Release();
-
-            it = lightmaps.erase( it );
-            itEnd = lightmaps.end();
-        }
         else
-            ++it;
+            (*it)->DecrementReference();
 
+    materials.clear();
+    lightmaps.clear();
     surfaces.clear();
     isCreated = false;
 }

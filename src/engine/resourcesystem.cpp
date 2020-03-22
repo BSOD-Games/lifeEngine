@@ -1330,7 +1330,7 @@ void le::ResourceSystem::UnloadTextures()
         return;
     }
 
-    for ( auto it = textures.begin(), itEnd = textures.end(); it != itEnd;)
+    for ( auto it = textures.begin(), itEnd = textures.end(); it != itEnd; )
         if ( it->second->GetCountReferences() <= 1 )
         {
             it->second->Release();
@@ -1350,9 +1350,9 @@ void le::ResourceSystem::UnloadAll()
 {
     UnloadLevels();
     UnloadMeshes();
+    UnloadFonts();
     UnloadMaterials();
     UnloadTextures();
-    UnloadFonts();
 }
 
 // ------------------------------------------------------------------------------------ //

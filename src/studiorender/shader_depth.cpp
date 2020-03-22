@@ -127,17 +127,13 @@ void le::ShaderDepth::Delete()
 {
     Unbind();
 
-    for ( auto it = gpuPrograms.begin(), itEnd = gpuPrograms.end(); it != itEnd; )
+    for ( auto it = gpuPrograms.begin(), itEnd = gpuPrograms.end(); it != itEnd; ++it )
         if ( it->second->GetCountReferences() <= 1 )
-        {
             it->second->Release();
-
-            it = gpuPrograms.erase( it );
-            itEnd = gpuPrograms.end();
-        }
         else
-            ++it;
+            it->second->DecrementReference();
 
     activeType = GT_SPHERE;
     gpuProgram = nullptr;
+    gpuPrograms.clear();
 }

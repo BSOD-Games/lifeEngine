@@ -30,6 +30,7 @@ void le::AnimatedTextureProxy::SetVar( IMaterialProxyVar* MaterialProxyVar )
         }
 
         frames = MaterialProxyVar;
+        frames->IncrementReference();
     }
 
     else if ( strcmp( MaterialProxyVar->GetName(), "textureRectVar" ) == 0 )
@@ -41,6 +42,7 @@ void le::AnimatedTextureProxy::SetVar( IMaterialProxyVar* MaterialProxyVar )
         }
 
         textureRectVar = MaterialProxyVar;
+        textureRectVar->IncrementReference();
     }
 
     else if ( strcmp( MaterialProxyVar->GetName(), "delay" ) == 0 )
@@ -52,6 +54,7 @@ void le::AnimatedTextureProxy::SetVar( IMaterialProxyVar* MaterialProxyVar )
         }
 
         delay = MaterialProxyVar;
+        delay->IncrementReference();
     }
     else
         g_consoleSystem->PrintError( "Variable [%s] not used in proxy-material le::AnimatedTextureProxy", MaterialProxyVar->GetName() );
@@ -73,9 +76,33 @@ bool le::AnimatedTextureProxy::IsNeadUpdate() const
 // ------------------------------------------------------------------------------------ //
 void le::AnimatedTextureProxy::ClearVar( const char* NameVar )
 {
-    if ( strcmp( NameVar, "frames" ) )                  frames = nullptr;
-    else if ( strcmp( NameVar, "textureRectVar" ) )     textureRectVar = nullptr;
-    else if ( strcmp( NameVar, "delay" ) )              delay = nullptr;
+    if ( strcmp( NameVar, "frames" ) )
+    {
+        if ( frames->GetCountReferences() <= 1 )
+            frames->Release();
+        else
+            frames->DecrementReference();
+
+        frames = nullptr;
+    }
+    else if ( strcmp( NameVar, "textureRectVar" ) )
+    {
+        if ( textureRectVar->GetCountReferences() <= 1 )
+            textureRectVar->Release();
+        else
+            textureRectVar->DecrementReference();
+
+        textureRectVar = nullptr;
+    }
+    else if ( strcmp( NameVar, "delay" ) )
+    {
+        if ( delay->GetCountReferences() <= 1 )
+            delay->Release();
+        else
+            delay->DecrementReference();
+
+        delay = nullptr;
+    }
     else return;
 
     isInitialized = false;
@@ -86,7 +113,36 @@ void le::AnimatedTextureProxy::ClearVar( const char* NameVar )
 // ------------------------------------------------------------------------------------ //
 void le::AnimatedTextureProxy::ClearAllVars()
 {
-    frames = textureRectVar = delay = nullptr;
+    if ( frames )
+    {
+        if ( frames->GetCountReferences() <= 1 )
+            frames->Release();
+        else
+            frames->DecrementReference();
+
+        frames = nullptr;
+    }
+
+    if ( textureRectVar )
+    {
+        if ( textureRectVar->GetCountReferences() <= 1 )
+            textureRectVar->Release();
+        else
+            textureRectVar->DecrementReference();
+
+        textureRectVar = nullptr;
+    }
+
+    if ( delay )
+    {
+        if ( delay->GetCountReferences() <= 1 )
+            delay->Release();
+        else
+            delay->DecrementReference();
+
+        delay = nullptr;
+    }
+
     isInitialized = false;
 }
 
@@ -151,7 +207,9 @@ le::AnimatedTextureProxy::AnimatedTextureProxy() :
 // Destructor
 // ------------------------------------------------------------------------------------ //
 le::AnimatedTextureProxy::~AnimatedTextureProxy()
-{}
+{
+    ClearAllVars();
+}
 
 // ------------------------------------------------------------------------------------ //
 // Increment reference
