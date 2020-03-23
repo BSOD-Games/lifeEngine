@@ -324,7 +324,7 @@ bool le::Engine::LoadGameInfo( const char* DirGame )
 // ------------------------------------------------------------------------------------ //
 // Р—Р°РіСЂСѓР·РёС‚СЊ РјРѕРґСѓР»СЊ РёРіСЂС‹
 // ------------------------------------------------------------------------------------ //
-bool le::Engine::LoadModule_Game( const char* PathDLL )
+bool le::Engine::LoadModule_Game( const char* PathDLL, UInt32_t CountArguments, const char** Arguments  )
 {
 	// Р•СЃР»Рё РјРѕРґСѓР»СЊ СЂР°РЅРµРµ Р±С‹Р» Р·Р°РіСЂСѓР¶РµРЅ, С‚Рѕ СѓРґР°Р»СЏРµРј
 	if ( gameDescriptor.handle ) UnloadModule_Game();
@@ -348,7 +348,8 @@ bool le::Engine::LoadModule_Game( const char* PathDLL )
 			gameDescriptor.LE_SetCriticalError( g_criticalError );
 
 		game = gameDescriptor.LE_CreateGame();
-        if ( !game->Initialize( this ) )						throw std::runtime_error( "Fail initialize game" );
+		if ( !game->Initialize( this, CountArguments, Arguments ) )
+			throw std::runtime_error( "Fail initialize game" );
 	}
 	catch ( std::exception& Exception )
 	{
@@ -757,7 +758,7 @@ bool le::Engine::Initialize( const char* EngineDirectory, WindowHandle_t WindowH
 // ------------------------------------------------------------------------------------ //
 // Р—Р°РіСЂСѓР·РёС‚СЊ РёРіСЂСѓ
 // ------------------------------------------------------------------------------------ //
-bool le::Engine::LoadGame( const char* DirGame )
+bool le::Engine::LoadGame( const char* DirGame, UInt32_t CountArguments, const char** Arguments  )
 {
 	// Р—Р°РіСЂСѓР¶Р°РµРј РёРЅС„РѕСЂРјР°С†РёСЋ РѕР± РёРіСЂРµ
 	if ( !LoadGameInfo( DirGame ) )	
@@ -767,7 +768,7 @@ bool le::Engine::LoadGame( const char* DirGame )
 	resourceSystem.SetGameDir( gameInfo.gameDir );
 
 	// Р—Р°РіСЂСѓР¶Р°РµРј РёРіСЂРѕРІСѓСЋ Р»РѕРіРёРєСѓ
-    if ( !LoadModule_Game( ( std::string( DirGame ) + "/" + gameInfo.gameDLL ).c_str() ) )
+	if ( !LoadModule_Game( ( std::string( DirGame ) + "/" + gameInfo.gameDLL ).c_str(), CountArguments, Arguments ) )
 		return false;
 
 	// Р•СЃР»Рё РµСЃС‚СЊ РёРєРѕРЅРєР° Сѓ РёРіСЂС‹ - РіСЂСѓР·РёРј РµРµ

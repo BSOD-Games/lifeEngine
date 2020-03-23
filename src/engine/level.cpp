@@ -298,13 +298,13 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		for ( UInt32_t index = 0, count = arrayBspTextures.size(); index < count; ++index )
 		{
 			BSPTexture* bspTexture = &arrayBspTextures[ index ];
-			arrayMaterials.push_back( g_resourceSystem->LoadMaterial( bspTexture->strName, ( std::string( bspTexture->strName ) + ".lmt" ).c_str() ) );
+			IMaterial*			material = g_resourceSystem->LoadMaterial( bspTexture->strName, ( std::string( bspTexture->strName ) + ".lmt" ).c_str() );
+			if ( !material )	material = g_resourceSystem->LoadMaterial( "Error", "materials/error.lmt" );
+			arrayMaterials.push_back( material );
 		}
 
 		// Инициализируем плоскости
 		IFactory*				physicsFactory = g_physicsSystem->GetFactory();
-
-
 		for ( UInt32_t index = 0, count = arrayFaces.size(); index < count; ++index )
 		{
 			BSPFace* bspFace = &arrayFaces[ index ];
@@ -316,6 +316,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 			meshSurface.startIndex = bspFace->startIndex;
 			meshSurface.countIndeces = bspFace->numOfIndices;
 			arrayMeshSurfaces.push_back( meshSurface );
+
 			std::vector<float>		vertecesBody;
 			std::vector<int>		indecesBody;
 			for (int index = bspFace->startIndex, count = bspFace->startIndex + bspFace->numOfIndices; index < count; ++index)
@@ -337,8 +338,6 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 			body->Initialize( shapeMeshDescriptor, 0.0, Vector3D_t( 0.f, 0.f, 0.f ) );
 			g_physicsSystem->AddBody( body );
 		}
-
-
 
 		// Создаем описание для формата вершин
 		std::vector< le::StudioVertexElement >			vertexElements =

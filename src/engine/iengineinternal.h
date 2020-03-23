@@ -11,6 +11,7 @@
 #ifndef IENGINE_INTERNAL_H
 #define IENGINE_INTERNAL_H
 
+#include "common/types.h"
 #include "engine/lifeengine.h"
 #include "engine/iengine.h"
 
@@ -28,7 +29,7 @@ namespace le
 	{
 	public:
         virtual bool		Initialize( const char* EngineDirectory, WindowHandle_t WindowHandle = nullptr ) = 0;
-        virtual bool		LoadGame( const char* DirGame ) = 0;
+		virtual bool		LoadGame( const char* DirGame, UInt32_t CountArguments = 0, const char** Arguments = nullptr ) = 0;
         virtual void		UnloadGame() = 0;
 	};
 

@@ -12,9 +12,11 @@
 #include "common/meshdescriptor.h"
 #include "engine/lifeengine.h"
 #include "engine/imaterial.h"
+#include "engine/iconsolesystem.h"
 #include "studiorender/itexture.h"
 #include "studiorender/studiovertexelement.h"
 
+#include "global.h"
 #include "mesh.h"
 
 // ------------------------------------------------------------------------------------ //
@@ -31,15 +33,19 @@ void le::Mesh::Create( const MeshDescriptor& MeshDescriptor )
     // Запоминаем материалы
     for ( UInt32_t index = 0; index < MeshDescriptor.countMaterials; ++index )
     {
-        materials.push_back( MeshDescriptor.materials[ index ] );
-        materials.back()->IncrementReference();
+		if ( !MeshDescriptor.materials[ index ] )		return;
+
+		materials.push_back( MeshDescriptor.materials[ index ] );
+		materials.back()->IncrementReference();
     }
 
     // Запоминаем карты освещений
     for ( UInt32_t index = 0; index < MeshDescriptor.countLightmaps; ++index )
     {
+		if ( !MeshDescriptor.lightmaps[ index ] )		return;
+
         lightmaps.push_back( MeshDescriptor.lightmaps[ index ] );
-        lightmaps.back()->IncrementReference();
+		lightmaps.back()->IncrementReference();
     }
 
     // Запоминаем поверхности

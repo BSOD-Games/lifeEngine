@@ -35,7 +35,7 @@ void Engine_CriticalError( const char* Message )
 // ------------------------------------------------------------------------------------ //
 // Точка входа
 // ------------------------------------------------------------------------------------ //
-int main( int argc, char** argv )
+int main( int argc, const char** argv )
 {
     void*                                   engineSO = nullptr;
     le::LE_CreateEngineFn_t					LE_CreateEngine = nullptr;
@@ -93,7 +93,7 @@ int main( int argc, char** argv )
                 throw std::runtime_error( "The engine is not initialized. See the logs for details" );
 
             // Загружаем игру
-            if ( !engine->LoadGame( gameDir.c_str() ) )
+			if ( !engine->LoadGame( gameDir.c_str(), argc, argv ) )
                 throw std::runtime_error( ( std::string( "Failed to load game [" ) + gameDir + "]" ).c_str() );
         }
 

@@ -28,7 +28,7 @@ namespace le
 	{
 	public:
         virtual ~IGame() {}
-		virtual bool				Initialize( IEngine* Engine ) = 0;
+		virtual bool				Initialize( IEngine* Engine, UInt32_t CountArguments, const char** Arguments ) = 0;
         virtual void				Update() = 0;
         virtual void                Render() = 0;
 		virtual void				OnEvent( const Event& Event ) = 0;

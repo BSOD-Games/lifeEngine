@@ -93,7 +93,7 @@ namespace le
 
 		// IEngineInternal
         virtual bool					Initialize( const char* EngineDirectory, WindowHandle_t WindowHandle = nullptr );
-		virtual bool					LoadGame( const char* DirGame );
+		virtual bool					LoadGame( const char* DirGame, UInt32_t CountArguments = 0, const char** Arguments = nullptr );
 		virtual void					UnloadGame();
 
 		// Engine
@@ -106,7 +106,7 @@ namespace le
         bool							LoadModule_PhysicsSystem( const char* PathDLL );
         void							UnloadModule_PhysicsSystem();
 		bool							LoadGameInfo( const char* GameDir );
-		bool							LoadModule_Game( const char* PathDLL );
+		bool							LoadModule_Game( const char* PathDLL, UInt32_t CountArguments, const char** Arguments  );
 		void							UnloadModule_Game();
 
 		bool							isInit;
