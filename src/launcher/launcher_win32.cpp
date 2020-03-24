@@ -103,17 +103,17 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
 
             engine->SetConfig( configurations );
 
-            // Удаляем выделенную память под аргументы и запускаем игру
-            LocalFree( argList );
-            delete[] argv;
-
             // Инициализируем движок для запуска игры
             if ( !engine->Initialize( "engine" ) )
                 throw std::runtime_error( "The engine is not initialized. See the logs for details" );
 
             // Загружаем игру
-            if ( !engine->LoadGame( gameDir.c_str(), argc, argv ) )
+            if ( !engine->LoadGame( gameDir.c_str(), argc, ( const char** ) argv ) )
                 throw std::runtime_error( ( std::string( "Failed to load game [" ) + gameDir + "]" ).c_str() );
+
+            // Удаляем выделенную память под аргументы и запускаем игру
+            LocalFree( argList );
+            delete[] argv;
         }
 
         // Если все прошло успешно - запускаем симуляцию игры
