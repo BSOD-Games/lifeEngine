@@ -44,7 +44,6 @@ void CMD_Exit( le::UInt32_t CountArguments, const char** Arguments )
 {
 	if ( !le::g_engine ) return;
 	le::g_engine->StopSimulation();
-	exit( 0 );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -105,8 +104,8 @@ le::Engine::~Engine()
 
 	resourceSystem.UnloadAll();
 
-    if ( physicSystem )     UnloadModule_PhysicsSystem();
-	if ( studioRender )		UnloadModule_StudioRender();	
+	if ( physicSystem )     UnloadModule_PhysicsSystem();
+	if ( studioRender )		UnloadModule_StudioRender();
 	if ( window.IsOpen() )	window.Close();
 
 	if ( cmd_Exit )
@@ -508,7 +507,7 @@ void le::Engine::RunSimulation()
         deltaTime = ( currentTick - lastTick ) / 1000.f;
         lastTick = currentTick;
 
-        inputSystem.Clear();
+		inputSystem.Clear();
 
 		while ( window.PollEvent( event ) )
 		{
@@ -554,16 +553,16 @@ void le::Engine::RunSimulation()
 				delayFrame -= FIXED_TIME_UPDATE;
 
 				inputSystem.Update();
-				game->Update();
+				game->FixedUpdate();
                 materialManager.UpdateProxes();
             }
 
 			studioRender->Begin();
 			physicSystem->Update();
-            game->Render();
+			game->Update();
             studioRender->End();
             studioRender->Present();
-		}     
+		}
 	}
 
 	StopSimulation();
@@ -576,8 +575,8 @@ void le::Engine::StopSimulation()
 {
     consoleSystem.PrintInfo( "*** Game logic end ***" );
 
-    if ( game && gameDescriptor.LE_DeleteGame )     gameDescriptor.LE_DeleteGame( game );
-    resourceSystem.UnloadAll();
+	if ( game && gameDescriptor.LE_DeleteGame )     gameDescriptor.LE_DeleteGame( game );
+	resourceSystem.UnloadAll();
     isRunSimulation = false;
 }
 

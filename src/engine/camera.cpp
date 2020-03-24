@@ -283,6 +283,37 @@ const le::Vector3D_t& le::Camera::GetRight() const
 }
 
 // ------------------------------------------------------------------------------------ //
+// Get direction move
+// ------------------------------------------------------------------------------------ //
+le::Vector3D_t le::Camera::GetDirectionMove( le::CAMERA_SIDE_MOVE SideMove ) const
+{
+	Vector3D_t			directionMove( 0.f, 0.f, 0.f );
+
+	switch ( SideMove )
+	{
+	case CSM_FORWARD:
+		directionMove = targetDirection;
+		break;
+
+	case CSM_BACKWARD:
+		directionMove = -targetDirection;
+		break;
+
+	case CSM_LEFT:
+		directionMove -= right;
+		break;
+
+	case CSM_RIGHT:
+		directionMove += right;
+		break;
+
+	default: break;
+	}
+
+	return directionMove;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Получить поворот в кватернионе
 // ------------------------------------------------------------------------------------ //
 const le::Quaternion_t& le::Camera::GetQuatRotation() const

@@ -53,6 +53,7 @@ namespace le
 		virtual const Vector3D_t&				GetPosition() const;
 		virtual const Vector3D_t&				GetUp() const;
 		virtual const Vector3D_t&				GetRight() const;
+		virtual Vector3D_t						GetDirectionMove( CAMERA_SIDE_MOVE SideMove ) const;
 		virtual const Quaternion_t&				GetQuatRotation() const;
 		virtual const Vector3D_t&				GetEulerRotation() const;
 		virtual const Vector3D_t&				GetTargetDirection() const;

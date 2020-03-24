@@ -36,6 +36,7 @@ namespace le
 	class IConVar;
 	class IStudioRender;
 	class Body;
+	class CharcterController;
 
     //---------------------------------------------------------------------//
 
@@ -43,18 +44,24 @@ namespace le
     {
     public:
         // IPhysicsSystem
-        virtual void                AddBody( IBody* Body );
-        virtual void                RemoveBody( IBody* Body );
-        virtual void                RemoveAllBodies();
+		virtual void						AddBody( IBody* Body );
+		virtual void						RemoveBody( IBody* Body );
+		virtual void						RemoveAllBodies();
+		virtual void						AddCharcterController( ICharcterController* CharcterController );
+		virtual void						RemoveCharcterController( ICharcterController* CharcterController );
+		virtual void						RemoveAllCharcterControllers();
 
-		virtual void				SetDebugCamera( ICamera* Camera );
-        virtual void                SetGravity( const Vector3D_t& Gravity );
+		virtual void						SetDebugCamera( ICamera* Camera );
+		virtual void						SetGravity( const Vector3D_t& Gravity );
 
-        virtual const Vector3D_t&   GetGravity() const;
-        virtual UInt32_t            GetCountBodes() const;
-        virtual IBody*              GetBody( UInt32_t Index ) const;
-        virtual IBody**             GetBodies() const;
-        virtual IFactory*           GetFactory() const;
+		virtual const Vector3D_t&			GetGravity() const;
+		virtual UInt32_t					GetCountBodes() const;
+		virtual IBody*						GetBody( UInt32_t Index ) const;
+		virtual IBody**						GetBodies() const;
+		virtual IFactory*					GetFactory() const;
+		virtual UInt32_t					GetCountCharcterControllers() const;
+		virtual ICharcterController*		GetCharcterController( UInt32_t Index ) const;
+		virtual ICharcterController**		GetCharcterControllers() const;
 
         // IPhysicsSystemInternal
         virtual bool                Initialize( IEngine* Engine );
@@ -65,22 +72,23 @@ namespace le
         ~PhysicsSystem();
 
     private:
-        bool                        isInitialize;
+		bool									isInitialize;
 
-        btDynamicsWorld*            dynamicsWorld;
-        btDispatcher*               dispatcher;
-        btBroadphaseInterface*      broadphase;
-        btConstraintSolver*         constraintSolver;
-        btCollisionConfiguration*   collisionConfiguration;
+		btDynamicsWorld*						dynamicsWorld;
+		btDispatcher*							dispatcher;
+		btBroadphaseInterface*					broadphase;
+		btConstraintSolver*						constraintSolver;
+		btCollisionConfiguration*				collisionConfiguration;
 
-        Vector3D_t                  gravity;
-        PhysicsSystemFactory        factory;
-		DebugDrawer					debugDrawer;
-		ICamera*					debugCamera;
-		IConVar*					conVar_debug;
+		Vector3D_t								gravity;
+		PhysicsSystemFactory					factory;
+		DebugDrawer								debugDrawer;
+		ICamera*								debugCamera;
+		IConVar*								conVar_debug;
 
-		std::vector< Body* >       bodies;
-    };
+		std::vector< Body* >					bodies;
+		std::vector< CharcterController* >		charcterControllers;
+	};
 
     //---------------------------------------------------------------------//
 }

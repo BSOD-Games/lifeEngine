@@ -126,9 +126,9 @@ void le::Body::FreezeRotation( bool X, bool Y, bool Z )
 	if ( !isInitialize ) return;
 
 	btVector3		freezeAxis( 0.f, 0.f, 0.f );
-	if ( !X )		freezeAxis.setX( 1.f );
-	if ( !Y )		freezeAxis.setY( 1.f );
-	if ( !Z )		freezeAxis.setZ( 1.f );
+	if ( X )		freezeAxis.setX( 1.f );
+	if ( Y )		freezeAxis.setY( 1.f );
+	if ( Z )		freezeAxis.setZ( 1.f );
 
 	rigidBody->setAngularFactor( freezeAxis );
 }

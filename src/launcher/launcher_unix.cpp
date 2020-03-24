@@ -100,8 +100,8 @@ int main( int argc, const char** argv )
         // Если все прошло успешно - запускаем симуляцию игры
         engine->RunSimulation();
 
-        if ( LE_DeleteEngine ) LE_DeleteEngine( engine );
-        SDL_UnloadObject( engineSO );
+		if ( LE_DeleteEngine ) LE_DeleteEngine( engine );
+		SDL_UnloadObject( engineSO );
     }
     catch ( std::exception& Exception )
     {

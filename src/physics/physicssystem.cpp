@@ -10,6 +10,8 @@
 
 #include <btBulletDynamicsCommon.h>
 #include <btBulletCollisionCommon.h>
+#include <BulletCollision/CollisionDispatch/btGhostObject.h>
+#include <BulletDynamics/Character/btKinematicCharacterController.h>
 
 #include "engine/lifeengine.h"
 #include "engine/ifactory.h"
@@ -19,6 +21,7 @@
 #include "engine/icamera.h"
 #include "physics/physicssystem.h"
 #include "physics/body.h"
+#include "physics/charactercontroller.h"
 #include "studiorender/istudiorender.h"
 #include "global.h"
 
@@ -40,6 +43,7 @@ bool le::PhysicsSystem::Initialize( le::IEngine* Engine )
     broadphase = new btDbvtBroadphase();
     constraintSolver = new btSequentialImpulseConstraintSolver();
     dynamicsWorld = new btDiscreteDynamicsWorld( dispatcher, broadphase, constraintSolver, collisionConfiguration );
+	broadphase->getOverlappingPairCache()->setInternalGhostPairCallback( new btGhostPairCallback() );
 
 	IFactory*			consoleSystemFactory = g_consoleSystem->GetFactory();
 	conVar_debug = ( IConVar* ) consoleSystemFactory->Create( CONVAR_INTERFACE_VERSION );
@@ -92,7 +96,10 @@ le::PhysicsSystem::PhysicsSystem() :
 	collisionConfiguration( nullptr ),
 	debugCamera( nullptr ),
 	conVar_debug( nullptr )
-{}
+{
+	LIFEENGINE_ASSERT( !g_physicsSystem );
+	g_physicsSystem = this;
+}
 
 // ------------------------------------------------------------------------------------ //
 // Destructor
@@ -253,4 +260,87 @@ le::IBody* le::PhysicsSystem::GetBody( le::UInt32_t Index ) const
 le::IBody** le::PhysicsSystem::GetBodies() const
 {
     return ( IBody** ) bodies.data();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Add charcter controller
+// ------------------------------------------------------------------------------------ //
+void le::PhysicsSystem::AddCharcterController( le::ICharcterController* CharcterController )
+{
+	LIFEENGINE_ASSERT( CharcterController );
+
+	le::CharcterController*		charcterController = static_cast< le::CharcterController* >( CharcterController );
+	charcterController->IncrementReference();
+	dynamicsWorld->addCollisionObject( charcterController->GetCollisionObject(), btBroadphaseProxy::CharacterFilter, btBroadphaseProxy::AllFilter );
+	dynamicsWorld->addAction( charcterController->GetHandle() );
+	charcterControllers.push_back( charcterController );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Remove charcter controller
+// ------------------------------------------------------------------------------------ //
+void le::PhysicsSystem::RemoveCharcterController( le::ICharcterController* CharcterController )
+{
+	LIFEENGINE_ASSERT( CharcterController );
+
+	for ( auto it = charcterControllers.begin(), itEnd = charcterControllers.end(); it != itEnd; ++it )
+		if ( (*it) == CharcterController )
+		{
+			dynamicsWorld->removeAction( (*it)->GetHandle() );
+			dynamicsWorld->removeCollisionObject( (*it)->GetCollisionObject() );
+
+			if ( (*it)->GetCountReferences() <= 1 )
+				(*it)->Release();
+			else
+				(*it)->DecrementReference();
+
+			charcterControllers.erase( it );
+			return;
+		}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Remove all charcter controllers
+// ------------------------------------------------------------------------------------ //
+void le::PhysicsSystem::RemoveAllCharcterControllers()
+{
+	if ( charcterControllers.empty() ) return;
+
+	for ( auto it = charcterControllers.begin(), itEnd = charcterControllers.end(); it != itEnd; ++it )
+	{
+		dynamicsWorld->removeAction( (*it)->GetHandle() );
+		dynamicsWorld->removeCollisionObject( (*it)->GetCollisionObject() );
+
+		if ( (*it)->GetCountReferences() <= 1 )
+			(*it)->Release();
+		else
+			(*it)->DecrementReference();
+	}
+
+	charcterControllers.clear();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get count charcter controllers
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::PhysicsSystem::GetCountCharcterControllers() const
+{
+	return charcterControllers.size();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get charcter controller
+// ------------------------------------------------------------------------------------ //
+le::ICharcterController* le::PhysicsSystem::GetCharcterController( le::UInt32_t Index ) const
+{
+	LIFEENGINE_ASSERT( Index < charcterControllers.size() );
+	return  ( ICharcterController* ) charcterControllers[ Index ];
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get charcter controllers
+// ------------------------------------------------------------------------------------ //
+le::ICharcterController** le::PhysicsSystem::GetCharcterControllers() const
+{
+	return ( ICharcterController** ) charcterControllers.data();
 }

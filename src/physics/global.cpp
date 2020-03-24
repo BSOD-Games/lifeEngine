@@ -19,6 +19,7 @@ namespace le
 	IConsoleSystem*				g_consoleSystem = nullptr;
 	IStudioRender*				g_studioRender = nullptr;
 	IEngine*					g_engine = nullptr;
+	PhysicsSystem*				g_physicsSystem = nullptr;
 
 	//---------------------------------------------------------------------//
 }
