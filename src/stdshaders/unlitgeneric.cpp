@@ -104,7 +104,7 @@ bool le::UnlitGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** Sh
 			out_normalShininess = vec4( normalize( normal ), 32.f );\n\
 		#endif \n\
 		\n\
-		out_emission = vec4( 0.f );\n\
+		out_emission = vec4( 1.f );\n\
 	}\n";
 
 	std::vector< const char* >			defines;

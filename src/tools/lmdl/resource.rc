@@ -1,4 +1,4 @@
-#include "../public/engine/lifeengine.h"
+#include "../../public/engine/lifeengine.h"
 
 1 VERSIONINFO
  FILEFLAGSMASK 0x3fL
@@ -16,10 +16,10 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "BSOD"
-            VALUE "FileDescription", "Core module lifeEngine"
-            VALUE "InternalName", "engine.dll"
+            VALUE "FileDescription", "Converter models to LMD"
+            VALUE "InternalName", "lmdl.exe"
             VALUE "LegalCopyright", "Copyright (C) 2016-2020"
-            VALUE "OriginalFilename", "engine.dll"
+            VALUE "OriginalFilename", "lmdl.exe"
             VALUE "ProductName", "lifeEngine"
             VALUE "ProductVersion", LIFEENGINE_VERSION
         END

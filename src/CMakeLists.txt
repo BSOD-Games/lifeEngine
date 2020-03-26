@@ -10,6 +10,7 @@ set( PROJECT_ENGINE engine )
 set( PROJECT_STUDIORENDER studiorender )
 set( PROJECT_STDSHADERS stdshaders )
 set( PROJECT_PHYSICS physics )
+set( PROJECT_LMDL tools/lmdl )
 
 #
 #   --- Настройки сборки ---
@@ -23,6 +24,7 @@ option( BUILD_ENGINE "Build engine" OFF )
 option( BUILD_STUDIORENDER "Build studiorender" OFF )
 option( BUILD_PHYSICS "Build physics" OFF )
 option( BUILD_STDSHADERS "Build stdshaders" OFF )
+option( BUILD_CONVERTER_MODELS "Build converter models" OFF )
 
 if( LIFEENGINE_DEBUG )
 	message( STATUS "Debug mode enabled" )
@@ -72,4 +74,8 @@ endif()
 
 if ( BUILD_STDSHADERS )
 	add_subdirectory( ${PROJECT_STDSHADERS} )
+endif()
+
+if ( BUILD_CONVERTER_MODELS )
+	add_subdirectory( ${PROJECT_LMDL} )
 endif()
