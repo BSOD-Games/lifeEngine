@@ -48,8 +48,8 @@ namespace le
 
 		// IStudioRender				
 		virtual void											BeginScene( ICamera* Camera );
-		virtual void											SubmitLine( const Vector3D_t& From, const Vector3D_t& To, const Vector3D_t& Color, const Matrix4x4_t& Transformation );
-		virtual void											SubmitPoint( const Vector3D_t& Position, const Vector3D_t& Color );
+		virtual void											SubmitDebugLine( const Vector3D_t& From, const Vector3D_t& To, const Vector3D_t& Color );
+		virtual void											SubmitDebugPoint( const Vector3D_t& Position, const Vector3D_t& Color );
 		virtual void											SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation );
 		virtual void											SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation, UInt32_t StartSurface, UInt32_t CountSurface );
 		virtual void											SubmitLight( IPointLight* PointLight );
@@ -75,6 +75,7 @@ namespace le
 		void								Render_FinalPass();
 
 		bool								isInitialize;
+		bool								isNeedRenderDebugPrimitives;
 
 		RenderContext						renderContext;
 		StudioRenderDeviceConfigurations	deviceConfigurations;
@@ -88,6 +89,10 @@ namespace le
 		ShaderDepth							shaderDepth;
 		ShaderLighting						shaderLighting;
 		ShaderPostprocess					shaderPostrocess;
+
+		GPUProgram							debugPrimitivesShader;
+		VertexArrayObject					vao_DebugPrimitive;
+		VertexBufferObject					vbo_DebugPrimitive;
 
 		UInt32_t							currentScene;
 		std::vector< SceneDescriptor >		scenes;		

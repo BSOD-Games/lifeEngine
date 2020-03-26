@@ -189,6 +189,8 @@ void le::GBuffer::Unbind()
 // ------------------------------------------------------------------------------------ //
 void le::GBuffer::ShowFinalFrame()
 {
+	if ( !isInitialize ) return;
+
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	glBindFramebuffer( GL_READ_FRAMEBUFFER, handle_frameBuffer );
 
@@ -197,10 +199,25 @@ void le::GBuffer::ShowFinalFrame()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Copy depth buffer to default buffer
+// ------------------------------------------------------------------------------------ //
+void le::GBuffer::CopyDepthBufferToDefaultBuffer()
+{
+	if ( !isInitialize ) return;
+
+	glBindFramebuffer( GL_READ_FRAMEBUFFER, handle_frameBuffer );
+	glBindFramebuffer( GL_DRAW_FRAMEBUFFER, 0 );
+
+	glBlitFramebuffer( 0, 0, windowSize.x, windowSize.y, 0, 0, windowSize.x, windowSize.y, GL_DEPTH_BUFFER_BIT, GL_NEAREST );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Показать все буферы на экране
 // ------------------------------------------------------------------------------------ //
 void le::GBuffer::ShowBuffers()
 {
+	if ( !isInitialize ) return;
+
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	glBindFramebuffer( GL_READ_FRAMEBUFFER, handle_frameBuffer );
 
