@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stdexcept>
 #include <iostream>
+#include <assimp/Importer.hpp>
 
 #include "common/types.h"
 #include "global.h"
@@ -73,7 +74,19 @@ void PrintUsage()
 			  << "-h | -help\t->\tshow this message\n"
 			  << "-s | -source\t->\tpath to source file\n"
 			  << "-o | -output\t->\tpath to output file\n"
-			  << "-m | -mat\t->\tpath to materials (relative to the game directory)\n";
+			  << "-m | -mat\t->\tpath to materials (relative to the game directory)\n"
+			  << "-------------------------\n\n"
+			  << "Supported formats:\n"
+			  << "-------------------------\n";
+
+	Assimp::Importer		import;
+	std::string				extensionsList;
+	import.GetExtensionList( extensionsList );
+
+	if ( extensionsList.empty() )
+		std::cout << "not supported formats, this is bug? :/\n";
+	else
+		std::cout << extensionsList << std::endl;
 }
 
 // ------------------------------------------------------------------------------------ //
