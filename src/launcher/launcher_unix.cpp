@@ -46,7 +46,7 @@ int main( int argc, const char** argv )
     {
         // Загружаем ядро движка
         engineSO = SDL_LoadObject( "engine/" LIFEENGINE_ENGINE_DLL );
-        if ( !engineSO )            throw std::runtime_error( "Faile loaded engine/" LIFEENGINE_ENGINE_DLL );
+		if ( !engineSO )            throw std::runtime_error( SDL_GetError() );
 
         LE_CreateEngine = ( le::LE_CreateEngineFn_t ) SDL_LoadFunction( engineSO, "LE_CreateEngine" );
         if ( !LE_CreateEngine )		throw std::runtime_error( "Faile get adress on function LE_CreateEngine" );

@@ -27,7 +27,7 @@ namespace le
 		ST_CYLINDER,
 		ST_CAPSULE,
 		ST_SPHERE,
-		ST_MESH,
+                ST_CONVEX_HULL,
 		ST_CONE
 	};
 

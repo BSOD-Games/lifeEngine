@@ -63,12 +63,12 @@ void le::Body::Delete()
 	{
 		switch ( shapeType )
 		{
-		case ST_BOX:		delete static_cast< btBoxShape* >( shape );						break;
-		case ST_MESH:		delete static_cast< btConvexTriangleMeshShape* >( shape );		break;
-		case ST_SPHERE:		delete static_cast< btSphereShape* >( shape );					break;
-		case ST_CAPSULE:	delete static_cast< btCapsuleShape* >( shape );					break;
-		case ST_CYLINDER:	delete static_cast< btCylinderShape* >( shape );				break;
-		case ST_CONE:		delete static_cast< btConeShape* >( shape );					break;
+		case ST_BOX:				delete static_cast< btBoxShape* >( shape );				break;
+		case ST_CONVEX_HULL:		delete static_cast< btConvexHullShape* >( shape );		break;
+		case ST_SPHERE:				delete static_cast< btSphereShape* >( shape );			break;
+		case ST_CAPSULE:			delete static_cast< btCapsuleShape* >( shape );			break;
+		case ST_CYLINDER:			delete static_cast< btCylinderShape* >( shape );		break;
+		case ST_CONE:				delete static_cast< btConeShape* >( shape );			break;
 		}
 	}
 
@@ -340,23 +340,24 @@ bool le::Body::Initialize( const ShapeMeshDescriptor& ShapeMeshDescriptor, float
 	transform.setIdentity();
 	transform.setOrigin( btVector3( 0.f, 0.f, 0.f ) );
 
-	for ( UInt32_t index = 0; index < ShapeMeshDescriptor.countVerteces; ++index )
-		verteces.push_back( ShapeMeshDescriptor.verteces[ index ] );
+	//btTriangleMesh* triangleMesh = new btTriangleMesh();
+	/*for (int i=0; i < ShapeMeshDescriptor.countVerteces; i += 3 )
+	   {
+		   glm::vec3 v1 = ShapeMeshDescriptor.verteces[ i ];
+		   glm::vec3 v2 = ShapeMeshDescriptor.verteces[ i + 1 ];
+		   glm::vec3 v3 = ShapeMeshDescriptor.verteces[ i + 2 ];
 
-	for ( UInt32_t index = 0; index < ShapeMeshDescriptor.countIndeces; ++index )
-		indeces.push_back( ShapeMeshDescriptor.indeces[ index ] );
+		   btVector3 bv1 = btVector3(v1.x, v1.y, v1.z);
+		   btVector3 bv2 = btVector3(v2.x, v2.y, v2.z);
+		   btVector3 bv3 = btVector3(v3.x, v3.y, v3.z);
 
-	btTriangleIndexVertexArray*			indexVertexArrays = new btTriangleIndexVertexArray
-	(
-		( int ) ( indeces.size() / 3 ),
-		&indeces[ 0 ],
-		sizeof( int ) * 3,
-		( int ) ( verteces.size() ),
-		&verteces[ 0 ],
-		sizeof( float )
-	);
+		   triangleMesh->addTriangle(bv1, bv2, bv3);
+	   }
+	btCollisionShape* meshShape = new btBvhTriangleMeshShape(triangleMesh ,false);*/
 
-	btConvexTriangleMeshShape*			meshShape = new btConvexTriangleMeshShape( indexVertexArrays );
+	btConvexHullShape* meshShape = new btConvexHullShape( &ShapeMeshDescriptor.verteces[ 0 ].x, ShapeMeshDescriptor.countVerteces, sizeof( Vector3D_t ) );
+	meshShape->optimizeConvexHull();
+
 	if ( Type == BT_STATIC )
 	{
 		mass = 0.f;
@@ -376,7 +377,7 @@ bool le::Body::Initialize( const ShapeMeshDescriptor& ShapeMeshDescriptor, float
 
 	this->transform = &rigidBody->getWorldTransform();
 	bodyType = Type;
-	shapeType = ST_MESH;
+	shapeType = ST_CONVEX_HULL;
 	shape = meshShape;
 	isInitialize = true;
 	isActive = true;

@@ -41,12 +41,13 @@ namespace le
         virtual void                    Render() = 0;
         virtual void			Clear() = 0;
         virtual void			AddCamera( ICamera* Camera ) = 0;
-        virtual void			AddModel( IModel* Model/*, IBody* Body = nullptr*/ ) = 0;
+        virtual void			AddModel( IModel* Model ) = 0;
         virtual void			AddEntity( IEntity* Entity ) = 0;
         virtual void			AddPointLight( IPointLight* PointLight ) = 0;
         virtual void			AddSpotLight( ISpotLight* SpotLight ) = 0;
         virtual void			AddDirectionalLight( IDirectionalLight* DirectionalLight ) = 0;
-        virtual void			AddSprite( ISprite* Sprite/*, IBody* Body = nullptr*/ ) = 0;
+        virtual void			AddSprite( ISprite* Sprite ) = 0;
+        virtual void                    AddBody( IBody* Body ) = 0;
         virtual void			RemoveCamera( ICamera* Camera ) = 0;
         virtual void			RemoveCamera( UInt32_t Index ) = 0;
         virtual void			RemoveModel( IModel* Model ) = 0;
@@ -61,6 +62,8 @@ namespace le
         virtual void			RemoveDirectionalLight( UInt32_t Index ) = 0;
         virtual void			RemoveSprite( ISprite* Sprite ) = 0;
         virtual void			RemoveSprite( UInt32_t Index ) = 0;
+        virtual void                    RemoveBody( IBody* Body ) = 0;
+        virtual void                    RemoveBody( UInt32_t Index ) = 0;
 
         virtual bool			IsLoaded() const = 0;
         virtual const char*		GetNameFormat() const = 0;
@@ -78,6 +81,8 @@ namespace le
         virtual IDirectionalLight*	GetDirectionalLight( UInt32_t Index ) const = 0;
         virtual UInt32_t		GetCountSprites() const = 0;
         virtual ISprite*		GetSprite( UInt32_t Index ) const = 0;
+        virtual UInt32_t                GetCountBodes() const = 0;
+        virtual IBody*                  GetBody( UInt32_t Index ) const = 0;
     };
 
     //---------------------------------------------------------------------//
