@@ -70,7 +70,7 @@ void le::PhysicsSystem::Update()
 
 	// TODO: move activation bodies to level manager
 	for ( auto it = bodies.begin(), itEnd = bodies.end(); it != itEnd; ++it )
-		if ( (*it)->GetType() == BT_DYNAMIC )
+		if ( (*it)->IsStatic() )
 			(*it)->Activate();
 
 	dynamicsWorld->stepSimulation( 1.f / 60.f );

@@ -28,7 +28,8 @@
 #include "studiorender/idirectionallight.h"
 #include "physics/iphysicssystem.h"
 #include "physics/ibody.h"
-#include "physics/shapemeshdescriptor.h"
+#include "physics/icollider.h"
+#include "physics/shapeconvexhulldescriptor.h"
 
 #include "global.h"
 #include "consolesystem.h"
@@ -166,7 +167,7 @@ le::ITexture* Lightmap_Create( le::Byte_t* ImageBits, uint32_t Width, uint32_t H
 
 	return texture;
 }
-
+#include <algorithm>
 // ------------------------------------------------------------------------------------ //
 // Загрузить уровень
 // ------------------------------------------------------------------------------------ //
@@ -392,19 +393,20 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 
 		// Created physics bodyes
 		IFactory*				physicsFactory = g_physicsSystem->GetFactory();
-		for ( UInt32_t index = 0, countBspLeafs = arrayBspLeafs.size(); index < countBspLeafs; ++index )
+		for ( UInt32_t index = 0, countModels = arrayBspModels.size(); index < countModels; ++index )
 		{
-			bool			isValidBrush = false;
-			BSPLeaf&		bspLeaf = arrayBspLeafs[ index ];
+			BSPModel&					bspModel = arrayBspModels[ index ];
+			ICollider*					collider = ( ICollider* ) physicsFactory->Create( COLLIDER_INTERFACE_VERSION );
+			if ( !collider ) return false;
 
-			for ( UInt32_t indexLeafBrush = 0; indexLeafBrush < bspLeaf.numOfLeafBrushes; ++indexLeafBrush )
+			for ( UInt32_t indexBrush = 0; indexBrush < bspModel.numOfBrushes; ++indexBrush )
 			{
+				bool						isValidBrush = false;
 				std::vector< BSPPlane >		planeEquations;
-				BSPBrush&			bspBrush = arrayBrushes[ arrayLeafsBrushes[ bspLeaf.leafBrush + indexLeafBrush ] ];
+				BSPBrush&					bspBrush = arrayBrushes[ bspModel.startBrushIndex + indexBrush ];
 
 				if ( bspBrush.textureID == -1 )										continue;
 				if ( !( arrayBspTextures[ bspBrush.textureID ].type & 1 ) )			continue;
-				bspBrush.textureID = -1;
 
 				for ( UInt32_t indexSide = 0; indexSide < bspBrush.numOfBrushSides; ++indexSide )
 				{
@@ -416,28 +418,32 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 					isValidBrush = true;
 				}
 
-				if ( isValidBrush )
-				{
-					std::vector< Vector3D_t >		verteces;
-					BSP_GetVertecesFromPlaneEquations( planeEquations, verteces );
-					if ( verteces.empty() )		continue;
+				if ( !isValidBrush ) continue;
 
-					ShapeMeshDescriptor shapeMeshDescriptor;
-					shapeMeshDescriptor.verteces = verteces.data();
-					shapeMeshDescriptor.countVerteces = verteces.size();
-					shapeMeshDescriptor.indeces = nullptr;
-					shapeMeshDescriptor.countIndeces = 0;
+				std::vector< Vector3D_t >		verteces;
+				BSP_GetVertecesFromPlaneEquations( planeEquations, verteces );
+				if ( verteces.empty() )		continue;
 
-					IBody*		body = ( IBody* ) physicsFactory->Create( BODY_INTERFACE_VERSION );
-					if ( !body )		return false;
-
-					body->Initialize( shapeMeshDescriptor, 0.0, Vector3D_t( 0.f, 0.f, 0.f ) );
-					body->IncrementReference();
-
-					g_physicsSystem->AddBody( body );
-					arrayBodes.push_back( body );
-				}
+				ShapeConvexHullDescriptor			shapeConvexHullDescriptor;
+				shapeConvexHullDescriptor.verteces = verteces.data();
+				shapeConvexHullDescriptor.countVerteces = verteces.size();
+				collider->AddShape( shapeConvexHullDescriptor, Matrix4x4_t( 1.f ) );
 			}
+
+			if ( collider->GetCountShapes() == 0 )
+			{
+				collider->Release();
+				continue;
+			}
+
+			IBody*		body = ( IBody* ) physicsFactory->Create( BODY_INTERFACE_VERSION );
+			if ( !body )		return false;
+
+			body->Create( collider, 0.0, Vector3D_t( 0.f, 0.f, 0.f ) );
+			body->IncrementReference();
+
+			g_physicsSystem->AddBody( body );
+			arrayBodes.push_back( body );
 		}
 
 		// Инициализируем плоскости

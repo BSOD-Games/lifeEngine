@@ -8,8 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef SHAPEMESHDESCRIPTOR_H
-#define SHAPEMESHDESCRIPTOR_H
+#ifndef SHAPECONVEXHULLDESCRIPTOR_H
+#define SHAPECONVEXHULLDESCRIPTOR_H
 
 #include "common/types.h"
 
@@ -17,19 +17,17 @@
 
 namespace le
 {
-    //---------------------------------------------------------------------//
+	//---------------------------------------------------------------------//
 
-	struct ShapeMeshDescriptor
-    {
-		int             countVerteces;
-		Vector3D_t*     verteces;
-		int             countIndeces;
-		int*            indeces;
-    };
+	struct ShapeConvexHullDescriptor
+	{
+		UInt32_t            countVerteces;
+		Vector3D_t*			verteces;
+	};
 
-    //---------------------------------------------------------------------//
+	//---------------------------------------------------------------------//
 }
 
 //---------------------------------------------------------------------//
 
-#endif // !SHAPEMESHDESCRIPTOR_H
+#endif // !SHAPECONVEXHULLDESCRIPTOR_H
