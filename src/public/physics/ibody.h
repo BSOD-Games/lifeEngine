@@ -31,13 +31,12 @@ namespace le
 		virtual bool                Create( ICollider* Collider, float Mass, const Vector3D_t& Inertia, bool IsStatic = true ) = 0;
 		virtual void				Activate() = 0;
 		virtual void                Delete() = 0;
-
-        virtual void                SetPosition( const Vector3D_t& Position ) = 0;
-		virtual void				SetRotation( const Quaternion_t& Rotation ) = 0;
-
         virtual void                ApplyImpulse( const Vector3D_t& Factor, const Vector3D_t& CenterBody = Vector3D_t( 0.f ) ) = 0;
         virtual void                ApplyForce( const Vector3D_t& Factor, const Vector3D_t& CenterBody = Vector3D_t( 0.f ) ) = 0;
         virtual void                FreezeRotation( bool X, bool Y, bool Z ) = 0;
+
+		virtual void                SetPosition( const Vector3D_t& Position ) = 0;
+		virtual void				SetRotation( const Quaternion_t& Rotation ) = 0;
 
 		virtual bool				IsStatic() const = 0;
 		virtual float               GetMass() const = 0;

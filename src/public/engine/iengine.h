@@ -54,7 +54,7 @@ namespace le
 		virtual IWindow*				GetWindow() const = 0;
 		virtual IFactory*				GetFactory() const = 0;
 		virtual float					GetDeltaTime() const = 0;
-		virtual float					GetRateGameUpdate() const = 0;
+		virtual float					GetFixedTimeStep() const = 0;
 		virtual const Configurations&	GetConfigurations() const = 0;
         virtual const GameInfo&         GetGameInfo() const = 0;
 		virtual const Version&			GetVersion() const = 0;

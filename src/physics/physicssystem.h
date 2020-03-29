@@ -64,8 +64,9 @@ namespace le
 		virtual ICharcterController**		GetCharcterControllers() const;
 
         // IPhysicsSystemInternal
-        virtual bool                Initialize( IEngine* Engine );
-        virtual void                Update();
+		virtual bool						Initialize( IEngine* Engine );
+		virtual void						Update();
+		virtual void						DebugRender();
 
         // PhysicsSystem
         PhysicsSystem();
@@ -73,6 +74,9 @@ namespace le
 
     private:
 		bool									isInitialize;
+
+		UInt32_t								maxSubSteps;
+		float									fixedTimeStep;
 
 		btDynamicsWorld*						dynamicsWorld;
 		btDispatcher*							dispatcher;
@@ -84,7 +88,6 @@ namespace le
 		PhysicsSystemFactory					factory;
 		DebugDrawer								debugDrawer;
 		ICamera*								debugCamera;
-		IConVar*								conVar_debug;
 
 		std::vector< Body* >					bodies;
 		std::vector< CharcterController* >		charcterControllers;

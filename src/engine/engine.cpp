@@ -70,6 +70,7 @@ le::Engine::Engine() :
 	criticalError( nullptr ),
 	cmd_Exit( new ConCmd() ),
 	cmd_Version( new ConCmd() ),
+	cvar_phyDebug( new ConVar() ),
 	deltaTime( 0.f )
 {
 	LIFEENGINE_ASSERT( !g_engine );
@@ -77,6 +78,7 @@ le::Engine::Engine() :
 	g_consoleSystem = &consoleSystem;
 	g_resourceSystem = &resourceSystem;
 	g_inputSystem = &inputSystem;
+	g_window = &window;
 	g_engine = this;
 
 	configurations.fov = 75.f;
@@ -90,9 +92,11 @@ le::Engine::Engine() :
 	inputSystem.Initialize( this );
 	cmd_Exit->Initialize( "exit", "close game", CMD_Exit );
 	cmd_Version->Initialize( "version", "show version engine", CMD_Version );
+	cvar_phyDebug->Initialize( "phy_debug", "0", CVT_BOOL, "bool value for showing physics debug info", true, 0.f, true, 1.f, nullptr );
 
 	consoleSystem.RegisterCommand( cmd_Exit );
 	consoleSystem.RegisterCommand( cmd_Version );
+	consoleSystem.RegisterVar( cvar_phyDebug );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -108,17 +112,9 @@ le::Engine::~Engine()
 	if ( studioRender )		UnloadModule_StudioRender();
 	if ( window.IsOpen() )	window.Close();
 
-	if ( cmd_Exit )
-	{
-		consoleSystem.UnregisterCommand( cmd_Exit->GetName() );
-		delete cmd_Exit;
-	}
-
-	if ( cmd_Version )
-	{
-		consoleSystem.UnregisterCommand( cmd_Version->GetName() );
-		delete cmd_Version;
-	}
+	if ( cmd_Exit )			consoleSystem.UnregisterCommand( cmd_Exit->GetName() );
+	if ( cmd_Version )		consoleSystem.UnregisterCommand( cmd_Version->GetName() );
+	if ( cvar_phyDebug )	consoleSystem.UnregisterVar( cvar_phyDebug->GetName() );
 
 	FontFreeType::UninitializeFreeType();
 }
@@ -503,10 +499,6 @@ void le::Engine::RunSimulation()
 
 	while ( isRunSimulation )
 	{
-        currentTick = SDL_GetTicks();
-        deltaTime = ( currentTick - lastTick ) / 1000.f;
-        lastTick = currentTick;
-
 		inputSystem.Clear();
 
 		while ( window.PollEvent( event ) )
@@ -532,11 +524,11 @@ void le::Engine::RunSimulation()
 			case Event::ET_MOUSE_RELEASED:
 			case Event::ET_MOUSE_WHEEL:
 			case Event::ET_TEXT_INPUT:
-				inputSystem.ApplyEvent( event );
+			//	inputSystem.ApplyEvent( event );
 				break;
 
 			case Event::ET_WINDOW_RESIZE:
-                studioRender->SetViewport( { 0, 0, ( UInt32_t ) event.events.windowResize.width, ( UInt32_t ) event.events.windowResize.height } );
+				studioRender->SetViewport( { 0, 0, ( UInt32_t ) event.events.windowResize.width, ( UInt32_t ) event.events.windowResize.height } );
 				break;
 
 			default: break;
@@ -547,19 +539,27 @@ void le::Engine::RunSimulation()
 
 		if ( isFocus )
         {
-            delayFrame += deltaTime;
+			currentTick = SDL_GetTicks();
+			deltaTime = ( currentTick - lastTick ) / 1000.f;
+			lastTick = currentTick;
+
+			delayFrame += deltaTime;
 			while ( delayFrame >= FIXED_TIME_UPDATE )
             {
 				delayFrame -= FIXED_TIME_UPDATE;
 
 				inputSystem.Update();
 				game->FixedUpdate();
-                materialManager.UpdateProxes();
-            }
+				physicSystem->Update();
+				materialManager.UpdateProxes();
+            }			
 
 			studioRender->Begin();
-			physicSystem->Update();
 			game->Update();
+
+			if ( cvar_phyDebug->GetValueBool() )
+				physicSystem->DebugRender();
+
             studioRender->End();
             studioRender->Present();
 		}
@@ -809,9 +809,9 @@ float le::Engine::GetDeltaTime() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get rate game update
+// Get fixed time step
 // ------------------------------------------------------------------------------------ //
-float le::Engine::GetRateGameUpdate() const
+float le::Engine::GetFixedTimeStep() const
 {
 	return FIXED_TIME_UPDATE;
 }

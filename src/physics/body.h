@@ -39,12 +39,12 @@ namespace le
 		virtual void					Activate();
 		virtual void                    Delete();
 
-		virtual void                    SetPosition( const Vector3D_t &Position );
-		virtual void					SetRotation( const Quaternion_t& Rotation );
-
 		virtual void                    ApplyImpulse( const Vector3D_t &Factor, const Vector3D_t &CenterBody );
 		virtual void                    ApplyForce( const Vector3D_t &Factor, const Vector3D_t &CenterBody );
 		virtual void                    FreezeRotation( bool X, bool Y, bool Z );
+
+		virtual void                    SetPosition( const Vector3D_t &Position );
+		virtual void					SetRotation( const Quaternion_t& Rotation );
 
 		virtual bool					IsStatic() const;
 		virtual ICollider*				GetCollider() const;

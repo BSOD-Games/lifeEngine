@@ -38,8 +38,9 @@ namespace le
 		virtual void				SetSize( int Width, int Height );
 		virtual void				SetShowCursor( bool IsShow = true );
 
-		virtual void				GetSize( UInt32_t& Width, UInt32_t& Height ) const;
 		virtual bool				IsOpen() const;
+		virtual bool				IsShowingCursor() const;
+		virtual void				GetSize( UInt32_t& Width, UInt32_t& Height ) const;
 		virtual WindowHandle_t		GetHandle() const;
 
 		// IWindowInternal
@@ -53,8 +54,11 @@ namespace le
 		Window();
 		~Window();
 
+		inline SDL_Window*			GetSDLWindow() const		{ return window; };
+
 	private:
 		bool				isShowCursor;
+
 		UInt32_t			windowID;
 
 		SDL_Window*			window;

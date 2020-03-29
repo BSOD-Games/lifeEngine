@@ -17,21 +17,22 @@
 
 namespace le
 {
-    //---------------------------------------------------------------------//
+	//---------------------------------------------------------------------//
 
-    class IEngine;
+	class IEngine;
 
-    //---------------------------------------------------------------------//
+	//---------------------------------------------------------------------//
 
-    class IPhysicsSystemInternal : public IPhysicsSystem
-    {
-    public:
-        virtual ~IPhysicsSystemInternal() {}
-        virtual bool                Initialize( IEngine* Engine ) = 0;
-        virtual void                Update() = 0;
-    };
+	class IPhysicsSystemInternal : public IPhysicsSystem
+	{
+	public:
+		virtual ~IPhysicsSystemInternal() {}
+		virtual bool                Initialize( IEngine* Engine ) = 0;
+		virtual void                Update() = 0;
+		virtual void				DebugRender() = 0;
+	};
 
-    //---------------------------------------------------------------------//
+	//---------------------------------------------------------------------//
 }
 
 //---------------------------------------------------------------------//
