@@ -499,8 +499,6 @@ void le::Engine::RunSimulation()
 
 	while ( isRunSimulation )
 	{
-		inputSystem.Clear();
-
 		while ( window.PollEvent( event ) )
 		{
 			switch ( event.type )
@@ -524,7 +522,7 @@ void le::Engine::RunSimulation()
 			case Event::ET_MOUSE_RELEASED:
 			case Event::ET_MOUSE_WHEEL:
 			case Event::ET_TEXT_INPUT:
-			//	inputSystem.ApplyEvent( event );
+				inputSystem.ApplyEvent( event );
 				break;
 
 			case Event::ET_WINDOW_RESIZE:
@@ -549,13 +547,14 @@ void le::Engine::RunSimulation()
 				delayFrame -= FIXED_TIME_UPDATE;
 
 				inputSystem.Update();
-				game->FixedUpdate();
+				game->Update();
 				physicSystem->Update();
 				materialManager.UpdateProxes();
+				inputSystem.Clear();
             }			
 
 			studioRender->Begin();
-			game->Update();
+			game->Render();
 
 			if ( cvar_phyDebug->GetValueBool() )
 				physicSystem->DebugRender();

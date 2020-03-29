@@ -60,7 +60,6 @@ bool le::InputSystem::Initialize( IEngine* Engine )
 // ------------------------------------------------------------------------------------ //
 void le::InputSystem::ApplyEvent( const Event& Event )
 {
-	//TODO: Delete this method
 	switch ( Event.type )
 	{
     case Event::ET_KEY_PRESSED:			buttonEvents[ Event.events.key.code ] = BE_PRESSED;			break;
@@ -70,16 +69,13 @@ void le::InputSystem::ApplyEvent( const Event& Event )
     case Event::ET_MOUSE_RELEASED:		buttonEvents[ Event.events.mouseButton.code ] = BE_RELEASED;	break;
 
 	case Event::ET_MOUSE_MOVE:
-        mouseOffset.x = Event.events.mouseMove.xDirection;
-        mouseOffset.y = Event.events.mouseMove.yDirection;
+		mouseOffset.x += Event.events.mouseMove.xDirection;
+		mouseOffset.y += Event.events.mouseMove.yDirection;
         mousePosition.x = Event.events.mouseMove.x;
         mousePosition.y = Event.events.mouseMove.y;
 		break;
 
 	case Event::ET_MOUSE_WHEEL:
-        if ( Event.events.mouseWheel.y == 0 )
-			buttonEvents[ BC_MOUSE_WHEEL_UP ] = buttonEvents[ BC_MOUSE_WHEEL_DOWN ] = BE_NONE;
-		else
             buttonEvents[ Event.events.mouseWheel.y > 0 ? BC_MOUSE_WHEEL_UP : BC_MOUSE_WHEEL_DOWN ] = BE_SCROLLED;
 		break;
 
@@ -95,7 +91,7 @@ void le::InputSystem::ApplyEvent( const Event& Event )
 void le::InputSystem::Update()
 {
 	// Geting states all keys on keyboard
-	SDL_PumpEvents();
+	/*SDL_PumpEvents();
 
 	const UInt8_t*		keyboardState = SDL_GetKeyboardState( NULL );
 	for ( UInt32_t index = BC_KEY_FIRST, count = BC_KEY_FIRST+BC_KEY_COUNT; index < count; ++index )
@@ -119,7 +115,7 @@ void le::InputSystem::Update()
 	else if ( buttonEvents[ index ] == BE_PRESSED )
 		buttonEvents[ index ] = BE_RELEASED;
 	else
-		buttonEvents[ index ] = BE_NONE;
+		buttonEvents[ index ] = BE_NONE;*/
 
 	// TODO: Get wheel state and entered text
 
