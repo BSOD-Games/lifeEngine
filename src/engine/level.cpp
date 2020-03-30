@@ -28,7 +28,8 @@
 #include "studiorender/idirectionallight.h"
 #include "physics/iphysicssystem.h"
 #include "physics/ibody.h"
-#include "physics/shapemeshdescriptor.h"
+#include "physics/icollider.h"
+#include "physics/shapeconvexhulldescriptor.h"
 
 #include "global.h"
 #include "consolesystem.h"
@@ -36,6 +37,75 @@
 #include "level.h"
 #include "model.h"
 #include "sprite.h"
+
+// ------------------------------------------------------------------------------------ //
+// Is point inside planes
+// ------------------------------------------------------------------------------------ //
+bool BSP_IsPointInsidePlanes( const std::vector< le::BSPPlane >& PlaneEquations, const le::Vector3D_t& Point, float Margin )
+{
+	le::UInt32_t			countPlanesEquations = PlaneEquations.size();
+	for ( le::UInt32_t i = 0; i < countPlanesEquations; ++i )
+	{
+		const le::BSPPlane&			n1 = PlaneEquations[ i ];
+		float		distance =  glm::dot( Point, n1.normal ) + n1.distance - Margin;
+		if ( distance > 0.f )		return false;
+	}
+
+	return true;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get verteces from plane equations
+// ------------------------------------------------------------------------------------ //
+void BSP_GetVertecesFromPlaneEquations( const std::vector< le::BSPPlane >& PlaneEquations, std::vector< le::Vector3D_t >& Verteces )
+{
+	le::UInt32_t			countPlanesEquations = PlaneEquations.size();
+	for ( le::UInt32_t i = 0; i < countPlanesEquations; ++i )
+	{
+		const le::BSPPlane&			n1 = PlaneEquations[ i ];
+		for ( le::UInt32_t j = i+1; j < countPlanesEquations; ++j )
+		{
+			const le::BSPPlane&		n2 = PlaneEquations[ j ];
+			for ( le::UInt32_t k = j+1; k < countPlanesEquations; ++k )
+			{
+				const le::BSPPlane&	n3 = PlaneEquations[ k ];
+
+				le::Vector3D_t		n2n3 = glm::cross( n2.normal, n3.normal );
+				le::Vector3D_t		n3n1 = glm::cross( n3.normal, n1.normal );
+				le::Vector3D_t		n1n2 = glm::cross( n1.normal, n2.normal );
+
+				if ( glm::length2( n2n3 ) > 0.0001f &&
+					 glm::length2( n3n1 ) > 0.0001f &&
+					 glm::length2( n1n2 ) > 0.0001f )
+				{
+					// Point P out of 3 plane equations:
+
+					//	d1 ( N2 * N3 ) + d2 ( N3 * N1 ) + d3 ( N1 * N2 )
+					//P =  -------------------------------------------------------------------------
+					//   N1 . ( N2 * N3 )
+
+					float		quotient = glm::dot( n1.normal, n2n3 );
+					if ( glm::abs( quotient ) > 0.000001f )
+					{
+						quotient = -1.f / quotient;
+						n2n3 *= n1.distance;
+						n3n1 *= n2.distance;
+						n1n2 *= n3.distance;
+
+						le::Vector3D_t			potentialVertex = n2n3;
+						potentialVertex += n3n1;
+						potentialVertex += n1n2;
+						potentialVertex *= quotient;
+
+						// Check if inside, and replace supportingVertexOut if needed
+						if ( BSP_IsPointInsidePlanes( PlaneEquations, potentialVertex, 0.01f ) )
+							Verteces.push_back( potentialVertex );
+					}
+				}
+			}
+		}
+	}
+}
 
 // ------------------------------------------------------------------------------------ //
 // Изменить гаму карты освещения
@@ -97,7 +167,7 @@ le::ITexture* Lightmap_Create( le::Byte_t* ImageBits, uint32_t Width, uint32_t H
 
 	return texture;
 }
-
+#include <algorithm>
 // ------------------------------------------------------------------------------------ //
 // Загрузить уровень
 // ------------------------------------------------------------------------------------ //
@@ -122,7 +192,10 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		std::vector< BSPModel >			arrayBspModels;
 		std::vector< IMaterial* >		arrayMaterials;
 		std::vector< MeshSurface >		arrayMeshSurfaces;
+		std::vector< BSPBrush >			arrayBrushes;
+		std::vector< BSPBrushSide >		arrayBrusheSides;
 		std::vector< int >				arrayLeafsFaces;
+		std::vector< int >				arrayLeafsBrushes;
 
 		// Читаем заголовок и куски файла
 		file.read( ( char* ) &bspHeader, sizeof( BSPHeader ) );
@@ -144,6 +217,9 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		arrayBspLeafs.resize( bspLumps[ BL_LEAFS ].length / sizeof( BSPLeaf ) );
 		arrayBspNodes.resize( bspLumps[ BL_NODES ].length / sizeof( BSPNode ) );
 		arrayBspPlanes.resize( bspLumps[ BL_PLANES ].length / sizeof( BSPPlane ) );
+		arrayLeafsBrushes.resize( bspLumps[ BL_LEAF_BRUSHES ].length / sizeof( int ) );
+		arrayBrushes.resize( bspLumps[ BL_BRUSHES ].length / sizeof( BSPBrush ) );
+		arrayBrusheSides.resize( bspLumps[ BL_BRUSH_SIDES ].length / sizeof( BSPBrushSide ) );
 
 		// Считываем информацию энтити-объектов
 		file.seekg( bspLumps[ BL_ENTITIES ].offset, std::ios::beg );
@@ -224,6 +300,18 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		file.seekg( bspLumps[ BL_LEAF_FACES ].offset, std::ios::beg );
 		file.read( ( char* ) &arrayLeafsFaces[ 0 ], arrayLeafsFaces.size() * sizeof( int ) );
 
+		// Reading info by leaf brushes
+		file.seekg( bspLumps[ BL_LEAF_BRUSHES ].offset, std::ios::beg );
+		file.read( ( char* ) &arrayLeafsBrushes[ 0 ], arrayLeafsBrushes.size() * sizeof( int ) );
+
+		// Reading brushes
+		file.seekg( bspLumps[ BL_BRUSHES ].offset, std::ios::beg );
+		file.read( ( char* ) &arrayBrushes[ 0 ], arrayBrushes.size() * sizeof( BSPBrush ) );
+
+		// Reading brush sides
+		file.seekg( bspLumps[ BL_BRUSH_SIDES ].offset, std::ios::beg );
+		file.read( ( char* ) &arrayBrusheSides[ 0 ], arrayBrusheSides.size() * sizeof( BSPBrushSide ) );
+
 		// Убираем индексы фейсов относящиеся к движ. части уровня
 		int			faceStart = arrayBspModels[ 0 ].startFaceIndex;
 		int			faceEnd = arrayBspModels[ 0 ].startFaceIndex + arrayBspModels[ 0 ].numOfFaces - 1;
@@ -303,8 +391,62 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 			arrayMaterials.push_back( material );
 		}
 
-		// Инициализируем плоскости
+		// Created physics bodyes
 		IFactory*				physicsFactory = g_physicsSystem->GetFactory();
+		for ( UInt32_t index = 0, countModels = arrayBspModels.size(); index < countModels; ++index )
+		{
+			BSPModel&					bspModel = arrayBspModels[ index ];
+			ICollider*					collider = ( ICollider* ) physicsFactory->Create( COLLIDER_INTERFACE_VERSION );
+			if ( !collider ) return false;
+
+			for ( UInt32_t indexBrush = 0; indexBrush < bspModel.numOfBrushes; ++indexBrush )
+			{
+				bool						isValidBrush = false;
+				std::vector< BSPPlane >		planeEquations;
+				BSPBrush&					bspBrush = arrayBrushes[ bspModel.startBrushIndex + indexBrush ];
+
+				if ( bspBrush.textureID == -1 )										continue;
+				if ( !( arrayBspTextures[ bspBrush.textureID ].type & 1 ) )			continue;
+
+				for ( UInt32_t indexSide = 0; indexSide < bspBrush.numOfBrushSides; ++indexSide )
+				{
+					BSPBrushSide&			bspBrushSide = arrayBrusheSides[ bspBrush.brushSide + indexSide ];
+					BSPPlane				bspPlane = arrayBspPlanes[ bspBrushSide.plane ];
+
+					bspPlane.distance = -bspPlane.distance;
+					planeEquations.push_back( bspPlane );
+					isValidBrush = true;
+				}
+
+				if ( !isValidBrush ) continue;
+
+				std::vector< Vector3D_t >		verteces;
+				BSP_GetVertecesFromPlaneEquations( planeEquations, verteces );
+				if ( verteces.empty() )		continue;
+
+				ShapeConvexHullDescriptor			shapeConvexHullDescriptor;
+				shapeConvexHullDescriptor.verteces = verteces.data();
+				shapeConvexHullDescriptor.countVerteces = verteces.size();
+				collider->AddShape( shapeConvexHullDescriptor, Matrix4x4_t( 1.f ) );
+			}
+
+			if ( collider->GetCountShapes() == 0 )
+			{
+				collider->Release();
+				continue;
+			}
+
+			IBody*		body = ( IBody* ) physicsFactory->Create( BODY_INTERFACE_VERSION );
+			if ( !body )		return false;
+
+			body->Create( collider, 0.0, Vector3D_t( 0.f, 0.f, 0.f ) );
+			body->IncrementReference();
+
+			g_physicsSystem->AddBody( body );
+			arrayBodes.push_back( body );
+		}
+
+		// Инициализируем плоскости
 		for ( UInt32_t index = 0, count = arrayFaces.size(); index < count; ++index )
 		{
 			BSPFace* bspFace = &arrayFaces[ index ];
@@ -316,27 +458,6 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 			meshSurface.startIndex = bspFace->startIndex;
 			meshSurface.countIndeces = bspFace->numOfIndices;
 			arrayMeshSurfaces.push_back( meshSurface );
-
-			std::vector<float>		vertecesBody;
-			std::vector<int>		indecesBody;
-			for (int index = bspFace->startIndex, count = bspFace->startIndex + bspFace->numOfIndices; index < count; ++index)
-			{
-				indecesBody.push_back(vertecesBody.size());
-
-				vertecesBody.push_back(arrayVerteces[bspFace->startVertIndex + arrayIndices[index]].position.x);
-				vertecesBody.push_back(arrayVerteces[bspFace->startVertIndex + arrayIndices[index]].position.y);
-				vertecesBody.push_back(arrayVerteces[bspFace->startVertIndex + arrayIndices[index]].position.z);
-			}		ShapeMeshDescriptor shapeMeshDescriptor;
-			shapeMeshDescriptor.verteces = vertecesBody.data();
-			shapeMeshDescriptor.countVerteces = vertecesBody.size();
-			shapeMeshDescriptor.indeces = indecesBody.data();
-			shapeMeshDescriptor.countIndeces = indecesBody.size();
-
-			IBody*		body = ( IBody* ) physicsFactory->Create( BODY_INTERFACE_VERSION );
-			if ( !body )		return false;
-
-			body->Initialize( shapeMeshDescriptor, 0.0, Vector3D_t( 0.f, 0.f, 0.f ) );
-			g_physicsSystem->AddBody( body );
 		}
 
 		// Создаем описание для формата вершин
@@ -623,6 +744,16 @@ void le::Level::Clear()
 			sprite->DecrementReference();
 	}
 
+	for ( UInt32_t index = 0, count = arrayBodes.size(); index < count; ++index )
+	{
+		auto*           body = arrayBodes[ index ];
+
+		if ( body->GetCountReferences() <= 1 )
+			body->Release();
+		else
+			body->DecrementReference();
+	}
+
 	if ( mesh )
 	{
 		if ( mesh->GetCountReferences() <= 1 )
@@ -642,6 +773,7 @@ void le::Level::Clear()
 	arraySpotLights.clear();
 	arrayDirectionalLights.clear();
 	arraySprites.clear();
+	arrayBodes.clear();
 
 	mesh = nullptr;
 	isLoaded = false;
@@ -1098,7 +1230,8 @@ le::ISprite* le::Level::GetSprite( UInt32_t Index ) const
 	if ( Index >= arraySprites.size() )
 		return nullptr;
 
-	return ( ISprite* ) arraySprites[ Index ];}
+	return ( ISprite* ) arraySprites[ Index ];
+}
 
 // ------------------------------------------------------------------------------------ //
 // Конструктор
@@ -1260,4 +1393,68 @@ void le::Level::Release()
 le::UInt32_t le::Level::GetCountReferences() const
 {
 	return countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Add body
+// ------------------------------------------------------------------------------------ //
+void le::Level::AddBody( le::IBody* Body )
+{
+	LIFEENGINE_ASSERT( Body );
+
+	Body->IncrementReference();
+	arrayBodes.push_back( Body );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Remove body
+// ------------------------------------------------------------------------------------ //
+void le::Level::RemoveBody( le::IBody* Body )
+{
+	for ( UInt32_t index = 0, count = arrayBodes.size(); index < count; ++index )
+		if ( arrayBodes[ index ] == Body )
+		{
+			if ( Body->GetCountReferences() <= 1 )
+				Body->Release();
+			else
+				Body->DecrementReference();
+
+			arrayBodes.erase( arrayBodes.begin() + index );
+			return;
+		}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Remove body
+// ------------------------------------------------------------------------------------ //
+void le::Level::RemoveBody( le::UInt32_t Index )
+{
+	if ( Index >= arrayBodes.size() ) return;
+	IBody*         body = arrayBodes[ Index ];
+
+	if ( body->GetCountReferences() <= 1 )
+		body->Release();
+	else
+		body->DecrementReference();
+
+	arrayBodes.erase( arrayBodes.begin() + Index );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get count bodes
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::Level::GetCountBodes() const
+{
+	return arrayBodes.size();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get body
+// ------------------------------------------------------------------------------------ //
+le::IBody* le::Level::GetBody( le::UInt32_t Index ) const
+{
+	if ( Index >= arrayBodes.size() )
+		return nullptr;
+
+	return ( IBody* ) arrayBodes[ Index ];
 }

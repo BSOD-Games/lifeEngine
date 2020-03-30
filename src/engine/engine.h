@@ -32,6 +32,7 @@ namespace le
 	class IStudioRenderInternal;
     class IPhysicsSystemInternal;
 	class IConCmd;
+	class IConVar;
 
 	//---------------------------------------------------------------------//
 
@@ -86,7 +87,7 @@ namespace le
 		virtual IWindow*				GetWindow() const;
 		virtual IFactory*				GetFactory() const;
 		virtual float					GetDeltaTime() const;
-		virtual float					GetRateGameUpdate() const;
+		virtual float					GetFixedTimeStep() const;
 		virtual const Configurations&	GetConfigurations() const;
         virtual const GameInfo&         GetGameInfo() const;
 		virtual const Version&			GetVersion() const;
@@ -115,6 +116,7 @@ namespace le
 
 		IConCmd*						cmd_Exit;
 		IConCmd*						cmd_Version;
+		IConVar*						cvar_phyDebug;
 
 		IStudioRenderInternal*			studioRender;
 		StudioRenderDescriptor			studioRenderDescriptor;

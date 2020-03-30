@@ -19,7 +19,7 @@
 // ------------------------------------------------------------------------------------ //
 void le::DebugDrawer::drawLine( const btVector3& from, const btVector3& to, const btVector3& color )
 {
-	g_studioRender->SubmitLine( Vector3D_t( from.getX(), from.getY(), from.getZ() ), Vector3D_t( to.getX(), to.getY(), to.getZ() ), Vector3D_t( color.getX(), color.getY(), color.getZ() ), Matrix4x4_t( 1.f ) );
+	g_studioRender->SubmitDebugLine( Vector3D_t( from.getX(), from.getY(), from.getZ() ), Vector3D_t( to.getX(), to.getY(), to.getZ() ), Vector3D_t( color.getX(), color.getY(), color.getZ() ) );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -27,6 +27,7 @@ void le::DebugDrawer::drawLine( const btVector3& from, const btVector3& to, cons
 // ------------------------------------------------------------------------------------ //
 void le::DebugDrawer::drawContactPoint( const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color )
 {
+
 }
 
 // ------------------------------------------------------------------------------------ //

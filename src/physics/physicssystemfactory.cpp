@@ -13,6 +13,7 @@
 #include "physicssystemfactory.h"
 #include "body.h"
 #include "charactercontroller.h"
+#include "collider.h"
 
 // ------------------------------------------------------------------------------------ //
 // Создать объект
@@ -21,7 +22,8 @@ void* le::PhysicsSystemFactory::Create( const char* NameInterface )
 {
 	if ( strcmp( NameInterface, BODY_INTERFACE_VERSION ) == 0 )								return new Body();
 	else if ( strcmp( NameInterface, CHARCTERCONTROLLER_INTERFACE_VERSION ) == 0 )			return new CharcterController();
-    return nullptr;
+	else if ( strcmp( NameInterface, COLLIDER_INTERFACE_VERSION ) == 0 )					return new Collider();
+	return nullptr;
 }
 
 // ------------------------------------------------------------------------------------ //

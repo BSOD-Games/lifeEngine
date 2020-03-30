@@ -67,7 +67,7 @@ void le::CharcterController::Initialize( const le::ShapeCapsuleDescriptor& Shape
 	ghostObject->setCollisionShape( convexShape );
 	ghostObject->setCollisionFlags( btCollisionObject::CF_CHARACTER_OBJECT );
 	controller = new btKinematicCharacterController( ghostObject, convexShape, 0.05f, btVector3( 0.f, 1.f, 0.f ) );
-
+controller->setFallSpeed(80);
 	this->transform = &ghostObject->getWorldTransform();
 	isInitialize = true;
 }

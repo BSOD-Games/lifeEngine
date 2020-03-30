@@ -25,6 +25,8 @@
 #include "studiorender/istudiorender.h"
 #include "global.h"
 
+#define	PHYSICS_TIME_STEP		( 1.f / 12.f )
+
 LIFEENGINE_PHYSICSSYSTEM_API( le::PhysicsSystem );
 
 // ------------------------------------------------------------------------------------ //
@@ -32,33 +34,27 @@ LIFEENGINE_PHYSICSSYSTEM_API( le::PhysicsSystem );
 // ------------------------------------------------------------------------------------ //
 bool le::PhysicsSystem::Initialize( le::IEngine* Engine )
 {
-    if ( isInitialize )         return true;
+	if ( isInitialize )         return true;
 
 	g_engine =  Engine;
 	g_consoleSystem = Engine->GetConsoleSystem();
 	g_studioRender = Engine->GetStudioRender();
 
-    collisionConfiguration = new btDefaultCollisionConfiguration();
-    dispatcher = new btCollisionDispatcher( collisionConfiguration );
-    broadphase = new btDbvtBroadphase();
-    constraintSolver = new btSequentialImpulseConstraintSolver();
-    dynamicsWorld = new btDiscreteDynamicsWorld( dispatcher, broadphase, constraintSolver, collisionConfiguration );
+	collisionConfiguration = new btDefaultCollisionConfiguration();
+	dispatcher = new btCollisionDispatcher( collisionConfiguration );
+	broadphase = new btDbvtBroadphase();
+	constraintSolver = new btSequentialImpulseConstraintSolver();
+	dynamicsWorld = new btDiscreteDynamicsWorld( dispatcher, broadphase, constraintSolver, collisionConfiguration );
 	broadphase->getOverlappingPairCache()->setInternalGhostPairCallback( new btGhostPairCallback() );
 
-	IFactory*			consoleSystemFactory = g_consoleSystem->GetFactory();
-	conVar_debug = ( IConVar* ) consoleSystemFactory->Create( CONVAR_INTERFACE_VERSION );
-	if ( conVar_debug )
-	{
-		conVar_debug->Initialize( "phy_debug", "0", CVT_BOOL, "bool value for showing physics debug info", true, 0.f, true, 1.f, nullptr );
-		conVar_debug->IncrementReference();
-		g_consoleSystem->RegisterVar( conVar_debug );
-	}
+	fixedTimeStep = g_engine->GetFixedTimeStep();
+	maxSubSteps = PHYSICS_TIME_STEP / fixedTimeStep;
 
 	dynamicsWorld->setDebugDrawer( &debugDrawer );
 	debugDrawer.setDebugMode( btIDebugDraw::DBG_DrawWireframe );
-    dynamicsWorld->setGravity( btVector3( gravity.x, gravity.y, gravity.z ) );
-    isInitialize = true;
-    return true;
+	dynamicsWorld->setGravity( btVector3( gravity.x, gravity.y, gravity.z ) );
+	isInitialize = true;
+	return true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -66,36 +62,45 @@ bool le::PhysicsSystem::Initialize( le::IEngine* Engine )
 // ------------------------------------------------------------------------------------ //
 void le::PhysicsSystem::Update()
 {
-    if ( !isInitialize ) return;
+	if ( !isInitialize ) return;
 
 	// TODO: move activation bodies to level manager
 	for ( auto it = bodies.begin(), itEnd = bodies.end(); it != itEnd; ++it )
-		if ( (*it)->GetType() == BT_DYNAMIC )
+		if ( !(*it)->IsStatic() )
 			(*it)->Activate();
 
-	dynamicsWorld->stepSimulation( 1.f / 60.f );
+	dynamicsWorld->stepSimulation( PHYSICS_TIME_STEP, maxSubSteps, fixedTimeStep );
 
-	if ( debugCamera && conVar_debug && conVar_debug->GetValueBool() )
-	{
-		g_studioRender->BeginScene( debugCamera );
-		dynamicsWorld->debugDrawWorld();
-		g_studioRender->EndScene();
-	}
+	for ( auto it = charcterControllers.begin(), itEnd = charcterControllers.end(); it != itEnd; ++it )
+		(*it)->GetHandle()->playerStep( dynamicsWorld, PHYSICS_TIME_STEP );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Debug render
+// ------------------------------------------------------------------------------------ //
+void le::PhysicsSystem::DebugRender()
+{
+	if ( !isInitialize || !debugCamera ) return;
+
+	g_studioRender->BeginScene( debugCamera );
+	dynamicsWorld->debugDrawWorld();
+	g_studioRender->EndScene();
 }
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
 le::PhysicsSystem::PhysicsSystem() :
-    isInitialize( false ),
+	isInitialize( false ),
 	gravity( 0.f, -9.8f, 0.f ),
-    dynamicsWorld( nullptr ),
-    dispatcher( nullptr ),
-    broadphase( nullptr ),
-    constraintSolver( nullptr ),
+	dynamicsWorld( nullptr ),
+	dispatcher( nullptr ),
+	broadphase( nullptr ),
+	constraintSolver( nullptr ),
 	collisionConfiguration( nullptr ),
 	debugCamera( nullptr ),
-	conVar_debug( nullptr )
+	maxSubSteps( 1 ),
+	fixedTimeStep( 1.f / 60.f )
 {
 	LIFEENGINE_ASSERT( !g_physicsSystem );
 	g_physicsSystem = this;
@@ -106,14 +111,14 @@ le::PhysicsSystem::PhysicsSystem() :
 // ------------------------------------------------------------------------------------ //
 le::PhysicsSystem::~PhysicsSystem()
 {
-    if ( isInitialize )
-    {
-        delete collisionConfiguration;
-        delete dispatcher;
-        delete broadphase;
-        delete constraintSolver;
-        delete dynamicsWorld;
-    }
+	if ( isInitialize )
+	{
+		delete collisionConfiguration;
+		delete dispatcher;
+		delete broadphase;
+		delete constraintSolver;
+		delete dynamicsWorld;
+	}
 
 	if ( debugCamera )
 	{
@@ -121,16 +126,6 @@ le::PhysicsSystem::~PhysicsSystem()
 			debugCamera->Release();
 		else
 			debugCamera->DecrementReference();
-	}
-
-	if ( conVar_debug )
-	{
-		g_consoleSystem->UnregisterVar( conVar_debug->GetName() );
-
-		if ( conVar_debug->GetCountReferences() <= 1 )
-			conVar_debug->Release();
-		else
-			conVar_debug->DecrementReference();
 	}
 
 	RemoveAllBodies();
@@ -141,7 +136,7 @@ le::PhysicsSystem::~PhysicsSystem()
 // ------------------------------------------------------------------------------------ //
 le::IFactory* le::PhysicsSystem::GetFactory() const
 {
-    return ( IFactory* ) &factory;
+	return ( IFactory* ) &factory;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -149,7 +144,7 @@ le::IFactory* le::PhysicsSystem::GetFactory() const
 // ------------------------------------------------------------------------------------ //
 void le::PhysicsSystem::AddBody( le::IBody* Body )
 {
-    LIFEENGINE_ASSERT( Body );
+	LIFEENGINE_ASSERT( Body );
 
 	le::Body*		body = static_cast< le::Body* >( Body );
 	body->IncrementReference();
@@ -162,21 +157,21 @@ void le::PhysicsSystem::AddBody( le::IBody* Body )
 // ------------------------------------------------------------------------------------ //
 void le::PhysicsSystem::RemoveBody( le::IBody* Body )
 {
-    LIFEENGINE_ASSERT( Body );
+	LIFEENGINE_ASSERT( Body );
 
-    for ( auto it = bodies.begin(), itEnd = bodies.end(); it != itEnd; ++it )
-        if ( (*it) == Body )
-        {
+	for ( auto it = bodies.begin(), itEnd = bodies.end(); it != itEnd; ++it )
+		if ( (*it) == Body )
+		{
 			dynamicsWorld->removeRigidBody( (*it)->GetHandle() );
 
-            if ( (*it)->GetCountReferences() <= 1 )
-                (*it)->Release();
-            else
-                (*it)->DecrementReference();
+			if ( (*it)->GetCountReferences() <= 1 )
+				(*it)->Release();
+			else
+				(*it)->DecrementReference();
 
-            bodies.erase( it );
-            return;
-        }
+			bodies.erase( it );
+			return;
+		}
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -184,16 +179,16 @@ void le::PhysicsSystem::RemoveBody( le::IBody* Body )
 // ------------------------------------------------------------------------------------ //
 void le::PhysicsSystem::RemoveAllBodies()
 {
-    if ( bodies.empty() ) return;
+	if ( bodies.empty() ) return;
 
-    for ( auto it = bodies.begin(), itEnd = bodies.end(); it != itEnd; ++it )
+	for ( auto it = bodies.begin(), itEnd = bodies.end(); it != itEnd; ++it )
 	{
 		dynamicsWorld->removeRigidBody( (*it)->GetHandle() );
 
-        if ( (*it)->GetCountReferences() <= 1 )
-            (*it)->Release();
-        else
-            (*it)->DecrementReference();
+		if ( (*it)->GetCountReferences() <= 1 )
+			(*it)->Release();
+		else
+			(*it)->DecrementReference();
 	}
 
 	bodies.clear();
@@ -223,10 +218,10 @@ void le::PhysicsSystem::SetDebugCamera( le::ICamera* Camera )
 // ------------------------------------------------------------------------------------ //
 void le::PhysicsSystem::SetGravity( const le::Vector3D_t& Gravity )
 {
-    if ( !isInitialize ) return;
+	if ( !isInitialize ) return;
 
-    gravity = Gravity;
-    dynamicsWorld->setGravity( btVector3( Gravity.x, Gravity.y, Gravity.z ) );
+	gravity = Gravity;
+	dynamicsWorld->setGravity( btVector3( Gravity.x, Gravity.y, Gravity.z ) );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -234,7 +229,7 @@ void le::PhysicsSystem::SetGravity( const le::Vector3D_t& Gravity )
 // ------------------------------------------------------------------------------------ //
 const le::Vector3D_t& le::PhysicsSystem::GetGravity() const
 {
-    return gravity;
+	return gravity;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -242,7 +237,7 @@ const le::Vector3D_t& le::PhysicsSystem::GetGravity() const
 // ------------------------------------------------------------------------------------ //
 le::UInt32_t le::PhysicsSystem::GetCountBodes() const
 {
-    return bodies.size();
+	return bodies.size();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -250,8 +245,8 @@ le::UInt32_t le::PhysicsSystem::GetCountBodes() const
 // ------------------------------------------------------------------------------------ //
 le::IBody* le::PhysicsSystem::GetBody( le::UInt32_t Index ) const
 {
-    LIFEENGINE_ASSERT( Index < bodies.size() );
-    return  ( IBody* ) bodies[ Index ];
+	LIFEENGINE_ASSERT( Index < bodies.size() );
+	return  ( IBody* ) bodies[ Index ];
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -259,7 +254,7 @@ le::IBody* le::PhysicsSystem::GetBody( le::UInt32_t Index ) const
 // ------------------------------------------------------------------------------------ //
 le::IBody** le::PhysicsSystem::GetBodies() const
 {
-    return ( IBody** ) bodies.data();
+	return ( IBody** ) bodies.data();
 }
 
 // ------------------------------------------------------------------------------------ //

@@ -152,9 +152,7 @@ void le::StudioRender::SubmitLight( IDirectionalLight* DirectionalLight )
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::EndScene()
 {}
-le::IGPUProgram* sh;
-le::VertexArrayObject vao;
-le::VertexBufferObject	ob;
+
 // ------------------------------------------------------------------------------------ //
 // Инициализировать рендер
 // ------------------------------------------------------------------------------------ //
@@ -204,7 +202,8 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 
 	glEnable( GL_TEXTURE_2D );
 	OpenGLState::Initialize();
-	
+	glPolygonOffset( 1.f, 1.f );
+
 	// Getting configurations videocard
 	GLint			tempValue = 0;
 
@@ -256,42 +255,58 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 
 	shaderPostrocess.SetSizeViewport( Vector2D_t( viewport.width, viewport.height ) );
 
-	sh = new GPUProgram();
-	ShaderDescriptor			sd;
-	sd.vertexShaderSource = "\
-		#version 330 core\n\
-							\
-							layout ( location = 0 )         in vec3 vertex_position;\n\
-							uniform mat4		matrixProjection;\n\
-							void main()\n\
-	{\n\
-							gl_Position = matrixProjection * vec4( vertex_position, 1.f ); \n \
-}";
+	ShaderDescriptor			shaderDescriptor;
+	shaderDescriptor.vertexShaderSource =
+			"#version 330 core\n"
+			"struct Primitive \n"
 
-			sd.fragmentShaderSource = "\
-		#version 330 core\n\
-									  \
-									  out vec4 color;\n\
-									  \
-									  void main()\n\
-	{\n\
-									  color = vec4( 1.f, 0.f, 0.f, 1.f );\n\
-}";
+			"{\n"
+			"vec3		verteces[ 2 ];\n"
+			"vec3		color;\n"
+			"};\n"
 
-			sh->Compile(sd);
+			"out vec3				colorPrimitive;\n"
+			"uniform mat4			matrixProjection;\n"
+			"uniform Primitive		primitives[ 255 ];\n"
 
-	vao.Create();
-	ob.Create();
+			"void main()\n"
+			"{\n"
+			"colorPrimitive = primitives[ gl_InstanceID ].color;\n"
+			"gl_Position = matrixProjection * vec4( primitives[ gl_InstanceID ].verteces[ gl_VertexID ], 1.f ); \n"
+			"}";
 
-	float a[] = { 0, 0, 0, 1, 1, 0 };
+	shaderDescriptor.fragmentShaderSource =
+			"#version 330 core\n"
+			"in vec3		colorPrimitive;\n"
+			"out vec4		color;\n"
+			"void main() { color = vec4( colorPrimitive, 1.f ); }";
 
-	VertexBufferLayout s;
-	s.PushFloat( 3 );
+	if ( debugPrimitivesShader.Compile( shaderDescriptor ) )
+	{
+		// Array verteces line
+		float		lineVerteces[] =
+		{
+			// X	Y		Z
+			0.f,	0.f,	0.f,
+			0.f,	0.f,	0.f
+		};
 
-	ob.Bind();
-	ob.Allocate( a, sizeof( float ) * 6 );
-	vao.AddBuffer( ob, s );
-	vao.Unbind();
+		// Initialize info by format vertex line
+		VertexBufferLayout		vertexFormat;
+		vertexFormat.PushFloat( 3 );
+
+		// Create verex buffer for render lines
+		vao_DebugPrimitive.Create();
+		vbo_DebugPrimitive.Create();
+
+		// Pull data in VBO
+		vbo_DebugPrimitive.Bind();
+		vbo_DebugPrimitive.Allocate( lineVerteces, sizeof( float ) * 6 );
+
+		// Add VBO to VAO
+		vao_DebugPrimitive.AddBuffer( vbo_DebugPrimitive, vertexFormat );
+		vao_DebugPrimitive.Unbind();
+	}
 
 	return true;
 }
@@ -324,7 +339,9 @@ void le::StudioRender::Present()
 	LIFEENGINE_ASSERT( renderContext.IsCreated() );
 
 	// Геометрический проход Deffered Shading'a
+	glEnable( GL_POLYGON_OFFSET_FILL );
 	Render_GeometryPass();
+	glDisable( GL_POLYGON_OFFSET_FILL );
 
 	// Проход освещения
 	Render_LightPass();
@@ -333,26 +350,60 @@ void le::StudioRender::Present()
 	Render_FinalPass();
 
 	// Render debug lines and points
-	glClear( GL_DEPTH_BUFFER_BIT );
-
-	for ( UInt32_t indexScene = 0, countScenes = scenes.size(); indexScene < countScenes; ++indexScene )
+	if ( isNeedRenderDebugPrimitives && debugPrimitivesShader.IsCompile() )
 	{
-		// TODO: Оптимизировать рендер линий, убрать z-fight и реализовать рендер точек
-		SceneDescriptor&				sceneDescriptor = scenes[ indexScene ];
+		gbuffer.CopyDepthBufferToDefaultBuffer();
+		debugPrimitivesShader.Bind();
+		vao_DebugPrimitive.Bind();
 
-		if ( !sceneDescriptor.lines.empty() )
+		for ( UInt32_t indexScene = 0, countScenes = scenes.size(); indexScene < countScenes; ++indexScene )
 		{
-			vao.Bind();
-			ob.Bind();
-			sh->Bind();
-			sh->SetUniform( "matrixProjection", sceneDescriptor.camera->GetProjectionMatrix() * sceneDescriptor.camera->GetViewMatrix() );
+			SceneDescriptor&				sceneDescriptor = scenes[ indexScene ];
 
-			for ( UInt32_t indexLine = 0, countLines = sceneDescriptor.lines.size(); indexLine < countLines; ++indexLine )
+			if ( sceneDescriptor.debugLines.empty() && sceneDescriptor.debugPoints.empty() )
+				continue;
+
+			debugPrimitivesShader.SetUniform( "matrixProjection", sceneDescriptor.camera->GetProjectionMatrix() * sceneDescriptor.camera->GetViewMatrix() );
+
+			// Render lines with help instanced
+			for ( UInt32_t indexLine = 0, countLinesInGPU = 0, countLines = sceneDescriptor.debugLines.size(); indexLine < countLines; ++indexLine )
 			{
-				ob.Allocate( &sceneDescriptor.lines[ indexLine ], sizeof( Line ) );
-				glDrawArrays( GL_LINES, 0, 2 );
+				if ( countLinesInGPU < 255 )
+				{
+					debugPrimitivesShader.SetUniform( ( "primitives[" + std::to_string( countLinesInGPU ) + "].verteces[0]" ).c_str(), sceneDescriptor.debugLines[ indexLine ].from );
+					debugPrimitivesShader.SetUniform( ( "primitives[" + std::to_string( countLinesInGPU ) + "].verteces[1]" ).c_str(), sceneDescriptor.debugLines[ indexLine ].to );
+					debugPrimitivesShader.SetUniform( ( "primitives[" + std::to_string( countLinesInGPU ) + "].color" ).c_str(), sceneDescriptor.debugLines[ indexLine ].color );
+					++countLinesInGPU;
+				}
+
+				if ( countLinesInGPU == 255 || indexLine+1 == countLines )
+				{
+					glDrawArraysInstanced( GL_LINES, 0, 2, countLinesInGPU );
+					countLinesInGPU = 0;
+				}
+			}
+
+			// Render points with help instanced
+			for ( UInt32_t indexPoint = 0, countPointsInGPU = 0, countPoints = sceneDescriptor.debugPoints.size(); indexPoint < countPoints; ++indexPoint )
+			{
+				if ( countPointsInGPU < 255 )
+				{
+					debugPrimitivesShader.SetUniform( ( "primitives[" + std::to_string( countPointsInGPU ) + "].verteces[0]" ).c_str(), sceneDescriptor.debugPoints[ indexPoint ].position );
+					debugPrimitivesShader.SetUniform( ( "primitives[" + std::to_string( countPointsInGPU ) + "].color" ).c_str(), sceneDescriptor.debugPoints[ indexPoint ].color );
+					++countPointsInGPU;
+				}
+
+				if ( countPointsInGPU == 255 || indexPoint+1 == countPoints )
+				{
+					glDrawArraysInstanced( GL_POINTS, 0, 1, countPointsInGPU );
+					countPointsInGPU = 0;
+				}
 			}
 		}
+
+		debugPrimitivesShader.Unbind();
+		vao_DebugPrimitive.Unbind();
+		isNeedRenderDebugPrimitives = false;
 	}
 
 	if ( r_showgbuffer->GetValueBool() )		gbuffer.ShowBuffers();
@@ -577,20 +628,24 @@ le::StudioRender::StudioRender() :
 // ------------------------------------------------------------------------------------ //
 le::StudioRender::~StudioRender()
 {
-	if ( renderContext.IsCreated() )		renderContext.Destroy();
+	if ( debugPrimitivesShader.IsCompile() )	debugPrimitivesShader.Clear();
+	if ( renderContext.IsCreated() )			renderContext.Destroy();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Submit line
+// Submit debug line
 // ------------------------------------------------------------------------------------ //
-void le::StudioRender::SubmitLine( const Vector3D_t& From, const Vector3D_t& To, const Vector3D_t& Color, const Matrix4x4_t& Transformation )
+void le::StudioRender::SubmitDebugLine( const Vector3D_t& From, const Vector3D_t& To, const Vector3D_t& Color )
 {
-	scenes[ currentScene ].lines.push_back( { From, To } );
+	scenes[ currentScene ].debugLines.push_back( { From, To, Color } );
+	isNeedRenderDebugPrimitives = true;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Submit point
+// Submit debug point
 // ------------------------------------------------------------------------------------ //
-void le::StudioRender::SubmitPoint( const Vector3D_t& Position, const Vector3D_t& Color )
+void le::StudioRender::SubmitDebugPoint( const Vector3D_t& Position, const Vector3D_t& Color )
 {
+	scenes[ currentScene ].debugPoints.push_back( { Position, Color } );
+	isNeedRenderDebugPrimitives = true;
 }

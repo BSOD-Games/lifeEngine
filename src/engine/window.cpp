@@ -87,6 +87,7 @@ void le::Window::SetShowCursor( bool IsShow )
 	else
 		SDL_SetRelativeMouseMode( SDL_TRUE );
 
+
 	isShowCursor = IsShow;
 }
 
@@ -105,6 +106,14 @@ void le::Window::GetSize( UInt32_t& Width, UInt32_t& Height ) const
 bool le::Window::IsOpen() const
 {
 	return window;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Is showing cursor
+// ------------------------------------------------------------------------------------ //
+bool le::Window::IsShowingCursor() const
+{
+	return isShowCursor;
 }
 
 // ------------------------------------------------------------------------------------ //

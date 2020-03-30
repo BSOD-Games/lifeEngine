@@ -54,6 +54,7 @@ namespace le
 		void			Unbind();
 		void			ShowBuffers();
 		void			ShowFinalFrame();
+		void			CopyDepthBufferToDefaultBuffer();
 
 		bool			IsInitialize() const;
 

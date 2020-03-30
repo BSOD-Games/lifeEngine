@@ -33,12 +33,17 @@ find_library( 		BULLET_LIB_COLLISION
 			PATH_SUFFIXES lib lib32 lib64 lib/x86_64-linux-gnu
                 	PATHS ${BULLET_SEARCH_PATHS} )
 
+                    find_library( 		BULLET_LIB_GEOMETRY
+                                            NAMES Bullet3Geometry
+                                            PATH_SUFFIXES lib lib32 lib64 lib/x86_64-linux-gnu
+                                            PATHS ${BULLET_SEARCH_PATHS} )
+
 find_library( 		BULLET_LIB_LINEEARMATH
                 	NAMES LinearMath
 			PATH_SUFFIXES lib lib32 lib64 lib/x86_64-linux-gnu
                 	PATHS ${BULLET_SEARCH_PATHS} )
 
-if ( NOT BULLET_INCLUDE OR NOT BULLET_LIB_DYNAMICS OR NOT BULLET_LIB_COLLISION OR NOT BULLET_LIB_LINEEARMATH )
+if ( NOT BULLET_INCLUDE OR NOT BULLET_LIB_DYNAMICS OR NOT BULLET_LIB_COLLISION OR NOT BULLET_LIB_LINEEARMATH OR NOT BULLET_LIB_GEOMETRY )
     message( SEND_ERROR "Failed to find Bullet3" )
     return()
 else()

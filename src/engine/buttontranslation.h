@@ -13,6 +13,7 @@
 
 #include <SDL2/SDL.h>
 #include "common/types.h"
+#include "common/buttoncode.h"
 
 //---------------------------------------------------------------------//
 
@@ -20,12 +21,10 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	enum BUTTON_CODE;
-
-	//---------------------------------------------------------------------//
-
 	BUTTON_CODE				ButtonCode_ScanCodeToButtonCode( SDL_Scancode Scancode );
+	SDL_Scancode			ButtonCode_ButtonCodeToScanCode( BUTTON_CODE ButtonCode );
 	BUTTON_CODE				ButtonCode_MouseButtonToButtonCode( UInt8_t ButtonIndex );
+	UInt8_t					ButtonCode_ButtonCodeToMouseButton( BUTTON_CODE ButtonCode );
 	BUTTON_CODE				ButtonCode_StringToButtonCode( const char* String );
 
 	//---------------------------------------------------------------------//

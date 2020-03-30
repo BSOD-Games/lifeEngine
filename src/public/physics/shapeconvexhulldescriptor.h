@@ -8,10 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IPHYSICS_SYSTEM_INTERNAL_H
-#define IPHYSICS_SYSTEM_INTERNAL_H
+#ifndef SHAPECONVEXHULLDESCRIPTOR_H
+#define SHAPECONVEXHULLDESCRIPTOR_H
 
-#include "physics/iphysicssystem.h"
+#include "common/types.h"
 
 //---------------------------------------------------------------------//
 
@@ -19,17 +19,10 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IEngine;
-
-	//---------------------------------------------------------------------//
-
-	class IPhysicsSystemInternal : public IPhysicsSystem
+	struct ShapeConvexHullDescriptor
 	{
-	public:
-		virtual ~IPhysicsSystemInternal() {}
-		virtual bool                Initialize( IEngine* Engine ) = 0;
-		virtual void                Update() = 0;
-		virtual void				DebugRender() = 0;
+		UInt32_t            countVerteces;
+		Vector3D_t*			verteces;
 	};
 
 	//---------------------------------------------------------------------//
@@ -37,4 +30,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !IPHYSICS_SYSTEM_INTERNAL_H
+#endif // !SHAPECONVEXHULLDESCRIPTOR_H

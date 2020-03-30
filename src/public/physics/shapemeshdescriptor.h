@@ -11,18 +11,20 @@
 #ifndef SHAPEMESHDESCRIPTOR_H
 #define SHAPEMESHDESCRIPTOR_H
 
+#include "common/types.h"
+
 //---------------------------------------------------------------------//
 
 namespace le
 {
     //---------------------------------------------------------------------//
 
-    struct ShapeMeshDescriptor
+	struct ShapeMeshDescriptor
     {
-        int         countVerteces;
-        float*      verteces;
-        int         countIndeces;
-        int*        indeces;
+		int             countVerteces;
+		Vector3D_t*     verteces;
+		int             countIndeces;
+		int*            indeces;
     };
 
     //---------------------------------------------------------------------//

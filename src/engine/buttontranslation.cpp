@@ -14,16 +14,16 @@
 static SDL_Scancode		g_scanCodeToButtonCode[] =
 {
 	SDL_SCANCODE_UNKNOWN,				// BC_KEY_NONE
-	SDL_SCANCODE_0,						// BC_KEY_0				
-	SDL_SCANCODE_1,						// BC_KEY_1				
-	SDL_SCANCODE_2,						// BC_KEY_2				
-	SDL_SCANCODE_3,						// BC_KEY_3				
-	SDL_SCANCODE_4,						// BC_KEY_4				
-	SDL_SCANCODE_5,						// BC_KEY_5				
-	SDL_SCANCODE_6,						// BC_KEY_6				
-	SDL_SCANCODE_7,						// BC_KEY_7				
-	SDL_SCANCODE_8,						// BC_KEY_8				
-	SDL_SCANCODE_9,						// BC_KEY_9				
+	SDL_SCANCODE_0,						// BC_KEY_0
+	SDL_SCANCODE_1,						// BC_KEY_1
+	SDL_SCANCODE_2,						// BC_KEY_2
+	SDL_SCANCODE_3,						// BC_KEY_3
+	SDL_SCANCODE_4,						// BC_KEY_4
+	SDL_SCANCODE_5,						// BC_KEY_5
+	SDL_SCANCODE_6,						// BC_KEY_6
+	SDL_SCANCODE_7,						// BC_KEY_7
+	SDL_SCANCODE_8,						// BC_KEY_8
+	SDL_SCANCODE_9,						// BC_KEY_9
 
 	SDL_SCANCODE_A,						// BC_KEY_A
 	SDL_SCANCODE_B,						// BC_KEY_B
@@ -109,15 +109,15 @@ static SDL_Scancode		g_scanCodeToButtonCode[] =
 	SDL_SCANCODE_DOWN,					// BC_KEY_DOWN
 	SDL_SCANCODE_RIGHT,					// BC_KEY_RIGHT
 
-	SDL_SCANCODE_F1,					// BC_KEY_F1 
-	SDL_SCANCODE_F2,					// BC_KEY_F2 
-	SDL_SCANCODE_F3,					// BC_KEY_F3 
-	SDL_SCANCODE_F4,					// BC_KEY_F4 
-	SDL_SCANCODE_F5,					// BC_KEY_F5 
-	SDL_SCANCODE_F6,					// BC_KEY_F6 
-	SDL_SCANCODE_F7,					// BC_KEY_F7 
-	SDL_SCANCODE_F8,					// BC_KEY_F8 
-	SDL_SCANCODE_F9,					// BC_KEY_F9 
+	SDL_SCANCODE_F1,					// BC_KEY_F1
+	SDL_SCANCODE_F2,					// BC_KEY_F2
+	SDL_SCANCODE_F3,					// BC_KEY_F3
+	SDL_SCANCODE_F4,					// BC_KEY_F4
+	SDL_SCANCODE_F5,					// BC_KEY_F5
+	SDL_SCANCODE_F6,					// BC_KEY_F6
+	SDL_SCANCODE_F7,					// BC_KEY_F7
+	SDL_SCANCODE_F8,					// BC_KEY_F8
+	SDL_SCANCODE_F9,					// BC_KEY_F9
 	SDL_SCANCODE_F10,					// BC_KEY_F10
 	SDL_SCANCODE_F11,					// BC_KEY_F11
 	SDL_SCANCODE_F12					// BC_KEY_F12
@@ -126,16 +126,16 @@ static SDL_Scancode		g_scanCodeToButtonCode[] =
 static const char* g_buttonName[] =
 {
 	"",						// BC_KEY_NONE
-	"0",					// BC_KEY_0				
-	"1",					// BC_KEY_1				
-	"2",					// BC_KEY_2				
-	"3",					// BC_KEY_3				
-	"4",					// BC_KEY_4				
-	"5",					// BC_KEY_5				
-	"6",					// BC_KEY_6				
-	"7",					// BC_KEY_7				
-	"8",					// BC_KEY_8				
-	"9",					// BC_KEY_9				
+	"0",					// BC_KEY_0
+	"1",					// BC_KEY_1
+	"2",					// BC_KEY_2
+	"3",					// BC_KEY_3
+	"4",					// BC_KEY_4
+	"5",					// BC_KEY_5
+	"6",					// BC_KEY_6
+	"7",					// BC_KEY_7
+	"8",					// BC_KEY_8
+	"9",					// BC_KEY_9
 	"a",					// BC_KEY_A
 	"b",					// BC_KEY_B
 	"c",					// BC_KEY_C
@@ -217,15 +217,15 @@ static const char* g_buttonName[] =
 	"left",					// BC_KEY_LEFT
 	"down",					// BC_KEY_DOWN
 	"right",				// BC_KEY_RIGHT
-	"f1",					// BC_KEY_F1 
-	"f2",					// BC_KEY_F2 
-	"f3",					// BC_KEY_F3 
-	"f4",					// BC_KEY_F4 
-	"f5",					// BC_KEY_F5 
-	"f6",					// BC_KEY_F6 
-	"f7",					// BC_KEY_F7 
-	"f8",					// BC_KEY_F8 
-	"f9",					// BC_KEY_F9 
+	"f1",					// BC_KEY_F1
+	"f2",					// BC_KEY_F2
+	"f3",					// BC_KEY_F3
+	"f4",					// BC_KEY_F4
+	"f5",					// BC_KEY_F5
+	"f6",					// BC_KEY_F6
+	"f7",					// BC_KEY_F7
+	"f8",					// BC_KEY_F8
+	"f9",					// BC_KEY_F9
 	"f10",					// BC_KEY_F10
 	"f11",					// BC_KEY_F11
 	"f12",					// BC_KEY_F12
@@ -284,4 +284,34 @@ le::BUTTON_CODE le::ButtonCode_StringToButtonCode( const char* String )
 				return ( BUTTON_CODE ) index;
 
 	return BC_NONE;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Convert BUTTON_CODE to SDL_ScanCode
+// ------------------------------------------------------------------------------------ //
+SDL_Scancode le::ButtonCode_ButtonCodeToScanCode( le::BUTTON_CODE ButtonCode )
+{
+	if ( ButtonCode < le::BC_KEY_FIRST || ButtonCode > le::BC_KEY_LAST )
+		return SDL_SCANCODE_UNKNOWN;
+
+	return g_scanCodeToButtonCode[ ButtonCode ];
+}
+
+// ------------------------------------------------------------------------------------ //
+// Convert BUTTON_CODE to UInt8_t
+// ------------------------------------------------------------------------------------ //
+le::UInt8_t le::ButtonCode_ButtonCodeToMouseButton( le::BUTTON_CODE ButtonCode )
+{
+	switch ( ButtonCode )
+	{
+	case BC_MOUSE_1:			return 1;
+	case BC_MOUSE_2:			return 2;
+	case BC_MOUSE_3:			return 3;
+	case BC_MOUSE_4:			return 4;
+	case BC_MOUSE_5:			return 5;
+	case BC_MOUSE_6:			return 6;
+	case BC_MOUSE_7:			return 7;
+	case BC_MOUSE_8:			return 8;
+	default:					return 0;
+	}
 }

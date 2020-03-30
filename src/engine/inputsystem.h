@@ -54,21 +54,21 @@ namespace le
 	{
 	public:
 		// IInputSystemInternal
-		virtual bool				Initialize( IEngine* Engine );
-		virtual void				ApplyEvent( const Event& Event );
-		virtual void				Update();
-		virtual void				Clear();
+		virtual bool					Initialize( IEngine* Engine );
+		virtual void					ApplyEvent( const Event& Event );
+		virtual void					Update();
+		virtual void					Clear();
 
 		// IInputSystem
-		virtual bool				IsKeyDown( BUTTON_CODE Key );
-		virtual bool				IsKeyUp( BUTTON_CODE Key );
-		virtual	bool				IsMouseKeyDown( BUTTON_CODE Key );
-		virtual	bool				IsMouseKeyUp( BUTTON_CODE Key );
-		virtual bool				IsMouseWheel( BUTTON_CODE Wheel );
+		virtual bool					IsKeyDown( BUTTON_CODE Key );
+		virtual bool					IsKeyUp( BUTTON_CODE Key );
+		virtual	bool					IsMouseKeyDown( BUTTON_CODE Key );
+		virtual	bool					IsMouseKeyUp( BUTTON_CODE Key );
+		virtual bool					IsMouseWheel( BUTTON_CODE Wheel );
 
-		virtual const Vector2D_t&	GetMousePosition() const;
-		virtual const Vector2D_t&	GetMouseOffset() const;
-		virtual float				GetMouseSensitivity() const;
+		virtual const Vector2DInt_t&	GetMousePosition() const;
+		virtual const Vector2DInt_t&	GetMouseOffset() const;
+		virtual float					GetMouseSensitivity() const;
 
 		// InputSystem
 		InputSystem();
@@ -78,8 +78,8 @@ namespace le
 
 	private:
 		BUTTON_EVENTS						buttonEvents[ BC_COUNT ];
-		Vector2D_t							mousePosition;
-		Vector2D_t							mouseOffset;
+		Vector2DInt_t						mousePosition;
+		Vector2DInt_t						mouseOffset;
 
 		std::vector< BindDescriptor >		binds;
 	};	
