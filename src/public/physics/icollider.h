@@ -44,6 +44,7 @@ namespace le
 		virtual void			RemoveShape( UInt32_t Index ) = 0;
 		virtual void			RemoveAllShapes() = 0;
 
+		virtual void			GetAABB( Vector3D_t& Min, Vector3D_t& Max ) const = 0;
 		virtual UInt32_t		GetCountShapes() const = 0;
 	};
 
@@ -52,7 +53,7 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#define COLLIDER_INTERFACE_VERSION "LE_Collider001"
+#define COLLIDER_INTERFACE_VERSION "LE_Collider002"
 
 //---------------------------------------------------------------------//
 

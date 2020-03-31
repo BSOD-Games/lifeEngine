@@ -187,6 +187,24 @@ void le::Collider::RemoveAllShapes()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Get AABB collider
+// ------------------------------------------------------------------------------------ //
+void le::Collider::GetAABB( Vector3D_t& Min, Vector3D_t& Max ) const
+{
+	btTransform			transformation;
+	btVector3			min, max;
+	shape.getAabb( transformation, min, max );
+
+	Min.x = min.getX();
+	Min.y = min.getY();
+	Min.z = min.getZ();
+
+	Max.x = max.getX();
+	Max.y = max.getY();
+	Max.z = max.getZ();
+}
+
+// ------------------------------------------------------------------------------------ //
 // Get count shapes
 // ------------------------------------------------------------------------------------ //
 le::UInt32_t le::Collider::GetCountShapes() const

@@ -65,9 +65,9 @@ void le::PhysicsSystem::Update()
 	if ( !isInitialize ) return;
 
 	// TODO: move activation bodies to level manager
-	for ( auto it = bodies.begin(), itEnd = bodies.end(); it != itEnd; ++it )
-		if ( !(*it)->IsStatic() )
-			(*it)->Activate();
+	//for ( auto it = bodies.begin(), itEnd = bodies.end(); it != itEnd; ++it )
+	//	if ( !(*it)->IsStatic() )
+	//		(*it)->Activate();
 
 	dynamicsWorld->stepSimulation( PHYSICS_TIME_STEP, maxSubSteps, fixedTimeStep );
 
