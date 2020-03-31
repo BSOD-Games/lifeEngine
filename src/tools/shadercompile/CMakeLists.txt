@@ -5,7 +5,7 @@ cmake_minimum_required( VERSION 2.6 )
 #
 
 file( GLOB SOURCE_FILES "*.h" "*.cpp" )
-set( MODULE_NAME lmdl )
+set( MODULE_NAME shadercompile )
 
 #
 #   --- Платформозависимые настройки ---
@@ -29,19 +29,3 @@ add_executable( ${MODULE_NAME} ${SOURCE_FILES} ${RESOURCE} )
 target_link_libraries( ${MODULE_NAME} ${CMAKE_DL_LIBS} )
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
 include_directories( ../../public )
-
-#
-#   --- Ищим и подключаем зависимости ---
-#
-
-#---------------
-#   Assimp
-
-find_package( Assimp REQUIRED )
-if ( NOT ASSIMP_FOUND )
-    message( SEND_ERROR "Failed to Assimp" )
-    return()
-else()
-    include_directories( ${ASSIMP_INCLUDE} )
-        target_link_libraries( ${MODULE_NAME} ${ASSIMP_LIB} )
-endif()

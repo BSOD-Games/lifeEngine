@@ -11,6 +11,7 @@ set( PROJECT_STUDIORENDER studiorender )
 set( PROJECT_STDSHADERS stdshaders )
 set( PROJECT_PHYSICS physics )
 set( PROJECT_LMDL tools/lmdl )
+set( PROJECT_SHADERCOMPILE tools/shadercompile )
 
 #
 #   --- Настройки сборки ---
@@ -25,6 +26,7 @@ option( BUILD_STUDIORENDER "Build studiorender" OFF )
 option( BUILD_PHYSICS "Build physics" OFF )
 option( BUILD_STDSHADERS "Build stdshaders" OFF )
 option( BUILD_CONVERTER_MODELS "Build converter models" OFF )
+option( BUILD_SHADERCOMPILE "Build shader compile" OFF )
 
 if( LIFEENGINE_DEBUG )
 	message( STATUS "Debug mode enabled" )
@@ -58,6 +60,10 @@ include_directories( ${CMAKE_BINARY_DIR} )
 
 if ( BUILD_LAUNCHER )
         add_subdirectory( ${PROJECT_LAUNCHER} )
+endif()
+
+if ( BUILD_SHADERCOMPILE )
+    add_subdirectory( ${PROJECT_SHADERCOMPILE} )
 endif()
 
 if ( BUILD_ENGINE )

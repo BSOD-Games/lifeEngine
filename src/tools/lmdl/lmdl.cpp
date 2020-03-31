@@ -69,7 +69,8 @@ void PrintUsage()
 			  << "lifeEngine Model " << LMDL_VERSION_MAJOR << "." << LMDL_VERSION_MINOR << "." << LMDL_VERSION_PATCH << " (build " << ComputeBuildNumber( GOLD_DATE ) << ") by Egor Pogulyaka\n"
 			  << "Converter models to LMD format\n"
 			  << "-------------------------\n\n"
-			  << "Usage: lmdl [options] file\n"
+			  << "Usage: lmdl -s <pathToSource> -o <pathToOutput> [other parameters]\n"
+			  << "Output: model in format LMD (lifeEngine Model)\n"
 			  << "Example: lmdl -m materials/axe -o axe -s axe.fbx\n\n"
 			  << "-h | -help\t->\tshow this message\n"
 			  << "-s | -source\t->\tpath to source file\n"
@@ -118,6 +119,7 @@ void ParseArgs( int argc, char** argv )
 			++index;
 		}
 
+		// Set directory with materials
 		else if ( ( strstr( argv[ index ], "-m" ) || strstr( argv[ index ], "-mat" ) ) && index + 1 < argc )
 		{
 			g_materialsDir = argv[ index + 1 ];

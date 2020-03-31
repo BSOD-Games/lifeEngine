@@ -17,6 +17,8 @@
 
 #include "global.h"
 #include "spritegeneric.h"
+#include "shaders/spritegeneric_vertex.h"
+#include "shaders/spritegeneric_fragment.h"
 
 // ------------------------------------------------------------------------------------ //
 // Инициализировать экземпляр шейдера
@@ -24,100 +26,8 @@
 bool le::SpriteGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
 	ShaderDescriptor			shaderDescriptor;
-	shaderDescriptor.vertexShaderSource = " \
-	#version 330 core\n \
-	\n \
-	layout( location = 0 ) 			in vec3 vertex_position; \n \
-    layout( location = 1 ) 			in vec3 vertex_normal; \n \
-	layout( location = 2 ) 			in vec2 vertex_texCoords; \n \
-	\n \
-		out vec2 				texCoords; \n \
-        out vec3 				normal; \n \
-		\n\
-		#ifdef NORMAL_MAP \n\
-			out vec3				fragPos; \n\
-		#endif \n\
-	\n \
-        uniform vec4            textureRect; \n\
-		uniform mat4    		matrix_Projection; \n \
-		uniform mat4			matrix_Transformation; \n \
-	\n \
-	void main() \n \
-	{\n \
-        texCoords = textureRect.xy + ( vertex_texCoords * textureRect.zw ); \n \
-        normal = ( matrix_Transformation * vec4( vertex_normal, 0.f ) ).xyz; \n\
-		\n\
-		#ifdef NORMAL_MAP \n\
-			fragPos = ( matrix_Transformation * vec4( vertex_position, 1.f ) ).xyz; \n\
-			gl_Position = matrix_Projection * vec4( fragPos, 1.f ); \n \
-		#else \n\
-			gl_Position = matrix_Projection * matrix_Transformation * vec4( vertex_position, 1.f ); \n \
-		#endif \n\
-	}";
-
-	shaderDescriptor.fragmentShaderSource = " \
-	#version 330 core\n\
-	\n\
-		layout ( location = 0 )     out vec4 out_albedoSpecular;\n\
-		layout( location = 1 )      out vec4 out_normalShininess;\n\
-		layout( location = 2 )      out vec4 out_emission;\n\
-		\n\
-		in vec2 				texCoords;\n\
-        in vec3 				normal;\n\
-		\n\
-		#ifdef NORMAL_MAP \n\
-			in vec3					fragPos; \n\
-		#endif \n\
-	\n\
-		uniform sampler2D		basetexture;\n\
-		\n\
-		#ifdef NORMAL_MAP \n\
-			uniform sampler2D		normalmap;\n\
-		#endif \n\
-		\n\
-		#ifdef SPECULAR_MAP \n\
-			uniform sampler2D		specularmap;\n\
-		#endif \n\
-	\n\
-	#ifdef NORMAL_MAP \n\
-		vec3 perturbNormal()\n\
-		{\n\
-			vec3 tangentNormal = texture( normalmap, texCoords ).xyz * 2.0 - 1.0;\n\
-	\n\
-			vec3 q1 = dFdx( fragPos );\n\
-			vec3 q2 = dFdy( fragPos );\n\
-			vec2 st1 = dFdx( texCoords );\n\
-			vec2 st2 = dFdy( texCoords );\n\
-	\n\
-			vec3 N = normalize( normal );\n\
-			vec3 T = normalize( q1 * st2.t - q2 * st1.t );\n\
-			vec3 B = -normalize( cross( N, T ) );\n\
-			mat3 TBN = mat3( T, B, N );\n\
-	\n\
-			return normalize( TBN * tangentNormal );\n\
-		}\n\
-	#endif \n\
-	\n\
-	void main()\n\
-	{\n\
-        vec4            colorPixel = texture2D( basetexture, texCoords ); \n\
-        if ( colorPixel.a < 0.01 ) \n\
-                discard; \n\
-        \n\
-		#ifdef SPECULAR_MAP\n\
-            out_albedoSpecular = vec4( colorPixel.rgb, texture2D( specularmap, texCoords ).r ); \n \
-		#else\n\
-            out_albedoSpecular = vec4( colorPixel.rgb, 0.f ); \n \
-		#endif \n\
-		\n\
-		#ifdef NORMAL_MAP \n\
-			out_normalShininess = vec4( perturbNormal(), 32.f );\n\
-		#else\n\
-			out_normalShininess = vec4( normal, 32.f );\n\
-		#endif\n\
-		\n\
-        out_emission = vec4( 0.f );\n\
-	}\n";
+	shaderDescriptor.vertexShaderSource = shader_spritegeneric_vertex;
+	shaderDescriptor.fragmentShaderSource = shader_spritegeneric_fragment;
 
 	std::vector< const char* >			defines;
 	UInt32_t							flags = SF_NONE;
