@@ -14,6 +14,8 @@
 
 #include "global.h"
 #include "lightmappedgeneric.h"
+#include "shaders/lightmappedgeneric_vertex.h"
+#include "shaders/lightmappedgeneric_fragment.h"
 
 // ------------------------------------------------------------------------------------ //
 // Инициализировать экземпляр шейдера
@@ -21,53 +23,8 @@
 bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
 	ShaderDescriptor			shaderDescriptor;
-	shaderDescriptor.vertexShaderSource = " \
-	#version 330 core\n \
-	\n \
-	layout( location = 0 ) 			in vec3 vertex_position; \n \
-	layout( location = 1 ) 			in vec2 vertex_texCoords; \n \
-	layout( location = 2 ) 			in vec2 vertex_lightmapCoords; \n \
-	layout( location = 3 ) 			in vec3 vertex_normal; \n \
-	layout( location = 4 ) 			in vec4 vertex_color; \n \
-	\n \
-		out vec2 				texCoords; \n \
-		out vec2 				lightmapCoords; \n \
-		out vec4 				vertexColor; \n \
-		out vec3				normal; \n \
-	\n \
-		uniform mat4    		matrix_Projection; \n \
-		uniform mat4			matrix_Transformation; \n \
-	\n \
-	void main() \n \
-	{\n \
-		texCoords = vertex_texCoords; \n \
-		lightmapCoords = vertex_lightmapCoords; \n \
-		vertexColor = vertex_color; \n \
-		normal = ( matrix_Transformation * vec4( vertex_normal, 0.f ) ).xyz; \n \
-		gl_Position = matrix_Projection * matrix_Transformation * vec4( vertex_position, 1.f ); \n \
-	}";
-
-	shaderDescriptor.fragmentShaderSource = " \
-	#version 330 core\n\
-	\n\
-		layout ( location = 0 ) out vec4 out_albedoSpecular;\n\
-		layout( location = 1 ) out vec4 out_normalShininess;\n\
-		layout( location = 2 ) out vec4 out_emission;\n\
-		\n\
-		in vec2 				texCoords;\n\
-		in vec2 				lightmapCoords;\n\
-		in vec4 				vertexColor; \n \
-		in vec3					normal; \n \
-	\n\
-		uniform sampler2D		basetexture;\n\
-		uniform sampler2D		lightmap;\n\
-	\n\
-	void main()\n\
-	{\n\
-		out_albedoSpecular = vec4( texture2D( basetexture, texCoords ).rgb, 0.f ); \n \
-		out_normalShininess = vec4( normalize( normal ), 1 );\n\
-		out_emission = texture2D( lightmap, lightmapCoords ) * vertexColor;\n\
-	}\n";
+	shaderDescriptor.vertexShaderSource = shader_lightmappedgeneric_vertex;
+	shaderDescriptor.fragmentShaderSource = shader_lightmappedgeneric_fragment;
 
 	std::vector< const char* >			defines;
 	UInt32_t							flags = 0;
