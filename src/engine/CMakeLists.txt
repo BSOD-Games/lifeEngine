@@ -4,7 +4,12 @@ cmake_minimum_required( VERSION 2.6 )
 #   --- Задаем переменные ---
 #
 
-file( GLOB SOURCE_FILES "*.h" "*.cpp" "../public/engine/*.h" "../public/common/*.h" )
+file( GLOB SOURCE_FILES "*.h"
+                        "*.cpp"
+                        "../public/engine/*.h"
+                        "../public/common/*.h"
+                        "scripts_api/*.h"
+                        "scripts_api/*.cpp" )
 set( MODULE_NAME engine )
 
 set( SDL2_PATH ${EXTLIBS_DIR}/SDL2 CACHE PATH "Path to SDL2" )
@@ -12,6 +17,7 @@ set( RAPIDJSON_PATH ${EXTLIBS_DIR} CACHE PATH "Path to RapidJSON" )
 set( GLM_PATH ${EXTLIBS_DIR} CACHE PATH "Path to GLM" )
 set( FREEIMAGE_PATH ${EXTLIBS_DIR}/FreeImage CACHE PATH "Path to FreeImage" )
 set( FREETYPE_PATH ${EXTLIBS_DIR}/freetype CACHE PATH "Path to Freetype" )
+set( TCC_PATH ${EXTLIBS_DIR}/tcc CACHE PATH "Path to Tiny C Compiler" )
 
 #
 #   --- Название модулей движка ---
@@ -67,6 +73,9 @@ include_directories( ../public )
 include_directories( ../ )
 
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
+
+file( GLOB SCRIPT_API "scripts_api/*.h" )
+install( FILES ${SCRIPT_API} DESTINATION ${BUILD_DIR}/engine/scripts )
 
 #
 #   --- Ищим и подключаем зависимости ---
@@ -129,3 +138,15 @@ else()
     include_directories( ${FREETYPE_INCLUDE} )
     target_link_libraries( ${MODULE_NAME} ${FREETYPE_LIB} )
 endif()  
+
+#---------------
+#   Tiny C Compiler
+
+find_package( TCC REQUIRED )
+if( NOT TCC_FOUND )
+    message( SEND_ERROR "Failed to find Tiny C Compiler" )
+    return()
+else()
+    include_directories( ${TCC_INCLUDE} )
+    target_link_libraries( ${MODULE_NAME} ${TCC_LIB} ${CMAKE_DL_LIBS} )
+endif()

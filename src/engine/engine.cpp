@@ -78,6 +78,7 @@ le::Engine::Engine() :
 	g_consoleSystem = &consoleSystem;
 	g_resourceSystem = &resourceSystem;
 	g_inputSystem = &inputSystem;
+	g_scriptSystem = &scriptSystem;
 	g_window = &window;
 	g_engine = this;
 
@@ -89,7 +90,9 @@ le::Engine::Engine() :
 	configurations.windowHeight = 600;
 
 	consoleSystem.Initialize();
+	scriptSystem.Initialize( this );
 	inputSystem.Initialize( this );
+
 	cmd_Exit->Initialize( "exit", "close game", CMD_Exit );
 	cmd_Version->Initialize( "version", "show version engine", CMD_Version );
 	cvar_phyDebug->Initialize( "phy_debug", "0", CVT_BOOL, "bool value for showing physics debug info", true, 0.f, true, 1.f, nullptr );
@@ -640,7 +643,15 @@ le::IMaterialManager* le::Engine::GetMaterialManager() const
 // ------------------------------------------------------------------------------------ //
 le::IPhysicsSystem *le::Engine::GetPhysicsSystem() const
 {
-    return physicSystem;
+	return physicSystem;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get script system
+// ------------------------------------------------------------------------------------ //
+le::IScriptSystem* le::Engine::GetScriptSystem() const
+{
+	return ( IScriptSystem* ) &scriptSystem;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -689,6 +700,7 @@ const le::Version& le::Engine::GetVersion() const
 bool le::Engine::Initialize( const char* EngineDirectory, WindowHandle_t WindowHandle )
 {
 	if ( isInit ) return true;
+	engineDirectory = EngineDirectory;
 	consoleSystem.PrintInfo( "Initialization lifeEngine" );
 
 	// Р’С‹РІРѕРґРёРј СЃРёСЃС‚РµРјРЅСѓСЋ РёРЅС„РѕСЂРјР°С†РёСЋ

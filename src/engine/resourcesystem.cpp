@@ -10,6 +10,7 @@
 
 #include <exception>
 #include <fstream>
+#include <algorithm>
 #include <FreeImage.h>
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
@@ -24,6 +25,7 @@
 #include "engine/material.h"
 #include "engine/imaterialproxy.h"
 #include "engine/materialproxyvar.h"
+#include "engine/script.h"
 #include "studiorender/istudiorender.h"
 #include "studiorender/itexture.h"
 #include "studiorender/imesh.h"
@@ -739,6 +741,35 @@ le::ILevel* LE_LoadLevel( const char* Path, le::IFactory* GameFactory )
 };
 
 // ------------------------------------------------------------------------------------ //
+// Loading script
+// ------------------------------------------------------------------------------------ //
+le::IScript* LE_LoadScript( const char* Path, le::UInt32_t CountSymbols, le::ScriptDescriptor::Symbol* Symbols, le::IFactory* ScriptSystemFactory )
+{
+	std::ifstream			file( Path );
+	if ( !file.is_open() )	return nullptr;
+
+	std::string			code;
+	std::getline( file, code, '\0' );
+	if ( code.empty() )		return nullptr;
+
+	le::IScript*		script = ( le::IScript* ) ScriptSystemFactory->Create( SCRIPT_INTERFACE_VERSION );
+	if ( !script )			return nullptr;
+
+	le::ScriptDescriptor		scriptDescriptor;
+	scriptDescriptor.code = code.c_str();
+	scriptDescriptor.countSymbols = CountSymbols;
+	scriptDescriptor.symbols = Symbols;
+
+	if ( !script->Load( scriptDescriptor ) )
+	{
+		script->Release();
+		return nullptr;
+	}
+
+	return script;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Зарегестрировать загрузчик картинок
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::RegisterLoader_Image( const char* Format, LoadImageFn_t LoadImage )
@@ -1146,12 +1177,6 @@ void le::ResourceSystem::UnloadTexture( const char* Name )
 {
     LIFEENGINE_ASSERT( Name );
 
-    if ( !studioRenderFactory )
-    {
-        g_consoleSystem->PrintError( "Resource system not initialized" );
-        return;
-    }
-
     auto				it = textures.find( Name );
     if ( it == textures.end() || it->second->GetCountReferences() > 1 )	return;
 
@@ -1183,12 +1208,6 @@ void le::ResourceSystem::UnloadMaterial( const char* Name )
 void le::ResourceSystem::UnloadMesh( const char* Name )
 {
     LIFEENGINE_ASSERT( Name );
-
-    if ( !studioRenderFactory )
-    {
-        g_consoleSystem->PrintError( "Resource system not initialized" );
-        return;
-    }
 
     auto				it = meshes.find( Name );
     if ( it == meshes.end() || it->second->GetCountReferences() > 1 )	return;
@@ -1257,12 +1276,6 @@ void le::ResourceSystem::UnloadMaterials()
 void le::ResourceSystem::UnloadMeshes()
 {
     if ( meshes.empty() ) return;
-
-    if ( !studioRenderFactory )
-    {
-        g_consoleSystem->PrintError( "Resource system not initialized" );
-        return;
-    }
 
     for ( auto it = meshes.begin(), itEnd = meshes.end(); it != itEnd; )
         if ( it->second->GetCountReferences() <= 1 )
@@ -1348,6 +1361,7 @@ void le::ResourceSystem::UnloadTextures()
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadAll()
 {
+	UnloadScripts();
     UnloadLevels();
     UnloadMeshes();
     UnloadFonts();
@@ -1430,6 +1444,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
         if ( !studioRender )	throw std::runtime_error( "Resource system requared studiorender" );
 
         studioRenderFactory = studioRender->GetFactory();
+		scriptSystemFactory = g_scriptSystem->GetFactory();
         materialManager = Engine->GetMaterialManager();
 
         RegisterLoader_Image( "png", LE_LoadImage );
@@ -1442,6 +1457,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
         RegisterLoader_Mesh( "lmd", LE_LoadMesh );
         RegisterLoader_Level( "bsp", LE_LoadLevel );
         RegisterLoader_Font( "ttf", LE_LoadFont );
+		RegisterLoader_Script( "c", LE_LoadScript );
     }
     catch ( std::exception & Exception )
     {
@@ -1464,7 +1480,8 @@ void le::ResourceSystem::SetGameDir( const char* GameDir )
 // ------------------------------------------------------------------------------------ //
 le::ResourceSystem::ResourceSystem() :
     studioRenderFactory( nullptr ),
-    materialManager( nullptr )
+	materialManager( nullptr ),
+	scriptSystemFactory( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -1473,4 +1490,120 @@ le::ResourceSystem::ResourceSystem() :
 le::ResourceSystem::~ResourceSystem()
 {
     UnloadAll();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader_Script( const char* Format, LoadScriptFn_t LoadScript )
+{
+	LIFEENGINE_ASSERT( Format );
+	LIFEENGINE_ASSERT( LoadScript );
+
+	g_consoleSystem->PrintInfo( "Loader script for format [%s] registered", Format );
+	loaderScripts[ Format ] = LoadScript;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnregisterLoader_Script( const char* Format )
+{
+	LIFEENGINE_ASSERT( Format );
+
+	auto		it = loaderScripts.find( Format );
+	if ( it == loaderScripts.end() ) return;
+
+	loaderScripts.erase( it );
+	g_consoleSystem->PrintInfo( "Loader script for format [%s] unregistered", Format );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+le::IScript* le::ResourceSystem::LoadScript( const char* Name, const char* Path, UInt32_t CountSymbols, ScriptDescriptor::Symbol* Symbols )
+{
+	LIFEENGINE_ASSERT( Name );
+	LIFEENGINE_ASSERT( Path );
+
+	try
+	{
+		if ( !scriptSystemFactory )							throw std::runtime_error( "Resource system not initialized" );
+
+		if ( scripts.find( Name ) != scripts.end() )		return scripts[ Name ];
+		if ( loaderScripts.empty() )						throw std::runtime_error( "No script loaders" );
+
+		std::string			path = gameDir + "/" + Path;
+
+		g_consoleSystem->PrintInfo( "Loading script [%s] with name [%s]", Path, Name );
+
+		std::string			format = GetFormatFile( path );
+		if ( format.empty() )						throw std::runtime_error( "In script format not found" );
+
+		auto				parser = loaderScripts.find( format );
+		if ( parser == loaderScripts.end() )		throw std::runtime_error( "Loader for format script not found" );
+
+		IScript*			script = parser->second( path.c_str(), CountSymbols, Symbols, scriptSystemFactory );
+		if ( !script )							throw std::runtime_error( "Fail loading script" );
+
+		script->IncrementReference();
+		scripts.insert( std::make_pair( Name, script ) );
+		g_consoleSystem->PrintInfo( "Loaded script [%s]", Name );
+
+		return script;
+	}
+	catch ( std::exception & Exception )
+	{
+		g_consoleSystem->PrintError( "Script [%s] not loaded: %s", Path, Exception.what() );
+		return nullptr;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadScript( const char* Name )
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto				it = scripts.find( Name );
+	if ( it == scripts.end() || it->second->GetCountReferences() > 1 )	return;
+
+	it->second->Release();
+	scripts.erase( it );
+
+	g_consoleSystem->PrintInfo( "Unloaded script [%s]", Name );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadScripts()
+{
+	if ( scripts.empty() ) return;
+
+	for ( auto it = scripts.begin(), itEnd = scripts.end(); it != itEnd; )
+		if ( it->second->GetCountReferences() <= 1 )
+		{
+			it->second->Release();
+
+			g_consoleSystem->PrintInfo( "Unloaded script [%s]", it->first.c_str() );
+			it = scripts.erase( it );
+			itEnd = scripts.end();
+		}
+		else
+			++it;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+le::IScript* le::ResourceSystem::GetScript( const char* Name ) const
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto	it = scripts.find( Name );
+	if ( it != scripts.end() )		return it->second;
+
+	return nullptr;
 }
