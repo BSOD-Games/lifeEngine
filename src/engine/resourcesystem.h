@@ -53,7 +53,7 @@ namespace le
         virtual IMesh*					LoadMesh( const char* Name, const char* Path );
         virtual ILevel*					LoadLevel( const char* Name, const char* Path, IFactory* GameFactory );
 		virtual IFont*					LoadFont( const char* Name, const char* Path );
-		virtual IScript*				LoadScript( const char* Name, const char* Path, UInt32_t CountSymbols, ScriptDescriptor::Symbol* Symbols );
+		virtual IScript*				LoadScript( const char* Name, const char* Path, UInt32_t CountFunctions = 0, ScriptDescriptor::Symbol* Functions = nullptr, UInt32_t CountVars = 0, ScriptDescriptor::Symbol* Vars = nullptr );
 		virtual void					UnloadImage( Image& Image );
 		virtual void					UnloadTexture( const char* Name );
 		virtual void					UnloadMaterial( const char* Name );

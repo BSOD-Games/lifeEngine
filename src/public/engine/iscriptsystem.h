@@ -17,30 +17,26 @@
 
 namespace le
 {
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 
-	class IFactory;
-	class IScript;
+    class IFactory;
+    class IScript;
 
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 
-	class IScriptSystem
-	{
-	public:
-		virtual ~IScriptSystem() {}
-		virtual void			RegisterSymbol( const char* Name, void* Value ) = 0;
-		virtual void			AddScript( IScript* Script ) = 0;
-		virtual void			RemoveScript( UInt32_t Index ) = 0;
-		virtual void			RemoveScript( IScript* Script ) = 0;
-		virtual void			RemoveAllScripts() = 0;
+    class IScriptSystem
+    {
+    public:
+        virtual ~IScriptSystem() {}
+        virtual void			RegisterFunction( const char* Name, void* Value ) = 0;
+        virtual void                    RegisterVar( const char* Name, void* Value ) = 0;
+        virtual void                    UnregisterFunction( const char* Name ) = 0;
+        virtual void                    UnregisterVar( const char* Name ) = 0;
 
-		virtual IFactory*		GetFactory() const = 0;
-		virtual UInt32_t		GetCountScripts() const = 0;
-		virtual IScript*		GetScript( UInt32_t Index ) const = 0;
-		virtual IScript**		GetScrips() const = 0;
-	};
+        virtual IFactory*		GetFactory() const = 0;
+    };
 
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 }
 
 //---------------------------------------------------------------------//

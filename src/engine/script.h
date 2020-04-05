@@ -40,10 +40,10 @@ namespace le
 		// IScript
 		virtual bool			Load( const ScriptDescriptor& ScriptDescriptor );
 		virtual void			Unload();
-		virtual void			Update();
 
 		virtual bool			IsLoaded() const;
-		virtual void*			GetSymbol( const char* Name );
+		virtual void*			GetFunction( const char* Name );
+		virtual void*			GetVar( const char* Name );
 
 		// Script
 		Script();
@@ -52,9 +52,9 @@ namespace le
 	private:
 		UInt32_t										countReferences;
 		TCCState*										tccContext;
-		void*											updateFn;
 
-		std::unordered_map< std::string, void* >		symbolsCache;
+		std::unordered_map< std::string, void* >		functionsCache;
+		std::unordered_map< std::string, void* >		varsCache;
 	};
 
 	//---------------------------------------------------------------------//

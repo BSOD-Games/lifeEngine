@@ -8,7 +8,7 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#include "../global.h"
+#include "../../global.h"
 #include "engine/inputsystem.h"
 #include "inputsystem.h"
 

@@ -28,8 +28,10 @@ namespace le
 		};
 
 		const char*		code;
-		UInt32_t		countSymbols;
-		Symbol*			symbols;
+		UInt32_t		countFunctions;
+		Symbol*			functions;
+		UInt32_t		countVars;
+		Symbol*			vars;
 	};
 
 	//---------------------------------------------------------------------//

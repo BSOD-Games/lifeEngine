@@ -743,7 +743,7 @@ le::ILevel* LE_LoadLevel( const char* Path, le::IFactory* GameFactory )
 // ------------------------------------------------------------------------------------ //
 // Loading script
 // ------------------------------------------------------------------------------------ //
-le::IScript* LE_LoadScript( const char* Path, le::UInt32_t CountSymbols, le::ScriptDescriptor::Symbol* Symbols, le::IFactory* ScriptSystemFactory )
+le::IScript* LE_LoadScript( const char* Path, le::UInt32_t CountFunctions, le::ScriptDescriptor::Symbol* Functions, le::UInt32_t CountVars, le::ScriptDescriptor::Symbol* Vars, le::IFactory* ScriptSystemFactory )
 {
 	std::ifstream			file( Path );
 	if ( !file.is_open() )	return nullptr;
@@ -757,8 +757,10 @@ le::IScript* LE_LoadScript( const char* Path, le::UInt32_t CountSymbols, le::Scr
 
 	le::ScriptDescriptor		scriptDescriptor;
 	scriptDescriptor.code = code.c_str();
-	scriptDescriptor.countSymbols = CountSymbols;
-	scriptDescriptor.symbols = Symbols;
+	scriptDescriptor.countFunctions = CountFunctions;
+	scriptDescriptor.functions = Functions;
+	scriptDescriptor.countVars = CountVars;
+	scriptDescriptor.vars = Vars;
 
 	if ( !script->Load( scriptDescriptor ) )
 	{
@@ -1521,7 +1523,7 @@ void le::ResourceSystem::UnregisterLoader_Script( const char* Format )
 // ------------------------------------------------------------------------------------ //
 // Деструктор
 // ------------------------------------------------------------------------------------ //
-le::IScript* le::ResourceSystem::LoadScript( const char* Name, const char* Path, UInt32_t CountSymbols, ScriptDescriptor::Symbol* Symbols )
+le::IScript* le::ResourceSystem::LoadScript( const char* Name, const char* Path, UInt32_t CountFunctions, ScriptDescriptor::Symbol* Functions, UInt32_t CountVars, ScriptDescriptor::Symbol* Vars )
 {
 	LIFEENGINE_ASSERT( Name );
 	LIFEENGINE_ASSERT( Path );
@@ -1543,7 +1545,7 @@ le::IScript* le::ResourceSystem::LoadScript( const char* Name, const char* Path,
 		auto				parser = loaderScripts.find( format );
 		if ( parser == loaderScripts.end() )		throw std::runtime_error( "Loader for format script not found" );
 
-		IScript*			script = parser->second( path.c_str(), CountSymbols, Symbols, scriptSystemFactory );
+		IScript*			script = parser->second( path.c_str(), CountFunctions, Functions, CountVars, Vars, scriptSystemFactory );
 		if ( !script )							throw std::runtime_error( "Fail loading script" );
 
 		script->IncrementReference();

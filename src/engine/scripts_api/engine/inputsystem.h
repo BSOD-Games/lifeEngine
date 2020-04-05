@@ -151,6 +151,8 @@ typedef enum
 	BC_COUNT = BC_LAST - BC_KEY_FIRST + 1
 } buttonCode_t;
 
+//---------------------------------------------------------------------//
+
 /* Is key down */
 extern int			InputSystem_IsKeyDown( buttonCode_t Key );
 

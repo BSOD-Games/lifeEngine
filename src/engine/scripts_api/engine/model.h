@@ -11,6 +11,8 @@
 #ifndef API_MODEL_H
 #define API_MODEL_H
 
+#include "../common/types.h"
+
 //---------------------------------------------------------------------//
 
 typedef struct
@@ -25,37 +27,37 @@ typedef struct
 typedef vec4_t quat_t;
 
 /* Move model */
-extern void			Model_Move( void* Model, vec3_t FactorMove );
+extern void			Model_Move( model_t Model, vec3_t FactorMove );
 
 /* Rotate model by euler angles */
-extern void			Model_EulerRotate( void* Model, vec3_t FactorRotate );
+extern void			Model_EulerRotate( model_t Model, vec3_t FactorRotate );
 
 /* Rotate model by quaternion */
-extern void			Model_QuatRotate( void* Model, quat_t FactorRotate );
+extern void			Model_QuatRotate( model_t Model, quat_t FactorRotate );
 
 /* Scale model */
-extern void			Model_Scale( void* Model, vec3_t FactorScale );
+extern void			Model_Scale( model_t Model, vec3_t FactorScale );
 
 /* Set position model */
-extern void			Model_SetPosition( void* Model, vec3_t Position );
+extern void			Model_SetPosition( model_t Model, vec3_t Position );
 
 /* Set rotation by euler angles model */
-extern void			Model_SetEulerRotation( void* Model, vec3_t Rotation );
+extern void			Model_SetEulerRotation( model_t Model, vec3_t Rotation );
 
 /* Set rotation by quaternion model */
-extern void			Model_SetQuatRotation( void* Model, quat_t Rotation );
+extern void			Model_SetQuatRotation( model_t Model, quat_t Rotation );
 
 /* Set model scale */
-extern void			Model_SetScale( void* Model, vec3_t Scale );
+extern void			Model_SetScale( model_t Model, vec3_t Scale );
 
 /* Get model position */
-extern vec3_t		Model_GetPosition( void* Model );
+extern vec3_t		Model_GetPosition( model_t Model );
 
 /* Get quaternion model rotation */
-extern quat_t		Model_GetRotation( void* Model );
+extern quat_t		Model_GetRotation( model_t Model );
 
 /* Get scale model */
-extern vec3_t		Model_GetScale( void* Model );
+extern vec3_t		Model_GetScale( model_t Model );
 
 //---------------------------------------------------------------------//
 

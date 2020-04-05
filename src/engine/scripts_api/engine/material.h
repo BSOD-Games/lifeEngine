@@ -8,20 +8,19 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef API_CONSOLESYSTEM_H
-#define API_CONSOLESYSTEM_H
+#ifndef MATERIAL_H
+#define MATERIAL_H
+
+#include "../common/types.h"
 
 //---------------------------------------------------------------------//
 
-/* Print info in console */
-extern void		Console_Info( const char* Format, ... );
+/* Add technique */
+//extern void			Material_AddTecnhique( studioRenderTechnique_t Tecnhique );
 
-/* Print warning in console */
-extern void		Console_Warning( const char* Format, ... );
-
-/* Print error in console */
-extern void		Console_Error( const char* Format, ... );
+/* Remove technique */
+//extern void			Material_RemoveTechnique( uint32_t Index );
 
 //---------------------------------------------------------------------//
 
-#endif // !API_CONSOLESYSTEM_H
+#endif // MATERIAL_H

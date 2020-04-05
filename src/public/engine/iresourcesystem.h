@@ -18,79 +18,79 @@
 
 namespace le
 {
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 
-	struct Image;
-	class IFactory;
-	class ITexture;
-	class IMaterial;
-	class IMesh;
-	class ILevel;
-	class IFont;
-	class IResourceSystem;
+    struct Image;
+    class IFactory;
+    class ITexture;
+    class IMaterial;
+    class IMesh;
+    class ILevel;
+    class IFont;
+    class IResourceSystem;
     class IMaterialManager;
-	class IScript;
+    class IScript;
 
-	typedef		void			( *LoadImageFn_t )( const char* Path, Image& Image, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels );
-	typedef		ITexture*		( *LoadTextureFn_t )( const char* Path, IFactory* StudioRenderFactory );
+    typedef		void			( *LoadImageFn_t )( const char* Path, Image& Image, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels );
+    typedef		ITexture*		( *LoadTextureFn_t )( const char* Path, IFactory* StudioRenderFactory );
     typedef		IMaterial*		( *LoadMaterialFn_t )( const char* Path, IResourceSystem* ResourceSystem, IMaterialManager* MaterialManager, IFactory* StudioRenderFactory );
     typedef		IMesh*			( *LoadMeshFn_t )( const char* Path, IResourceSystem* ResourceSystem, IFactory* StudioRenderFactory );
     typedef		ILevel*			( *LoadLevelFn_t )( const char* Path, IFactory* GameFactory );
-	typedef		IFont*			( *LoadFontFn_t )( const char* Path );
-	typedef		IScript*		( *LoadScriptFn_t )( const char* Path, UInt32_t CountSymbols, ScriptDescriptor::Symbol* Symbols, IFactory* ScriptSystemFactory );
+    typedef		IFont*			( *LoadFontFn_t )( const char* Path );
+    typedef		IScript*		( *LoadScriptFn_t )( const char* Path, UInt32_t CountFunctions, ScriptDescriptor::Symbol* Functions, UInt32_t CountVars, ScriptDescriptor::Symbol* Vars, IFactory* ScriptSystemFactory );
 
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 
-	class IResourceSystem
-	{
-	public:
+    class IResourceSystem
+    {
+    public:
         virtual ~IResourceSystem() {}
-		virtual void					RegisterLoader_Image( const char* Format, LoadImageFn_t LoadImage ) = 0;
-		virtual void					RegisterLoader_Texture( const char* Format, LoadTextureFn_t LoadTexture ) = 0;
-		virtual void					RegisterLoader_Material( const char* Format, LoadMaterialFn_t LoadMaterial ) = 0;
-		virtual void					RegisterLoader_Mesh( const char* Format, LoadMeshFn_t LoadMesh ) = 0;
-		virtual void					RegisterLoader_Level( const char* Format, LoadLevelFn_t LoadLevel ) = 0;
-		virtual void					RegisterLoader_Font( const char* Format, LoadFontFn_t LoadFont ) = 0;
-		virtual void					RegisterLoader_Script( const char* Format, LoadScriptFn_t LoadScript ) = 0;
-		virtual void					UnregisterLoader_Image( const char* Format ) = 0;
-		virtual void					UnregisterLoader_Texture( const char* Format ) = 0;
-		virtual void					UnregisterLoader_Material( const char* Format ) = 0;
-		virtual void					UnregisterLoader_Mesh( const char* Format ) = 0;
-		virtual void					UnregisterLoader_Level( const char* Format ) = 0;
-		virtual void					UnregisterLoader_Font( const char* Format ) = 0;
-		virtual void					UnregisterLoader_Script( const char* Format ) = 0;
+        virtual void					RegisterLoader_Image( const char* Format, LoadImageFn_t LoadImage ) = 0;
+        virtual void					RegisterLoader_Texture( const char* Format, LoadTextureFn_t LoadTexture ) = 0;
+        virtual void					RegisterLoader_Material( const char* Format, LoadMaterialFn_t LoadMaterial ) = 0;
+        virtual void					RegisterLoader_Mesh( const char* Format, LoadMeshFn_t LoadMesh ) = 0;
+        virtual void					RegisterLoader_Level( const char* Format, LoadLevelFn_t LoadLevel ) = 0;
+        virtual void					RegisterLoader_Font( const char* Format, LoadFontFn_t LoadFont ) = 0;
+        virtual void					RegisterLoader_Script( const char* Format, LoadScriptFn_t LoadScript ) = 0;
+        virtual void					UnregisterLoader_Image( const char* Format ) = 0;
+        virtual void					UnregisterLoader_Texture( const char* Format ) = 0;
+        virtual void					UnregisterLoader_Material( const char* Format ) = 0;
+        virtual void					UnregisterLoader_Mesh( const char* Format ) = 0;
+        virtual void					UnregisterLoader_Level( const char* Format ) = 0;
+        virtual void					UnregisterLoader_Font( const char* Format ) = 0;
+        virtual void					UnregisterLoader_Script( const char* Format ) = 0;
 
-		virtual Image					LoadImage( const char* Path, bool& IsError, bool IsFlipVertical = false, bool IsSwitchRedAndBlueChannels = false ) = 0;		
-		virtual ITexture*				LoadTexture( const char* Name, const char* Path ) = 0;
+        virtual Image					LoadImage( const char* Path, bool& IsError, bool IsFlipVertical = false, bool IsSwitchRedAndBlueChannels = false ) = 0;
+        virtual ITexture*				LoadTexture( const char* Name, const char* Path ) = 0;
         virtual IMaterial*				LoadMaterial( const char* Name, const char* Path ) = 0;
         virtual IMesh*					LoadMesh( const char* Name, const char* Path ) = 0;
         virtual ILevel*					LoadLevel( const char* Name, const char* Path, IFactory* GameFactory ) = 0;
-		virtual IFont*					LoadFont( const char* Name, const char* Path ) = 0;
-		virtual IScript*				LoadScript( const char* Name, const char* Path, UInt32_t CountSymbols = 0, ScriptDescriptor::Symbol* Symbols = nullptr ) = 0;
-		virtual void					UnloadImage( Image& Image ) = 0;
-		virtual void					UnloadTexture( const char* Name ) = 0;
-		virtual void					UnloadMaterial( const char* Name ) = 0;
-		virtual void					UnloadMesh( const char* Name ) = 0;
-		virtual void					UnloadLevel( const char* Name ) = 0;
-		virtual void					UnloadFont( const char* Name ) = 0;
-		virtual void					UnloadScript( const char* Name ) = 0;
-		virtual void					UnloadTextures() = 0;
-		virtual void					UnloadMaterials() = 0;
-		virtual void					UnloadMeshes() = 0;
-		virtual void					UnloadLevels() = 0;
-		virtual void					UnloadFonts() = 0;
-		virtual void					UnloadScripts() = 0;
-		virtual void					UnloadAll() = 0;
+        virtual IFont*					LoadFont( const char* Name, const char* Path ) = 0;
+        virtual IScript*				LoadScript( const char* Name, const char* Path, UInt32_t CountFunctions = 0, ScriptDescriptor::Symbol* Functions = nullptr, UInt32_t CountVars = 0, ScriptDescriptor::Symbol* Vars = nullptr ) = 0;
+        virtual void					UnloadImage( Image& Image ) = 0;
+        virtual void					UnloadTexture( const char* Name ) = 0;
+        virtual void					UnloadMaterial( const char* Name ) = 0;
+        virtual void					UnloadMesh( const char* Name ) = 0;
+        virtual void					UnloadLevel( const char* Name ) = 0;
+        virtual void					UnloadFont( const char* Name ) = 0;
+        virtual void					UnloadScript( const char* Name ) = 0;
+        virtual void					UnloadTextures() = 0;
+        virtual void					UnloadMaterials() = 0;
+        virtual void					UnloadMeshes() = 0;
+        virtual void					UnloadLevels() = 0;
+        virtual void					UnloadFonts() = 0;
+        virtual void					UnloadScripts() = 0;
+        virtual void					UnloadAll() = 0;
 
-		virtual ITexture*				GetTexture( const char* Name ) const = 0;
-		virtual IMaterial*				GetMaterial( const char* Name ) const = 0;
-		virtual IMesh*					GetMesh( const char* Name ) const = 0;
-		virtual ILevel*					GetLevel( const char* Name ) const = 0;
-		virtual IFont*					GetFont( const char* Name ) const = 0;
-		virtual IScript*				GetScript( const char* Name ) const = 0;
-	};
+        virtual ITexture*				GetTexture( const char* Name ) const = 0;
+        virtual IMaterial*				GetMaterial( const char* Name ) const = 0;
+        virtual IMesh*					GetMesh( const char* Name ) const = 0;
+        virtual ILevel*					GetLevel( const char* Name ) const = 0;
+        virtual IFont*					GetFont( const char* Name ) const = 0;
+        virtual IScript*				GetScript( const char* Name ) const = 0;
+    };
 
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 }
 
 //---------------------------------------------------------------------//

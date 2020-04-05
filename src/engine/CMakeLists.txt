@@ -8,8 +8,9 @@ file( GLOB SOURCE_FILES "*.h"
                         "*.cpp"
                         "../public/engine/*.h"
                         "../public/common/*.h"
-                        "scripts_api/*.h"
-                        "scripts_api/*.cpp" )
+                        "scripts_api/engine/*.h"
+                        "scripts_api/engine/*.cpp"
+                        "scripts_api/common/*.h" )
 set( MODULE_NAME engine )
 
 set( SDL2_PATH ${EXTLIBS_DIR}/SDL2 CACHE PATH "Path to SDL2" )
@@ -74,8 +75,11 @@ include_directories( ../ )
 
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
 
-file( GLOB SCRIPT_API "scripts_api/*.h" )
-install( FILES ${SCRIPT_API} DESTINATION ${BUILD_DIR}/engine/scripts )
+file( GLOB SCRIPTAPI_ENGINE "scripts_api/engine/*.h" )
+file( GLOB SCRIPTAPI_COMMON "scripts_api/common/*.h" )
+
+install( FILES ${SCRIPTAPI_ENGINE} DESTINATION ${BUILD_DIR}/engine/scripts/engine )
+install( FILES ${SCRIPTAPI_COMMON} DESTINATION ${BUILD_DIR}/engine/scripts/common )
 
 #
 #   --- Ищим и подключаем зависимости ---

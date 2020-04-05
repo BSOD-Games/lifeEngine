@@ -28,7 +28,6 @@ namespace le
 	public:
 		virtual ~IScriptSystemInternal() {}
 		virtual bool			Initialize( IEngine* Engine ) = 0;
-		virtual void			Update() = 0;
 	};
 
 	//---------------------------------------------------------------------//

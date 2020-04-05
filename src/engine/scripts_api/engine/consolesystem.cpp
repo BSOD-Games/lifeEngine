@@ -12,14 +12,14 @@
 #include <stdarg.h>
 #include <sstream>
 
-#include "../global.h"
+#include "../../global.h"
 #include "engine/consolesystem.h"
 #include "consolesystem.h"
 
 // ------------------------------------------------------------------------------------ //
 // Parse message
 // ------------------------------------------------------------------------------------ //
-inline void Console_ParseMessage( const char* Format, va_list ArgList, std::string& Message )
+inline void ConsoleSystem_ParseMessage( const char* Format, va_list ArgList, std::string& Message )
 {
 	std::stringstream		strStream;
 	for ( const char* var = Format; *var; var++ )
@@ -62,13 +62,13 @@ inline void Console_ParseMessage( const char* Format, va_list ArgList, std::stri
 // ------------------------------------------------------------------------------------ //
 // Print info to console
 // ------------------------------------------------------------------------------------ //
-void Console_Info( const char* Format, ... )
+void ConsoleSystem_Info( const char* Format, ... )
 {
 	va_list			argList = {};
 	va_start( argList, Format );
 
 	std::string			message;
-	Console_ParseMessage( Format, argList, message );
+	ConsoleSystem_ParseMessage( Format, argList, message );
 	le::g_consoleSystem->PrintInfo(message.c_str() );
 
 	va_end( argList );
@@ -77,13 +77,13 @@ void Console_Info( const char* Format, ... )
 // ------------------------------------------------------------------------------------ //
 // Print warning to console
 // ------------------------------------------------------------------------------------ //
-void Console_Warning( const char* Format, ... )
+void ConsoleSystem_Warning( const char* Format, ... )
 {
 	va_list			argList = {};
 	va_start( argList, Format );
 
 	std::string			message;
-	Console_ParseMessage( Format, argList, message );
+	ConsoleSystem_ParseMessage( Format, argList, message );
 	le::g_consoleSystem->PrintWarning(message.c_str() );
 
 	va_end( argList );
@@ -92,14 +92,22 @@ void Console_Warning( const char* Format, ... )
 // ------------------------------------------------------------------------------------ //
 // Print error to console
 // ------------------------------------------------------------------------------------ //
-void Console_Error( const char* Format, ... )
+void ConsoleSystem_Error( const char* Format, ... )
 {
 	va_list			argList = {};
 	va_start( argList, Format );
 
 	std::string			message;
-	Console_ParseMessage( Format, argList, message );
+	ConsoleSystem_ParseMessage( Format, argList, message );
 	le::g_consoleSystem->PrintError(message.c_str() );
 
 	va_end( argList );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Execute console command
+// ------------------------------------------------------------------------------------ //
+void ConsoleSystem_Exec( const char* Command )
+{
+	le::g_consoleSystem->Exec( Command );
 }

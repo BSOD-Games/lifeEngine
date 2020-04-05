@@ -14,87 +14,55 @@
 #include "engine/script.h"
 
 #include "global.h"
-#include "scripts_api/consolesystem.h"
-#include "scripts_api/inputsystem.h"
-#include "scripts_api/model.h"
+#include "scripts_api/engine/consolesystem.h"
+#include "scripts_api/engine/inputsystem.h"
+#include "scripts_api/engine/resourcesystem.h"
+#include "scripts_api/engine/model.h"
+
+#define REGISTER_FUNCTION( Function )		( functions[ #Function ] = ( void* ) &Function )
 
 // ------------------------------------------------------------------------------------ //
-// Register symbol
+// Register function
 // ------------------------------------------------------------------------------------ //
-void le::ScriptSystem::RegisterSymbol( const char* Name, void* Value )
+void le::ScriptSystem::RegisterFunction( const char* Name, void* Value )
 {
-	auto	itSymbol = symbols.find( Name );
-	if ( itSymbol != symbols.end() )
-		return;
+	auto	itFunction = functions.find( Name );
+	if ( itFunction != functions.end() )	return;
 
-	symbols[ Name ] = Value;
+	functions[ Name ] = Value;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Add script
+// Register var
 // ------------------------------------------------------------------------------------ //
-void le::ScriptSystem::AddScript( le::IScript* Script )
+void le::ScriptSystem::RegisterVar( const char* Name, void* Value )
 {
-	LIFEENGINE_ASSERT( Script );
-	le::Script*		script = static_cast< le::Script* >( Script );
+	auto	itVar = vars.find( Name );
+	if ( itVar != vars.end() )		return;
 
-	script->IncrementReference();
-	scripts.push_back( script );
+	vars[ Name ] = Value;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Update script
+// Unregister function
 // ------------------------------------------------------------------------------------ //
-void le::ScriptSystem::RemoveScript( le::UInt32_t Index )
+void le::ScriptSystem::UnregisterFunction( const char* Name )
 {
-	if ( Index >= scripts.size() ) return;
-	Script*         script = scripts[ Index ];
+	auto	itFunction = functions.find( Name );
+	if ( itFunction == functions.end() )	return;
 
-	if ( script->GetCountReferences() <= 1 )
-		script->Release();
-	else
-		script->DecrementReference();
-
-	scripts.erase( scripts.begin() + Index );
+	functions.erase( itFunction );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Update script
+// Unregister var
 // ------------------------------------------------------------------------------------ //
-void le::ScriptSystem::RemoveScript( le::IScript* Script )
+void le::ScriptSystem::UnregisterVar( const char* Name )
 {
-	if ( scripts.empty() ) return;
+	auto	itVar = vars.find( Name );
+	if ( itVar == vars.end() )	return;
 
-	for ( UInt32_t index = 0, count = scripts.size(); index < count; ++index )
-		if ( scripts[ index ] == Script )
-		{
-			if ( Script->GetCountReferences() <= 1 )
-				Script->Release();
-			else
-				Script->DecrementReference();
-
-			scripts.erase( scripts.begin() + index );
-			break;
-		}
-}
-
-// ------------------------------------------------------------------------------------ //
-// Update script
-// ------------------------------------------------------------------------------------ //
-void le::ScriptSystem::RemoveAllScripts()
-{
-	if ( scripts.empty() ) return;
-
-	for ( UInt32_t index = 0, count = scripts.size(); index < count; ++index )
-	{
-		Script*			script = scripts[ index ];
-		if ( script->GetCountReferences() <= 1 )
-			script->Release();
-		else
-			script->DecrementReference();
-	}
-
-	scripts.clear();
+	vars.erase( itVar );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -108,46 +76,54 @@ le::IFactory* le::ScriptSystem::GetFactory() const
 // ------------------------------------------------------------------------------------ //
 // Update script
 // ------------------------------------------------------------------------------------ //
-le::UInt32_t le::ScriptSystem::GetCountScripts() const
-{
-	return scripts.size();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Update script
-// ------------------------------------------------------------------------------------ //
-le::IScript* le::ScriptSystem::GetScript( le::UInt32_t Index ) const
-{
-	if ( Index >= scripts.size() ) return nullptr;
-	return scripts[ Index ];
-}
-
-// ------------------------------------------------------------------------------------ //
-// Update script
-// ------------------------------------------------------------------------------------ //
-le::IScript** le::ScriptSystem::GetScrips() const
-{
-	return ( IScript** ) scripts.data();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Update script
-// ------------------------------------------------------------------------------------ //
 bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 {
-	RegisterConsoleSystem();
-	RegisterInputSystem();
-	return true;
-}
+	// Console system
+	REGISTER_FUNCTION( ConsoleSystem_Info );
+	REGISTER_FUNCTION( ConsoleSystem_Error );
+	REGISTER_FUNCTION( ConsoleSystem_Warning );
+	REGISTER_FUNCTION( ConsoleSystem_Exec );
 
-// ------------------------------------------------------------------------------------ //
-// Update scripts
-// ------------------------------------------------------------------------------------ //
-void le::ScriptSystem::Update()
-{
-	if ( scripts.empty() ) return;
-	for ( UInt32_t index = 0, count = scripts.size(); index < count; ++index )
-		scripts[ index ]->Update();
+	// Input system
+	REGISTER_FUNCTION( InputSystem_IsKeyUp );
+	REGISTER_FUNCTION( InputSystem_IsKeyDown );
+	REGISTER_FUNCTION( InputSystem_IsMouseKeyUp );
+	REGISTER_FUNCTION( InputSystem_IsMouseKeyDown );
+	REGISTER_FUNCTION( InputSystem_IsMouseWheel );
+
+	// Resource system
+	REGISTER_FUNCTION( ResourceSystem_LoadTexture );
+	REGISTER_FUNCTION( ResourceSystem_LoadMaterial );
+	REGISTER_FUNCTION( ResourceSystem_LoadMesh );
+	REGISTER_FUNCTION( ResourceSystem_LoadFont );
+	REGISTER_FUNCTION( ResourceSystem_UnloadTexture );
+	REGISTER_FUNCTION( ResourceSystem_UnloadMaterial );
+	REGISTER_FUNCTION( ResourceSystem_UnloadMesh );
+	REGISTER_FUNCTION( ResourceSystem_UnloadFont );
+	REGISTER_FUNCTION( ResourceSystem_UnloadTextures );
+	REGISTER_FUNCTION( ResourceSystem_UnloadMaterials );
+	REGISTER_FUNCTION( ResourceSystem_UnloadMeshes );
+	REGISTER_FUNCTION( ResourceSystem_UnloadFonts );
+	REGISTER_FUNCTION( ResourceSystem_UnloadAll );
+	REGISTER_FUNCTION( ResourceSystem_GetTexture );
+	REGISTER_FUNCTION( ResourceSystem_GetMaterial );
+	REGISTER_FUNCTION( ResourceSystem_GetMesh );
+	REGISTER_FUNCTION( ResourceSystem_GetFont );
+
+	// Model
+	REGISTER_FUNCTION( Model_Move );
+	REGISTER_FUNCTION( Model_Scale );
+	REGISTER_FUNCTION( Model_GetScale );
+	REGISTER_FUNCTION( Model_SetScale );
+	REGISTER_FUNCTION( Model_QuatRotate );
+	REGISTER_FUNCTION( Model_EulerRotate );
+	REGISTER_FUNCTION( Model_GetPosition );
+	REGISTER_FUNCTION( Model_GetRotation );
+	REGISTER_FUNCTION( Model_SetPosition );
+	REGISTER_FUNCTION( Model_SetQuatRotation );
+	REGISTER_FUNCTION( Model_SetEulerRotation );
+
+	return true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -160,40 +136,4 @@ le::ScriptSystem::ScriptSystem()
 // Destructor
 // ------------------------------------------------------------------------------------ //
 le::ScriptSystem::~ScriptSystem()
-{
-	RemoveAllScripts();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Register console system
-// ------------------------------------------------------------------------------------ //
-void le::ScriptSystem::RegisterConsoleSystem()
-{
-	symbols[ "Console_Info" ] = ( void* ) &Console_Info;
-	symbols[ "Console_Error" ] = ( void* ) &Console_Error;
-	symbols[ "Console_Warning" ] = ( void* ) &Console_Warning;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Register input system
-// ------------------------------------------------------------------------------------ //
-void le::ScriptSystem::RegisterInputSystem()
-{
-	symbols[ "InputSystem_IsKeyUp" ] = ( void* ) &InputSystem_IsKeyUp;
-	symbols[ "InputSystem_IsKeyDown" ] = ( void* ) &InputSystem_IsKeyDown;
-	symbols[ "InputSystem_IsMouseKeyUp" ] = ( void* ) &InputSystem_IsMouseKeyUp;
-	symbols[ "InputSystem_IsMouseKeyDown" ] = ( void* ) &InputSystem_IsMouseKeyDown;
-	symbols[ "InputSystem_IsMouseWheel" ] = ( void* ) &InputSystem_IsMouseWheel;
-
-	symbols[ "Model_Move" ] = ( void* ) &Model_Move;
-	symbols[ "Model_Scale" ] = ( void* ) &Model_Scale;
-	symbols[ "Model_GetScale" ] = ( void* ) &Model_GetScale;
-	symbols[ "Model_SetScale" ] = ( void* ) &Model_SetScale;
-	symbols[ "Model_QuatRotate" ] = ( void* ) &Model_QuatRotate;
-	symbols[ "Model_EulerRotate" ] = ( void* ) &Model_EulerRotate;
-	symbols[ "Model_GetPosition" ] = ( void* ) &Model_GetPosition;
-	symbols[ "Model_GetRotation" ] = ( void* ) &Model_GetRotation;
-	symbols[ "Model_SetPosition" ] = ( void* ) &Model_SetPosition;
-	symbols[ "Model_SetQuatRotation" ] = ( void* ) &Model_SetQuatRotation;
-	symbols[ "Model_SetEulerRotation" ] = ( void* ) &Model_SetEulerRotation;
-}
+{}

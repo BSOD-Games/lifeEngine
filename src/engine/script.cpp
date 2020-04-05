@@ -20,16 +20,6 @@
 #include "engine/script.h"
 #include "global.h"
 
-#define START_FUNCTION		"Start"
-#define UPDATE_FUNCTION		"Update"
-
-//---------------------------------------------------------------------//
-
-typedef void				( *StartFn_t )();
-typedef	void				( *UpdateFn_t )();
-
-//---------------------------------------------------------------------//
-
 // ------------------------------------------------------------------------------------ //
 // Error callback
 // ------------------------------------------------------------------------------------ //
@@ -95,27 +85,31 @@ bool le::Script::Load( const le::ScriptDescriptor& ScriptDescriptor )
 			throw std::runtime_error( "The script could not be compiled" );
 
 		LIFEENGINE_ASSERT( g_scriptSystem );
-		auto&			symbols = g_scriptSystem->GetSymbols();
+		auto&			globalFunctions = g_scriptSystem->GetFunctions();
+		auto&			globalVars = g_scriptSystem->GetVars();
 
-		// Register global symbols
-		for ( auto it = symbols.begin(), itEnd = symbols.end(); it != itEnd; ++it )
+		// Register global functions and vars
+		for ( auto it = globalFunctions.begin(), itEnd = globalFunctions.end(); it != itEnd; ++it )
 			tcc_add_symbol( tccContext, it->first.c_str(), it->second );
 
-		// Register local symbols
-		for ( UInt32_t index = 0; index < ScriptDescriptor.countSymbols; ++index )
+		for ( auto it = globalVars.begin(), itEnd = globalVars.end(); it != itEnd; ++it )
+			tcc_add_symbol( tccContext, it->first.c_str(), it->second );
+
+		// Register local functions and vars
+		for ( UInt32_t index = 0; index < ScriptDescriptor.countFunctions; ++index )
 		{
-			const ScriptDescriptor::Symbol&		symbol = ScriptDescriptor.symbols[ index ];
+			const ScriptDescriptor::Symbol&		symbol = ScriptDescriptor.functions[ index ];
+			tcc_add_symbol( tccContext, symbol.name, symbol.value );
+		}
+
+		for ( UInt32_t index = 0; index < ScriptDescriptor.countVars; ++index )
+		{
+			const ScriptDescriptor::Symbol&		symbol = ScriptDescriptor.vars[ index ];
 			tcc_add_symbol( tccContext, symbol.name, symbol.value );
 		}
 
 		if ( tcc_relocate( tccContext, TCC_RELOCATE_AUTO ) < 0 )
 			throw std::runtime_error( "The script could not be relocated" );
-
-		StartFn_t		Start = ( StartFn_t ) GetSymbol( START_FUNCTION );
-		if ( Start )	Start();
-
-		updateFn = GetSymbol( UPDATE_FUNCTION );
-		if ( !updateFn )	throw std::runtime_error( "The script does not contain a function " UPDATE_FUNCTION );
 	}
 	catch ( const std::exception& Exception )
 	{
@@ -136,34 +130,8 @@ void le::Script::Unload()
 
 	tcc_delete( tccContext );
 	tccContext = nullptr;
-	updateFn = nullptr;
-	symbolsCache.clear();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Update script
-// ------------------------------------------------------------------------------------ //
-void le::Script::Update()
-{
-	if ( !tccContext ) return;
-	( ( UpdateFn_t ) updateFn )();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Get symbol from script
-// ------------------------------------------------------------------------------------ //
-void* le::Script::GetSymbol( const char* Name )
-{
-	if ( !tccContext ) return nullptr;
-
-	auto		itSymbol = symbolsCache.find( Name );
-	if ( itSymbol != symbolsCache.end() )
-		return itSymbol->second;
-
-	void*		symbol = tcc_get_symbol( tccContext, Name );
-	symbolsCache.insert( std::make_pair( Name, symbol ) );
-
-	return symbol;
+	functionsCache.clear();
+	varsCache.clear();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -171,8 +139,7 @@ void* le::Script::GetSymbol( const char* Name )
 // ------------------------------------------------------------------------------------ //
 le::Script::Script() :
 	countReferences( 0 ),
-	tccContext( nullptr ),
-	updateFn( nullptr )
+	tccContext( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -189,4 +156,38 @@ le::Script::~Script()
 bool le::Script::IsLoaded() const
 {
 	return tccContext;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get function
+// ------------------------------------------------------------------------------------ //
+void* le::Script::GetFunction( const char* Name )
+{
+	if ( !tccContext )		return nullptr;
+
+	auto		itFunction = functionsCache.find( Name );
+	if ( itFunction != functionsCache.end() )
+		return itFunction->second;
+
+	void*		function = tcc_get_symbol( tccContext, Name );
+	functionsCache.insert( std::make_pair( Name, function ) );
+
+	return function;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get var
+// ------------------------------------------------------------------------------------ //
+void* le::Script::GetVar( const char* Name )
+{
+	if ( !tccContext )		return nullptr;
+
+	auto		itVar = varsCache.find( Name );
+	if ( itVar != varsCache.end() )
+		return itVar->second;
+
+	void*		var = tcc_get_symbol( tccContext, Name );
+	varsCache.insert( std::make_pair( Name, var ) );
+
+	return var;
 }

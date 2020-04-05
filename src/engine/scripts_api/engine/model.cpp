@@ -14,7 +14,7 @@
 // ------------------------------------------------------------------------------------ //
 // Move model
 // ------------------------------------------------------------------------------------ //
-void Model_Move( void* Model, vec3_t FactorMove )
+void Model_Move( model_t Model, vec3_t FactorMove )
 {
 	if ( !Model ) return;
 	static_cast< le::Model* >( Model )->Move( { FactorMove.x, FactorMove.y, FactorMove.z } );
@@ -23,7 +23,7 @@ void Model_Move( void* Model, vec3_t FactorMove )
 // ------------------------------------------------------------------------------------ //
 // Rotate model
 // ------------------------------------------------------------------------------------ //
-void Model_EulerRotate( void* Model, vec3_t FactorRotate )
+void Model_EulerRotate( model_t Model, vec3_t FactorRotate )
 {
 	if ( !Model ) return;
 	static_cast< le::Model* >( Model )->Rotate( { glm::radians( FactorRotate.x ), glm::radians( FactorRotate.y ), glm::radians( FactorRotate.z ) } );
@@ -32,7 +32,7 @@ void Model_EulerRotate( void* Model, vec3_t FactorRotate )
 // ------------------------------------------------------------------------------------ //
 // Rotate model
 // ------------------------------------------------------------------------------------ //
-void Model_QuatRotate( void* Model, quat_t FactorRotate )
+void Model_QuatRotate( model_t Model, quat_t FactorRotate )
 {
 	if ( !Model ) return;
 	static_cast< le::Model* >( Model )->Rotate( { FactorRotate.w, FactorRotate.x, FactorRotate.y, FactorRotate.z } );
@@ -41,7 +41,7 @@ void Model_QuatRotate( void* Model, quat_t FactorRotate )
 // ------------------------------------------------------------------------------------ //
 // Scale model
 // ------------------------------------------------------------------------------------ //
-void Model_Scale( void* Model, vec3_t FactorScale )
+void Model_Scale( model_t Model, vec3_t FactorScale )
 {
 	if ( !Model ) return;
 	static_cast< le::Model* >( Model )->Scale( { FactorScale.x, FactorScale.y, FactorScale.z } );
@@ -50,7 +50,7 @@ void Model_Scale( void* Model, vec3_t FactorScale )
 // ------------------------------------------------------------------------------------ //
 // Set position model
 // ------------------------------------------------------------------------------------ //
-void Model_SetPosition( void* Model, vec3_t Position )
+void Model_SetPosition( model_t Model, vec3_t Position )
 {
 	if ( !Model ) return;
 	static_cast< le::Model* >( Model )->SetPosition( { Position.x, Position.y, Position.z } );
@@ -59,7 +59,7 @@ void Model_SetPosition( void* Model, vec3_t Position )
 // ------------------------------------------------------------------------------------ //
 // Set rotation model
 // ------------------------------------------------------------------------------------ //
-void Model_SetEulerRotation( void* Model, vec3_t Rotation )
+void Model_SetEulerRotation( model_t Model, vec3_t Rotation )
 {
 	if ( !Model ) return;
 	static_cast< le::Model* >( Model )->SetRotation( { Rotation.x, Rotation.y, Rotation.z } );
@@ -68,7 +68,7 @@ void Model_SetEulerRotation( void* Model, vec3_t Rotation )
 // ------------------------------------------------------------------------------------ //
 // Set rotation model
 // ------------------------------------------------------------------------------------ //
-void Model_SetQuatRotation( void* Model, quat_t Rotation )
+void Model_SetQuatRotation( model_t Model, quat_t Rotation )
 {
 	if ( !Model ) return;
 	static_cast< le::Model* >( Model )->SetRotation( { Rotation.w, Rotation.x, Rotation.y, Rotation.z } );
@@ -77,7 +77,7 @@ void Model_SetQuatRotation( void* Model, quat_t Rotation )
 // ------------------------------------------------------------------------------------ //
 // Set scale model
 // ------------------------------------------------------------------------------------ //
-void Model_SetScale( void* Model, vec3_t Scale )
+void Model_SetScale( model_t Model, vec3_t Scale )
 {
 	if ( !Model ) return;
 	static_cast< le::Model* >( Model )->SetScale( { Scale.x, Scale.y, Scale.z } );
@@ -86,7 +86,7 @@ void Model_SetScale( void* Model, vec3_t Scale )
 // ------------------------------------------------------------------------------------ //
 // Get position model
 // ------------------------------------------------------------------------------------ //
-vec3_t Model_GetPosition( void* Model )
+vec3_t Model_GetPosition( model_t Model )
 {
 	if ( !Model ) return { 0.f, 0.f, 0.f };
 	le::Vector3D_t		position = static_cast< le::Model* >( Model )->GetPosition();
@@ -96,7 +96,7 @@ vec3_t Model_GetPosition( void* Model )
 // ------------------------------------------------------------------------------------ //
 // Get rotation model
 // ------------------------------------------------------------------------------------ //
-quat_t Model_GetRotation( void* Model )
+quat_t Model_GetRotation( model_t Model )
 {
 	if ( !Model ) return { 0.f, 0.f, 0.f, 0.f };
 	le::Quaternion_t		rotation = static_cast< le::Model* >( Model )->GetRotation();
@@ -106,7 +106,7 @@ quat_t Model_GetRotation( void* Model )
 // ------------------------------------------------------------------------------------ //
 // Get scale model
 // ------------------------------------------------------------------------------------ //
-vec3_t Model_GetScale( void* Model )
+vec3_t Model_GetScale( model_t Model )
 {
 	if ( !Model ) return { 0.f, 0.f, 0.f };
 	le::Vector3D_t		scale = static_cast< le::Model* >( Model )->GetScale();
