@@ -8,109 +8,98 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#include "engine/material.h"
-#include "studiorender/istudiorendertechnique.h"
+#include "engine/imaterialproxy.h"
+#include "engine/materialproxyvar.h"
 
 namespace scripts_api
 {
-#include "material.h"
+#include "materialproxy.h"
 }
 
-#define MATERIAL( Object )  static_cast< le::Material* >( Object )
-
 // ------------------------------------------------------------------------------------ //
-// Add technique
+// Update
 // ------------------------------------------------------------------------------------ //
-void scripts_api::Material_AddTechnique( material_t Object, studioRenderTechnique_t Tecnhique )
+void scripts_api::MaterialProxy_Update( materialProxy_t Object )
 {
 	if ( !Object ) return;
-	MATERIAL( Object )->AddTechnique( ( le::IStudioRenderTechnique* ) Tecnhique );
+	static_cast< le::IMaterialProxy* >( Object )->Update();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Remove technique
+// Nead update
 // ------------------------------------------------------------------------------------ //
-void scripts_api::Material_RemoveTechnique( material_t Object, uint32_t Index )
+void scripts_api::MaterialProxy_NeadUpdate( materialProxy_t Object )
 {
 	if ( !Object ) return;
-	MATERIAL( Object )->RemoveTechnique( Index );
+	static_cast< le::IMaterialProxy* >( Object )->NeadUpdate();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Clear
+// Clear var
 // ------------------------------------------------------------------------------------ //
-void scripts_api::Material_Clear( material_t Object )
+void scripts_api::MaterialProxy_ClearVar( materialProxy_t Object, const char* Name )
 {
 	if ( !Object ) return;
-	MATERIAL( Object )->Clear();
+	static_cast< le::IMaterialProxy* >( Object )->ClearVar( Name );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set surface name
+// Clear all vars
 // ------------------------------------------------------------------------------------ //
-void scripts_api::Material_SetSurfaceName( material_t Object, const char* Name )
+void scripts_api::MaterialProxy_ClearAllVars( materialProxy_t Object )
 {
 	if ( !Object ) return;
-	MATERIAL( Object )->SetSurfaceName( Name );
+	static_cast< le::IMaterialProxy* >( Object )->ClearAllVars();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get surface name
+// Set var
 // ------------------------------------------------------------------------------------ //
-const char* scripts_api::Material_GetSurfaceName( material_t Object )
+void scripts_api::MaterialProxy_SetVar( materialProxy_t Object, materialProxyVar_t MaterialProxyVar )
+{
+	if ( !Object ) return;
+	static_cast< le::IMaterialProxy* >( Object )->SetVar( ( le::MaterialProxyVar* ) MaterialProxyVar );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Is nead update
+// ------------------------------------------------------------------------------------ //
+scripts_api::bool_t scripts_api::MaterialProxy_IsNeadUpdate( materialProxy_t Object )
+{
+	if ( !Object ) return B_FALSE;
+	return static_cast< le::IMaterialProxy* >( Object )->IsNeadUpdate() ? B_TRUE : B_FALSE;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get name
+// ------------------------------------------------------------------------------------ //
+const char* scripts_api::MaterialProxy_GetName( materialProxy_t Object )
 {
 	if ( !Object ) return nullptr;
-	MATERIAL( Object )->GetSurfaceName();
+	return static_cast< le::IMaterialProxy* >( Object )->GetName();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get count techniques
+// Get var
 // ------------------------------------------------------------------------------------ //
-scripts_api::uint32_t scripts_api::Material_GetCountTechniques( material_t Object )
-{
-	if ( !Object ) return 0;
-	return MATERIAL( Object )->GetCountTechiques();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Get techniques
-// ------------------------------------------------------------------------------------ //
-scripts_api::studioRenderTechnique_t* scripts_api::Material_GetTechniques( material_t Object )
+scripts_api::materialProxyVar_t scripts_api::MaterialProxy_GetVar( materialProxy_t Object, const char* Name )
 {
 	if ( !Object ) return nullptr;
-	return ( studioRenderTechnique_t* ) MATERIAL( Object )->GetTechiques();
+	return static_cast< le::IMaterialProxy* >( Object )->GetVar( Name );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get technique by index
+// Delete
 // ------------------------------------------------------------------------------------ //
-scripts_api::studioRenderTechnique_t scripts_api::Material_GetTechniqueByIndex( material_t Object, uint32_t Index )
-{
-	if ( !Object ) return nullptr;
-	return ( studioRenderTechnique_t ) MATERIAL( Object )->GetTechnique( Index );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Get technique by type
-// ------------------------------------------------------------------------------------ //
-scripts_api::studioRenderTechnique_t scripts_api::Material_GetTechniqueByType( material_t Object, renderTechniqueType_t Type )
-{
-	if ( !Object ) return nullptr;
-	return ( studioRenderTechnique_t ) MATERIAL( Object )->GetTechnique( Type );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Delete material
-// ------------------------------------------------------------------------------------ //
-void scripts_api::Material_Delete( material_t Object )
+void scripts_api::MaterialProxy_Delete( materialProxy_t Object )
 {
 	if ( !Object ) return;
 
-	le::Material*		material = static_cast< le::Material* >( Object );
-	if ( material->GetCountReferences() <= 1 )
-		material->Release();
+	le::IMaterialProxy*		object = static_cast< le::IMaterialProxy* >( Object );
+	if ( object->GetCountReferences() <= 1 )
+		object->Release();
 	else
-		material->DecrementReference();
+		object->DecrementReference();
 
-	Object = nullptr;
+	object = nullptr;
 }

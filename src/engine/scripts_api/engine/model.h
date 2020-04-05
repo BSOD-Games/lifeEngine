@@ -12,19 +12,17 @@
 #define API_MODEL_H
 
 #include "../common/types.h"
+#include "../mathlib/mathlib.h"
 
 //---------------------------------------------------------------------//
 
-typedef struct
-{
-	float x, y, z;
-} vec3_t;
+typedef void*			mesh_t;
+typedef void*			model_t;
 
-typedef struct
-{
-	float x, y, z, w;
-} vec4_t;
-typedef vec4_t quat_t;
+//---------------------------------------------------------------------//
+
+/* Delete */
+extern void			Model_Delete( model_t Model );
 
 /* Move model */
 extern void			Model_Move( model_t Model, vec3_t FactorMove );
@@ -58,6 +56,24 @@ extern quat_t		Model_GetRotation( model_t Model );
 
 /* Get scale model */
 extern vec3_t		Model_GetScale( model_t Model );
+
+/* Set mesh */
+extern void			Model_SetMesh( model_t Model, mesh_t Mesh );
+
+/* Set start face */
+extern void			Model_SetStartFace( model_t Model, uint32_t StartFace );
+
+/* Set count face */
+extern void			Model_SetCountFace( model_t Model, uint32_t CountFace );
+
+/* Get mesh */
+extern mesh_t		Model_GetMesh( model_t Model );
+
+/* Get start face */
+extern uint32_t		Model_GetStartFace( model_t Model );
+
+/* Get count face */
+extern uint32_t		Model_GetCountFace( model_t Model );
 
 //---------------------------------------------------------------------//
 

@@ -12,6 +12,8 @@
 #define API_RESOURCESYSTEM_H
 
 #include "../common/types.h"
+#include "material.h"
+#include "model.h"
 
 //---------------------------------------------------------------------//
 

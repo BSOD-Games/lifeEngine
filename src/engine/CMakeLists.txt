@@ -10,6 +10,10 @@ file( GLOB SOURCE_FILES "*.h"
                         "../public/common/*.h"
                         "scripts_api/engine/*.h"
                         "scripts_api/engine/*.cpp"
+                        "scripts_api/studiorender/*.h"
+                        "scripts_api/studiorender/*.cpp"
+                        "scripts_api/mathlib/*.h"
+                        "scripts_api/mathlib/*.cpp"
                         "scripts_api/common/*.h" )
 set( MODULE_NAME engine )
 
@@ -77,9 +81,13 @@ install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
 
 file( GLOB SCRIPTAPI_ENGINE "scripts_api/engine/*.h" )
 file( GLOB SCRIPTAPI_COMMON "scripts_api/common/*.h" )
+file( GLOB SCRIPTAPI_STUDIORENDER "scripts_api/studiorender/*.h" )
+file( GLOB SCRIPTAPI_MATHLIB "scripts_api/mathlib/*.h" )
 
 install( FILES ${SCRIPTAPI_ENGINE} DESTINATION ${BUILD_DIR}/engine/scripts/engine )
 install( FILES ${SCRIPTAPI_COMMON} DESTINATION ${BUILD_DIR}/engine/scripts/common )
+install( FILES ${SCRIPTAPI_STUDIORENDER} DESTINATION ${BUILD_DIR}/engine/scripts/studiorender )
+install( FILES ${SCRIPTAPI_MATHLIB} DESTINATION ${BUILD_DIR}/engine/scripts/mathlib )
 
 #
 #   --- Ищим и подключаем зависимости ---

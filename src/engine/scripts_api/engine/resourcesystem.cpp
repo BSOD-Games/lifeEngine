@@ -10,12 +10,16 @@
 
 #include "engine/global.h"
 #include "engine/resourcesystem.h"
-#include "resourcesystem.h"
+
+namespace scripts_api
+{
+	#include "resourcesystem.h"
+}
 
 // ------------------------------------------------------------------------------------ //
 // Load texture
 // ------------------------------------------------------------------------------------ //
-texture_t ResourceSystem_LoadTexture( const char* Name, const char* Path )
+scripts_api::texture_t scripts_api::ResourceSystem_LoadTexture( const char* Name, const char* Path )
 {
 	return le::g_resourceSystem->LoadTexture( Name, Path );
 }
@@ -23,7 +27,7 @@ texture_t ResourceSystem_LoadTexture( const char* Name, const char* Path )
 // ------------------------------------------------------------------------------------ //
 // Load material
 // ------------------------------------------------------------------------------------ //
-material_t ResourceSystem_LoadMaterial( const char* Name, const char* Path )
+scripts_api::material_t scripts_api::ResourceSystem_LoadMaterial( const char* Name, const char* Path )
 {
 	return le::g_resourceSystem->LoadMaterial( Name, Path );
 }
@@ -31,7 +35,7 @@ material_t ResourceSystem_LoadMaterial( const char* Name, const char* Path )
 // ------------------------------------------------------------------------------------ //
 // Load mesh
 // ------------------------------------------------------------------------------------ //
-mesh_t ResourceSystem_LoadMesh( const char* Name, const char* Path )
+scripts_api::mesh_t scripts_api::ResourceSystem_LoadMesh( const char* Name, const char* Path )
 {
 	return le::g_resourceSystem->LoadMesh( Name, Path );
 }
@@ -39,7 +43,7 @@ mesh_t ResourceSystem_LoadMesh( const char* Name, const char* Path )
 // ------------------------------------------------------------------------------------ //
 // Load font
 // ------------------------------------------------------------------------------------ //
-font_t ResourceSystem_LoadFont( const char* Name, const char* Path )
+scripts_api::font_t scripts_api::ResourceSystem_LoadFont( const char* Name, const char* Path )
 {
 	return le::g_resourceSystem->LoadFont( Name, Path );
 }
@@ -47,7 +51,7 @@ font_t ResourceSystem_LoadFont( const char* Name, const char* Path )
 // ------------------------------------------------------------------------------------ //
 // Unload texture
 // ------------------------------------------------------------------------------------ //
-void ResourceSystem_UnloadTexture( const char* Name )
+void scripts_api::ResourceSystem_UnloadTexture( const char* Name )
 {
 	le::g_resourceSystem->UnloadTexture( Name );
 }
@@ -55,7 +59,7 @@ void ResourceSystem_UnloadTexture( const char* Name )
 // ------------------------------------------------------------------------------------ //
 // Unload material
 // ------------------------------------------------------------------------------------ //
-void ResourceSystem_UnloadMaterial( const char* Name )
+void scripts_api::ResourceSystem_UnloadMaterial( const char* Name )
 {
 	le::g_resourceSystem->UnloadMaterial( Name );
 }
@@ -63,7 +67,7 @@ void ResourceSystem_UnloadMaterial( const char* Name )
 // ------------------------------------------------------------------------------------ //
 // Unload mesh
 // ------------------------------------------------------------------------------------ //
-void ResourceSystem_UnloadMesh( const char* Name )
+void scripts_api::ResourceSystem_UnloadMesh( const char* Name )
 {
 	le::g_resourceSystem->UnloadMesh( Name );
 }
@@ -71,7 +75,7 @@ void ResourceSystem_UnloadMesh( const char* Name )
 // ------------------------------------------------------------------------------------ //
 // Unload font
 // ------------------------------------------------------------------------------------ //
-void ResourceSystem_UnloadFont( const char* Name )
+void scripts_api::ResourceSystem_UnloadFont( const char* Name )
 {
 	le::g_resourceSystem->UnloadFont( Name );
 }
@@ -79,7 +83,7 @@ void ResourceSystem_UnloadFont( const char* Name )
 // ------------------------------------------------------------------------------------ //
 // Unload textures
 // ------------------------------------------------------------------------------------ //
-void ResourceSystem_UnloadTextures()
+void scripts_api::ResourceSystem_UnloadTextures()
 {
 	le::g_resourceSystem->UnloadTextures();
 }
@@ -87,7 +91,7 @@ void ResourceSystem_UnloadTextures()
 // ------------------------------------------------------------------------------------ //
 // Unload materials
 // ------------------------------------------------------------------------------------ //
-void ResourceSystem_UnloadMaterials()
+void scripts_api::ResourceSystem_UnloadMaterials()
 {
 	le::g_resourceSystem->UnloadMaterials();
 }
@@ -95,7 +99,7 @@ void ResourceSystem_UnloadMaterials()
 // ------------------------------------------------------------------------------------ //
 // Unload meshes
 // ------------------------------------------------------------------------------------ //
-void ResourceSystem_UnloadMeshes()
+void scripts_api::ResourceSystem_UnloadMeshes()
 {
 	le::g_resourceSystem->UnloadMeshes();
 }
@@ -103,7 +107,7 @@ void ResourceSystem_UnloadMeshes()
 // ------------------------------------------------------------------------------------ //
 // Unload fonts
 // ------------------------------------------------------------------------------------ //
-void ResourceSystem_UnloadFonts()
+void scripts_api::ResourceSystem_UnloadFonts()
 {
 	le::g_resourceSystem->UnloadFonts();
 }
@@ -111,7 +115,7 @@ void ResourceSystem_UnloadFonts()
 // ------------------------------------------------------------------------------------ //
 // Unload all
 // ------------------------------------------------------------------------------------ //
-void ResourceSystem_UnloadAll()
+void scripts_api::ResourceSystem_UnloadAll()
 {
 	le::g_resourceSystem->UnloadAll();
 }
@@ -119,7 +123,7 @@ void ResourceSystem_UnloadAll()
 // ------------------------------------------------------------------------------------ //
 // Get texture
 // ------------------------------------------------------------------------------------ //
-texture_t ResourceSystem_GetTexture( const char* Name )
+scripts_api::texture_t scripts_api::ResourceSystem_GetTexture( const char* Name )
 {
 	return le::g_resourceSystem->GetTexture( Name );
 }
@@ -127,7 +131,7 @@ texture_t ResourceSystem_GetTexture( const char* Name )
 // ------------------------------------------------------------------------------------ //
 // Get material
 // ------------------------------------------------------------------------------------ //
-material_t ResourceSystem_GetMaterial( const char* Name )
+scripts_api::material_t scripts_api::ResourceSystem_GetMaterial( const char* Name )
 {
 	return le::g_resourceSystem->GetMaterial( Name );
 }
@@ -135,7 +139,7 @@ material_t ResourceSystem_GetMaterial( const char* Name )
 // ------------------------------------------------------------------------------------ //
 // Get mesh
 // ------------------------------------------------------------------------------------ //
-mesh_t ResourceSystem_GetMesh( const char* Name )
+scripts_api::mesh_t scripts_api::ResourceSystem_GetMesh( const char* Name )
 {
 	return le::g_resourceSystem->GetMesh( Name );
 }
@@ -143,7 +147,7 @@ mesh_t ResourceSystem_GetMesh( const char* Name )
 // ------------------------------------------------------------------------------------ //
 // Get font
 // ------------------------------------------------------------------------------------ //
-font_t ResourceSystem_GetFont( const char* Name )
+scripts_api::font_t scripts_api::ResourceSystem_GetFont( const char* Name )
 {
 	return le::g_resourceSystem->GetFont( Name );
 }

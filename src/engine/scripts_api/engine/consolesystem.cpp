@@ -14,7 +14,11 @@
 
 #include "../../global.h"
 #include "engine/consolesystem.h"
-#include "consolesystem.h"
+
+namespace scripts_api
+{
+	#include "consolesystem.h"
+}
 
 // ------------------------------------------------------------------------------------ //
 // Parse message
@@ -62,7 +66,7 @@ inline void ConsoleSystem_ParseMessage( const char* Format, va_list ArgList, std
 // ------------------------------------------------------------------------------------ //
 // Print info to console
 // ------------------------------------------------------------------------------------ //
-void ConsoleSystem_Info( const char* Format, ... )
+void scripts_api::ConsoleSystem_Info( const char* Format, ... )
 {
 	va_list			argList = {};
 	va_start( argList, Format );
@@ -77,7 +81,7 @@ void ConsoleSystem_Info( const char* Format, ... )
 // ------------------------------------------------------------------------------------ //
 // Print warning to console
 // ------------------------------------------------------------------------------------ //
-void ConsoleSystem_Warning( const char* Format, ... )
+void scripts_api::ConsoleSystem_Warning( const char* Format, ... )
 {
 	va_list			argList = {};
 	va_start( argList, Format );
@@ -92,7 +96,7 @@ void ConsoleSystem_Warning( const char* Format, ... )
 // ------------------------------------------------------------------------------------ //
 // Print error to console
 // ------------------------------------------------------------------------------------ //
-void ConsoleSystem_Error( const char* Format, ... )
+void scripts_api::ConsoleSystem_Error( const char* Format, ... )
 {
 	va_list			argList = {};
 	va_start( argList, Format );
@@ -107,7 +111,7 @@ void ConsoleSystem_Error( const char* Format, ... )
 // ------------------------------------------------------------------------------------ //
 // Execute console command
 // ------------------------------------------------------------------------------------ //
-void ConsoleSystem_Exec( const char* Command )
+void scripts_api::ConsoleSystem_Exec( const char* Command )
 {
 	le::g_consoleSystem->Exec( Command );
 }

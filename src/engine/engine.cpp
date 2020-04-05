@@ -81,6 +81,7 @@ le::Engine::Engine() :
 	g_scriptSystem = &scriptSystem;
 	g_window = &window;
 	g_engine = this;
+	g_engineFactory = &engineFactory;
 
 	configurations.fov = 75.f;
 	configurations.isFullscreen = false;
@@ -150,7 +151,9 @@ bool le::Engine::LoadModule_StudioRender( const char* PathDLL )
 
 		studioRender = ( IStudioRenderInternal* ) studioRenderDescriptor.LE_CreateStudioRender();
 		if ( !studioRender->Initialize( this ) )				throw std::runtime_error( "Fail initialize studiorender" );
+
 		g_studioRender = studioRender;
+		g_studioRenderFactory = studioRender->GetFactory();
 	}
 	catch ( std::exception& Exception )
 	{
@@ -175,6 +178,8 @@ void le::Engine::UnloadModule_StudioRender()
 	SDL_UnloadObject( studioRenderDescriptor.handle );
 	studioRender = nullptr;
 	studioRenderDescriptor = { nullptr, nullptr, nullptr, nullptr };
+	g_studioRender = nullptr;
+	g_studioRenderFactory = nullptr;
 
 	consoleSystem.PrintInfo( "Unloaded studiorender" );
 }
@@ -207,6 +212,7 @@ bool le::Engine::LoadModule_PhysicsSystem( const char *PathDLL )
 
 		physicSystem = ( IPhysicsSystemInternal* ) physicSystemDescriptor.LE_CreatePhysicsSystem();
 		if ( !physicSystem->Initialize( this ) )	throw std::runtime_error( "Fail initialize physics system" );
+
 		g_physicsSystem = physicSystem;
 	}
 	catch ( std::exception& Exception )

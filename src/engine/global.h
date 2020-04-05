@@ -27,8 +27,14 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
+	class IFactory;
+	extern IFactory*				g_engineFactory;
+
+	//---------------------------------------------------------------------//
+
 	class IStudioRender;
 	extern IStudioRender*			g_studioRender;
+	extern IFactory*				g_studioRenderFactory;
 
 	//---------------------------------------------------------------------//
 

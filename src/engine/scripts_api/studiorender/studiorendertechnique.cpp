@@ -8,109 +8,100 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#include "engine/material.h"
+#include "studiorender/istudiorenderpass.h"
 #include "studiorender/istudiorendertechnique.h"
 
 namespace scripts_api
 {
-#include "material.h"
+#include "studiorendertechnique.h"
 }
 
-#define MATERIAL( Object )  static_cast< le::Material* >( Object )
+#define STUDIORENDERTECHNIQUE( Object )  static_cast< le::IStudioRenderTechnique* >( Object )
 
 // ------------------------------------------------------------------------------------ //
-// Add technique
+// Add pass
 // ------------------------------------------------------------------------------------ //
-void scripts_api::Material_AddTechnique( material_t Object, studioRenderTechnique_t Tecnhique )
+void scripts_api::StudioRenderTechnique_AddPass( studioRenderTechnique_t Object, studioRenderPass_t Pass )
 {
 	if ( !Object ) return;
-	MATERIAL( Object )->AddTechnique( ( le::IStudioRenderTechnique* ) Tecnhique );
+	STUDIORENDERTECHNIQUE( Object )->AddPass( ( le::IStudioRenderPass* ) Pass );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Remove technique
+// Remove pass
 // ------------------------------------------------------------------------------------ //
-void scripts_api::Material_RemoveTechnique( material_t Object, uint32_t Index )
+void scripts_api::StudioRenderTechnique_RemovePass( studioRenderTechnique_t Object, uint32_t Index )
 {
 	if ( !Object ) return;
-	MATERIAL( Object )->RemoveTechnique( Index );
+	STUDIORENDERTECHNIQUE( Object )->RemovePass( Index );
 }
 
 // ------------------------------------------------------------------------------------ //
 // Clear
 // ------------------------------------------------------------------------------------ //
-void scripts_api::Material_Clear( material_t Object )
+void scripts_api::StudioRenderTechnique_Clear( studioRenderTechnique_t Object )
 {
 	if ( !Object ) return;
-	MATERIAL( Object )->Clear();
+	STUDIORENDERTECHNIQUE( Object )->Clear();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set surface name
+// Set type
 // ------------------------------------------------------------------------------------ //
-void scripts_api::Material_SetSurfaceName( material_t Object, const char* Name )
+void scripts_api::StudioRenderTechnique_SetType( studioRenderTechnique_t Object, renderTechniqueType_t Technique )
 {
 	if ( !Object ) return;
-	MATERIAL( Object )->SetSurfaceName( Name );
+	STUDIORENDERTECHNIQUE( Object )->SetType( ( le::RENDER_TECHNIQUE ) Technique );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get surface name
+// Get type
 // ------------------------------------------------------------------------------------ //
-const char* scripts_api::Material_GetSurfaceName( material_t Object )
+scripts_api::renderTechniqueType_t scripts_api::StudioRenderTechnique_GetType( studioRenderTechnique_t Object )
 {
-	if ( !Object ) return nullptr;
-	MATERIAL( Object )->GetSurfaceName();
+	if ( !Object ) return RT_UNKNOW;
+	return ( renderTechniqueType_t ) STUDIORENDERTECHNIQUE( Object )->GetType();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get count techniques
+// Get count passes
 // ------------------------------------------------------------------------------------ //
-scripts_api::uint32_t scripts_api::Material_GetCountTechniques( material_t Object )
+uint32_t scripts_api::StudioRenderTechnique_GetCountPasses( studioRenderTechnique_t Object )
 {
 	if ( !Object ) return 0;
-	return MATERIAL( Object )->GetCountTechiques();
+	return STUDIORENDERTECHNIQUE( Object )->GetCountPasses();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get techniques
+// Get passes
 // ------------------------------------------------------------------------------------ //
-scripts_api::studioRenderTechnique_t* scripts_api::Material_GetTechniques( material_t Object )
+scripts_api::studioRenderPass_t* scripts_api::StudioRenderTechnique_GetPasses( studioRenderTechnique_t Object )
 {
 	if ( !Object ) return nullptr;
-	return ( studioRenderTechnique_t* ) MATERIAL( Object )->GetTechiques();
+	return ( studioRenderPass_t* ) STUDIORENDERTECHNIQUE( Object )->GetPasses();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get technique by index
+// Get pass
 // ------------------------------------------------------------------------------------ //
-scripts_api::studioRenderTechnique_t scripts_api::Material_GetTechniqueByIndex( material_t Object, uint32_t Index )
+scripts_api::studioRenderPass_t scripts_api::StudioRenderTechnique_GetPass( studioRenderTechnique_t Object, uint32_t Index )
 {
 	if ( !Object ) return nullptr;
-	return ( studioRenderTechnique_t ) MATERIAL( Object )->GetTechnique( Index );
+	return ( studioRenderPass_t ) STUDIORENDERTECHNIQUE( Object )->GetPass( Index );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get technique by type
+// Delete
 // ------------------------------------------------------------------------------------ //
-scripts_api::studioRenderTechnique_t scripts_api::Material_GetTechniqueByType( material_t Object, renderTechniqueType_t Type )
-{
-	if ( !Object ) return nullptr;
-	return ( studioRenderTechnique_t ) MATERIAL( Object )->GetTechnique( Type );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Delete material
-// ------------------------------------------------------------------------------------ //
-void scripts_api::Material_Delete( material_t Object )
+void scripts_api::StudioRenderTechnique_Delete( studioRenderTechnique_t Object )
 {
 	if ( !Object ) return;
 
-	le::Material*		material = static_cast< le::Material* >( Object );
-	if ( material->GetCountReferences() <= 1 )
-		material->Release();
+	le::IStudioRenderTechnique*			object = static_cast< le::IStudioRenderTechnique* >( Object );
+	if ( object->GetCountReferences() <= 1 )
+		object->Release();
 	else
-		material->DecrementReference();
+		object->DecrementReference();
 
-	Object = nullptr;
+	object = nullptr;
 }
