@@ -26,6 +26,9 @@ typedef void*		studioRenderTechnique_t;
 
 //---------------------------------------------------------------------//
 
+/* Create */
+extern studioRenderTechnique_t		StudioRenderTechnique_Create();
+
 /* Delete */
 extern void							StudioRenderTechnique_Delete( studioRenderTechnique_t Object );
 

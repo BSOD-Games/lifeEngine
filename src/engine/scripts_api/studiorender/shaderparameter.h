@@ -32,6 +32,9 @@ typedef void*			shaderParameter_t;
 
 //---------------------------------------------------------------------//
 
+/* Create */
+extern shaderParameter_t					ShaderParameter_Create();
+
 /* Delete */
 extern void									ShaderParameter_Delete( shaderParameter_t Object );
 
@@ -51,13 +54,13 @@ extern void									ShaderParameter_SetValueFloat( shaderParameter_t Object, flo
 extern void									ShaderParameter_SetValueShaderFlag( shaderParameter_t Object, bool_t Value );
 
 /* Set value vec2 */
-extern void									ShaderParameter_SetValueVec2( shaderParameter_t Object, vec2_t Value );
+extern void									ShaderParameter_SetValueVec2( shaderParameter_t Object, vec2f_t Value );
 
 /* Set value vec3 */
-extern void									ShaderParameter_SetValueVec3( shaderParameter_t Object, vec3_t Value );
+extern void									ShaderParameter_SetValueVec3( shaderParameter_t Object, vec3f_t Value );
 
 /* Set value vec4 */
-extern void									ShaderParameter_SetValueVec4( shaderParameter_t Object, vec4_t Value );
+extern void									ShaderParameter_SetValueVec4( shaderParameter_t Object, vec4f_t Value );
 
 /* Set value mat4 */
 extern void									ShaderParameter_SetValueMat4( shaderParameter_t Object, mat4_t Value );
@@ -83,14 +86,14 @@ extern float								ShaderParameter_GetValueFloat( shaderParameter_t Object );
 /* Get shader flag */
 extern bool_t								ShaderParameter_GetValueShaderFlag( shaderParameter_t Object );
 
-/* Get vec2 */
-extern vec2_t								ShaderParameter_GetValueVec2( shaderParameter_t Object );
+/* Get vec2f */
+extern vec2f_t								ShaderParameter_GetValueVec2( shaderParameter_t Object );
 
-/* Get vec3 */
-extern vec3_t								ShaderParameter_GetValueVec3( shaderParameter_t Object );
+/* Get vec3f */
+extern vec3f_t								ShaderParameter_GetValueVec3( shaderParameter_t Object );
 
-/* Get vec4 */
-extern vec4_t								ShaderParameter_GetValueVec4( shaderParameter_t Object );
+/* Get vec4f */
+extern vec4f_t								ShaderParameter_GetValueVec4( shaderParameter_t Object );
 
 /* Get mat4 */
 extern mat4_t								ShaderParameter_GetValueMat4( shaderParameter_t Object );

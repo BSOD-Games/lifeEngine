@@ -20,6 +20,9 @@ typedef void*			material_t;
 
 //---------------------------------------------------------------------//
 
+/* Create */
+extern material_t						Material_Create();
+
 /* Delete */
 extern void								Material_Delete( material_t Object );
 

@@ -11,6 +11,8 @@
 #ifndef API_INPUTSYSTEM_H
 #define API_INPUTSYSTEM_H
 
+#include "../mathlib/mathlib.h"
+
 //---------------------------------------------------------------------//
 
 /* Buttons keyboard and mouse */
@@ -167,6 +169,15 @@ extern int			InputSystem_IsMouseKeyUp( buttonCode_t Key );
 
 /* Is mouse wheel */
 extern int			InputSystem_IsMouseWheel( buttonCode_t Key );
+
+/* Get mouse position */
+extern vec2i_t		InputSystem_GetMousePosition();
+
+/* Get mouse offset */
+extern vec2i_t		InputSystem_GetMouseOffset();
+
+/* Get mouse sensitivity */
+extern float		InputSystem_GetMouseSensitivity();
 
 //---------------------------------------------------------------------//
 

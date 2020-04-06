@@ -8,6 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include "engine/global.h"
+#include "engine/ifactory.h"
 #include "engine/imaterialproxy.h"
 #include "engine/materialproxyvar.h"
 
@@ -102,4 +104,12 @@ void scripts_api::MaterialProxy_Delete( materialProxy_t Object )
 		object->DecrementReference();
 
 	object = nullptr;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Create
+// ------------------------------------------------------------------------------------ //
+scripts_api::materialProxy_t scripts_api::MaterialProxy_Create( const char* Name )
+{
+	return le::g_engineFactory->Create( Name );
 }

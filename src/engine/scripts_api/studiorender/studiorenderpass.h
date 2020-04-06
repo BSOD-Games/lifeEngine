@@ -27,6 +27,9 @@ typedef void*			studioRenderPass_t;
 
 //---------------------------------------------------------------------//
 
+/* Create */
+extern studioRenderPass_t	StudioRenderPass_Create();
+
 /* Delete */
 extern void					StudioRenderPass_Delete( studioRenderPass_t Object );
 

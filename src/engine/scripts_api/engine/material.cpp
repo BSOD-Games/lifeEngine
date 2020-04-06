@@ -8,6 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include "engine/global.h"
+#include "engine/ifactory.h"
 #include "engine/material.h"
 #include "studiorender/istudiorendertechnique.h"
 
@@ -113,4 +115,12 @@ void scripts_api::Material_Delete( material_t Object )
 		material->DecrementReference();
 
 	Object = nullptr;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Create
+// ------------------------------------------------------------------------------------ //
+scripts_api::material_t scripts_api::Material_Create()
+{
+	return le::g_engineFactory->Create( MATERIAL_INTERFACE_VERSION );
 }

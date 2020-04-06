@@ -8,6 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include "engine/global.h"
+#include "engine/ifactory.h"
 #include "mathlib/gtc/type_ptr.hpp"
 #include "studiorender/ishaderparameter.h"
 
@@ -64,7 +66,7 @@ void scripts_api::ShaderParameter_SetValueShaderFlag(shaderParameter_t Object, b
 // ------------------------------------------------------------------------------------ //
 // Set value vec2
 // ------------------------------------------------------------------------------------ //
-void scripts_api::ShaderParameter_SetValueVec2( shaderParameter_t Object, vec2_t Value )
+void scripts_api::ShaderParameter_SetValueVec2( shaderParameter_t Object, vec2f_t Value )
 {
 	if ( !Object ) return;
 	static_cast< le::IShaderParameter* >( Object )->SetValueVector2D( { Value.x, Value.y } );
@@ -73,7 +75,7 @@ void scripts_api::ShaderParameter_SetValueVec2( shaderParameter_t Object, vec2_t
 // ------------------------------------------------------------------------------------ //
 // Set value vec3
 // ------------------------------------------------------------------------------------ //
-void scripts_api::ShaderParameter_SetValueVec3( shaderParameter_t Object, vec3_t Value )
+void scripts_api::ShaderParameter_SetValueVec3( shaderParameter_t Object, vec3f_t Value )
 {
 	if ( !Object ) return;
 	static_cast< le::IShaderParameter* >( Object )->SetValueVector3D( { Value.x, Value.y, Value.z } );
@@ -82,7 +84,7 @@ void scripts_api::ShaderParameter_SetValueVec3( shaderParameter_t Object, vec3_t
 // ------------------------------------------------------------------------------------ //
 // Set value vec4
 // ------------------------------------------------------------------------------------ //
-void scripts_api::ShaderParameter_SetValueVec4( shaderParameter_t Object, vec4_t Value )
+void scripts_api::ShaderParameter_SetValueVec4( shaderParameter_t Object, vec4f_t Value )
 {
 	if ( !Object ) return;
 	static_cast< le::IShaderParameter* >( Object )->SetValueVector4D( { Value.x, Value.y, Value.z, Value.w } );
@@ -163,7 +165,7 @@ scripts_api::bool_t scripts_api::ShaderParameter_GetValueShaderFlag( shaderParam
 // ------------------------------------------------------------------------------------ //
 // Get value vec2
 // ------------------------------------------------------------------------------------ //
-scripts_api::vec2_t scripts_api::ShaderParameter_GetValueVec2( shaderParameter_t Object )
+scripts_api::vec2f_t scripts_api::ShaderParameter_GetValueVec2( shaderParameter_t Object )
 {
 	if ( !Object ) return { 0.f, 0.f };
 
@@ -174,7 +176,7 @@ scripts_api::vec2_t scripts_api::ShaderParameter_GetValueVec2( shaderParameter_t
 // ------------------------------------------------------------------------------------ //
 // Get value vec3
 // ------------------------------------------------------------------------------------ //
-scripts_api::vec3_t scripts_api::ShaderParameter_GetValueVec3( shaderParameter_t Object )
+scripts_api::vec3f_t scripts_api::ShaderParameter_GetValueVec3( shaderParameter_t Object )
 {
 	if ( !Object ) return { 0.f, 0.f, 0.f };
 
@@ -185,7 +187,7 @@ scripts_api::vec3_t scripts_api::ShaderParameter_GetValueVec3( shaderParameter_t
 // ------------------------------------------------------------------------------------ //
 // Get value vec4
 // ------------------------------------------------------------------------------------ //
-scripts_api::vec4_t scripts_api::ShaderParameter_GetValueVec4( shaderParameter_t Object )
+scripts_api::vec4f_t scripts_api::ShaderParameter_GetValueVec4( shaderParameter_t Object )
 {
 	if ( !Object ) return { 0.f, 0.f, 0.f, 0.f };
 
@@ -230,4 +232,12 @@ void scripts_api::ShaderParameter_Delete( shaderParameter_t Object)
 		object->DecrementReference();
 
 	object = nullptr;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Create
+// ------------------------------------------------------------------------------------ //
+scripts_api::shaderParameter_t scripts_api::ShaderParameter_Create()
+{
+	return le::g_studioRenderFactory->Create( SHADERPARAMETER_INTERFACE_VERSION );
 }

@@ -16,5 +16,6 @@
 #include "vec4.h"
 #include "quat.h"
 #include "mat4.h"
+#include "ray.h"
 
 #endif // !API_MATHLIB_H

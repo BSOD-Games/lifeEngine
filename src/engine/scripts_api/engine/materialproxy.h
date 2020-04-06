@@ -20,6 +20,9 @@ typedef void*			materialProxy_t;
 
 //---------------------------------------------------------------------//
 
+/* Create */
+extern materialProxy_t			MaterialProxy_Create( const char* Name );
+
 /* Delete */
 extern void						MaterialProxy_Delete( materialProxy_t Object );
 

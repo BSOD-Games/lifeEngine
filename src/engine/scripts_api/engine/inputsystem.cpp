@@ -55,3 +55,29 @@ int scripts_api::InputSystem_IsMouseWheel( buttonCode_t Key )
 {
 	return le::g_inputSystem->IsMouseWheel( ( le::BUTTON_CODE ) Key );
 }
+
+// ------------------------------------------------------------------------------------ //
+// Get mouse position
+// ------------------------------------------------------------------------------------ //
+scripts_api::vec2i_t scripts_api::InputSystem_GetMousePosition()
+{
+	const le::Vector2DInt_t&		vec = le::g_inputSystem->GetMousePosition();
+	return { vec.x, vec.y };
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get mouse offset
+// ------------------------------------------------------------------------------------ //
+scripts_api::vec2i_t scripts_api::InputSystem_GetMouseOffset()
+{
+	const le::Vector2DInt_t&		vec = le::g_inputSystem->GetMouseOffset();
+	return { vec.x, vec.y };
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get mouse offset
+// ------------------------------------------------------------------------------------ //
+float scripts_api::InputSystem_GetMouseSensitivity()
+{
+	return le::g_inputSystem->GetMouseSensitivity();
+}

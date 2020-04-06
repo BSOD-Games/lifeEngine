@@ -8,6 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include "engine/global.h"
+#include "engine/ifactory.h"
 #include "studiorender/istudiorenderpass.h"
 
 namespace scripts_api
@@ -247,4 +249,12 @@ void scripts_api::StudioRenderPass_Delete( studioRenderPass_t Object )
 		object->DecrementReference();
 
 	object = nullptr;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Create
+// ------------------------------------------------------------------------------------ //
+scripts_api::studioRenderPass_t scripts_api::StudioRenderPass_Create()
+{
+	return le::g_studioRenderFactory->Create( PASS_INTERFACE_VERSION );
 }

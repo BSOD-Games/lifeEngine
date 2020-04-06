@@ -8,6 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include "engine/global.h"
+#include "engine/ifactory.h"
 #include "engine/materialproxyvar.h"
 #include "studiorender/ishaderparameter.h"
 
@@ -64,7 +66,7 @@ void scripts_api::MaterialProxyVar_SetValueBool( materialProxyVar_t Object, bool
 // ------------------------------------------------------------------------------------ //
 // Set value vec2
 // ------------------------------------------------------------------------------------ //
-void scripts_api::MaterialProxyVar_SetValueVec2(materialProxyVar_t Object, vec2_t Value)
+void scripts_api::MaterialProxyVar_SetValueVec2(materialProxyVar_t Object, vec2f_t Value)
 {
 	if ( !Object ) return;
 	static_cast< le::MaterialProxyVar* >( Object )->SetValueVector2D( { Value.x, Value.y } );
@@ -73,7 +75,7 @@ void scripts_api::MaterialProxyVar_SetValueVec2(materialProxyVar_t Object, vec2_
 // ------------------------------------------------------------------------------------ //
 // Set value vec3
 // ------------------------------------------------------------------------------------ //
-void scripts_api::MaterialProxyVar_SetValueVec3( materialProxyVar_t Object, vec3_t Value )
+void scripts_api::MaterialProxyVar_SetValueVec3( materialProxyVar_t Object, vec3f_t Value )
 {
 	if ( !Object ) return;
 	static_cast< le::MaterialProxyVar* >( Object )->SetValueVector3D( { Value.x, Value.y, Value.z } );
@@ -82,7 +84,7 @@ void scripts_api::MaterialProxyVar_SetValueVec3( materialProxyVar_t Object, vec3
 // ------------------------------------------------------------------------------------ //
 // Set value vec4
 // ------------------------------------------------------------------------------------ //
-void scripts_api::MaterialProxyVar_SetValueVec4( materialProxyVar_t Object, vec4_t Value )
+void scripts_api::MaterialProxyVar_SetValueVec4( materialProxyVar_t Object, vec4f_t Value )
 {
 	if ( !Object ) return;
 	static_cast< le::MaterialProxyVar* >( Object )->SetValueVector4D( { Value.x, Value.y, Value.z, Value.w } );
@@ -118,7 +120,7 @@ void scripts_api::MaterialProxyVar_SetValueArrayInt( materialProxyVar_t Object, 
 // ------------------------------------------------------------------------------------ //
 // Set value array vec2
 // ------------------------------------------------------------------------------------ //
-void scripts_api::MaterialProxyVar_SetValueArrayVec2(materialProxyVar_t Object, vec2_t* Array, uint32_t Count)
+void scripts_api::MaterialProxyVar_SetValueArrayVec2(materialProxyVar_t Object, vec2f_t* Array, uint32_t Count)
 {
 	if ( !Object ) return;
 	static_cast< le::MaterialProxyVar* >( Object )->SetValueArrayVector2D( ( le::Vector2D_t* ) Array, Count );
@@ -127,7 +129,7 @@ void scripts_api::MaterialProxyVar_SetValueArrayVec2(materialProxyVar_t Object, 
 // ------------------------------------------------------------------------------------ //
 // Set value array vec3
 // ------------------------------------------------------------------------------------ //
-void scripts_api::MaterialProxyVar_SetValueArrayVec3( materialProxyVar_t Object, vec3_t* Array, uint32_t Count )
+void scripts_api::MaterialProxyVar_SetValueArrayVec3( materialProxyVar_t Object, vec3f_t* Array, uint32_t Count )
 {
 	if ( !Object ) return;
 	static_cast< le::MaterialProxyVar* >( Object )->SetValueArrayVector3D( ( le::Vector3D_t* ) Array, Count );
@@ -136,7 +138,7 @@ void scripts_api::MaterialProxyVar_SetValueArrayVec3( materialProxyVar_t Object,
 // ------------------------------------------------------------------------------------ //
 // Set value array vec4
 // ------------------------------------------------------------------------------------ //
-void scripts_api::MaterialProxyVar_SetValueArrayVec4( materialProxyVar_t Object, vec4_t* Array, uint32_t Count )
+void scripts_api::MaterialProxyVar_SetValueArrayVec4( materialProxyVar_t Object, vec4f_t* Array, uint32_t Count )
 {
 	if ( !Object ) return;
 	static_cast< le::MaterialProxyVar* >( Object )->SetValueArrayVector4D( ( le::Vector4D_t* ) Array, Count );
@@ -199,7 +201,7 @@ scripts_api::bool_t scripts_api::MaterialProxyVar_GetValueBool( materialProxyVar
 // ------------------------------------------------------------------------------------ //
 // Get value vec2
 // ------------------------------------------------------------------------------------ //
-scripts_api::vec2_t scripts_api::MaterialProxyVar_GetValueVec2( materialProxyVar_t Object )
+scripts_api::vec2f_t scripts_api::MaterialProxyVar_GetValueVec2( materialProxyVar_t Object )
 {
 	if ( !Object ) return { 0.f, 0.f };
 
@@ -210,7 +212,7 @@ scripts_api::vec2_t scripts_api::MaterialProxyVar_GetValueVec2( materialProxyVar
 // ------------------------------------------------------------------------------------ //
 // Get value vec3
 // ------------------------------------------------------------------------------------ //
-scripts_api::vec3_t scripts_api::MaterialProxyVar_GetValueVec3( materialProxyVar_t Object )
+scripts_api::vec3f_t scripts_api::MaterialProxyVar_GetValueVec3( materialProxyVar_t Object )
 {
 	if ( !Object ) return { 0.f, 0.f, 0.f };
 
@@ -221,7 +223,7 @@ scripts_api::vec3_t scripts_api::MaterialProxyVar_GetValueVec3( materialProxyVar
 // ------------------------------------------------------------------------------------ //
 // Get value vec4
 // ------------------------------------------------------------------------------------ //
-scripts_api::vec4_t scripts_api::MaterialProxyVar_GetValueVec4( materialProxyVar_t Object )
+scripts_api::vec4f_t scripts_api::MaterialProxyVar_GetValueVec4( materialProxyVar_t Object )
 {
 	if ( !Object ) return { 0.f, 0.f, 0.f, 0.f };
 
@@ -277,7 +279,7 @@ int* scripts_api::MaterialProxyVar_GetValueArrayInt( materialProxyVar_t Object, 
 // ------------------------------------------------------------------------------------ //
 // Get value array vec2
 // ------------------------------------------------------------------------------------ //
-scripts_api::vec2_t* scripts_api::MaterialProxyVar_GetValueArrayVec2( materialProxyVar_t Object, uint32_t* Count )
+scripts_api::vec2f_t* scripts_api::MaterialProxyVar_GetValueArrayVec2( materialProxyVar_t Object, uint32_t* Count )
 {
 	if ( !Object )
 	{
@@ -289,13 +291,13 @@ scripts_api::vec2_t* scripts_api::MaterialProxyVar_GetValueArrayVec2( materialPr
 	le::Vector2D_t*			array = static_cast< le::MaterialProxyVar* >( Object )->GetValueArrayVector2D( count );
 
 	*Count = count;
-	return ( vec2_t* ) array;
+	return ( vec2f_t* ) array;
 }
 
 // ------------------------------------------------------------------------------------ //
 // Get value array vec3
 // ------------------------------------------------------------------------------------ //
-scripts_api::vec3_t* scripts_api::MaterialProxyVar_GetValueArrayVec3( materialProxyVar_t Object, uint32_t* Count )
+scripts_api::vec3f_t* scripts_api::MaterialProxyVar_GetValueArrayVec3( materialProxyVar_t Object, uint32_t* Count )
 {
 	if ( !Object )
 	{
@@ -307,13 +309,13 @@ scripts_api::vec3_t* scripts_api::MaterialProxyVar_GetValueArrayVec3( materialPr
 	le::Vector3D_t*			array = static_cast< le::MaterialProxyVar* >( Object )->GetValueArrayVector3D( count );
 
 	*Count = count;
-	return ( vec3_t* ) array;
+	return ( vec3f_t* ) array;
 }
 
 // ------------------------------------------------------------------------------------ //
 // Get value array vec4
 // ------------------------------------------------------------------------------------ //
-scripts_api::vec4_t* scripts_api::MaterialProxyVar_GetValueArrayVec4( materialProxyVar_t Object, uint32_t* Count )
+scripts_api::vec4f_t* scripts_api::MaterialProxyVar_GetValueArrayVec4( materialProxyVar_t Object, uint32_t* Count )
 {
 	if ( !Object )
 	{
@@ -325,7 +327,7 @@ scripts_api::vec4_t* scripts_api::MaterialProxyVar_GetValueArrayVec4( materialPr
 	le::Vector4D_t*			array = static_cast< le::MaterialProxyVar* >( Object )->GetValueArrayVector4D( count );
 
 	*Count = count;
-	return ( vec4_t* ) array;
+	return ( vec4f_t* ) array;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -342,4 +344,12 @@ void scripts_api::MaterialProxyVar_Delete( materialProxyVar_t Object )
 		object->DecrementReference();
 
 	object = nullptr;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Create
+// ------------------------------------------------------------------------------------ //
+scripts_api::materialProxyVar_t scripts_api::MaterialProxyVar_Create()
+{
+	return le::g_engineFactory->Create( MATERIALPROXYVAR_INTERFACE_VERSION );
 }

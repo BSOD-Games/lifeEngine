@@ -8,6 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include "engine/global.h"
+#include "engine/ifactory.h"
 #include "engine/model.h"
 
 namespace scripts_api
@@ -20,7 +22,7 @@ namespace scripts_api
 // ------------------------------------------------------------------------------------ //
 // Move model
 // ------------------------------------------------------------------------------------ //
-void scripts_api::Model_Move( model_t Model, vec3_t FactorMove )
+void scripts_api::Model_Move( model_t Model, vec3f_t FactorMove )
 {
 	if ( !Model ) return;
 	MODEL( Model )->Move( { FactorMove.x, FactorMove.y, FactorMove.z } );
@@ -29,7 +31,7 @@ void scripts_api::Model_Move( model_t Model, vec3_t FactorMove )
 // ------------------------------------------------------------------------------------ //
 // Rotate model
 // ------------------------------------------------------------------------------------ //
-void scripts_api::Model_EulerRotate( model_t Model, vec3_t FactorRotate )
+void scripts_api::Model_EulerRotate( model_t Model, vec3f_t FactorRotate )
 {
 	if ( !Model ) return;
 	MODEL( Model )->Rotate( { glm::radians( FactorRotate.x ), glm::radians( FactorRotate.y ), glm::radians( FactorRotate.z ) } );
@@ -47,7 +49,7 @@ void scripts_api::Model_QuatRotate( model_t Model, quat_t FactorRotate )
 // ------------------------------------------------------------------------------------ //
 // Scale model
 // ------------------------------------------------------------------------------------ //
-void scripts_api::Model_Scale( model_t Model, vec3_t FactorScale )
+void scripts_api::Model_Scale( model_t Model, vec3f_t FactorScale )
 {
 	if ( !Model ) return;
 	MODEL( Model )->Scale( { FactorScale.x, FactorScale.y, FactorScale.z } );
@@ -56,7 +58,7 @@ void scripts_api::Model_Scale( model_t Model, vec3_t FactorScale )
 // ------------------------------------------------------------------------------------ //
 // Set position model
 // ------------------------------------------------------------------------------------ //
-void scripts_api::Model_SetPosition( model_t Model, vec3_t Position )
+void scripts_api::Model_SetPosition( model_t Model, vec3f_t Position )
 {
 	if ( !Model ) return;
 	MODEL( Model )->SetPosition( { Position.x, Position.y, Position.z } );
@@ -65,7 +67,7 @@ void scripts_api::Model_SetPosition( model_t Model, vec3_t Position )
 // ------------------------------------------------------------------------------------ //
 // Set rotation model
 // ------------------------------------------------------------------------------------ //
-void scripts_api::Model_SetEulerRotation( model_t Model, vec3_t Rotation )
+void scripts_api::Model_SetEulerRotation( model_t Model, vec3f_t Rotation )
 {
 	if ( !Model ) return;
 	MODEL( Model )->SetRotation( { Rotation.x, Rotation.y, Rotation.z } );
@@ -83,7 +85,7 @@ void scripts_api::Model_SetQuatRotation( model_t Model, quat_t Rotation )
 // ------------------------------------------------------------------------------------ //
 // Set scale model
 // ------------------------------------------------------------------------------------ //
-void scripts_api::Model_SetScale( model_t Model, vec3_t Scale )
+void scripts_api::Model_SetScale( model_t Model, vec3f_t Scale )
 {
 	if ( !Model ) return;
 	MODEL( Model )->SetScale( { Scale.x, Scale.y, Scale.z } );
@@ -92,7 +94,7 @@ void scripts_api::Model_SetScale( model_t Model, vec3_t Scale )
 // ------------------------------------------------------------------------------------ //
 // Get position model
 // ------------------------------------------------------------------------------------ //
-scripts_api::vec3_t scripts_api::Model_GetPosition( model_t Model )
+scripts_api::vec3f_t scripts_api::Model_GetPosition( model_t Model )
 {
 	if ( !Model ) return { 0.f, 0.f, 0.f };
 	le::Vector3D_t		position = MODEL( Model )->GetPosition();
@@ -106,13 +108,13 @@ scripts_api::quat_t scripts_api::Model_GetRotation( model_t Model )
 {
 	if ( !Model ) return { 0.f, 0.f, 0.f, 0.f };
 	le::Quaternion_t		rotation = MODEL( Model )->GetRotation();
-	return { rotation.w, rotation.x, rotation.y, rotation.z };
+	return { rotation.x, rotation.y, rotation.z, rotation.w };
 }
 
 // ------------------------------------------------------------------------------------ //
 // Get scale model
 // ------------------------------------------------------------------------------------ //
-scripts_api::vec3_t scripts_api::Model_GetScale( model_t Model )
+scripts_api::vec3f_t scripts_api::Model_GetScale( model_t Model )
 {
 	if ( !Model ) return { 0.f, 0.f, 0.f };
 	le::Vector3D_t		scale = MODEL( Model )->GetScale();
@@ -187,4 +189,12 @@ uint32_t scripts_api::Model_GetCountFace( model_t Model )
 {
 	if ( !Model ) return 0;
 	return MODEL( Model )->GetCountFace();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Create
+// ------------------------------------------------------------------------------------ //
+scripts_api::model_t scripts_api::Model_Create()
+{
+	return le::g_engineFactory->Create( MODEL_INTERFACE_VERSION );
 }

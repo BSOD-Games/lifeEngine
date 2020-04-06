@@ -20,7 +20,7 @@ namespace scripts_api
 #include "scripts_api/engine/inputsystem.h"
 #include "scripts_api/engine/resourcesystem.h"
 #include "scripts_api/engine/model.h"
-#include "scripts_api/engine/engine.h"
+#include "scripts_api/engine/camera.h"
 #include "scripts_api/engine/material.h"
 #include "scripts_api/engine/materialproxy.h"
 #include "scripts_api/engine/materialproxyvar.h"
@@ -91,15 +91,6 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 {
 	using namespace scripts_api;
 
-	// Engine
-	REGISTER_FUNCTION( Engine_CreateMaterial );
-	REGISTER_FUNCTION( Engine_CreateMaterialProxy );
-	REGISTER_FUNCTION( Engine_CreateShaderParameter );
-	REGISTER_FUNCTION( Engine_CreateMaterialProxyVar );
-	REGISTER_FUNCTION( Engine_CreateStudioRenderPass );
-	REGISTER_FUNCTION( Engine_CreateStudioRenderTechnique );
-	REGISTER_FUNCTION( Engine_CreateModel );
-
 	// Console system
 	REGISTER_FUNCTION( ConsoleSystem_Info );
 	REGISTER_FUNCTION( ConsoleSystem_Error );
@@ -112,6 +103,9 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( InputSystem_IsMouseKeyUp );
 	REGISTER_FUNCTION( InputSystem_IsMouseKeyDown );
 	REGISTER_FUNCTION( InputSystem_IsMouseWheel );
+	REGISTER_FUNCTION( InputSystem_GetMouseOffset );
+	REGISTER_FUNCTION( InputSystem_GetMousePosition );
+	REGISTER_FUNCTION( InputSystem_GetMouseSensitivity );
 
 	// Resource system
 	REGISTER_FUNCTION( ResourceSystem_LoadTexture );
@@ -132,7 +126,35 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( ResourceSystem_GetMesh );
 	REGISTER_FUNCTION( ResourceSystem_GetFont );
 
+	// Camera
+	REGISTER_FUNCTION( Camera_Create );
+	REGISTER_FUNCTION( Camera_Delete );
+	REGISTER_FUNCTION( Camera_InitProjectionPerspective );
+	REGISTER_FUNCTION( Camera_InitProjectionOrtho );
+	REGISTER_FUNCTION( Camera_MoveByVector );
+	REGISTER_FUNCTION( Camera_MoveBySide );
+	REGISTER_FUNCTION( Camera_RotateByVector );
+	REGISTER_FUNCTION( Camera_RotateByMouse );
+	REGISTER_FUNCTION( Camera_ScreenToWorld );
+	REGISTER_FUNCTION( Camera_WorldToScreen );
+	REGISTER_FUNCTION( Camera_SetPosition );
+	REGISTER_FUNCTION( Camera_SetRotation );
+	REGISTER_FUNCTION( Camera_SetTargetDirection );
+	REGISTER_FUNCTION( Camera_SetUp );
+	REGISTER_FUNCTION( Camera_IsVisibleBBox );
+	REGISTER_FUNCTION( Camera_IsVisibleSphere );
+	REGISTER_FUNCTION( Camera_GetNear );
+	REGISTER_FUNCTION( Camera_GetFar );
+	REGISTER_FUNCTION( Camera_GetPosition );
+	REGISTER_FUNCTION( Camera_GetUp );
+	REGISTER_FUNCTION( Camera_GetRight );
+	REGISTER_FUNCTION( Camera_GetDirectionMove );
+	REGISTER_FUNCTION( Camera_GetQuatRotation );
+	REGISTER_FUNCTION( Camera_GetEulerRotation );
+	REGISTER_FUNCTION( Camera_GetTargetDirection );
+
 	// Material
+	REGISTER_FUNCTION( Material_Create );
 	REGISTER_FUNCTION( Material_Delete );
 	REGISTER_FUNCTION( Material_Clear );
 	REGISTER_FUNCTION( Material_AddTechnique );
@@ -145,6 +167,7 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( Material_GetTechniqueByIndex );
 
 	// Material proxy
+	REGISTER_FUNCTION( MaterialProxy_Create );
 	REGISTER_FUNCTION( MaterialProxy_Delete );
 	REGISTER_FUNCTION( MaterialProxy_GetVar );
 	REGISTER_FUNCTION( MaterialProxy_SetVar );
@@ -156,6 +179,7 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( MaterialProxy_IsNeadUpdate );
 
 	// Material proxy var
+	REGISTER_FUNCTION( MaterialProxyVar_Create );
 	REGISTER_FUNCTION( MaterialProxyVar_Delete );
 	REGISTER_FUNCTION( MaterialProxyVar_Clear );
 	REGISTER_FUNCTION( MaterialProxyVar_GetName );
@@ -188,6 +212,7 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( MaterialProxyVar_SetValueArrayVec4 );
 
 	// Model
+	REGISTER_FUNCTION( Model_Create );
 	REGISTER_FUNCTION( Model_Delete );
 	REGISTER_FUNCTION( Model_Move );
 	REGISTER_FUNCTION( Model_Scale );
@@ -208,6 +233,7 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( Model_GetCountFace );
 
 	// Shader parameter
+	REGISTER_FUNCTION( ShaderParameter_Create );
 	REGISTER_FUNCTION( ShaderParameter_Delete );
 	REGISTER_FUNCTION( ShaderParameter_Clear );
 	REGISTER_FUNCTION( ShaderParameter_GetName );
@@ -232,6 +258,7 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( ShaderParameter_SetValueShaderFlag );
 
 	// Studiorender pass
+	REGISTER_FUNCTION( StudioRenderPass_Create );
 	REGISTER_FUNCTION( StudioRenderPass_Delete );
 	REGISTER_FUNCTION( StudioRenderPass_Clear );
 	REGISTER_FUNCTION( StudioRenderPass_IsBlend );
@@ -259,6 +286,7 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( StudioRenderPass_GetCountParameters );
 
 	// Studiorender technique
+	REGISTER_FUNCTION( StudioRenderTechnique_Create );
 	REGISTER_FUNCTION( StudioRenderTechnique_Delete );
 	REGISTER_FUNCTION( StudioRenderTechnique_Clear );
 	REGISTER_FUNCTION( StudioRenderTechnique_AddPass );

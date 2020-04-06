@@ -8,6 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include "engine/global.h"
+#include "engine/ifactory.h"
 #include "studiorender/istudiorenderpass.h"
 #include "studiorender/istudiorendertechnique.h"
 
@@ -104,4 +106,12 @@ void scripts_api::StudioRenderTechnique_Delete( studioRenderTechnique_t Object )
 		object->DecrementReference();
 
 	object = nullptr;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Create
+// ------------------------------------------------------------------------------------ //
+scripts_api::studioRenderTechnique_t scripts_api::StudioRenderTechnique_Create()
+{
+	return le::g_studioRenderFactory->Create( TECHNIQUE_INTERFACE_VERSION );
 }
