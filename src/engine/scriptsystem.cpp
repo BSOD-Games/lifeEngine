@@ -24,6 +24,8 @@ namespace scripts_api
 #include "scripts_api/engine/material.h"
 #include "scripts_api/engine/materialproxy.h"
 #include "scripts_api/engine/materialproxyvar.h"
+#include "scripts_api/engine/level.h"
+#include "scripts_api/engine/sprite.h"
 
 #include "scripts_api/studiorender/shaderparameter.h"
 #include "scripts_api/studiorender/studiorenderpass.h"
@@ -296,6 +298,46 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( StudioRenderTechnique_GetPasses );
 	REGISTER_FUNCTION( StudioRenderTechnique_RemovePass );
 	REGISTER_FUNCTION( StudioRenderTechnique_GetCountPasses );
+
+	// Level
+	REGISTER_FUNCTION( Level_Clear );
+	REGISTER_FUNCTION( Level_IsLoaded );
+	REGISTER_FUNCTION( Level_AddCamera );
+	REGISTER_FUNCTION( Level_AddEntity );
+	REGISTER_FUNCTION( Level_GetCamera );
+	REGISTER_FUNCTION( Level_GetEntity );
+	REGISTER_FUNCTION( Level_GetNameFormat );
+	REGISTER_FUNCTION( Level_GetCountCameras );
+	REGISTER_FUNCTION( Level_GetCountEntityes );
+	REGISTER_FUNCTION( Level_RemoveCameraByPtr );
+	REGISTER_FUNCTION( Level_RemoveEntityByPtr );
+	REGISTER_FUNCTION( Level_RemoveCameraByIndex );
+	REGISTER_FUNCTION( Level_RemoveEntityByIndex );
+
+	// Sprite
+	REGISTER_FUNCTION( Sprite_Create );
+	REGISTER_FUNCTION( Sprite_Move );
+	REGISTER_FUNCTION( Sprite_Scale );
+	REGISTER_FUNCTION( Sprite_Delete );
+	REGISTER_FUNCTION( Sprite_GetMax );
+	REGISTER_FUNCTION( Sprite_GetMin );
+	REGISTER_FUNCTION( Sprite_GetSize );
+	REGISTER_FUNCTION( Sprite_GetType );
+	REGISTER_FUNCTION( Sprite_SetSize );
+	REGISTER_FUNCTION( Sprite_SetType );
+	REGISTER_FUNCTION( Sprite_GetScale );
+	REGISTER_FUNCTION( Sprite_IsCreate );
+	REGISTER_FUNCTION( Sprite_SetScale );
+	REGISTER_FUNCTION( Sprite_Initialize );
+	REGISTER_FUNCTION( Sprite_QuatRotate );
+	REGISTER_FUNCTION( Sprite_EulerRotate );
+	REGISTER_FUNCTION( Sprite_GetMaterial );
+	REGISTER_FUNCTION( Sprite_GetPosition );
+	REGISTER_FUNCTION( Sprite_GetRotation );
+	REGISTER_FUNCTION( Sprite_SetMaterial );
+	REGISTER_FUNCTION( Sprite_SetPosition );
+	REGISTER_FUNCTION( Sprite_SetQuatRotation );
+	REGISTER_FUNCTION( Sprite_SetEulerRotation );
 
 	return true;
 }

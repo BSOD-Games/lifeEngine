@@ -217,14 +217,20 @@ bool le::ConsoleSystem::Exec( const char* Command )
 // ------------------------------------------------------------------------------------ //
 void le::ConsoleSystem::PrintInfo( const char* Message, ... )
 {
-	if ( !fileLog ) return;
 	va_list			argList = {};
+	std::string		message = "[Info] " + std::string( Message ) + "\n";
 
 	va_start( argList, Message );
-	vfprintf( fileLog, ( "[Info] " + std::string( Message ) + "\n" ).c_str(), argList );
+	vfprintf( stdout, message.c_str(), argList );
+	fflush( stdout );
 	va_end( argList );
 
+	if ( !fileLog ) return;
+
+	va_start( argList, Message );
+	vfprintf( fileLog, message.c_str(), argList );
 	fflush( fileLog );
+	va_end( argList );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -232,14 +238,20 @@ void le::ConsoleSystem::PrintInfo( const char* Message, ... )
 // ------------------------------------------------------------------------------------ //
 void le::ConsoleSystem::PrintWarning( const char* Message, ... )
 {
-	if ( !fileLog ) return;
 	va_list			argList = {};
+	std::string		message = "[Warning] " + std::string( Message ) + "\n";
 
 	va_start( argList, Message );
-	vfprintf( fileLog, ( "[Warning] " + std::string( Message ) + "\n" ).c_str(), argList );
+	vfprintf( stdout, message.c_str(), argList );
+	fflush( stdout );
 	va_end( argList );
 
+	if ( !fileLog ) return;
+
+	va_start( argList, Message );
+	vfprintf( fileLog, message.c_str(), argList );
 	fflush( fileLog );
+	va_end( argList );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -247,14 +259,20 @@ void le::ConsoleSystem::PrintWarning( const char* Message, ... )
 // ------------------------------------------------------------------------------------ //
 void le::ConsoleSystem::PrintError( const char* Message, ... )
 {
-	if ( !fileLog ) return;
 	va_list			argList = {};
+	std::string		message = "[Error] " + std::string( Message ) + "\n";
 
 	va_start( argList, Message );
-	vfprintf( fileLog, ( "[Error] " + std::string( Message ) + "\n" ).c_str(), argList );
+	vfprintf( stderr, message.c_str(), argList );
+	fflush( stderr );
 	va_end( argList );
 
+	if ( !fileLog ) return;
+
+	va_start( argList, Message );
+	vfprintf( fileLog, message.c_str(), argList );
 	fflush( fileLog );
+	va_end( argList );
 }
 
 // ------------------------------------------------------------------------------------ //
