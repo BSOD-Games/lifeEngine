@@ -26,6 +26,8 @@ namespace le
 	ScriptSystem*			g_scriptSystem = nullptr;
 	IFactory*				g_engineFactory = nullptr;
 	IFactory*				g_studioRenderFactory = nullptr;
+	IFactory*				g_physicsSystemFactory = nullptr;
+	MaterialManager*		g_materialManager = nullptr;
 
 	//---------------------------------------------------------------------//
 }

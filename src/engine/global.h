@@ -55,11 +55,17 @@ namespace le
 
 	class IPhysicsSystem;
 	extern IPhysicsSystem*			g_physicsSystem;
+	extern IFactory*				g_physicsSystemFactory;
 
 	//---------------------------------------------------------------------//
 
 	class ScriptSystem;
 	extern ScriptSystem*			g_scriptSystem;
+
+	//---------------------------------------------------------------------//
+
+	class MaterialManager;
+	extern MaterialManager*			g_materialManager;
 
 	//---------------------------------------------------------------------//
 }

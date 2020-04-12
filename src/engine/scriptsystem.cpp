@@ -26,10 +26,16 @@ namespace scripts_api
 #include "scripts_api/engine/materialproxyvar.h"
 #include "scripts_api/engine/level.h"
 #include "scripts_api/engine/sprite.h"
+#include "scripts_api/engine/text.h"
 
 #include "scripts_api/studiorender/shaderparameter.h"
 #include "scripts_api/studiorender/studiorenderpass.h"
 #include "scripts_api/studiorender/studiorendertechnique.h"
+
+#include "scripts_api/physics/collider.h"
+#include "scripts_api/physics/body.h"
+#include "scripts_api/physics/charctercontroller.h"
+#include "scripts_api/physics/physicssystem.h"
 }
 
 #define REGISTER_FUNCTION( Function )		( functions[ #Function ] = ( void* ) &Function )
@@ -338,6 +344,97 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( Sprite_SetPosition );
 	REGISTER_FUNCTION( Sprite_SetQuatRotation );
 	REGISTER_FUNCTION( Sprite_SetEulerRotation );
+
+	// Text
+	REGISTER_FUNCTION( Text_Create );
+	REGISTER_FUNCTION( Text_Move );
+	REGISTER_FUNCTION( Text_Scale );
+	REGISTER_FUNCTION( Text_Delete );
+	REGISTER_FUNCTION( Text_GetFont );
+	REGISTER_FUNCTION( Text_GetText );
+	REGISTER_FUNCTION( Text_SetFont );
+	REGISTER_FUNCTION( Text_SetText );
+	REGISTER_FUNCTION( Text_GetColor );
+	REGISTER_FUNCTION( Text_GetScale );
+	REGISTER_FUNCTION( Text_SetColor );
+	REGISTER_FUNCTION( Text_SetScale );
+	REGISTER_FUNCTION( Text_QuatRotate );
+	REGISTER_FUNCTION( Text_EulerRotate );
+	REGISTER_FUNCTION( Text_GetPosition );
+	REGISTER_FUNCTION( Text_GetRotation );
+	REGISTER_FUNCTION( Text_SetPosition );
+	REGISTER_FUNCTION( Text_SetQuatRotation );
+	REGISTER_FUNCTION( Text_GetCharacterSize );
+	REGISTER_FUNCTION( Text_SetCharacterSize );
+	REGISTER_FUNCTION( Text_SetEulerRotation );
+	REGISTER_FUNCTION( Text_GetLineSpacingFactor );
+	REGISTER_FUNCTION( Text_SetLineSpacingFactor );
+	REGISTER_FUNCTION( Text_GetLetterSpacingFactor );
+	REGISTER_FUNCTION( Text_SetLetterSpacingFactor );
+
+	// Collider
+	REGISTER_FUNCTION( Collider_AddBox );
+	REGISTER_FUNCTION( Collider_Create );
+	REGISTER_FUNCTION( Collider_Delete );
+	REGISTER_FUNCTION( Collider_AddCone );
+	REGISTER_FUNCTION( Collider_AddMesh );
+	REGISTER_FUNCTION( Collider_GetAABB );
+	REGISTER_FUNCTION( Collider_AddSphere );
+	REGISTER_FUNCTION( Collider_AddCapsule );
+	REGISTER_FUNCTION( Collider_AddCylinder );
+	REGISTER_FUNCTION( Collider_RemoveShape );
+	REGISTER_FUNCTION( Collider_AddConvexHull );
+	REGISTER_FUNCTION( Collider_GetCountShapes );
+	REGISTER_FUNCTION( Collider_RemoveAllShapes );
+
+	// Body
+	REGISTER_FUNCTION( Body_Create );
+	REGISTER_FUNCTION( Body_Delete );
+	REGISTER_FUNCTION( Body_GetMass );
+	REGISTER_FUNCTION( Body_Activate );
+	REGISTER_FUNCTION( Body_IsStatic );
+	REGISTER_FUNCTION( Body_ApplyForce );
+	REGISTER_FUNCTION( Body_GetInertia );
+	REGISTER_FUNCTION( Body_Initialize );
+	REGISTER_FUNCTION( Body_GetCollider );
+	REGISTER_FUNCTION( Body_GetPosition );
+	REGISTER_FUNCTION( Body_GetRotation );
+	REGISTER_FUNCTION( Body_SetPosition );
+	REGISTER_FUNCTION( Body_SetRotation );
+	REGISTER_FUNCTION( Body_ApplyImpulse );
+	REGISTER_FUNCTION( Body_FreezeRotation );
+
+	// Charcter controller
+	REGISTER_FUNCTION( CharcterController_Jump );
+	REGISTER_FUNCTION( CharcterController_Walk );
+	REGISTER_FUNCTION( CharcterController_Create );
+	REGISTER_FUNCTION( CharcterController_Delete );
+	REGISTER_FUNCTION( CharcterController_CanJump );
+	REGISTER_FUNCTION( CharcterController_OnGround );
+	REGISTER_FUNCTION( CharcterController_Initialize );
+	REGISTER_FUNCTION( CharcterController_GetPosition );
+	REGISTER_FUNCTION( CharcterController_GetRotation );
+	REGISTER_FUNCTION( CharcterController_GetVelocity );
+	REGISTER_FUNCTION( CharcterController_SetPosition );
+	REGISTER_FUNCTION( CharcterController_SetRotation );
+	REGISTER_FUNCTION( CharcterController_SetVelocity );
+
+	// Physics system
+	REGISTER_FUNCTION( PhysicsSystem_AddBody );
+	REGISTER_FUNCTION( PhysicsSystem_GetBody );
+	REGISTER_FUNCTION( PhysicsSystem_GetBodies );
+	REGISTER_FUNCTION( PhysicsSystem_GetGravity );
+	REGISTER_FUNCTION( PhysicsSystem_RemoveBody );
+	REGISTER_FUNCTION( PhysicsSystem_SetGravity );
+	REGISTER_FUNCTION( PhysicsSystem_GetCountBodes );
+	REGISTER_FUNCTION( PhysicsSystem_SetDebugCamera );
+	REGISTER_FUNCTION( PhysicsSystem_RemoveAllBodies );
+	REGISTER_FUNCTION( PhysicsSystem_AddCharcterController );
+	REGISTER_FUNCTION( PhysicsSystem_GetCharcterController );
+	REGISTER_FUNCTION( PhysicsSystem_GetCharcterControllers );
+	REGISTER_FUNCTION( PhysicsSystem_RemoveCharcterController );
+	REGISTER_FUNCTION( PhysicsSystem_GetCountCharcterControllers );
+	REGISTER_FUNCTION( PhysicsSystem_RemoveAllCharcterControllers );
 
 	return true;
 }

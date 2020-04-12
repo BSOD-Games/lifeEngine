@@ -153,8 +153,8 @@ scripts_api::bool_t scripts_api::Camera_IsVisibleSphere( camera_t Object, vec3f_
 // ------------------------------------------------------------------------------------ //
 float scripts_api::Camera_GetNear( camera_t Object )
 {
-if ( !Object ) return B_FALSE;
-return CAMERA( Object )->GetNear();
+	if ( !Object ) return B_FALSE;
+	return CAMERA( Object )->GetNear();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -162,8 +162,8 @@ return CAMERA( Object )->GetNear();
 // ------------------------------------------------------------------------------------ //
 float scripts_api::Camera_GetFar( camera_t Object )
 {
-if ( !Object ) return B_FALSE;
-return CAMERA( Object )->GetFar();
+	if ( !Object ) return B_FALSE;
+	return CAMERA( Object )->GetFar();
 }
 
 // ------------------------------------------------------------------------------------ //

@@ -14,6 +14,7 @@
 #include "../common/types.h"
 #include "material.h"
 #include "model.h"
+#include "text.h"
 
 //---------------------------------------------------------------------//
 

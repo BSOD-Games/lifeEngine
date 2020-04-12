@@ -82,6 +82,7 @@ le::Engine::Engine() :
 	g_window = &window;
 	g_engine = this;
 	g_engineFactory = &engineFactory;
+	g_materialManager = &materialManager;
 
 	configurations.fov = 75.f;
 	configurations.isFullscreen = false;
