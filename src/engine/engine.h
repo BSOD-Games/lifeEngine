@@ -22,6 +22,7 @@
 #include "engine/enginefactory.h"
 #include "engine/inputsystem.h"
 #include "engine/materialmanager.h"
+#include "engine/scriptsystem.h"
 
 //---------------------------------------------------------------------//
 
@@ -84,6 +85,7 @@ namespace le
 		virtual IInputSystem*			GetInputSystem() const;
         virtual IMaterialManager*       GetMaterialManager() const;
         virtual IPhysicsSystem*         GetPhysicsSystem() const;
+		virtual IScriptSystem*			GetScriptSystem() const;
 		virtual IWindow*				GetWindow() const;
 		virtual IFactory*				GetFactory() const;
 		virtual float					GetDeltaTime() const;
@@ -100,6 +102,11 @@ namespace le
 		// Engine
 		Engine();
 		~Engine();
+
+		const std::string&			GetEngineDirectory() const
+		{
+			return engineDirectory;
+		}
 
 	private:
 		bool							LoadModule_StudioRender( const char* PathDLL );
@@ -132,10 +139,12 @@ namespace le
 		ResourceSystem					resourceSystem;
 		InputSystem						inputSystem;
         MaterialManager                 materialManager;
+		ScriptSystem					scriptSystem;
 		Window							window;
 		EngineFactory					engineFactory;
 		GameInfo						gameInfo;
 		Configurations					configurations;
+		std::string						engineDirectory;
 	};
 
 	//---------------------------------------------------------------------//

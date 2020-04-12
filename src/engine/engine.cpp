@@ -63,8 +63,8 @@ le::Engine::Engine() :
 	isInit( false ),
 	studioRender( nullptr ),
 	studioRenderDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
-    physicSystem( nullptr ),
-    physicSystemDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
+	physicSystem( nullptr ),
+	physicSystemDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
 	game( nullptr ),
 	gameDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
 	criticalError( nullptr ),
@@ -78,8 +78,11 @@ le::Engine::Engine() :
 	g_consoleSystem = &consoleSystem;
 	g_resourceSystem = &resourceSystem;
 	g_inputSystem = &inputSystem;
+	g_scriptSystem = &scriptSystem;
 	g_window = &window;
 	g_engine = this;
+	g_engineFactory = &engineFactory;
+	g_materialManager = &materialManager;
 
 	configurations.fov = 75.f;
 	configurations.isFullscreen = false;
@@ -89,7 +92,9 @@ le::Engine::Engine() :
 	configurations.windowHeight = 600;
 
 	consoleSystem.Initialize();
+	scriptSystem.Initialize( this );
 	inputSystem.Initialize( this );
+
 	cmd_Exit->Initialize( "exit", "close game", CMD_Exit );
 	cmd_Version->Initialize( "version", "show version engine", CMD_Version );
 	cvar_phyDebug->Initialize( "phy_debug", "0", CVT_BOOL, "bool value for showing physics debug info", true, 0.f, true, 1.f, nullptr );
@@ -133,21 +138,23 @@ bool le::Engine::LoadModule_StudioRender( const char* PathDLL )
 	{
 		// Р—Р°РіСЂСѓР¶Р°РµРј РјРѕРґСѓР»СЊ
 		studioRenderDescriptor.handle = SDL_LoadObject( PathDLL );
-        if ( !studioRenderDescriptor.handle )	throw std::runtime_error( SDL_GetError() );
+		if ( !studioRenderDescriptor.handle )	throw std::runtime_error( SDL_GetError() );
 
 		// Р‘РµСЂРµРј РёР· РјРѕРґСѓР»СЏ API РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РЅРёРј
 		studioRenderDescriptor.LE_CreateStudioRender = ( LE_CreateStudioRenderFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_CreateStudioRender" );
 		studioRenderDescriptor.LE_DeleteStudioRender = ( LE_DeleteStudioRenderFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_DeleteStudioRender" );
 		studioRenderDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_SetCriticalError" );
-        if ( !studioRenderDescriptor.LE_CreateStudioRender )	throw std::runtime_error( "Function LE_CreateStudioRender not found" );
+		if ( !studioRenderDescriptor.LE_CreateStudioRender )	throw std::runtime_error( "Function LE_CreateStudioRender not found" );
 
 		// РЎРѕР·РґР°РµРј СЂРµРЅРґРµСЂ
 		if ( studioRenderDescriptor.LE_SetCriticalError )
 			studioRenderDescriptor.LE_SetCriticalError( g_criticalError );
 
 		studioRender = ( IStudioRenderInternal* ) studioRenderDescriptor.LE_CreateStudioRender();
-        if ( !studioRender->Initialize( this ) )				throw std::runtime_error( "Fail initialize studiorender" );
+		if ( !studioRender->Initialize( this ) )				throw std::runtime_error( "Fail initialize studiorender" );
+
 		g_studioRender = studioRender;
+		g_studioRenderFactory = studioRender->GetFactory();
 	}
 	catch ( std::exception& Exception )
 	{
@@ -172,8 +179,10 @@ void le::Engine::UnloadModule_StudioRender()
 	SDL_UnloadObject( studioRenderDescriptor.handle );
 	studioRender = nullptr;
 	studioRenderDescriptor = { nullptr, nullptr, nullptr, nullptr };
+	g_studioRender = nullptr;
+	g_studioRenderFactory = nullptr;
 
-    consoleSystem.PrintInfo( "Unloaded studiorender" );
+	consoleSystem.PrintInfo( "Unloaded studiorender" );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -181,39 +190,40 @@ void le::Engine::UnloadModule_StudioRender()
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::LoadModule_PhysicsSystem( const char *PathDLL )
 {
-    // Р•СЃР»Рё РјРѕРґСѓР»СЊ СЂР°РЅРµРµ Р±С‹Р» Р·Р°РіСЂСѓР¶РµРЅ, С‚Рѕ СѓРґР°Р»СЏРµРј
-    if ( physicSystemDescriptor.handle ) UnloadModule_PhysicsSystem();
+	// Р•СЃР»Рё РјРѕРґСѓР»СЊ СЂР°РЅРµРµ Р±С‹Р» Р·Р°РіСЂСѓР¶РµРЅ, С‚Рѕ СѓРґР°Р»СЏРµРј
+	if ( physicSystemDescriptor.handle ) UnloadModule_PhysicsSystem();
 
-    consoleSystem.PrintInfo( "Loading physics system [%s]", PathDLL );
+	consoleSystem.PrintInfo( "Loading physics system [%s]", PathDLL );
 
-    try
-    {
-        // Р—Р°РіСЂСѓР¶Р°РµРј РјРѕРґСѓР»СЊ
-        physicSystemDescriptor.handle = SDL_LoadObject( PathDLL );
-        if ( !physicSystemDescriptor.handle )	throw std::runtime_error( SDL_GetError() );
+	try
+	{
+		// Р—Р°РіСЂСѓР¶Р°РµРј РјРѕРґСѓР»СЊ
+		physicSystemDescriptor.handle = SDL_LoadObject( PathDLL );
+		if ( !physicSystemDescriptor.handle )	throw std::runtime_error( SDL_GetError() );
 
-        // Р‘РµСЂРµРј РёР· РјРѕРґСѓР»СЏ API РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РЅРёРј
-        physicSystemDescriptor.LE_CreatePhysicsSystem = ( LE_CreatePhysicsSystemFn_t ) SDL_LoadFunction( physicSystemDescriptor.handle, "LE_CreatePhysicsSystem" );
-        physicSystemDescriptor.LE_DeletePhysicsSystem = ( LE_DeletePhysicsSystemFn_t ) SDL_LoadFunction( physicSystemDescriptor.handle, "LE_DeletePhysicsSystem" );
-        physicSystemDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_SetCriticalError" );
-        if ( !physicSystemDescriptor.LE_CreatePhysicsSystem )	throw std::runtime_error( "Function LE_CreatePhysicsSystem not found" );
+		// Р‘РµСЂРµРј РёР· РјРѕРґСѓР»СЏ API РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РЅРёРј
+		physicSystemDescriptor.LE_CreatePhysicsSystem = ( LE_CreatePhysicsSystemFn_t ) SDL_LoadFunction( physicSystemDescriptor.handle, "LE_CreatePhysicsSystem" );
+		physicSystemDescriptor.LE_DeletePhysicsSystem = ( LE_DeletePhysicsSystemFn_t ) SDL_LoadFunction( physicSystemDescriptor.handle, "LE_DeletePhysicsSystem" );
+		physicSystemDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_SetCriticalError" );
+		if ( !physicSystemDescriptor.LE_CreatePhysicsSystem )	throw std::runtime_error( "Function LE_CreatePhysicsSystem not found" );
 
-        // РЎРѕР·РґР°РµРј СЂРµРЅРґРµСЂ
-        if ( physicSystemDescriptor.LE_SetCriticalError )
-            physicSystemDescriptor.LE_SetCriticalError( g_criticalError );
+		// РЎРѕР·РґР°РµРј СЂРµРЅРґРµСЂ
+		if ( physicSystemDescriptor.LE_SetCriticalError )
+			physicSystemDescriptor.LE_SetCriticalError( g_criticalError );
 
 		physicSystem = ( IPhysicsSystemInternal* ) physicSystemDescriptor.LE_CreatePhysicsSystem();
-        if ( !physicSystem->Initialize( this ) )	throw std::runtime_error( "Fail initialize physics system" );
-		g_physicsSystem = physicSystem;
-    }
-    catch ( std::exception& Exception )
-    {
-        consoleSystem.PrintError( Exception.what() );
-        return false;
-    }
+		if ( !physicSystem->Initialize( this ) )	throw std::runtime_error( "Fail initialize physics system" );
 
-    consoleSystem.PrintInfo( "Loaded physics system [%s]", PathDLL );
-    return true;
+		g_physicsSystem = physicSystem;
+	}
+	catch ( std::exception& Exception )
+	{
+		consoleSystem.PrintError( Exception.what() );
+		return false;
+	}
+
+	consoleSystem.PrintInfo( "Loaded physics system [%s]", PathDLL );
+	return true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -221,17 +231,17 @@ bool le::Engine::LoadModule_PhysicsSystem( const char *PathDLL )
 // ------------------------------------------------------------------------------------ //
 void le::Engine::UnloadModule_PhysicsSystem()
 {
-    if ( !physicSystem ) return;
+	if ( !physicSystem ) return;
 
-    if ( physicSystemDescriptor.LE_DeletePhysicsSystem )
-        physicSystemDescriptor.LE_DeletePhysicsSystem( physicSystem );
+	if ( physicSystemDescriptor.LE_DeletePhysicsSystem )
+		physicSystemDescriptor.LE_DeletePhysicsSystem( physicSystem );
 
-    SDL_UnloadObject( physicSystemDescriptor.handle );
-    physicSystem = nullptr;
+	SDL_UnloadObject( physicSystemDescriptor.handle );
+	physicSystem = nullptr;
 	g_physicsSystem = nullptr;
-    physicSystemDescriptor = { nullptr, nullptr, nullptr, nullptr };
+	physicSystemDescriptor = { nullptr, nullptr, nullptr, nullptr };
 
-    consoleSystem.PrintInfo( "Unloaded physics system" );
+	consoleSystem.PrintInfo( "Unloaded physics system" );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -266,24 +276,24 @@ bool le::Engine::LoadGameInfo( const char* DirGame )
 		// РџСѓС‚СЊ Рє РјРѕРґСѓР»СЋ СЃ РёРіСЂРѕРІРѕР№ Р»РѕРіРёРєРѕР№
 		if ( strcmp( it->name.GetString(), "gameDLL" ) == 0 && it->value.IsString() )
 		{
-            UInt32_t            sizeExnesion;
-            UInt32_t            sizeJsonString = it->value.GetStringLength();
-            const char*         extension;
+			UInt32_t            sizeExnesion;
+			UInt32_t            sizeJsonString = it->value.GetStringLength();
+			const char*         extension;
 
 #       if defined( PLATFORM_WINDOWS )
-            extension = ".dll";
-            sizeExnesion = 4;
+			extension = ".dll";
+			sizeExnesion = 4;
 #       elif defined( PLATFORM_LINUX )
-            extension = ".so";
-            sizeExnesion = 3;
+			extension = ".so";
+			sizeExnesion = 3;
 #       endif // PLATFORM_WINDOWS
 
-            stringLength = sizeJsonString + sizeExnesion;
+			stringLength = sizeJsonString + sizeExnesion;
 
-            gameInfo.gameDLL = new char[ stringLength + 1 ];
-            memcpy( gameInfo.gameDLL, it->value.GetString(), sizeJsonString );
-            memcpy( gameInfo.gameDLL + sizeJsonString, extension, sizeExnesion );
-            gameInfo.gameDLL[ stringLength ] = '\0';
+			gameInfo.gameDLL = new char[ stringLength + 1 ];
+			memcpy( gameInfo.gameDLL, it->value.GetString(), sizeJsonString );
+			memcpy( gameInfo.gameDLL + sizeJsonString, extension, sizeExnesion );
+			gameInfo.gameDLL[ stringLength ] = '\0';
 		}
 
 		// РџСѓС‚СЊ Рє РёРєРѕРЅРєРµ
@@ -296,7 +306,7 @@ bool le::Engine::LoadGameInfo( const char* DirGame )
 			gameInfo.icon[ stringLength ] = '\0';
 		}
 
-		// Р—Р°РіРѕР»РѕРІРѕРє РёРіСЂС‹	
+		// Р—Р°РіРѕР»РѕРІРѕРє РёРіСЂС‹
 		if ( strcmp( it->name.GetString(), "title" ) == 0 && it->value.IsString() )
 		{
 			stringLength = it->value.GetStringLength();
@@ -330,13 +340,13 @@ bool le::Engine::LoadModule_Game( const char* PathDLL, UInt32_t CountArguments, 
 	{
 		// Р—Р°РіСЂСѓР¶Р°РµРј РјРѕРґСѓР»СЊ
 		gameDescriptor.handle = SDL_LoadObject( PathDLL );
-        if ( !gameDescriptor.handle )	throw std::runtime_error( SDL_GetError() );
+		if ( !gameDescriptor.handle )	throw std::runtime_error( SDL_GetError() );
 
 		// Р‘РµСЂРµРј РёР· РјРѕРґСѓР»СЏ API РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РЅРёРј
 		gameDescriptor.LE_CreateGame = ( LE_CreateGameFn_t ) SDL_LoadFunction( gameDescriptor.handle, "LE_CreateGame" );
 		gameDescriptor.LE_DeleteGame = ( LE_DeleteGameFn_t ) SDL_LoadFunction( gameDescriptor.handle, "LE_DeleteGame" );
 		gameDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( gameDescriptor.handle, "LE_SetCriticalError" );
-        if ( !gameDescriptor.LE_CreateGame )	throw std::runtime_error( "Function LE_CreateGame not found" );
+		if ( !gameDescriptor.LE_CreateGame )	throw std::runtime_error( "Function LE_CreateGame not found" );
 
 		// РЎРѕР·РґР°РµРј РёРіСЂРѕРІСѓСЋ Р»РѕРіРёРєСѓ
 		if ( gameDescriptor.LE_SetCriticalError )
@@ -363,7 +373,7 @@ void le::Engine::UnloadModule_Game()
 {
 	if ( !game ) return;
 
-    if ( game && gameDescriptor.LE_DeleteGame )
+	if ( game && gameDescriptor.LE_DeleteGame )
 		gameDescriptor.LE_DeleteGame( game );
 
 	SDL_UnloadObject( gameDescriptor.handle );
@@ -378,11 +388,11 @@ void le::Engine::UnloadModule_Game()
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::LoadConfig( const char* FilePath )
 {
-    consoleSystem.PrintInfo( "Loading file configurations [%s]", FilePath );
+	consoleSystem.PrintInfo( "Loading file configurations [%s]", FilePath );
 
-    std::ifstream		file( FilePath );
+	std::ifstream		file( FilePath );
 	if ( !file.is_open() )
-    {
+	{
 		consoleSystem.PrintError( "File configurations [%s] not found", FilePath );
 		return false;
 	}
@@ -456,21 +466,21 @@ bool le::Engine::SaveConfig( const char* FilePath )
 	}
 
 	file <<
-		"{\n\
-	\"general\": {\n\
-		\"width\": " << configurations.windowWidth << ",\n\
-		\"height\" : " << configurations.windowHeight << ",\n\
-		\"fullscreen\" : " << ( configurations.isFullscreen ? "true" : "false" ) << ",\n\
-        \"sensitivityMouse\" : " << configurations.sensitivityMouse << "\n\
-	},\n\
-\n\
-	\"studiorender\": {\n\
-		\"vsinc\" : " << ( configurations.isVerticalSinc ? "true" : "false" ) << ",\n\
-		\"fov\" : " << configurations.fov << "\n\
-	}\n\
+			"{\n\
+			\"general\": {\n\
+			\"width\": " << configurations.windowWidth << ",\n\
+														  \"height\" : " << configurations.windowHeight << ",\n\
+																										   \"fullscreen\" : " << ( configurations.isFullscreen ? "true" : "false" ) << ",\n\
+																																													   \"sensitivityMouse\" : " << configurations.sensitivityMouse << "\n\
+},\n\
+			\n\
+			\"studiorender\": {\n\
+			 \"vsinc\" : " << ( configurations.isVerticalSinc ? "true" : "false" ) << ",\n\
+																					  \"fov\" : " << configurations.fov << "\n\
+}\n\
 }";
 
-	consoleSystem.PrintInfo( "Saved file configurations [%s]", FilePath );
+							  consoleSystem.PrintInfo( "Saved file configurations [%s]", FilePath );
 	return true;
 }
 
@@ -480,7 +490,7 @@ bool le::Engine::SaveConfig( const char* FilePath )
 void le::Engine::RunSimulation()
 {
 	LIFEENGINE_ASSERT( window.IsOpen() && studioRender );
-	
+
 	if ( !game )
 	{
 		consoleSystem.PrintError( "The simulation is not running because the game is not loaded" );
@@ -489,13 +499,13 @@ void le::Engine::RunSimulation()
 
 	consoleSystem.PrintInfo( "*** Game logic start ***" );
 	
-    float                   currentTick = 0.f;
-    float                   lastTick = 0.f;
+	float                   currentTick = 0.f;
+	float                   lastTick = 0.f;
 	float                   delayFrame = 0.f;
-    Event                   event;
-    bool                    isFocus = true;
+	Event                   event;
+	bool                    isFocus = true;
 
-    isRunSimulation = true;
+	isRunSimulation = true;
 
 	while ( isRunSimulation )
 	{
@@ -536,14 +546,14 @@ void le::Engine::RunSimulation()
 		}
 
 		if ( isFocus )
-        {
+		{
 			currentTick = SDL_GetTicks();
 			deltaTime = ( currentTick - lastTick ) / 1000.f;
 			lastTick = currentTick;
 
 			delayFrame += deltaTime;
 			while ( delayFrame >= FIXED_TIME_UPDATE )
-            {
+			{
 				delayFrame -= FIXED_TIME_UPDATE;
 
 				inputSystem.Update();
@@ -551,7 +561,7 @@ void le::Engine::RunSimulation()
 				physicSystem->Update();
 				materialManager.UpdateProxes();
 				inputSystem.Clear();
-            }			
+			}
 
 			studioRender->Begin();
 			game->Render();
@@ -559,8 +569,8 @@ void le::Engine::RunSimulation()
 			if ( cvar_phyDebug->GetValueBool() )
 				physicSystem->DebugRender();
 
-            studioRender->End();
-            studioRender->Present();
+			studioRender->End();
+			studioRender->Present();
 		}
 	}
 
@@ -572,11 +582,11 @@ void le::Engine::RunSimulation()
 // ------------------------------------------------------------------------------------ //
 void le::Engine::StopSimulation()
 {
-    consoleSystem.PrintInfo( "*** Game logic end ***" );
+	consoleSystem.PrintInfo( "*** Game logic end ***" );
 
 	if ( game && gameDescriptor.LE_DeleteGame )     gameDescriptor.LE_DeleteGame( game );
 	resourceSystem.UnloadAll();
-    isRunSimulation = false;
+	isRunSimulation = false;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -624,7 +634,7 @@ le::IResourceSystem* le::Engine::GetResourceSystem() const
 // ------------------------------------------------------------------------------------ //
 le::IInputSystem* le::Engine::GetInputSystem() const
 {
-    return ( IInputSystem* ) &inputSystem;
+	return ( IInputSystem* ) &inputSystem;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -632,7 +642,7 @@ le::IInputSystem* le::Engine::GetInputSystem() const
 // ------------------------------------------------------------------------------------ //
 le::IMaterialManager* le::Engine::GetMaterialManager() const
 {
-    return ( IMaterialManager* ) &materialManager;
+	return ( IMaterialManager* ) &materialManager;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -640,7 +650,15 @@ le::IMaterialManager* le::Engine::GetMaterialManager() const
 // ------------------------------------------------------------------------------------ //
 le::IPhysicsSystem *le::Engine::GetPhysicsSystem() const
 {
-    return physicSystem;
+	return physicSystem;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get script system
+// ------------------------------------------------------------------------------------ //
+le::IScriptSystem* le::Engine::GetScriptSystem() const
+{
+	return ( IScriptSystem* ) &scriptSystem;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -664,7 +682,7 @@ le::IFactory* le::Engine::GetFactory() const
 // ------------------------------------------------------------------------------------ //
 const le::Configurations& le::Engine::GetConfigurations() const
 {
-    return configurations;
+	return configurations;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -672,7 +690,7 @@ const le::Configurations& le::Engine::GetConfigurations() const
 // ------------------------------------------------------------------------------------ //
 const le::GameInfo& le::Engine::GetGameInfo() const
 {
-    return gameInfo;
+	return gameInfo;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -689,6 +707,7 @@ const le::Version& le::Engine::GetVersion() const
 bool le::Engine::Initialize( const char* EngineDirectory, WindowHandle_t WindowHandle )
 {
 	if ( isInit ) return true;
+	engineDirectory = EngineDirectory;
 	consoleSystem.PrintInfo( "Initialization lifeEngine" );
 
 	// Р’С‹РІРѕРґРёРј СЃРёСЃС‚РµРјРЅСѓСЋ РёРЅС„РѕСЂРјР°С†РёСЋ
@@ -719,25 +738,25 @@ bool le::Engine::Initialize( const char* EngineDirectory, WindowHandle_t WindowH
 
 	try
 	{
-		// Р�РЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РѕРєРЅРѕ РїСЂРёР»РѕР¶РµРЅРёСЏ. Р•СЃР»Рё Р·Р°РіРѕР»РѕРІРѕРє РЅР° РѕРєРЅРѕ РІ Р°СЂРіСѓРјРµРЅС‚Р°С… РїСѓСЃС‚, 
+		// Р�РЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РѕРєРЅРѕ РїСЂРёР»РѕР¶РµРЅРёСЏ. Р•СЃР»Рё Р·Р°РіРѕР»РѕРІРѕРє РЅР° РѕРєРЅРѕ РІ Р°СЂРіСѓРјРµРЅС‚Р°С… РїСѓСЃС‚,
 		// С‚Рѕ СЃРѕР·РґР°РµРј СЃРІРѕРµ РѕРєРЅРѕ, РёРЅР°С‡Рµ Р·Р°РїРѕРјРёРЅР°РµРј РµРіРѕ
 
 		if ( !WindowHandle )
 		{
 			if ( !window.Create( "lifeEngine", configurations.windowWidth, configurations.windowHeight, configurations.isFullscreen ? SW_FULLSCREEN : SW_DEFAULT ) )
-                throw std::runtime_error( SDL_GetError() );
+				throw std::runtime_error( SDL_GetError() );
 		}
-		else 
+		else
 			window.SetHandle( WindowHandle );
 
 		// Р—Р°РіСЂСѓР¶Р°РµРј Рё РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РїРѕРґСЃРёСЃС‚РµРјС‹
-        std::string         engineDir = EngineDirectory;
-        if ( !LoadModule_StudioRender( ( engineDir + "/" + LIFEENGINE_STUDIORENDER_DLL ).c_str() ) )        throw std::runtime_error( "Failed loading studiorender" );
-        if ( !LoadModule_PhysicsSystem( ( engineDir + "/" + LIFEENGINE_PHYSICSSYSTEM_DLL ).c_str() ) )      throw std::runtime_error( "Failed loading physics system" );
+		std::string         engineDir = EngineDirectory;
+		if ( !LoadModule_StudioRender( ( engineDir + "/" + LIFEENGINE_STUDIORENDER_DLL ).c_str() ) )        throw std::runtime_error( "Failed loading studiorender" );
+		if ( !LoadModule_PhysicsSystem( ( engineDir + "/" + LIFEENGINE_PHYSICSSYSTEM_DLL ).c_str() ) )      throw std::runtime_error( "Failed loading physics system" );
 
 		auto*		shaderManager = studioRender->GetShaderManager();
-        if ( !shaderManager )		throw std::runtime_error( "In studiorender not exist shader manager" );
-        if ( !shaderManager->LoadShaderDLL( ( engineDir + "/" + LIFEENGINE_STDSHADERS_DLL ).c_str() ) )   throw std::runtime_error( "Failed loading stdshaders" );
+		if ( !shaderManager )		throw std::runtime_error( "In studiorender not exist shader manager" );
+		if ( !shaderManager->LoadShaderDLL( ( engineDir + "/" + LIFEENGINE_STDSHADERS_DLL ).c_str() ) )   throw std::runtime_error( "Failed loading stdshaders" );
 
 		FontFreeType::InitializeFreeType();
 		resourceSystem.Initialize( this );
@@ -759,7 +778,7 @@ bool le::Engine::Initialize( const char* EngineDirectory, WindowHandle_t WindowH
 bool le::Engine::LoadGame( const char* DirGame, UInt32_t CountArguments, const char** Arguments  )
 {
 	// Р—Р°РіСЂСѓР¶Р°РµРј РёРЅС„РѕСЂРјР°С†РёСЋ РѕР± РёРіСЂРµ
-	if ( !LoadGameInfo( DirGame ) )	
+	if ( !LoadGameInfo( DirGame ) )
 		return false;
 
 	// Р—Р°РґР°РµРј РєР°С‚Р°Р»РѕРі РёРіСЂС‹ РґР»СЏ Р·Р°РіСЂСѓР·РєРё СЂРµСЃСѓСЂСЃРѕРІ
