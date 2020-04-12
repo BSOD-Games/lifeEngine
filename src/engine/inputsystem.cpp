@@ -235,9 +235,5 @@ le::InputSystem::InputSystem() :
 // ------------------------------------------------------------------------------------ //
 le::InputSystem::~InputSystem()
 {
-	if ( cmd_bind )
-	{
-		g_consoleSystem->UnregisterCommand( cmd_bind->GetName() );
-		delete cmd_bind;
-	}
+	if ( cmd_bind )		g_consoleSystem->UnregisterCommand( cmd_bind->GetName() );
 }

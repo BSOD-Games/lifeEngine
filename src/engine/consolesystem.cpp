@@ -317,15 +317,18 @@ le::ConsoleSystem::ConsoleSystem() :
 // ------------------------------------------------------------------------------------ //
 le::ConsoleSystem::~ConsoleSystem()
 {
-	if ( fileLog )		fclose( fileLog );
+	if ( fileLog )
+	{
+		fclose( fileLog );
+		fileLog = nullptr;
+	}
+
 	for ( auto it = vars.begin(), itEnd = vars.end(); it != itEnd; ++it )
 	{
 		if ( it->second->GetCountReferences() <= 1 )
 			it->second->Release();
 		else
 			it->second->DecrementReference();
-
-		UnregisterVar( it->first.c_str() );
 	}
 
 	for ( auto it = commands.begin(), itEnd = commands.end(); it != itEnd; ++it )
@@ -334,8 +337,6 @@ le::ConsoleSystem::~ConsoleSystem()
 			it->second->Release();
 		else
 			it->second->DecrementReference();
-
-		UnregisterCommand( it->first.c_str() );
 	}
 
 	con_help = nullptr;

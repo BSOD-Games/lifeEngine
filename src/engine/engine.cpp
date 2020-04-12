@@ -113,7 +113,8 @@ le::Engine::~Engine()
 
 	resourceSystem.UnloadAll();
 
-	if ( physicSystem )     UnloadModule_PhysicsSystem();
+	if ( physicSystem )     UnloadModule_PhysicsSystem();	
+
 	if ( studioRender )		UnloadModule_StudioRender();
 	if ( window.IsOpen() )	window.Close();
 
@@ -381,6 +382,7 @@ void le::Engine::UnloadModule_Game()
 	gameDescriptor = { nullptr, nullptr, nullptr, nullptr };
 	
 	consoleSystem.PrintInfo( "Unloaded game" );
+	resourceSystem.UnloadAll();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -514,7 +516,7 @@ void le::Engine::RunSimulation()
 			switch ( event.type )
 			{
 			case Event::ET_WINDOW_CLOSE:
-				StopSimulation();
+				isRunSimulation = false;
 				break;
 
 			case Event::ET_WINDOW_FOCUS_GAINED:
@@ -573,8 +575,6 @@ void le::Engine::RunSimulation()
 			studioRender->Present();
 		}
 	}
-
-	StopSimulation();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -582,10 +582,6 @@ void le::Engine::RunSimulation()
 // ------------------------------------------------------------------------------------ //
 void le::Engine::StopSimulation()
 {
-	consoleSystem.PrintInfo( "*** Game logic end ***" );
-
-	if ( game && gameDescriptor.LE_DeleteGame )     gameDescriptor.LE_DeleteGame( game );
-	resourceSystem.UnloadAll();
 	isRunSimulation = false;
 }
 
