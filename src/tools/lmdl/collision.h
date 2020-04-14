@@ -8,8 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef MESH_H
-#define MESH_H
+#ifndef COLLISION_H
+#define COLLISION_H
 
 #include <string>
 #include <vector>
@@ -26,12 +26,12 @@ struct aiScene;
 
 //---------------------------------------------------------------------//
 
-class Mesh
+class Collision
 {
 public:
-	// Mesh
-	Mesh();
-	~Mesh();
+	// Collision
+	Collision();
+	~Collision();
 
 	void			Load( const std::string& Path );
 	void			Save( const std::string& Path );
@@ -41,65 +41,46 @@ private:
 
 	//---------------------------------------------------------------------//
 
-	enum MDL_LUMPS
+	enum PHY_LUMPS
 	{
-		ML_MATERIALS,
-		ML_VERTECES,
-		ML_INDECES,
-		ML_SURFACES,
-		ML_MAX_LUMPS
+		PL_VERTECES,
+		PL_INDECES,
+		PL_MAX_LUMPS
 	};
 
-	struct MDLHeader
+	struct PHYHeader
 	{
-		char				strId[ 4 ]; // Always 'LMDL'
+		char				strId[ 4 ]; // Always 'LPHY'
 		le::UInt32_t		version;
 	};
 
-	struct MDLLump
+	struct PHYLump
 	{
 		le::UInt32_t		offset;
 		le::UInt32_t		length;
 	};
 
-	struct MDLVertex
+	struct PHYVertex
 	{
-		MDLVertex();
+		PHYVertex();
 
 		float		position[ 3 ];
-		float		normal[ 3 ];
-		float		texCoords[ 2 ];
-		float		tangent[ 3 ];
-		float		bitangent[ 3 ];
 
-		bool operator==( const MDLVertex& Right );
-	};
-
-	struct MDLSurface
-	{
-		MDLSurface();
-
-		le::UInt32_t		materialId;
-		le::UInt32_t        startVertexIndex;
-		le::UInt32_t        countVertexIndex;
+		bool operator==( const PHYVertex& Right );
 	};
 
 	//---------------------------------------------------------------------//
 
 	void			ProcessNode( aiNode* Node, const aiScene* Scene, std::unordered_map<le::UInt32_t, std::vector< aiMesh* > >& Meshes );
-	void			UpdateLumps( std::ofstream& File, MDLLump* Lumps, le::UInt32_t OffsetToLumps );
-	void			WriteMaterials( std::ofstream& File, MDLLump& Lump );
-	void			WriteVerteces( std::ofstream& File, MDLLump& Lump );
-	void			WriteIndeces( std::ofstream& File, MDLLump& Lump );
-	void			WriteSurfaces( std::ofstream& File, MDLLump& Lump );
+	void			UpdateLumps( std::ofstream& File, PHYLump* Lumps, le::UInt32_t OffsetToLumps );
+	void			WriteVerteces( std::ofstream& File, PHYLump& Lump );
+	void			WriteIndeces( std::ofstream& File, PHYLump& Lump );
 
 	bool							isLoaded;
-	std::vector< MDLVertex >		verteces;
+	std::vector< PHYVertex >		verteces;
 	std::vector< le::UInt32_t >		indices;
-	std::vector< MDLSurface >		surfaces;
-	std::vector< std::string >		materials;
 };
 
 //---------------------------------------------------------------------//
 
-#endif // !MESH_H
+#endif // COLLISION_H

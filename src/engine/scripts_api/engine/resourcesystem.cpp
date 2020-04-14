@@ -10,6 +10,7 @@
 
 #include "engine/global.h"
 #include "engine/resourcesystem.h"
+#include "engine/collisionmesh.h"
 
 namespace scripts_api
 {
@@ -150,4 +151,56 @@ scripts_api::mesh_t scripts_api::ResourceSystem_GetMesh( const char* Name )
 scripts_api::font_t scripts_api::ResourceSystem_GetFont( const char* Name )
 {
 	return le::g_resourceSystem->GetFont( Name );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Load collision mesh
+// ------------------------------------------------------------------------------------ //
+scripts_api::bool_t scripts_api::ResourceSystem_LoadCollisionMesh( const char* Name, const char* Path, collisionMesh_t* CollisionMesh )
+{
+	if ( !CollisionMesh )	return B_FALSE;
+
+	le::CollisionMesh			collisionMesh;
+	bool			result = le::g_resourceSystem->LoadCollisionMesh( Name, Path, collisionMesh );
+	if ( !result )			return B_FALSE;
+
+	CollisionMesh->indeces = collisionMesh.indeces;
+	CollisionMesh->verteces = ( scripts_api::vec3f_t* ) collisionMesh.verteces;
+	CollisionMesh->countIndeces = collisionMesh.countIndeces;
+	CollisionMesh->countVerteces = collisionMesh.countVerteces;
+	return B_TRUE;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Unload collision mesh
+// ------------------------------------------------------------------------------------ //
+void scripts_api::ResourceSystem_UnloadCollisionMesh( const char* Name )
+{
+	return le::g_resourceSystem->UnloadCollisionMesh( Name );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Unload collision meshes
+// ------------------------------------------------------------------------------------ //
+void scripts_api::ResourceSystem_UnloadCollisionMeshes()
+{
+	return le::g_resourceSystem->UnloadCollisionMeshes();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get collision mesh
+// ------------------------------------------------------------------------------------ //
+scripts_api::bool_t scripts_api::ResourceSystem_GetCollisionMesh( const char* Name, collisionMesh_t* CollisionMesh )
+{
+	if ( !CollisionMesh )	return B_FALSE;
+
+	le::CollisionMesh			collisionMesh;
+	bool			result = le::g_resourceSystem->GetCollisionMesh( Name, collisionMesh );
+	if ( !result )			return B_FALSE;
+
+	CollisionMesh->indeces = collisionMesh.indeces;
+	CollisionMesh->verteces = ( scripts_api::vec3f_t* ) collisionMesh.verteces;
+	CollisionMesh->countIndeces = collisionMesh.countIndeces;
+	CollisionMesh->countVerteces = collisionMesh.countVerteces;
+	return B_TRUE;
 }

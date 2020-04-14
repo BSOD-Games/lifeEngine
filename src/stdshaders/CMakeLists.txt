@@ -47,7 +47,7 @@ install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
 
 add_dependencies( ${MODULE_NAME} shadercompile )
 file( MAKE_DIRECTORY shaders )
-add_custom_command( TARGET ${MODULE_NAME}
+add_custom_command( TARGET ${MODULE_NAME} PRE_BUILD
 
 COMMAND $<TARGET_FILE:shadercompile> -s "glsl/unlitgeneric_vertex.glsl" -o "shaders/unlitgeneric_vertex"
 COMMAND  $<TARGET_FILE:shadercompile> -s "glsl/unlitgeneric_fragment.glsl" -o "shaders/unlitgeneric_fragment"
@@ -61,4 +61,4 @@ COMMAND $<TARGET_FILE:shadercompile> -s "glsl/lightmappedgeneric_vertex.glsl" -o
 COMMAND  $<TARGET_FILE:shadercompile> -s "glsl/lightmappedgeneric_fragment.glsl" -o "shaders/lightmappedgeneric_fragment"
 
 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-COMMENT "Generated shaders" )
+COMMENT "*** Generated shaders ***" )

@@ -21,6 +21,7 @@ namespace le
     //---------------------------------------------------------------------//
 
     struct Image;
+	struct CollisionMesh;
     class IFactory;
     class ITexture;
     class IMaterial;
@@ -38,6 +39,7 @@ namespace le
     typedef		ILevel*			( *LoadLevelFn_t )( const char* Path, IFactory* GameFactory );
     typedef		IFont*			( *LoadFontFn_t )( const char* Path );
     typedef		IScript*		( *LoadScriptFn_t )( const char* Path, UInt32_t CountFunctions, ScriptDescriptor::Symbol* Functions, UInt32_t CountVars, ScriptDescriptor::Symbol* Vars, IFactory* ScriptSystemFactory );
+	typedef		bool			( *LoadCollisionMeshFn_t )( const char* Path, CollisionMesh& CollisionMesh );
 
     //---------------------------------------------------------------------//
 
@@ -52,13 +54,15 @@ namespace le
         virtual void					RegisterLoader_Level( const char* Format, LoadLevelFn_t LoadLevel ) = 0;
         virtual void					RegisterLoader_Font( const char* Format, LoadFontFn_t LoadFont ) = 0;
         virtual void					RegisterLoader_Script( const char* Format, LoadScriptFn_t LoadScript ) = 0;
-        virtual void					UnregisterLoader_Image( const char* Format ) = 0;
+		virtual void					RegisterLoader_CollisionMesh( const char* Format, LoadCollisionMeshFn_t LoadCollisionMesh ) = 0;
+		virtual void					UnregisterLoader_Image( const char* Format ) = 0;
         virtual void					UnregisterLoader_Texture( const char* Format ) = 0;
         virtual void					UnregisterLoader_Material( const char* Format ) = 0;
         virtual void					UnregisterLoader_Mesh( const char* Format ) = 0;
         virtual void					UnregisterLoader_Level( const char* Format ) = 0;
         virtual void					UnregisterLoader_Font( const char* Format ) = 0;
         virtual void					UnregisterLoader_Script( const char* Format ) = 0;
+		virtual void					UnregisterLoader_CollisionMesh( const char* Format ) = 0;
 
         virtual Image					LoadImage( const char* Path, bool& IsError, bool IsFlipVertical = false, bool IsSwitchRedAndBlueChannels = false ) = 0;
         virtual ITexture*				LoadTexture( const char* Name, const char* Path ) = 0;
@@ -67,19 +71,22 @@ namespace le
         virtual ILevel*					LoadLevel( const char* Name, const char* Path, IFactory* GameFactory ) = 0;
         virtual IFont*					LoadFont( const char* Name, const char* Path ) = 0;
         virtual IScript*				LoadScript( const char* Name, const char* Path, UInt32_t CountFunctions = 0, ScriptDescriptor::Symbol* Functions = nullptr, UInt32_t CountVars = 0, ScriptDescriptor::Symbol* Vars = nullptr ) = 0;
-        virtual void					UnloadImage( Image& Image ) = 0;
+		virtual bool					LoadCollisionMesh( const char* Name, const char* Path, CollisionMesh& CollisionMesh ) = 0;
+		virtual void					UnloadImage( Image& Image ) = 0;
         virtual void					UnloadTexture( const char* Name ) = 0;
         virtual void					UnloadMaterial( const char* Name ) = 0;
         virtual void					UnloadMesh( const char* Name ) = 0;
         virtual void					UnloadLevel( const char* Name ) = 0;
         virtual void					UnloadFont( const char* Name ) = 0;
         virtual void					UnloadScript( const char* Name ) = 0;
+		virtual void					UnloadCollisionMesh( const char* Name ) = 0;
         virtual void					UnloadTextures() = 0;
         virtual void					UnloadMaterials() = 0;
         virtual void					UnloadMeshes() = 0;
         virtual void					UnloadLevels() = 0;
         virtual void					UnloadFonts() = 0;
         virtual void					UnloadScripts() = 0;
+		virtual void					UnloadCollisionMeshes() = 0;
         virtual void					UnloadAll() = 0;
 
         virtual ITexture*				GetTexture( const char* Name ) const = 0;
@@ -88,6 +95,7 @@ namespace le
         virtual ILevel*					GetLevel( const char* Name ) const = 0;
         virtual IFont*					GetFont( const char* Name ) const = 0;
         virtual IScript*				GetScript( const char* Name ) const = 0;
+		virtual bool					GetCollisionMesh( const char* Name, CollisionMesh& CollisionMesh ) const = 0;
     };
 
     //---------------------------------------------------------------------//

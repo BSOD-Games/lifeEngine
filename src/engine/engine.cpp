@@ -216,6 +216,7 @@ bool le::Engine::LoadModule_PhysicsSystem( const char *PathDLL )
 		if ( !physicSystem->Initialize( this ) )	throw std::runtime_error( "Fail initialize physics system" );
 
 		g_physicsSystem = physicSystem;
+		g_physicsSystemFactory = physicSystem->GetFactory();
 	}
 	catch ( std::exception& Exception )
 	{
@@ -499,7 +500,7 @@ void le::Engine::RunSimulation()
 		return;
 	}
 
-	consoleSystem.PrintInfo( "*** Game logic start ***" );
+	consoleSystem.PrintInfo( "*** Run simulation ***" );
 	
 	float                   currentTick = 0.f;
 	float                   lastTick = 0.f;
@@ -575,6 +576,8 @@ void le::Engine::RunSimulation()
 			studioRender->Present();
 		}
 	}
+
+	consoleSystem.PrintInfo( "*** Stop simulation ***" );
 }
 
 // ------------------------------------------------------------------------------------ //

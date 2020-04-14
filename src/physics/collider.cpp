@@ -85,11 +85,11 @@ void le::Collider::AddShape( const le::ShapeMeshDescriptor& Shape, const le::Mat
 {
 	// Warning: this pointer is not deleted when the object is destroyed!
 	btTriangleMesh*				triangleMesh = new btTriangleMesh();
-	for ( UInt32_t index = 0; index < Shape.countVerteces; index += 3 )
+	for ( UInt32_t index = 0; index < Shape.countIndeces; index += 3 )
 	{
-		glm::vec3&		vertex1 = Shape.verteces[ index ];
-		glm::vec3&		vertex2 = Shape.verteces[ index + 1 ];
-		glm::vec3&		vertex3 = Shape.verteces[ index + 2 ];
+		glm::vec3&		vertex1 = Shape.verteces[ Shape.indeces[ index ] ];
+		glm::vec3&		vertex2 = Shape.verteces[ Shape.indeces[ index + 1 ] ];
+		glm::vec3&		vertex3 = Shape.verteces[ Shape.indeces[ index + 2 ] ];
 
 		// TODO: Add indeces to collision mesh
 		triangleMesh->addTriangle( btVector3( vertex1.x, vertex1.y, vertex1.z ),

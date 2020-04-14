@@ -102,7 +102,7 @@ void scripts_api::Collider_AddMesh( collider_t Object, shapeMeshDescriptor_t Sha
 	if ( !Object ) return;
 
 	le::ShapeMeshDescriptor			shape = { Shape.countVerteces, ( le::Vector3D_t* ) Shape.verteces, Shape.countIndeces, Shape.indeces };
-	COLLIDER( Object )->AddShape( shape, glm::make_mat4( LocalTransformation.matrix ) );
+	COLLIDER( Object )->AddShape( shape, glm::mat4(1.f) );
 }
 
 // ------------------------------------------------------------------------------------ //

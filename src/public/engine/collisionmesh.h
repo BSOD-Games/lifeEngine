@@ -1,25 +1,35 @@
 //////////////////////////////////////////////////////////////////////////
 //
 //			*** lifeEngine (Двигатель жизни) ***
-//				Copyright (C) 2018-2020
+//				Copyright (C) 2018-2019
 //
 // Репозиторий движка:  https://github.com/zombihello/lifeEngine
 // Авторы:				Егор Погуляка (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#ifndef COLLISIONMESH_H
+#define COLLISIONMESH_H
 
-#include <string>
-
-//---------------------------------------------------------------------//
-
-extern std::string				g_sourceFile;
-extern std::string				g_outputFile;
-extern std::string				g_materialsDir;
-extern std::string				g_collisionFile;
+#include "../common/types.h"
 
 //---------------------------------------------------------------------//
 
-#endif // !GLOBAL_H
+namespace le
+{
+	//---------------------------------------------------------------------//
+
+	struct CollisionMesh
+	{
+		Vector3D_t*			verteces;
+		UInt32_t			countVerteces;
+		UInt32_t*			indeces;
+		UInt32_t			countIndeces;
+	};
+
+	//---------------------------------------------------------------------//
+}
+
+//---------------------------------------------------------------------//
+
+#endif // !COLLISIONMESH_H
