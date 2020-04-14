@@ -69,6 +69,17 @@ namespace le
 
 		//---------------------------------------------------------------------//
 
+		struct ColliderMeshDescriptor
+		{
+			ColliderMeshDescriptor();
+			~ColliderMeshDescriptor();
+
+			btTriangleMesh*				triangleMesh;
+			btBvhTriangleMeshShape*		shape;
+		};
+
+		//---------------------------------------------------------------------//
+
 		struct ShapeDescriptor
 		{
 			SHAPE_TYPE		type;

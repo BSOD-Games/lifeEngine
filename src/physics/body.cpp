@@ -64,7 +64,7 @@ void le::Body::Delete()
 	if ( motionState )		delete motionState;
 	if ( collider )
 	{
-		if ( collider->GetCountShapes() <= 1 )
+		if ( collider->GetCountReferences() <= 1 )
 			collider->Release();
 		else
 			collider->DecrementReference();

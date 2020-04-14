@@ -18,10 +18,10 @@
 
 typedef struct
 {
-	int             countVerteces;
+	uint32_t		countVerteces;
 	vec3f_t*		verteces;
-	int             countIndeces;
-	int*            indeces;
+	uint32_t		countIndeces;
+	uint32_t*		indeces;
 } shapeMeshDescriptor_t;
 
 //---------------------------------------------------------------------//

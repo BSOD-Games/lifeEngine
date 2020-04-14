@@ -120,23 +120,23 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( ResourceSystem_LoadMaterial );
 	REGISTER_FUNCTION( ResourceSystem_LoadMesh );
 	REGISTER_FUNCTION( ResourceSystem_LoadFont );
-	REGISTER_FUNCTION( ResourceSystem_LoadCollisionMesh );
+	REGISTER_FUNCTION( ResourceSystem_LoadCollider );
 	REGISTER_FUNCTION( ResourceSystem_UnloadTexture );
 	REGISTER_FUNCTION( ResourceSystem_UnloadMaterial );
 	REGISTER_FUNCTION( ResourceSystem_UnloadMesh );
 	REGISTER_FUNCTION( ResourceSystem_UnloadFont );
-	REGISTER_FUNCTION( ResourceSystem_UnloadCollisionMesh );
+	REGISTER_FUNCTION( ResourceSystem_UnloadCollider );
 	REGISTER_FUNCTION( ResourceSystem_UnloadTextures );
 	REGISTER_FUNCTION( ResourceSystem_UnloadMaterials );
 	REGISTER_FUNCTION( ResourceSystem_UnloadMeshes );
 	REGISTER_FUNCTION( ResourceSystem_UnloadFonts );
-	REGISTER_FUNCTION( ResourceSystem_UnloadCollisionMeshes );
+	REGISTER_FUNCTION( ResourceSystem_UnloadColliders );
 	REGISTER_FUNCTION( ResourceSystem_UnloadAll );
 	REGISTER_FUNCTION( ResourceSystem_GetTexture );
 	REGISTER_FUNCTION( ResourceSystem_GetMaterial );
 	REGISTER_FUNCTION( ResourceSystem_GetMesh );
 	REGISTER_FUNCTION( ResourceSystem_GetFont );
-	REGISTER_FUNCTION( ResourceSystem_GetCollisionMesh );
+	REGISTER_FUNCTION( ResourceSystem_GetCollider );
 
 	// Camera
 	REGISTER_FUNCTION( Camera_Create );

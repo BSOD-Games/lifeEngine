@@ -26,7 +26,8 @@
 #include "engine/imaterialproxy.h"
 #include "engine/materialproxyvar.h"
 #include "engine/script.h"
-#include "engine/collisionmesh.h"
+#include "physics/icollider.h"
+#include "physics/shapemeshdescriptor.h"
 #include "studiorender/istudiorender.h"
 #include "studiorender/itexture.h"
 #include "studiorender/imesh.h"
@@ -813,18 +814,18 @@ le::IScript* LE_LoadScript( const char* Path, le::UInt32_t CountFunctions, le::S
 }
 
 // ------------------------------------------------------------------------------------ //
-// Loading collision mesh
+// Loading collider
 // ------------------------------------------------------------------------------------ //
-bool LE_LoadCollisionMesh( const char* Path, le::CollisionMesh& CollisionMesh )
+le::ICollider* LE_LoadCollider( const char* Path, le::IFactory* PhysicsSystemFactory )
 {
 	std::ifstream				file( Path, std::ios::binary );
-	if ( !file.is_open() )		return false;
+	if ( !file.is_open() )		return nullptr;
 
 	// Read header file
 	PHYHeader			phyHeader;
 	file.read( ( char* ) &phyHeader, sizeof( PHYHeader ) );
 	if ( strncmp( phyHeader.strId, PHY_ID, 4 ) != 0 || phyHeader.version != PHY_VERSION )
-		return false;
+		return nullptr;
 
 	// Read all lumps
 	PHYLump				phyLumps[ PL_MAX_LUMPS ];
@@ -850,11 +851,20 @@ bool LE_LoadCollisionMesh( const char* Path, le::CollisionMesh& CollisionMesh )
 	indeces.resize( countIndeces );
 	file.read( ( char* ) indeces.data(), countIndeces * sizeof( le::UInt32_t ) );
 
-	CollisionMesh.indeces = indeces.data();
-	CollisionMesh.verteces = verteces.data();
-	CollisionMesh.countIndeces = indeces.size();
-	CollisionMesh.countVerteces = verteces.size();
-	return true;
+	if ( verteces.empty() ) return nullptr;
+
+	// Creating collider
+	le::ICollider*					collider = ( le::ICollider* ) PhysicsSystemFactory->Create( COLLIDER_INTERFACE_VERSION );
+	if ( !collider )	return nullptr;
+
+	le::ShapeMeshDescriptor			shapeMeshDescriptor;
+	shapeMeshDescriptor.indeces = indeces.data();
+	shapeMeshDescriptor.verteces = verteces.data();
+	shapeMeshDescriptor.countIndeces = indeces.size();
+	shapeMeshDescriptor.countVerteces = verteces.size();
+	collider->AddShape( shapeMeshDescriptor, glm::mat4( 1.f ) );
+
+	return collider;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1455,7 +1465,7 @@ void le::ResourceSystem::UnloadAll()
     UnloadFonts();
     UnloadMaterials();
     UnloadTextures();
-	UnloadCollisionMeshes();
+	UnloadColliders();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1547,7 +1557,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
         RegisterLoader_Level( "bsp", LE_LoadLevel );
         RegisterLoader_Font( "ttf", LE_LoadFont );
 		RegisterLoader_Script( "c", LE_LoadScript );
-		RegisterLoader_CollisionMesh( "phy", LE_LoadCollisionMesh );
+		RegisterLoader_Collider( "phy", LE_LoadCollider );
     }
     catch ( std::exception & Exception )
     {
@@ -1716,127 +1726,115 @@ le::IScript* le::ResourceSystem::GetScript( const char* Name ) const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Register loader for collision mesh
+// Register loader for collider
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterLoader_CollisionMesh( const char* Format, LoadCollisionMeshFn_t LoadCollisionMesh )
+void le::ResourceSystem::RegisterLoader_Collider( const char* Format, LoadColliderFn_t LoadCollider )
 {
 	LIFEENGINE_ASSERT( Format );
-	LIFEENGINE_ASSERT( LoadCollisionMesh );
+	LIFEENGINE_ASSERT( LoadCollider );
 
-	g_consoleSystem->PrintInfo( "Loader collision mesh for format [%s] registered", Format );
-	loaderCollisionMeshes[ Format ] = LoadCollisionMesh;
+	g_consoleSystem->PrintInfo( "Loader LoadCollider for format [%s] registered", Format );
+	loaderColliders[ Format ] = LoadCollider;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Unregister loader for collision mesh
+// Unregister loader for collider
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnregisterLoader_CollisionMesh( const char* Format )
+void le::ResourceSystem::UnregisterLoader_Collider( const char* Format )
 {
 	LIFEENGINE_ASSERT( Format );
 
-	auto		it = loaderCollisionMeshes.find( Format );
-	if ( it == loaderCollisionMeshes.end() ) return;
+	auto		it = loaderColliders.find( Format );
+	if ( it == loaderColliders.end() ) return;
 
-	loaderCollisionMeshes.erase( it );
-	g_consoleSystem->PrintInfo( "Loader collision mesh for format [%s] unregistered", Format );
+	loaderColliders.erase( it );
+	g_consoleSystem->PrintInfo( "Loader collider for format [%s] unregistered", Format );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Unload collision mesh
+// Unload collider
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnloadCollisionMesh( const char* Name )
+void le::ResourceSystem::UnloadCollider( const char* Name )
 {
 	LIFEENGINE_ASSERT( Name );
 
-	auto				it = collisionMeshes.find( Name );
-	if ( it == collisionMeshes.end() )	return;
+	auto				it = colliders.find( Name );
+	if ( it == colliders.end() || it->second->GetCountReferences() > 1 )	return;
 
-	collisionMeshes.erase( it );
-	g_consoleSystem->PrintInfo( "Unloaded collision mesh [%s]", Name );
+	it->second->Release();
+	colliders.erase( it );
+
+	g_consoleSystem->PrintInfo( "Unloaded collider [%s]", Name );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Load collision mesh
+// Load collider
 // ------------------------------------------------------------------------------------ //
-bool le::ResourceSystem::LoadCollisionMesh( const char* Name, const char* Path, CollisionMesh& CollisionMesh )
+le::ICollider* le::ResourceSystem::LoadCollider( const char* Name, const char* Path )
 {
 	LIFEENGINE_ASSERT( Name );
 	LIFEENGINE_ASSERT( Path );
 
 	try
 	{
-		if ( collisionMeshes.find( Name ) != collisionMeshes.end() )
-		{
-			auto					it = collisionMeshes.find( Name );
-			CollisionMesh.verteces = ( Vector3D_t* ) it->second.verteces.data();
-			CollisionMesh.indeces = ( UInt32_t* ) it->second.indeces.data();
-			CollisionMesh.countVerteces = it->second.verteces.size();
-			CollisionMesh.countIndeces = it->second.indeces.size();
-			return true;
-		}
-
-		if ( loaderCollisionMeshes.empty() )				throw std::runtime_error( "No collision mesh loaders" );
+		if ( colliders.find( Name ) != colliders.end() )	return colliders[ Name ];
+		if ( loaderColliders.empty() )						throw std::runtime_error( "No collider loaders" );
 
 		std::string			path = gameDir + "/" + Path;
 
-		g_consoleSystem->PrintInfo( "Loading collision mesh [%s] with name [%s]", Path, Name );
+		g_consoleSystem->PrintInfo( "Loading collider [%s] with name [%s]", Path, Name );
 
 		std::string			format = GetFormatFile( path );
-		if ( format.empty() )								throw std::runtime_error( "In collision mesh format not found" );
+		if ( format.empty() )								throw std::runtime_error( "In collider format not found" );
 
-		auto				parser = loaderCollisionMeshes.find( format );
-		if ( parser == loaderCollisionMeshes.end() )		throw std::runtime_error( "Loader for format collision mesh not found" );
+		auto				parser = loaderColliders.find( format );
+		if ( parser == loaderColliders.end() )		throw std::runtime_error( "Loader for format collider not found" );
 
-		bool				result = parser->second( path.c_str(), CollisionMesh );
-		if ( !result )		throw std::runtime_error( "Fail loading collision mesh" );
+		le::ICollider*			collider = parser->second( path.c_str(), g_physicsSystemFactory );
+		if ( !collider )		throw std::runtime_error( "Fail loading collider" );
 
-		collisionMeshes.insert( std::make_pair( Name, ResCollisionMesh() ) );
-		auto				itCollisionMesh = collisionMeshes.find( Name );
+		collider->IncrementReference();
+		colliders.insert( std::make_pair( Name, collider ) );
+		g_consoleSystem->PrintInfo( "Loaded collider [%s]", Name );
 
-		itCollisionMesh->second.verteces.resize( CollisionMesh.countVerteces );
-		itCollisionMesh->second.indeces.resize( CollisionMesh.countIndeces );
-		memcpy( itCollisionMesh->second.verteces.data(), CollisionMesh.verteces, sizeof( Vector3D_t ) * CollisionMesh.countVerteces );
-		memcpy( itCollisionMesh->second.indeces.data(), CollisionMesh.indeces, sizeof( UInt32_t ) * CollisionMesh.countIndeces );
-		g_consoleSystem->PrintInfo( "Loaded collision mesh [%s]", Name );
-
-		return true;
+		return collider;
 	}
 	catch ( std::exception & Exception )
 	{
-		g_consoleSystem->PrintError( "Texture [%s] not loaded: %s", Path, Exception.what() );
-		return false;
+		g_consoleSystem->PrintError( "Collider [%s] not loaded: %s", Path, Exception.what() );
+		return nullptr;
 	}
 }
 
 // ------------------------------------------------------------------------------------ //
-// Unload collision mesh
+// Unload colliders
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnloadCollisionMeshes()
+void le::ResourceSystem::UnloadColliders()
 {
-	if ( collisionMeshes.empty() ) return;
+	if ( colliders.empty() ) return;
 
-	for ( auto it = collisionMeshes.begin(), itEnd = collisionMeshes.end(); it != itEnd; ++it )
-		g_consoleSystem->PrintInfo( "Unloaded collision mesh [%s]", it->first.c_str() );
+	for ( auto it = colliders.begin(), itEnd = colliders.end(); it != itEnd; )
+		if ( it->second->GetCountReferences() <= 1 )
+		{
+			it->second->Release();
 
-	collisionMeshes.clear();
+			g_consoleSystem->PrintInfo( "Unloaded collider [%s]", it->first.c_str() );
+			it = colliders.erase( it );
+			itEnd = colliders.end();
+		}
+		else
+			++it;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get collision mesh
+// Get collider
 // ------------------------------------------------------------------------------------ //
-bool le::ResourceSystem::GetCollisionMesh( const char* Name, CollisionMesh& CollisionMesh ) const
+le::ICollider* le::ResourceSystem::GetCollider( const char* Name ) const
 {
 	LIFEENGINE_ASSERT( Name );
 
-	auto	it = collisionMeshes.find( Name );
-	if ( it != collisionMeshes.end() )
-	{
-		CollisionMesh.verteces = ( Vector3D_t* ) it->second.verteces.data();
-		CollisionMesh.indeces = ( UInt32_t* ) it->second.indeces.data();
-		CollisionMesh.countVerteces = it->second.verteces.size();
-		CollisionMesh.countIndeces = it->second.indeces.size();
-		return true;
-	}
+	auto	it = colliders.find( Name );
+	if ( it != colliders.end() )	return it->second;
 
-	return false;
+	return nullptr;
 }
