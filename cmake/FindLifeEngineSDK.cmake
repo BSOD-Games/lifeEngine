@@ -9,9 +9,10 @@
 find_path( 		LIFEENGINE_SDK_INCLUDE
                                 NAMES "engine/lifeengine.h"
 				PATH_SUFFIXES src/public
-				PATHS ${LIFEENGINE_SDK_PATH} )		
+                                PATHS ${LIFEENGINE_SDK_PATH} )
+
 find_path(              LIFEENGINE_SDK_SCRIPTAPI_INCLUDE
-                                NAMES "engine/engine.h"
+                                NAMES "engine"
                                 PATH_SUFFIXES build/engine/scripts
                                 PATHS ${LIFEENGINE_SDK_PATH} )
 

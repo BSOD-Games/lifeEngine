@@ -79,7 +79,7 @@ bool le::Script::Load( const le::ScriptDescriptor& ScriptDescriptor )
 		tcc_set_output_type( tccContext, TCC_OUTPUT_MEMORY );
 		tcc_add_include_path( tccContext, g_engine->GetGameInfo().gameDir );
 		tcc_add_sysinclude_path( tccContext, ( g_engine->GetEngineDirectory() + "/scripts" ).c_str() );
-		tcc_set_options( tccContext, "-nostdlib" );
+        tcc_set_options( tccContext, "-nostdlib -nostdinc" );
 
 		if ( tcc_compile_string( tccContext, ScriptDescriptor.code ) == -1 )
 			throw std::runtime_error( "The script could not be compiled" );
@@ -87,6 +87,9 @@ bool le::Script::Load( const le::ScriptDescriptor& ScriptDescriptor )
 		LIFEENGINE_ASSERT( g_scriptSystem );
 		auto&			globalFunctions = g_scriptSystem->GetFunctions();
 		auto&			globalVars = g_scriptSystem->GetVars();
+
+        // TODO: Add all std functions from tcclib.h
+        tcc_add_symbol( tccContext, "memmove", ( void* ) &memmove );
 
 		// Register global functions and vars
 		for ( auto it = globalFunctions.begin(), itEnd = globalFunctions.end(); it != itEnd; ++it )

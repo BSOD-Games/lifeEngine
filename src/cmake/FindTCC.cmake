@@ -27,7 +27,7 @@ find_library( 	TCC_LIB
                 NAMES tcc
                 PATH_SUFFIXES lib lib32 lib64 lib/x86_64-linux-gnu
                 PATHS ${TCC_SEARCH_PATHS} )
-		
+
 if ( NOT TCC_INCLUDE OR NOT TCC_LIB )
     message( SEND_ERROR "Failed to find Tiny C Compiler" )
     return()
