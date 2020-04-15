@@ -26,9 +26,26 @@ find_path( 		ASSIMP_INCLUDE
 				PATHS ${ASSIMP_SEARCH_PATHS} )	
 	
 find_library( 		ASSIMP_LIB 
-                		NAMES assimp
-				PATH_SUFFIXES lib lib32 lib64 lib/x86_64-linux-gnu
-                		PATHS ${ASSIMP_SEARCH_PATHS} )
+                	NAMES assimp
+					PATH_SUFFIXES lib lib32 lib64 lib/x86_64-linux-gnu
+                	PATHS ${ASSIMP_SEARCH_PATHS} )
+
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
+	find_library( 		ASSIMP_ZLIB_LIB 
+						NAMES zlibstatic
+						PATH_SUFFIXES lib lib32 lib64 lib/x86_64-linux-gnu
+						PATHS ${ASSIMP_SEARCH_PATHS} )
+						
+	find_library( 		ASSIMP_IRRXML_LIB 
+						NAMES IrrXML
+						PATH_SUFFIXES lib lib32 lib64 lib/x86_64-linux-gnu
+						PATHS ${ASSIMP_SEARCH_PATHS} )
+
+	if ( NOT ASSIMP_ZLIB_LIB OR NOT ASSIMP_IRRXML_LIB )
+		message( SEND_ERROR "Failed to find Assimp" )
+		return()
+	endif()
+endif()
 				
 if ( NOT ASSIMP_INCLUDE OR NOT ASSIMP_LIB )
     message( SEND_ERROR "Failed to find Assimp" )

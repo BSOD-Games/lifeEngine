@@ -7,6 +7,8 @@ cmake_minimum_required( VERSION 2.6 )
 file( GLOB SOURCE_FILES "*.h" "*.cpp" )
 set( MODULE_NAME lmdl )
 
+set( ASSIMP_PATH ${EXTLIBS_DIR}/Assimp CACHE PATH "Path to Assimp" )
+
 #
 #   --- Платформозависимые настройки ---
 #
@@ -25,7 +27,7 @@ endif()
 #   --- Настройки проекта ---
 #
 
-add_executable( ${MODULE_NAME} WIN32 ${SOURCE_FILES} ${ICON} )
+add_executable( ${MODULE_NAME} ${SOURCE_FILES} ${ICON} )
 target_link_libraries( ${MODULE_NAME} ${CMAKE_DL_LIBS} )
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
 include_directories( ../../public )
@@ -43,5 +45,9 @@ if ( NOT ASSIMP_FOUND )
     return()
 else()
     include_directories( ${ASSIMP_INCLUDE} )
-        target_link_libraries( ${MODULE_NAME} ${ASSIMP_LIB} )
+    target_link_libraries( ${MODULE_NAME} ${ASSIMP_LIB} )
+	
+	if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
+		target_link_libraries( ${MODULE_NAME} ${ASSIMP_ZLIB_LIB} ${ASSIMP_IRRXML_LIB} )
+	endif()
 endif()
