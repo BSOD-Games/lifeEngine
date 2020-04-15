@@ -18,6 +18,9 @@
 #include "physics/shapeconvexhulldescriptor.h"
 #include "mathlib/gtc/type_ptr.hpp"
 
+#include "global.h"
+#include "engine/iconsolesystem.h"
+
 // ------------------------------------------------------------------------------------ //
 // Add shape
 // ------------------------------------------------------------------------------------ //
@@ -83,28 +86,29 @@ void le::Collider::AddShape( const le::ShapeSphereDescriptor& Shape, const le::M
 // ------------------------------------------------------------------------------------ //
 void le::Collider::AddShape( const le::ShapeMeshDescriptor& Shape, const le::Matrix4x4_t& LocalTransormation )
 {
-	// Warning: this pointer is not deleted when the object is destroyed!
-	btTriangleMesh*				triangleMesh = new btTriangleMesh();
-	for ( UInt32_t index = 0; index < Shape.countVerteces; index += 3 )
-	{
-		glm::vec3&		vertex1 = Shape.verteces[ index ];
-		glm::vec3&		vertex2 = Shape.verteces[ index + 1 ];
-		glm::vec3&		vertex3 = Shape.verteces[ index + 2 ];
+	ColliderMeshDescriptor*			colliderMeshDescriptor = new ColliderMeshDescriptor();
+	colliderMeshDescriptor->triangleMesh = new btTriangleMesh();
 
-		// TODO: Add indeces to collision mesh
-		triangleMesh->addTriangle( btVector3( vertex1.x, vertex1.y, vertex1.z ),
-								   btVector3( vertex2.x, vertex2.y, vertex2.z),
-								   btVector3( vertex3.x, vertex3.y, vertex3.z ) );
+	for ( UInt32_t index = 0; index < Shape.countIndeces; index += 3 )
+	{
+		glm::vec3&		vertex1 = Shape.verteces[ Shape.indeces[ index ] ];
+		glm::vec3&		vertex2 = Shape.verteces[ Shape.indeces[ index + 1 ] ];
+		glm::vec3&		vertex3 = Shape.verteces[ Shape.indeces[ index + 2 ] ];
+
+		colliderMeshDescriptor->triangleMesh->addTriangle( btVector3( vertex1.x, vertex1.y, vertex1.z ),
+														   btVector3( vertex2.x, vertex2.y, vertex2.z),
+														   btVector3( vertex3.x, vertex3.y, vertex3.z ) );
 	}
+	colliderMeshDescriptor->shape = new btBvhTriangleMeshShape( colliderMeshDescriptor->triangleMesh, true );
 
 	ShapeDescriptor			shapeDescriptor;
 	shapeDescriptor.type = ST_MESH;
-	shapeDescriptor.shape = new btBvhTriangleMeshShape( triangleMesh, false );
+	shapeDescriptor.shape = &colliderMeshDescriptor;
 
 	btTransform		transform;
 	transform.setIdentity();
 	transform.setFromOpenGLMatrix( glm::value_ptr( LocalTransormation ) );
-	shape.addChildShape( transform, ( btCollisionShape* ) shapeDescriptor.shape );
+	shape.addChildShape( transform, colliderMeshDescriptor->shape );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -150,7 +154,7 @@ void le::Collider::RemoveShape( le::UInt32_t Index )
 	{
 	case ST_BOX:				delete static_cast< btBoxShape* >( shapeDescriptor.shape );				break;
 	case ST_CONVEX_HULL:		delete static_cast< btConvexHullShape* >( shapeDescriptor.shape );		break;
-	case ST_MESH:				delete static_cast< btBvhTriangleMeshShape* >( shapeDescriptor.shape );	break;
+	case ST_MESH:				delete static_cast< ColliderMeshDescriptor* >( shapeDescriptor.shape );	break;
 	case ST_SPHERE:				delete static_cast< btSphereShape* >( shapeDescriptor.shape );			break;
 	case ST_CAPSULE:			delete static_cast< btCapsuleShape* >( shapeDescriptor.shape );			break;
 	case ST_CYLINDER:			delete static_cast< btCylinderShape* >( shapeDescriptor.shape );		break;
@@ -173,7 +177,7 @@ void le::Collider::RemoveAllShapes()
 		{
 		case ST_BOX:				delete static_cast< btBoxShape* >( shapeDescriptor.shape );				break;
 		case ST_CONVEX_HULL:		delete static_cast< btConvexHullShape* >( shapeDescriptor.shape );		break;
-		case ST_MESH:				delete static_cast< btBvhTriangleMeshShape* >( shapeDescriptor.shape );	break;
+		case ST_MESH:				delete static_cast< ColliderMeshDescriptor* >( shapeDescriptor.shape );	break;
 		case ST_SPHERE:				delete static_cast< btSphereShape* >( shapeDescriptor.shape );			break;
 		case ST_CAPSULE:			delete static_cast< btCapsuleShape* >( shapeDescriptor.shape );			break;
 		case ST_CYLINDER:			delete static_cast< btCylinderShape* >( shapeDescriptor.shape );		break;
@@ -184,6 +188,24 @@ void le::Collider::RemoveAllShapes()
 	}
 
 	shapesDescriptors.clear();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get AABB collider
+// ------------------------------------------------------------------------------------ //
+void le::Collider::GetAABB( Vector3D_t& Min, Vector3D_t& Max ) const
+{
+	btTransform			transformation;
+	btVector3			min, max;
+	shape.getAabb( transformation, min, max );
+
+	Min.x = min.getX();
+	Min.y = min.getY();
+	Min.z = min.getZ();
+
+	Max.x = max.getX();
+	Max.y = max.getY();
+	Max.z = max.getZ();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -239,4 +261,21 @@ void le::Collider::Release()
 le::UInt32_t le::Collider::GetCountReferences() const
 {
 	return countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Constructor
+// ------------------------------------------------------------------------------------ //
+le::Collider::ColliderMeshDescriptor::ColliderMeshDescriptor() :
+	triangleMesh( nullptr ),
+	shape( nullptr )
+{}
+
+// ------------------------------------------------------------------------------------ //
+// Destructor
+// ------------------------------------------------------------------------------------ //
+le::Collider::ColliderMeshDescriptor::~ColliderMeshDescriptor()
+{
+	if ( triangleMesh )		delete triangleMesh;
+	if ( shape )			delete shape;
 }

@@ -48,48 +48,18 @@ namespace le
         virtual void                    Render();
 		virtual void					Clear();
 		virtual void					AddCamera( ICamera* Camera );
-		virtual void					AddModel( IModel* Model );
 		virtual void					AddEntity( IEntity* Entity );
-		virtual void					AddPointLight( IPointLight* PointLight );
-		virtual void					AddSpotLight( ISpotLight* SpotLight );
-		virtual void					AddDirectionalLight( IDirectionalLight* DirectionalLight );
-		virtual void					AddSprite( ISprite* Sprite );
-		virtual void					AddBody( IBody* Body );
 		virtual void					RemoveCamera( ICamera* Camera );
 		virtual void					RemoveCamera( UInt32_t Index );
-		virtual void					RemoveModel( IModel* Model );
-		virtual void					RemoveModel( UInt32_t Index );
 		virtual void					RemoveEntity( IEntity* Entity );
 		virtual void					RemoveEntity( UInt32_t Index );
-		virtual void					RemovePointLight( IPointLight* PointLight );
-		virtual void					RemovePointLight( UInt32_t Index );
-		virtual void					RemoveSpotLight( ISpotLight* SpotLight );
-		virtual void					RemoveSpotLight( UInt32_t Index );
-		virtual void					RemoveDirectionalLight( IDirectionalLight* DirectionalLight );
-		virtual void					RemoveDirectionalLight( UInt32_t Index );
-		virtual void					RemoveSprite( ISprite* Sprite );
-		virtual void					RemoveSprite( UInt32_t Index );
-		virtual void					RemoveBody( IBody* Body );
-		virtual void					RemoveBody( UInt32_t Index );
 
 		virtual bool					IsLoaded() const;
 		virtual const char*				GetNameFormat() const;
 		virtual UInt32_t				GetCountCameras() const;
 		virtual ICamera*				GetCamera( UInt32_t Index ) const;
-		virtual UInt32_t				GetCountModels() const;
-		virtual IModel*					GetModel( UInt32_t Index ) const;
 		virtual UInt32_t				GetCountEntityes() const;
 		virtual IEntity*				GetEntity( UInt32_t Index ) const;
-		virtual UInt32_t				GetCountPointLights() const;
-		virtual IPointLight*			GetPointLight( UInt32_t Index ) const;
-		virtual UInt32_t				GetCountSpotLights() const;
-		virtual ISpotLight*				GetSpotLight( UInt32_t Index ) const;
-		virtual UInt32_t				GetCountDirectionalLights() const;
-		virtual IDirectionalLight*		GetDirectionalLight( UInt32_t Index ) const;
-		virtual UInt32_t				GetCountSprites() const;
-		virtual ISprite*				GetSprite( UInt32_t Index ) const;
-		virtual UInt32_t				GetCountBodes() const;
-		virtual IBody*					GetBody( UInt32_t Index ) const;
 
 		// Level
 		Level();
@@ -107,25 +77,13 @@ namespace le
 
 		//---------------------------------------------------------------------//
 
-		struct ModelDescriptor
-		{
-			bool			isBspModel;
-			//IBody*			body;
-			Model*			model;
-		};
-
-		//---------------------------------------------------------------------//
-
-		struct SpriteDescriptor
-		{
-			IBody*			body;
-			Sprite*			sprite;
-		};
-
-		//---------------------------------------------------------------------//
-
 		struct Entity
 		{
+			Entity();
+
+			Model*												model;
+			IBody*												body;
+
 			std::string											className;
 			std::unordered_map< std::string, std::string >		values;
 		};
@@ -147,12 +105,8 @@ namespace le
 
 		std::vector< ITexture* >			arrayLightmaps;
 		std::vector< Camera* >				arrayCameras;
-		std::vector< ModelDescriptor >		arrayModels;
+		std::vector< Model* >				arrayModels;
 		std::vector< IEntity* >				arrayEntities;
-		std::vector< IPointLight* >			arrayPointLights;
-		std::vector< ISpotLight* >			arraySpotLights;
-		std::vector< IDirectionalLight* >	arrayDirectionalLights;
-		std::vector< Sprite* >				arraySprites;
 		std::vector< IBody* >				arrayBodes;
 	};
 

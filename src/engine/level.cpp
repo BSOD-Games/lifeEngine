@@ -167,7 +167,7 @@ le::ITexture* Lightmap_Create( le::Byte_t* ImageBits, uint32_t Width, uint32_t H
 
 	return texture;
 }
-#include <algorithm>
+
 // ------------------------------------------------------------------------------------ //
 // Загрузить уровень
 // ------------------------------------------------------------------------------------ //
@@ -449,7 +449,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		// Инициализируем плоскости
 		for ( UInt32_t index = 0, count = arrayFaces.size(); index < count; ++index )
 		{
-			BSPFace* bspFace = &arrayFaces[ index ];
+			BSPFace*		bspFace = &arrayFaces[ index ];
 			MeshSurface		meshSurface;
 
 			meshSurface.materialID = bspFace->textureID;
@@ -501,8 +501,8 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 		// Добавляем на уровень модели
 		for ( UInt32_t index = 0, count = arrayBspModels.size(); index < count; ++index )
 		{
-			Model* model = new Model();
-			BSPModel& bspModel = arrayBspModels[ index ];
+			Model*		model = new Model();
+			BSPModel&	bspModel = arrayBspModels[ index ];
 
 			model->IncrementReference();
 			model->SetMesh( mesh );
@@ -510,7 +510,7 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 			model->SetMax( bspModel.max );
 			model->SetStartFace( bspModel.startFaceIndex );
 			model->SetCountFace( bspModel.numOfFaces );
-			arrayModels.push_back( { true, model } );
+			arrayModels.push_back( model );
 		}
 
 		facesDraw.Resize( arrayFaces.size() );
@@ -531,11 +531,13 @@ bool le::Level::Load( const char* Path, IFactory* GameFactory )
 					continue;
 				}
 
+				entity->SetModel( levelEntity.model, levelEntity.body );
 				entity->SetLevel( this );
 
 				for ( auto it = levelEntity.values.begin(), itEnd = levelEntity.values.end(); it != itEnd; ++it )
 					entity->KeyValue( it->first.c_str(), it->second.c_str() );
 
+				entity->IncrementReference();
 				this->arrayEntities.push_back( entity );
 			}
 		}
@@ -559,7 +561,7 @@ void le::Level::Update()
 {
 	for ( UInt32_t indexCamera = 0, countCameras = arrayCameras.size(); indexCamera < countCameras; ++indexCamera )
 	{
-		Camera* camera = arrayCameras[ indexCamera ];
+		Camera*		camera = arrayCameras[ indexCamera ];
 
 		// Обновляем логику сущностей
 		for ( UInt32_t index = 0, count = arrayEntities.size(); index < count; ++index )
@@ -567,7 +569,7 @@ void le::Level::Update()
 			IEntity*        entity = arrayEntities[ index ];
 
 			// TODO: Сделать динамический (изменяемый из вне) дистанцию обновления
-			if ( glm::distance( camera->GetPosition(), entity->GetPosition() ) < 2500 )
+			if ( glm::distance( camera->GetPosition(), entity->GetCenter() ) < 2500.f )
 				entity->Update();
 		}
 	}
@@ -606,64 +608,17 @@ void le::Level::Render()
 			}
 		}
 
-		// Посылаем на отрисовку видимые части динамической геометрии уровня
-		for ( UInt32_t index = 1, count = arrayModels.size(); index < count; ++index )
+		// Send on render entities
+		for ( UInt32_t index = 0, count = arrayEntities.size(); index < count; ++index )
 		{
-			ModelDescriptor&		modelDescriptor = arrayModels[ index ];
-			int						cluster = arrayBspLeafs[ FindLeaf( ( modelDescriptor.model->GetMax() + modelDescriptor.model->GetMin() ) / 2.f ) ].cluster;
+			IEntity*		entity = arrayEntities[ index ];
+			int			cluster = arrayBspLeafs[ FindLeaf( entity->GetCenter() ) ].cluster;
 
-			if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( modelDescriptor.model->GetMin(), modelDescriptor.model->GetMax() ) )
+			if ( !IsClusterVisible( cluster, currentCluster ) || !entity->IsVisible( camera ) )
 				continue;
 
-			if ( !modelDescriptor.isBspModel )
-				g_studioRender->SubmitMesh( modelDescriptor.model->GetMesh(), modelDescriptor.model->GetTransformation(), modelDescriptor.model->GetStartFace(), modelDescriptor.model->GetCountFace() );
-			else
-				for ( UInt32_t indexFace = modelDescriptor.model->GetStartFace(), countFace = modelDescriptor.model->GetStartFace() + modelDescriptor.model->GetCountFace(); indexFace < countFace; ++indexFace )
-					if ( !facesDraw.On( indexFace ) )
-					{
-						facesDraw.Set( indexFace );
-						g_studioRender->SubmitMesh( modelDescriptor.model->GetMesh(), modelDescriptor.model->GetTransformation(), indexFace, 1 );
-					}
+			entity->Render( g_studioRender );
 		}
-
-		// Send to render visible sprites
-		for ( UInt32_t index = 0, count = arraySprites.size(); index < count; ++index )
-		{
-			Sprite*			sprite = arraySprites[ index ];
-			Vector3D_t      max = sprite->GetMax();
-			Vector3D_t      min = sprite->GetMin();
-			int				cluster = arrayBspLeafs[ FindLeaf( ( max + min ) / 2.f ) ].cluster;
-
-			if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( min, max ) )
-				continue;
-
-			g_studioRender->SubmitMesh( sprite->GetMesh(), sprite->GetTransformation( camera ) );
-		}
-
-		// Посылаем на отрисовку видимые точечные источники света
-		for ( UInt32_t index = 0, count = arrayPointLights.size(); index < count; ++index )
-		{
-			IPointLight*	pointLight = arrayPointLights[ index ];
-			int				cluster = arrayBspLeafs[ FindLeaf( pointLight->GetPosition() ) ].cluster;
-
-			if ( !IsClusterVisible( cluster, currentCluster ) || !camera->IsVisible( pointLight->GetPosition(), pointLight->GetRadius() ) )
-				continue;
-
-			g_studioRender->SubmitLight( pointLight );
-		}
-
-		// Посылаем на отрисовку видимые прожекторные источники света
-		for ( UInt32_t index = 0, count = arraySpotLights.size(); index < count; ++index )
-		{
-			ISpotLight*		spotLight = arraySpotLights[ index ];
-			int				cluster = arrayBspLeafs[ FindLeaf( spotLight->GetPosition() ) ].cluster;
-
-			g_studioRender->SubmitLight( spotLight );
-		}
-
-		// Посылаем на отрисовку направленые источники света
-		for ( UInt32_t index = 0, count = arrayDirectionalLights.size(); index < count; ++index )
-			g_studioRender->SubmitLight( arrayDirectionalLights[ index ] );
 
 		g_studioRender->EndScene();
 	}
@@ -674,6 +629,16 @@ void le::Level::Render()
 // ------------------------------------------------------------------------------------ //
 void le::Level::Clear()
 {
+	for ( UInt32_t index = 0, count = arrayEntities.size(); index < count; ++index )
+	{
+		IEntity*			entity = arrayEntities[ index ];
+
+		if ( entity->GetCountReferences() <= 1 )
+			entity->Release();
+		else
+			entity->DecrementReference();
+	}
+
 	for ( UInt32_t index = 0, count = arrayLightmaps.size(); index < count; ++index )
 	{
 		ITexture*           lightmap = arrayLightmaps[ index ];
@@ -686,12 +651,22 @@ void le::Level::Clear()
 
 	for ( UInt32_t index = 0, count = arrayModels.size(); index < count; ++index )
 	{
-		auto&         model = arrayModels[ index ];
+		Model*         model = arrayModels[ index ];
 
-		if ( model.model->GetCountReferences() <= 1 )
-			model.model->Release();
+		if ( model->GetCountReferences() <= 1 )
+			model->Release();
 		else
-			model.model->DecrementReference();
+			model->DecrementReference();
+	}
+
+	for ( UInt32_t index = 0, count = arrayBodes.size(); index < count; ++index )
+	{
+		IBody*         body = arrayBodes[ index ];
+
+		if ( body->GetCountReferences() <= 1 )
+			body->Release();
+		else
+			body->DecrementReference();
 	}
 
 	for ( UInt32_t index = 0, count = arrayCameras.size(); index < count; ++index )
@@ -702,56 +677,6 @@ void le::Level::Clear()
 			camera->Release();
 		else
 			camera->DecrementReference();
-	}
-
-	for ( UInt32_t index = 0, count = arrayPointLights.size(); index < count; ++index )
-	{
-		auto*           pointLight = arrayPointLights[ index ];
-
-		if ( pointLight->GetCountReferences() <= 1 )
-			pointLight->Release();
-		else
-			pointLight->DecrementReference();
-	}
-
-	for ( UInt32_t index = 0, count = arraySpotLights.size(); index < count; ++index )
-	{
-		auto*           spotLight = arraySpotLights[ index ];
-
-		if ( spotLight->GetCountReferences() <= 1 )
-			spotLight->Release();
-		else
-			spotLight->DecrementReference();
-	}
-
-	for ( UInt32_t index = 0, count = arrayDirectionalLights.size(); index < count; ++index )
-	{
-		auto*           directionalLight = arrayDirectionalLights[ index ];
-
-		if ( directionalLight->GetCountReferences() <= 1 )
-			directionalLight->Release();
-		else
-			directionalLight->DecrementReference();
-	}
-
-	for ( UInt32_t index = 0, count = arraySprites.size(); index < count; ++index )
-	{
-		auto*           sprite = arraySprites[ index ];
-
-		if ( sprite->GetCountReferences() <= 1 )
-			sprite->Release();
-		else
-			sprite->DecrementReference();
-	}
-
-	for ( UInt32_t index = 0, count = arrayBodes.size(); index < count; ++index )
-	{
-		auto*           body = arrayBodes[ index ];
-
-		if ( body->GetCountReferences() <= 1 )
-			body->Release();
-		else
-			body->DecrementReference();
 	}
 
 	if ( mesh )
@@ -769,10 +694,7 @@ void le::Level::Clear()
 	arrayModels.clear();
 	arrayLightmaps.clear();
 	arrayCameras.clear();
-	arrayPointLights.clear();
-	arraySpotLights.clear();
-	arrayDirectionalLights.clear();
-	arraySprites.clear();
+	arrayEntities.clear();
 	arrayBodes.clear();
 
 	mesh = nullptr;
@@ -791,67 +713,14 @@ void le::Level::AddCamera( ICamera* Camera )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Добавить модель на уровень
-// ------------------------------------------------------------------------------------ //
-void le::Level::AddModel( IModel* Model )
-{
-	LIFEENGINE_ASSERT( Model );
-
-	Model->IncrementReference();
-	arrayModels.push_back( { false, ( le::Model* ) Model } );
-}
-
-// ------------------------------------------------------------------------------------ //
 // Добавить сущность на уровень
 // ------------------------------------------------------------------------------------ //
 void le::Level::AddEntity( IEntity* Entity )
 {
 	LIFEENGINE_ASSERT( Entity );
+
+	Entity->IncrementReference();
 	arrayEntities.push_back( Entity );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Добавить точечный источник света
-// ------------------------------------------------------------------------------------ //
-void le::Level::AddPointLight( IPointLight* PointLight )
-{
-	LIFEENGINE_ASSERT( PointLight );
-
-	PointLight->IncrementReference();
-	arrayPointLights.push_back( PointLight );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Добавить точечный источник света
-// ------------------------------------------------------------------------------------ //
-void le::Level::AddSpotLight( ISpotLight* SpotLight )
-{
-	LIFEENGINE_ASSERT( SpotLight );
-
-	SpotLight->IncrementReference();
-	arraySpotLights.push_back( SpotLight );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Добавить точечный источник света
-// ------------------------------------------------------------------------------------ //
-void le::Level::AddDirectionalLight( IDirectionalLight* DirectionalLight )
-{
-	LIFEENGINE_ASSERT( DirectionalLight );
-
-	DirectionalLight->IncrementReference();
-	arrayDirectionalLights.push_back( DirectionalLight );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Add sprite
-// ------------------------------------------------------------------------------------ //
-void le::Level::AddSprite( ISprite* Sprite )
-{
-	LIFEENGINE_ASSERT( Sprite );
-
-	Sprite->IncrementReference();
-	arraySprites.push_back( ( le::Sprite* ) Sprite );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -891,42 +760,6 @@ void le::Level::RemoveCamera( UInt32_t Index )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Удалить модель с уровня
-// ------------------------------------------------------------------------------------ //
-void le::Level::RemoveModel( IModel* Model )
-{
-	LIFEENGINE_ASSERT( Model );
-
-	for ( UInt32_t index = 0, count = arrayModels.size(); index < count; ++index )
-		if ( arrayModels[ index ].model == Model )
-		{
-			if ( Model->GetCountReferences() <= 1 )
-				Model->Release();
-			else
-				Model->DecrementReference();
-
-			arrayModels.erase( arrayModels.begin() + index );
-			break;
-		}
-}
-
-// ------------------------------------------------------------------------------------ //
-// Удалить модель с уровня
-// ------------------------------------------------------------------------------------ //
-void le::Level::RemoveModel( UInt32_t Index )
-{
-	if ( Index >= arrayModels.size() ) return;
-	Model*          model = arrayModels[ Index ].model;
-
-	if ( model->GetCountReferences() <= 1 )
-		model->Release();
-	else
-		model->DecrementReference();
-
-	arrayModels.erase( arrayModels.begin() + Index );
-}
-
-// ------------------------------------------------------------------------------------ //
 // Удалить сущность с уровня
 // ------------------------------------------------------------------------------------ //
 void le::Level::RemoveEntity( IEntity* Entity )
@@ -934,6 +767,11 @@ void le::Level::RemoveEntity( IEntity* Entity )
 	for ( UInt32_t index = 0, count = arrayEntities.size(); index < count; ++index )
 		if ( arrayEntities[ index ] == Entity )
 		{
+			if ( Entity->GetCountReferences() <= 1 )
+				Entity->Release();
+			else
+				Entity->DecrementReference();
+
 			arrayEntities.erase( arrayEntities.begin() + index );
 			break;
 		}
@@ -945,143 +783,14 @@ void le::Level::RemoveEntity( IEntity* Entity )
 void le::Level::RemoveEntity( UInt32_t Index )
 {
 	if ( Index >= arrayEntities.size() ) return;
+	IEntity*			entity = arrayEntities[ Index ];
+
+	if ( entity->GetCountReferences() <= 1 )
+		entity->Release();
+	else
+		entity->DecrementReference();
+
 	arrayEntities.erase( arrayEntities.begin() + Index );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Удалить точечный источник света с уровня
-// ------------------------------------------------------------------------------------ //
-void le::Level::RemovePointLight( IPointLight* PointLight )
-{
-	for ( UInt32_t index = 0, count = arrayPointLights.size(); index < count; ++index )
-		if ( arrayPointLights[ index ] == PointLight )
-		{
-			if ( PointLight->GetCountReferences() <= 1 )
-				PointLight->Release();
-			else
-				PointLight->DecrementReference();
-
-			arrayPointLights.erase( arrayPointLights.begin() + index );
-			return;
-		}
-}
-
-// ------------------------------------------------------------------------------------ //
-// Удалить точечный источник света с уровня
-// ------------------------------------------------------------------------------------ //
-void le::Level::RemovePointLight( UInt32_t Index )
-{
-	if ( Index >= arrayPointLights.size() ) return;
-	IPointLight*            pointLight = arrayPointLights[ Index ];
-
-	if ( pointLight->GetCountReferences() <= 1 )
-		pointLight->Release();
-	else
-		pointLight->DecrementReference();
-
-	arrayPointLights.erase( arrayPointLights.begin() + Index );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Удалить прожекторный источник света с уровня
-// ------------------------------------------------------------------------------------ //
-void le::Level::RemoveSpotLight( ISpotLight* SpotLight )
-{
-	for ( UInt32_t index = 0, count = arraySpotLights.size(); index < count; ++index )
-		if ( arraySpotLights[ index ] == SpotLight )
-		{
-			if ( SpotLight->GetCountReferences() <= 1 )
-				SpotLight->Release();
-			else
-				SpotLight->DecrementReference();
-
-			arraySpotLights.erase( arraySpotLights.begin() + index );
-			return;
-		}
-}
-
-// ------------------------------------------------------------------------------------ //
-// Удалить прожекторный источник света с уровня
-// ------------------------------------------------------------------------------------ //
-void le::Level::RemoveSpotLight( UInt32_t Index )
-{
-	if ( Index >= arraySpotLights.size() ) return;
-	ISpotLight*             spotLight = arraySpotLights[ Index ];
-
-	if ( spotLight->GetCountReferences() <= 1 )
-		spotLight->Release();
-	else
-		spotLight->DecrementReference();
-
-	arraySpotLights.erase( arraySpotLights.begin() + Index );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Удалить направленый источник света с уровня
-// ------------------------------------------------------------------------------------ //
-void le::Level::RemoveDirectionalLight( IDirectionalLight* DirectionalLight )
-{
-	for ( UInt32_t index = 0, count = arrayDirectionalLights.size(); index < count; ++index )
-		if ( arrayDirectionalLights[ index ] == DirectionalLight )
-		{
-			if ( DirectionalLight->GetCountReferences() <= 1 )
-				DirectionalLight->Release();
-			else
-				DirectionalLight->DecrementReference();
-
-			arrayDirectionalLights.erase( arrayDirectionalLights.begin() + index );
-			return;
-		}
-}
-
-// ------------------------------------------------------------------------------------ //
-// Удалить направленый источник света с уровня
-// ------------------------------------------------------------------------------------ //
-void le::Level::RemoveDirectionalLight( UInt32_t Index )
-{
-	if ( Index >= arrayDirectionalLights.size() ) return;
-	IDirectionalLight*          directionalLight = arrayDirectionalLights[ Index ];
-
-	if ( directionalLight->GetCountReferences() <= 1 )
-		directionalLight->Release();
-	else
-		directionalLight->DecrementReference();
-
-	arrayDirectionalLights.erase( arrayDirectionalLights.begin() + Index );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Remove sprite
-// ------------------------------------------------------------------------------------ //
-void le::Level::RemoveSprite( ISprite* Sprite )
-{	
-	for ( UInt32_t index = 0, count = arraySprites.size(); index < count; ++index )
-		if ( arraySprites[ index ] == Sprite )
-		{
-			if ( Sprite->GetCountReferences() <= 1 )
-				Sprite->Release();
-			else
-				Sprite->DecrementReference();
-
-			arraySprites.erase( arraySprites.begin() + index );
-			return;
-		}
-}
-
-// ------------------------------------------------------------------------------------ //
-// Remove sprite
-// ------------------------------------------------------------------------------------ //
-void le::Level::RemoveSprite( UInt32_t Index )
-{
-	if ( Index >= arraySprites.size() ) return;
-	Sprite*         sprite = arraySprites[ Index ];
-
-	if ( sprite->GetCountReferences() <= 1 )
-		sprite->Release();
-	else
-		sprite->DecrementReference();
-
-	arraySprites.erase( arraySprites.begin() + Index );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1120,25 +829,6 @@ le::ICamera* le::Level::GetCamera( UInt32_t Index ) const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить количество моделей на уровне
-// ------------------------------------------------------------------------------------ //
-le::UInt32_t le::Level::GetCountModels() const
-{
-	return arrayModels.size();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить модель
-// ------------------------------------------------------------------------------------ //
-le::IModel* le::Level::GetModel( UInt32_t Index ) const
-{
-	if ( Index >= arrayModels.size() )
-		return nullptr;
-
-	return arrayModels[ Index ].model;
-}
-
-// ------------------------------------------------------------------------------------ //
 // Получить количество сущностей на уровне
 // ------------------------------------------------------------------------------------ //
 le::UInt32_t le::Level::GetCountEntityes() const
@@ -1155,82 +845,6 @@ le::IEntity* le::Level::GetEntity( UInt32_t Index ) const
 		return nullptr;
 
 	return arrayEntities[ Index ];
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить количество точечных источников света
-// ------------------------------------------------------------------------------------ //
-le::UInt32_t le::Level::GetCountPointLights() const
-{
-	return arrayPointLights.size();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить точечный источник света
-// ------------------------------------------------------------------------------------ //
-le::IPointLight* le::Level::GetPointLight( UInt32_t Index ) const
-{
-	if ( Index >= arrayPointLights.size() )
-		return nullptr;
-
-	return arrayPointLights[ Index ];
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить количество прожекторных источников света
-// ------------------------------------------------------------------------------------ //
-le::UInt32_t le::Level::GetCountSpotLights() const
-{
-	return arraySpotLights.size();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить прожекторный свет
-// ------------------------------------------------------------------------------------ //
-le::ISpotLight* le::Level::GetSpotLight( UInt32_t Index ) const
-{
-	if ( Index >= arraySpotLights.size() )
-		return nullptr;
-
-	return arraySpotLights[ Index ];
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить количество направленых источников света
-// ------------------------------------------------------------------------------------ //
-le::UInt32_t le::Level::GetCountDirectionalLights() const
-{
-	return arrayDirectionalLights.size();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить направленый источник света
-// ------------------------------------------------------------------------------------ //
-le::IDirectionalLight* le::Level::GetDirectionalLight( UInt32_t Index ) const
-{
-	if ( Index >= arrayDirectionalLights.size() )
-		return nullptr;
-
-	return arrayDirectionalLights[ Index ];
-}
-
-// ------------------------------------------------------------------------------------ //
-// Get count sprites
-// ------------------------------------------------------------------------------------ //
-le::UInt32_t le::Level::GetCountSprites() const
-{
-	return arraySprites.size();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Get sprite
-// ------------------------------------------------------------------------------------ //
-le::ISprite* le::Level::GetSprite( UInt32_t Index ) const
-{	
-	if ( Index >= arraySprites.size() )
-		return nullptr;
-
-	return ( ISprite* ) arraySprites[ Index ];
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1353,8 +967,42 @@ void le::Level::EntitiesParse( std::vector< Entity >& ArrayEntities, BSPEntities
 				Entity			entity;
 				entity.className = values[ "classname" ];
 				values.erase( "classname" );
-				entity.values = values;
 
+				// If in entity exist propery 'model' - take model
+				auto		itValueModel = values.find( "model" );
+				if ( itValueModel != values.end() )
+				{
+					std::string			path = itValueModel->second;
+					if ( !path.empty() )
+					{
+						// If model this BSP brush
+						if ( path[ 0 ] == '*' )
+						{
+							// Convert string to int
+							path.erase( 0, 1 );
+							int			idModel = std::atoi( path.c_str() );
+
+							if ( idModel >= 0 && idModel < arrayModels.size() )
+							{
+								entity.model = arrayModels[ idModel ];
+								entity.body = arrayBodes[ idModel ];
+							}
+						}
+						// Else this is model on HDD
+						else
+						{
+							IMesh*			mesh = g_resourceSystem->LoadMesh( path.c_str(), path.c_str() );
+							if ( !mesh ) continue;
+
+							entity.model = new Model();
+							entity.model->SetMesh( mesh );
+						}
+					}
+
+					values.erase( itValueModel );
+				}
+
+				entity.values = values;
 				ArrayEntities.push_back( entity );
 			}
 
@@ -1396,65 +1044,9 @@ le::UInt32_t le::Level::GetCountReferences() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Add body
+// Constructor
 // ------------------------------------------------------------------------------------ //
-void le::Level::AddBody( le::IBody* Body )
-{
-	LIFEENGINE_ASSERT( Body );
-
-	Body->IncrementReference();
-	arrayBodes.push_back( Body );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Remove body
-// ------------------------------------------------------------------------------------ //
-void le::Level::RemoveBody( le::IBody* Body )
-{
-	for ( UInt32_t index = 0, count = arrayBodes.size(); index < count; ++index )
-		if ( arrayBodes[ index ] == Body )
-		{
-			if ( Body->GetCountReferences() <= 1 )
-				Body->Release();
-			else
-				Body->DecrementReference();
-
-			arrayBodes.erase( arrayBodes.begin() + index );
-			return;
-		}
-}
-
-// ------------------------------------------------------------------------------------ //
-// Remove body
-// ------------------------------------------------------------------------------------ //
-void le::Level::RemoveBody( le::UInt32_t Index )
-{
-	if ( Index >= arrayBodes.size() ) return;
-	IBody*         body = arrayBodes[ Index ];
-
-	if ( body->GetCountReferences() <= 1 )
-		body->Release();
-	else
-		body->DecrementReference();
-
-	arrayBodes.erase( arrayBodes.begin() + Index );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Get count bodes
-// ------------------------------------------------------------------------------------ //
-le::UInt32_t le::Level::GetCountBodes() const
-{
-	return arrayBodes.size();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Get body
-// ------------------------------------------------------------------------------------ //
-le::IBody* le::Level::GetBody( le::UInt32_t Index ) const
-{
-	if ( Index >= arrayBodes.size() )
-		return nullptr;
-
-	return ( IBody* ) arrayBodes[ Index ];
-}
+le::Level::Entity::Entity() :
+	model( nullptr ),
+	body( nullptr )
+{}

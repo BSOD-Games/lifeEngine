@@ -16,10 +16,11 @@
 #include "common/types.h"
 #include "global.h"
 #include "mesh.h"
+#include "collision.h"
 
 #define GOLD_DATE				43379			// Oct 8 2019 (start coding lmdl)
 #define LMDL_VERSION_MAJOR		0
-#define LMDL_VERSION_MINOR		2
+#define LMDL_VERSION_MINOR		3
 #define LMDL_VERSION_PATCH		0
 
 // ------------------------------------------------------------------------------------ //
@@ -69,12 +70,14 @@ void PrintUsage()
 			  << "lifeEngine Model " << LMDL_VERSION_MAJOR << "." << LMDL_VERSION_MINOR << "." << LMDL_VERSION_PATCH << " (build " << ComputeBuildNumber( GOLD_DATE ) << ") by Egor Pogulyaka\n"
 			  << "Converter models to LMD format\n"
 			  << "-------------------------\n\n"
-			  << "Usage: lmdl [options] file\n"
+			  << "Usage: lmdl -s <pathToSource> -o <pathToOutput> [other parameters]\n"
+			  << "Output: model in format LMD (lifeEngine Model)\n"
 			  << "Example: lmdl -m materials/axe -o axe -s axe.fbx\n\n"
 			  << "-h | -help\t->\tshow this message\n"
 			  << "-s | -source\t->\tpath to source file\n"
 			  << "-o | -output\t->\tpath to output file\n"
 			  << "-m | -mat\t->\tpath to materials (relative to the game directory)\n"
+			  << "-c | -collision\t->\tpath to collision mesh\n"
 			  << "-------------------------\n\n"
 			  << "Supported formats:\n"
 			  << "-------------------------\n";
@@ -118,9 +121,17 @@ void ParseArgs( int argc, char** argv )
 			++index;
 		}
 
+		// Set directory with materials
 		else if ( ( strstr( argv[ index ], "-m" ) || strstr( argv[ index ], "-mat" ) ) && index + 1 < argc )
 		{
 			g_materialsDir = argv[ index + 1 ];
+			++index;
+		}
+
+		// Set collision file
+		else if ( ( strstr( argv[ index ], "-c" ) || strstr( argv[ index ], "-collision" ) ) && index + 1 < argc )
+		{
+			g_collisionFile = argv[ index + 1 ];
 			++index;
 		}
 	}
@@ -146,11 +157,24 @@ int main( int argc, char** argv )
 				g_materialsDir = "materials/";
 			}
 
-			std::cout << "Model: " << g_sourceFile << std::endl;
+			if ( !g_sourceFile.empty() )
+			{
+				std::cout << "Model: " << g_sourceFile << std::endl;
 
-			Mesh		mesh;
-			mesh.Load( g_sourceFile );
-			mesh.Save( g_outputFile );
+				Mesh		mesh;
+				mesh.Load( g_sourceFile );
+				mesh.Save( g_outputFile );
+			}
+
+			if ( !g_collisionFile.empty() )
+			{
+				std::cout << "\nCollision: " << g_collisionFile << std::endl;
+
+				Collision		collision;
+				collision.Load( g_collisionFile );
+				collision.Save( g_outputFile );
+
+			}
 		}
 		catch ( const std::exception& Exception )
 		{

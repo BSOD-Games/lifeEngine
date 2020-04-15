@@ -64,11 +64,6 @@ void le::PhysicsSystem::Update()
 {
 	if ( !isInitialize ) return;
 
-	// TODO: move activation bodies to level manager
-	for ( auto it = bodies.begin(), itEnd = bodies.end(); it != itEnd; ++it )
-		if ( !(*it)->IsStatic() )
-			(*it)->Activate();
-
 	dynamicsWorld->stepSimulation( PHYSICS_TIME_STEP, maxSubSteps, fixedTimeStep );
 
 	for ( auto it = charcterControllers.begin(), itEnd = charcterControllers.end(); it != itEnd; ++it )
@@ -111,6 +106,8 @@ le::PhysicsSystem::PhysicsSystem() :
 // ------------------------------------------------------------------------------------ //
 le::PhysicsSystem::~PhysicsSystem()
 {
+	RemoveAllBodies();
+
 	if ( isInitialize )
 	{
 		delete collisionConfiguration;
@@ -126,9 +123,7 @@ le::PhysicsSystem::~PhysicsSystem()
 			debugCamera->Release();
 		else
 			debugCamera->DecrementReference();
-	}
-
-	RemoveAllBodies();
+	}	
 }
 
 // ------------------------------------------------------------------------------------ //

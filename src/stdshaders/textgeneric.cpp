@@ -17,6 +17,8 @@
 
 #include "global.h"
 #include "textgeneric.h"
+#include "shaders/textgeneric_vertex.h"
+#include "shaders/textgeneric_fragment.h"
 
 // ------------------------------------------------------------------------------------ //
 // Инициализировать экземпляр шейдера
@@ -24,45 +26,8 @@
 bool le::TextGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
 	ShaderDescriptor			shaderDescriptor;
-	shaderDescriptor.vertexShaderSource = " \
-	#version 330 core\n \
-	\n \
-	layout( location = 0 ) 			in vec3 vertex_position; \n \
-	layout( location = 1 ) 			in vec2 vertex_texCoords; \n \
-	\n \
-		out vec2 				texCoords; \n \
-\n\
-        uniform vec3            color; \n\
-		uniform mat4    		matrix_Projection; \n \
-		uniform mat4			matrix_Transformation; \n \
-	\n \
-	void main() \n \
-	{\n \
-        texCoords = vertex_texCoords; \n \
-		gl_Position = matrix_Projection * matrix_Transformation * vec4( vertex_position, 1.f ); \n \
-	}";
-
-	shaderDescriptor.fragmentShaderSource = " \
-	#version 330 core\n\
-	\n\
-		layout ( location = 0 )     out vec4 out_albedoSpecular;\n\
-		layout( location = 2 )      out vec4 out_emission;\n\
-		\n\
-		in vec2 				texCoords;\n\
-		\n\
-		uniform vec3            color; \n\
-		uniform sampler2D		basetexture;\n\
-	\n\
-	void main()\n\
-	{\n\
-		float			alphaGlyph = texture2D( basetexture, texCoords ).r;\n\
-		\n\
-		if ( alphaGlyph < 0.001f )\n\
-			discard;\n\
-		\n\
-		out_albedoSpecular = vec4( alphaGlyph * color, 0.f ); \n \
-		out_emission = vec4( 1.f );\n\
-	}\n";
+	shaderDescriptor.vertexShaderSource = shader_textgeneric_vertex;
+	shaderDescriptor.fragmentShaderSource = shader_textgeneric_fragment;
 
 	std::vector< const char* >			defines;
 	UInt32_t							flags = 0;

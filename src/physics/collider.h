@@ -43,6 +43,7 @@ namespace le
 		virtual void			RemoveShape( UInt32_t Index );
 		virtual void			RemoveAllShapes();
 
+		virtual void			GetAABB( Vector3D_t& Min, Vector3D_t& Max ) const;
 		virtual UInt32_t		GetCountShapes() const;
 
 		// Collider
@@ -64,6 +65,17 @@ namespace le
 			ST_MESH,
 			ST_CONE,
 			ST_CONVEX_HULL
+		};
+
+		//---------------------------------------------------------------------//
+
+		struct ColliderMeshDescriptor
+		{
+			ColliderMeshDescriptor();
+			~ColliderMeshDescriptor();
+
+			btTriangleMesh*				triangleMesh;
+			btBvhTriangleMeshShape*		shape;
 		};
 
 		//---------------------------------------------------------------------//

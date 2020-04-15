@@ -10,6 +10,7 @@
 
 #include <exception>
 #include <fstream>
+#include <algorithm>
 #include <FreeImage.h>
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
@@ -24,6 +25,9 @@
 #include "engine/material.h"
 #include "engine/imaterialproxy.h"
 #include "engine/materialproxyvar.h"
+#include "engine/script.h"
+#include "physics/icollider.h"
+#include "physics/shapemeshdescriptor.h"
 #include "studiorender/istudiorender.h"
 #include "studiorender/itexture.h"
 #include "studiorender/imesh.h"
@@ -39,18 +43,11 @@
 #include "level.h"
 #include "fontfreetype.h"
 
-#define LMD_ID			"LMD"
-#define LMD_VERSION		2
+#define MDL_ID			"LMDL"
+#define PHY_ID			"LPHY"
+#define MDL_VERSION		1
 #define LMT_VERSION		2
-
-struct Vertex
-{
-    le::Vector3D_t			position;
-    le::Vector3D_t			normal;
-    le::Vector2D_t			texCoords;
-    le::Vector3D_t			tangent;
-    le::Vector3D_t			bitangent;
-};
+#define PHY_VERSION		1
 
 struct MaterialProxy
 {
@@ -82,6 +79,62 @@ struct MaterialTechnique
 {
     std::string						type;
     std::vector< MaterialPass >		passes;
+};
+
+enum MDL_LUMPS
+{
+	ML_MATERIALS,
+	ML_VERTECES,
+	ML_INDECES,
+	ML_SURFACES,
+	ML_MAX_LUMPS
+};
+
+struct MDLHeader
+{
+	char				strId[ 4 ]; // Always 'LMDL'
+	le::UInt32_t		version;
+};
+
+struct MDLLump
+{
+	le::UInt32_t		offset;
+	le::UInt32_t		length;
+};
+
+struct MDLVertex
+{
+	le::Vector3D_t		position;
+	le::Vector3D_t		normal;
+	le::Vector2D_t		texCoords;
+	le::Vector3D_t		tangent;
+	le::Vector3D_t		bitangent;
+};
+
+struct MDLSurface
+{
+	le::UInt32_t		materialId;
+	le::UInt32_t        startIndex;
+	le::UInt32_t        countIndex;
+};
+
+enum PHY_LUMPS
+{
+	PL_VERTECES,
+	PL_INDECES,
+	PL_MAX_LUMPS
+};
+
+struct PHYHeader
+{
+	char				strId[ 4 ]; // Always 'LPHY'
+	le::UInt32_t		version;
+};
+
+struct PHYLump
+{
+	le::UInt32_t		offset;
+	le::UInt32_t		length;
 };
 
 // ------------------------------------------------------------------------------------ //
@@ -564,148 +617,139 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 // ------------------------------------------------------------------------------------ //
 le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, le::IFactory* StudioRenderFactory )
 {
-    std::ifstream				file( Path, std::ios::binary );
-    if ( !file.is_open() )		return nullptr;
+	std::ifstream				file( Path, std::ios::binary );
+	if ( !file.is_open() )		return nullptr;
 
-    // Читаем заголовок файла
-    char						strId[ 3 ];
-    le::UInt16_t				version = 0;
+	// Read header file
+	MDLHeader			mdlHeader;
+	file.read( ( char* ) &mdlHeader, sizeof( MDLHeader ) );
+	if ( strncmp( mdlHeader.strId, MDL_ID, 4 ) != 0 || mdlHeader.version != MDL_VERSION )
+		return nullptr;
 
-    file.read( strId, 3 );
-    file.read( ( char* ) &version, sizeof( le::UInt16_t ) );
-    if ( strncmp( strId, LMD_ID, 3 ) != 0 || version != LMD_VERSION )		return nullptr;
+	// Read all lumps
+	MDLLump				mdlLumps[ ML_MAX_LUMPS ];
+	file.read( ( char* ) &mdlLumps[ 0 ], sizeof( MDLLump ) * ML_MAX_LUMPS );
 
-    // Читаем все материалы модели
-    le::UInt32_t						sizeString = 0;
-    le::UInt32_t						sizeArrayMaterials = 0;
-    std::string* routeMaterial = nullptr;
-    std::vector< std::string >			arrayRouteMaterials;
-    std::vector< le::IMaterial* >		arrayMaterials;
+	// Read materials
+	std::vector< le::IMaterial* >		materials;
+	le::UInt32_t						countMaterials;
 
-    file.read( ( char* ) &sizeArrayMaterials, sizeof( le::UInt32_t ) );
-    arrayRouteMaterials.resize( sizeArrayMaterials );
+	file.seekg( mdlLumps[ ML_MATERIALS ].offset, std::ios::beg );
+	file.read( ( char* ) &countMaterials, sizeof( le::UInt32_t ) );
 
-    for ( le::UInt32_t index = 0; index < sizeArrayMaterials; ++index )
-    {
-        routeMaterial = &arrayRouteMaterials[ index ];
+	for ( le::UInt32_t index = 0; index < countMaterials; ++index )
+	{
+		le::UInt32_t		sizePath;
+		std::string			path;
 
-        file.read( ( char* ) &sizeString, sizeof( le::UInt32_t ) );
-        routeMaterial->resize( sizeString );
-        file.read( &( *routeMaterial )[ 0 ], sizeString );
-    }
+		file.read( ( char* ) &sizePath, sizeof( le::UInt32_t ) );
+		path.resize( sizePath );
+		file.read( ( char* ) path.data(), sizePath );
 
-    // Загружаем материалы
-    for ( le::UInt32_t index = 0; index < sizeArrayMaterials; ++index )
-    {
-        le::IMaterial* material = ResourceSystem->LoadMaterial( arrayRouteMaterials[ index ].c_str(), arrayRouteMaterials[ index ].c_str() );
-        if ( !material ) continue;
+		le::IMaterial*			material = ResourceSystem->LoadMaterial( path.data(), path.data() );
+		if ( !material ) continue;
 
-        arrayMaterials.push_back( material );
-    }
+		materials.push_back( material );
+	}
 
-    // Читаем все вершины модели
-    le::UInt32_t						sizeArrayVerteces;
-    std::vector< Vertex >				arrayVerteces;
+	// Read verteces
+	std::vector< MDLVertex >		verteces;
+	le::UInt32_t					countVerteces;
 
-    file.read( ( char* ) &sizeArrayVerteces, sizeof( le::UInt32_t ) );
-    arrayVerteces.resize( sizeArrayVerteces );
+	file.seekg( mdlLumps[ ML_VERTECES ].offset, std::ios::beg );
+	file.read( ( char* ) &countVerteces, sizeof( le::UInt32_t ) );
 
-    if ( sizeArrayVerteces > 0 )
-        file.read( ( char* ) &arrayVerteces[ 0 ], sizeArrayVerteces * sizeof( Vertex ) );
-    else
-        return nullptr;
+	verteces.resize( countVerteces );
+	file.read( ( char* ) verteces.data(), countVerteces * sizeof( MDLVertex ) );
 
-    // Читаем все индексы модели
-    le::UInt32_t						sizeArrayIndices;
-    std::vector< le::UInt32_t >			arrayIndices;
+	// Read indeces
+	std::vector< le::UInt32_t >		indeces;
+	le::UInt32_t					countIndeces;
 
-    file.read( ( char* ) &sizeArrayIndices, sizeof( le::UInt32_t ) );
-    arrayIndices.resize( sizeArrayIndices );
+	file.seekg( mdlLumps[ ML_INDECES ].offset, std::ios::beg );
+	file.read( ( char* ) &countIndeces, sizeof( le::UInt32_t ) );
 
-    if ( sizeArrayIndices > 0 )
-        file.read( ( char* ) &arrayIndices[ 0 ], sizeArrayIndices * sizeof( le::UInt32_t ) );
-    else
-        return nullptr;
+	indeces.resize( countIndeces );
+	file.read( ( char* ) indeces.data(), countIndeces * sizeof( le::UInt32_t ) );
 
-    // Читаем все сетки модели
-    le::UInt32_t						sizeArraySurfaces;
-    std::vector< le::MeshSurface >		arraySurfaces;
+	// Read surfaces
+	std::vector< le::MeshSurface >		surfaces;
+	le::UInt32_t						countSurfaces;
 
-    file.read( ( char* ) &sizeArraySurfaces, sizeof( le::UInt32_t ) );
-    if ( sizeArraySurfaces == 0 )		return nullptr;
+	file.seekg( mdlLumps[ ML_SURFACES ].offset, std::ios::beg );
+	file.read( ( char* ) &countSurfaces, sizeof( le::UInt32_t ) );
+	surfaces.resize( countSurfaces );
 
-    le::MeshSurface						surface;
-    surface.startVertexIndex = 0;
-    surface.lightmapID = 0;
+	for ( le::UInt32_t index = 0; index < countSurfaces; ++index )
+	{
+		MDLSurface			mdlSurface;
+		file.read( ( char* ) &mdlSurface, sizeof( MDLSurface ) );
 
-    for ( le::UInt32_t index = 0; index < sizeArraySurfaces; ++index )
-    {
-        file.read( ( char* ) &surface.materialID, sizeof( le::UInt32_t ) );
-        file.read( ( char* ) &surface.startIndex, sizeof( le::UInt32_t ) );
-        file.read( ( char* ) &surface.countIndeces, sizeof( le::UInt32_t ) );
-        arraySurfaces.push_back( surface );
-    }
+		le::MeshSurface&	surface = surfaces[ index ];
+		surface.startVertexIndex = 0;
+		surface.lightmapID = 0;
+		surface.materialID = mdlSurface.materialId;
+		surface.startIndex = mdlSurface.startIndex;
+		surface.countIndeces = mdlSurface.countIndex;
+	}
 
-    if ( arraySurfaces.empty() )				return nullptr;
+	// Find min xyz and max
+	le::Vector3D_t			min = verteces[ 0 ].position;
+	le::Vector3D_t			max = verteces[ 0 ].position;
 
-    // Находим минимальную и максимальную точку в меше
-    le::Vector3D_t			min = arrayVerteces[ 0 ].position;
-    le::Vector3D_t			max = arrayVerteces[ 0 ].position;
+	for ( uint32_t index = 0; index < countVerteces; ++index )
+	{
+		min.x = glm::min( min.x, verteces[ index ].position.x );
+		min.y = glm::min( min.y, verteces[ index ].position.y );
+		min.z = glm::min( min.z, verteces[ index ].position.z );
 
-    for ( uint32_t index = 0; index < sizeArrayVerteces; ++index )
-    {
-        min.x = glm::min( min.x, arrayVerteces[ index ].position.x );
-        min.y = glm::min( min.y, arrayVerteces[ index ].position.y );
-        min.z = glm::min( min.z, arrayVerteces[ index ].position.z );
+		max.x = glm::max( max.x, verteces[ index ].position.x );
+		max.y = glm::max( max.y, verteces[ index ].position.y );
+		max.z = glm::max( max.z, verteces[ index ].position.z );
+	}
 
-        max.x = glm::max( max.x, arrayVerteces[ index ].position.x );
-        max.y = glm::max( max.y, arrayVerteces[ index ].position.y );
-        max.z = glm::max( max.z, arrayVerteces[ index ].position.z );
-    }
+	le::IMesh* mesh = ( le::IMesh* ) StudioRenderFactory->Create( MESH_INTERFACE_VERSION );
+	if ( !mesh )				return nullptr;
 
-    // Создаем сам меш
-    le::IMesh* mesh = ( le::IMesh* ) StudioRenderFactory->Create( MESH_INTERFACE_VERSION );
-    if ( !mesh )				return nullptr;
+	// Create descriptor format verteces
+	std::vector< le::StudioVertexElement >			vertexElements =
+	{
+		{ 3, le::VET_FLOAT },
+		{ 3, le::VET_FLOAT },
+		{ 2, le::VET_FLOAT },
+		{ 3, le::VET_FLOAT },
+		{ 3, le::VET_FLOAT }
+	};
 
-    // Создаем описание для формата вершин
-    std::vector< le::StudioVertexElement >			vertexElements =
-    {
-        { 3, le::VET_FLOAT },
-        { 3, le::VET_FLOAT },
-        { 2, le::VET_FLOAT },
-        { 3, le::VET_FLOAT },
-        { 3, le::VET_FLOAT }
-    };
+	// Creating mesh descriptor and loading to gpu
+	le::MeshDescriptor				meshDescriptor;
+	meshDescriptor.countIndeces = indeces.size();
+	meshDescriptor.countMaterials = materials.size();
+	meshDescriptor.countLightmaps = 0;
+	meshDescriptor.countSurfaces = surfaces.size();
+	meshDescriptor.sizeVerteces = verteces.size() * sizeof( MDLVertex );
 
-    // Создаем описание меша для загрузки его в модуль рендера
-    le::MeshDescriptor				meshDescriptor;
-    meshDescriptor.countIndeces = arrayIndices.size();
-    meshDescriptor.countMaterials = arrayMaterials.size();
-    meshDescriptor.countLightmaps = 0;
-    meshDescriptor.countSurfaces = arraySurfaces.size();
-    meshDescriptor.sizeVerteces = arrayVerteces.size() * sizeof( Vertex );
+	meshDescriptor.indeces = indeces.data();
+	meshDescriptor.materials = materials.data();
+	meshDescriptor.lightmaps = nullptr;
+	meshDescriptor.surfaces = surfaces.data();
+	meshDescriptor.verteces = verteces.data();
 
-    meshDescriptor.indeces = arrayIndices.data();
-    meshDescriptor.materials = arrayMaterials.data();
-    meshDescriptor.lightmaps = nullptr;
-    meshDescriptor.surfaces = arraySurfaces.data();
-    meshDescriptor.verteces = arrayVerteces.data();
+	meshDescriptor.min = min;
+	meshDescriptor.max = max;
+	meshDescriptor.primitiveType = le::PT_TRIANGLES;
+	meshDescriptor.countVertexElements = vertexElements.size();
+	meshDescriptor.vertexElements = vertexElements.data();
 
-    meshDescriptor.min = min;
-    meshDescriptor.max = max;
-    meshDescriptor.primitiveType = le::PT_TRIANGLES;
-    meshDescriptor.countVertexElements = vertexElements.size();
-    meshDescriptor.vertexElements = vertexElements.data();
+	// Loading mesh to gpu
+	mesh->Create( meshDescriptor );
+	if ( !mesh->IsCreated() )
+	{
+		StudioRenderFactory->Delete( mesh );
+		return nullptr;
+	}
 
-    // Загружаем меш в GPU
-    mesh->Create( meshDescriptor );
-    if ( !mesh->IsCreated() )
-    {
-        StudioRenderFactory->Delete( mesh );
-        return nullptr;
-    }
-
-    return mesh;
+	return mesh;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -737,6 +781,91 @@ le::ILevel* LE_LoadLevel( const char* Path, le::IFactory* GameFactory )
 
     return level;
 };
+
+// ------------------------------------------------------------------------------------ //
+// Loading script
+// ------------------------------------------------------------------------------------ //
+le::IScript* LE_LoadScript( const char* Path, le::UInt32_t CountFunctions, le::ScriptDescriptor::Symbol* Functions, le::UInt32_t CountVars, le::ScriptDescriptor::Symbol* Vars, le::IFactory* ScriptSystemFactory )
+{
+	std::ifstream			file( Path );
+	if ( !file.is_open() )	return nullptr;
+
+	std::string			code;
+	std::getline( file, code, '\0' );
+	if ( code.empty() )		return nullptr;
+
+	le::IScript*		script = ( le::IScript* ) ScriptSystemFactory->Create( SCRIPT_INTERFACE_VERSION );
+	if ( !script )			return nullptr;
+
+	le::ScriptDescriptor		scriptDescriptor;
+	scriptDescriptor.code = code.c_str();
+	scriptDescriptor.countFunctions = CountFunctions;
+	scriptDescriptor.functions = Functions;
+	scriptDescriptor.countVars = CountVars;
+	scriptDescriptor.vars = Vars;
+
+	if ( !script->Load( scriptDescriptor ) )
+	{
+		script->Release();
+		return nullptr;
+	}
+
+	return script;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Loading collider
+// ------------------------------------------------------------------------------------ //
+le::ICollider* LE_LoadCollider( const char* Path, le::IFactory* PhysicsSystemFactory )
+{
+	std::ifstream				file( Path, std::ios::binary );
+	if ( !file.is_open() )		return nullptr;
+
+	// Read header file
+	PHYHeader			phyHeader;
+	file.read( ( char* ) &phyHeader, sizeof( PHYHeader ) );
+	if ( strncmp( phyHeader.strId, PHY_ID, 4 ) != 0 || phyHeader.version != PHY_VERSION )
+		return nullptr;
+
+	// Read all lumps
+	PHYLump				phyLumps[ PL_MAX_LUMPS ];
+	file.read( ( char* ) &phyLumps[ 0 ], sizeof( PHYLump ) * PL_MAX_LUMPS );
+
+	// Read verteces
+	std::vector< le::Vector3D_t >		verteces;
+	le::UInt32_t						countVerteces;
+
+	file.seekg( phyLumps[ PL_VERTECES ].offset, std::ios::beg );
+	file.read( ( char* ) &countVerteces, sizeof( le::UInt32_t ) );
+
+	verteces.resize( countVerteces );
+	file.read( ( char* ) verteces.data(), countVerteces * sizeof( le::Vector3D_t ) );
+
+	// Read indeces
+	std::vector< le::UInt32_t >		indeces;
+	le::UInt32_t					countIndeces;
+
+	file.seekg( phyLumps[ PL_INDECES ].offset, std::ios::beg );
+	file.read( ( char* ) &countIndeces, sizeof( le::UInt32_t ) );
+
+	indeces.resize( countIndeces );
+	file.read( ( char* ) indeces.data(), countIndeces * sizeof( le::UInt32_t ) );
+
+	if ( verteces.empty() ) return nullptr;
+
+	// Creating collider
+	le::ICollider*					collider = ( le::ICollider* ) PhysicsSystemFactory->Create( COLLIDER_INTERFACE_VERSION );
+	if ( !collider )	return nullptr;
+
+	le::ShapeMeshDescriptor			shapeMeshDescriptor;
+	shapeMeshDescriptor.indeces = indeces.data();
+	shapeMeshDescriptor.verteces = verteces.data();
+	shapeMeshDescriptor.countIndeces = indeces.size();
+	shapeMeshDescriptor.countVerteces = verteces.size();
+	collider->AddShape( shapeMeshDescriptor, glm::mat4( 1.f ) );
+
+	return collider;
+}
 
 // ------------------------------------------------------------------------------------ //
 // Зарегестрировать загрузчик картинок
@@ -1146,12 +1275,6 @@ void le::ResourceSystem::UnloadTexture( const char* Name )
 {
     LIFEENGINE_ASSERT( Name );
 
-    if ( !studioRenderFactory )
-    {
-        g_consoleSystem->PrintError( "Resource system not initialized" );
-        return;
-    }
-
     auto				it = textures.find( Name );
     if ( it == textures.end() || it->second->GetCountReferences() > 1 )	return;
 
@@ -1183,12 +1306,6 @@ void le::ResourceSystem::UnloadMaterial( const char* Name )
 void le::ResourceSystem::UnloadMesh( const char* Name )
 {
     LIFEENGINE_ASSERT( Name );
-
-    if ( !studioRenderFactory )
-    {
-        g_consoleSystem->PrintError( "Resource system not initialized" );
-        return;
-    }
 
     auto				it = meshes.find( Name );
     if ( it == meshes.end() || it->second->GetCountReferences() > 1 )	return;
@@ -1257,12 +1374,6 @@ void le::ResourceSystem::UnloadMaterials()
 void le::ResourceSystem::UnloadMeshes()
 {
     if ( meshes.empty() ) return;
-
-    if ( !studioRenderFactory )
-    {
-        g_consoleSystem->PrintError( "Resource system not initialized" );
-        return;
-    }
 
     for ( auto it = meshes.begin(), itEnd = meshes.end(); it != itEnd; )
         if ( it->second->GetCountReferences() <= 1 )
@@ -1348,11 +1459,13 @@ void le::ResourceSystem::UnloadTextures()
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadAll()
 {
+	UnloadScripts();
     UnloadLevels();
     UnloadMeshes();
     UnloadFonts();
     UnloadMaterials();
     UnloadTextures();
+	UnloadColliders();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1430,6 +1543,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
         if ( !studioRender )	throw std::runtime_error( "Resource system requared studiorender" );
 
         studioRenderFactory = studioRender->GetFactory();
+		scriptSystemFactory = g_scriptSystem->GetFactory();
         materialManager = Engine->GetMaterialManager();
 
         RegisterLoader_Image( "png", LE_LoadImage );
@@ -1439,9 +1553,11 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
         RegisterLoader_Texture( "jpg", LE_LoadTexture );
         RegisterLoader_Texture( "tga", LE_LoadTexture );
         RegisterLoader_Material( "lmt", LE_LoadMaterial );
-        RegisterLoader_Mesh( "lmd", LE_LoadMesh );
+		RegisterLoader_Mesh( "mdl", LE_LoadMesh );
         RegisterLoader_Level( "bsp", LE_LoadLevel );
         RegisterLoader_Font( "ttf", LE_LoadFont );
+		RegisterLoader_Script( "c", LE_LoadScript );
+		RegisterLoader_Collider( "phy", LE_LoadCollider );
     }
     catch ( std::exception & Exception )
     {
@@ -1464,7 +1580,8 @@ void le::ResourceSystem::SetGameDir( const char* GameDir )
 // ------------------------------------------------------------------------------------ //
 le::ResourceSystem::ResourceSystem() :
     studioRenderFactory( nullptr ),
-    materialManager( nullptr )
+	materialManager( nullptr ),
+	scriptSystemFactory( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -1473,4 +1590,251 @@ le::ResourceSystem::ResourceSystem() :
 le::ResourceSystem::~ResourceSystem()
 {
     UnloadAll();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get format file
+// ------------------------------------------------------------------------------------ //
+std::string le::ResourceSystem::GetFormatFile(const std::string& Route)
+{
+	UInt32_t		position = Route.find_last_of( '.' );
+	if ( position == std::string::npos )
+		return "";
+
+	// Если расширение есть, то переводим в малый регистр и возвращаем
+	std::string		format = Route.substr( position + 1, std::string::npos );
+	for ( UInt32_t index = 0, count = format.size(); index < count; ++index )
+		format[ index ] = tolower( format[ index ] );
+
+	return format;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader_Script( const char* Format, LoadScriptFn_t LoadScript )
+{
+	LIFEENGINE_ASSERT( Format );
+	LIFEENGINE_ASSERT( LoadScript );
+
+	g_consoleSystem->PrintInfo( "Loader script for format [%s] registered", Format );
+	loaderScripts[ Format ] = LoadScript;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnregisterLoader_Script( const char* Format )
+{
+	LIFEENGINE_ASSERT( Format );
+
+	auto		it = loaderScripts.find( Format );
+	if ( it == loaderScripts.end() ) return;
+
+	loaderScripts.erase( it );
+	g_consoleSystem->PrintInfo( "Loader script for format [%s] unregistered", Format );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+le::IScript* le::ResourceSystem::LoadScript( const char* Name, const char* Path, UInt32_t CountFunctions, ScriptDescriptor::Symbol* Functions, UInt32_t CountVars, ScriptDescriptor::Symbol* Vars )
+{
+	LIFEENGINE_ASSERT( Name );
+	LIFEENGINE_ASSERT( Path );
+
+	try
+	{
+		if ( !scriptSystemFactory )							throw std::runtime_error( "Resource system not initialized" );
+
+		if ( scripts.find( Name ) != scripts.end() )		return scripts[ Name ];
+		if ( loaderScripts.empty() )						throw std::runtime_error( "No script loaders" );
+
+		std::string			path = gameDir + "/" + Path;
+
+		g_consoleSystem->PrintInfo( "Loading script [%s] with name [%s]", Path, Name );
+
+		std::string			format = GetFormatFile( path );
+		if ( format.empty() )						throw std::runtime_error( "In script format not found" );
+
+		auto				parser = loaderScripts.find( format );
+		if ( parser == loaderScripts.end() )		throw std::runtime_error( "Loader for format script not found" );
+
+		IScript*			script = parser->second( path.c_str(), CountFunctions, Functions, CountVars, Vars, scriptSystemFactory );
+		if ( !script )							throw std::runtime_error( "Fail loading script" );
+
+		script->IncrementReference();
+		scripts.insert( std::make_pair( Name, script ) );
+		g_consoleSystem->PrintInfo( "Loaded script [%s]", Name );
+
+		return script;
+	}
+	catch ( std::exception & Exception )
+	{
+		g_consoleSystem->PrintError( "Script [%s] not loaded: %s", Path, Exception.what() );
+		return nullptr;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadScript( const char* Name )
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto				it = scripts.find( Name );
+	if ( it == scripts.end() || it->second->GetCountReferences() > 1 )	return;
+
+	it->second->Release();
+	scripts.erase( it );
+
+	g_consoleSystem->PrintInfo( "Unloaded script [%s]", Name );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadScripts()
+{
+	if ( scripts.empty() ) return;
+
+	for ( auto it = scripts.begin(), itEnd = scripts.end(); it != itEnd; )
+		if ( it->second->GetCountReferences() <= 1 )
+		{
+			it->second->Release();
+
+			g_consoleSystem->PrintInfo( "Unloaded script [%s]", it->first.c_str() );
+			it = scripts.erase( it );
+			itEnd = scripts.end();
+		}
+		else
+			++it;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Деструктор
+// ------------------------------------------------------------------------------------ //
+le::IScript* le::ResourceSystem::GetScript( const char* Name ) const
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto	it = scripts.find( Name );
+	if ( it != scripts.end() )		return it->second;
+
+	return nullptr;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader for collider
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader_Collider( const char* Format, LoadColliderFn_t LoadCollider )
+{
+	LIFEENGINE_ASSERT( Format );
+	LIFEENGINE_ASSERT( LoadCollider );
+
+	g_consoleSystem->PrintInfo( "Loader LoadCollider for format [%s] registered", Format );
+	loaderColliders[ Format ] = LoadCollider;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Unregister loader for collider
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnregisterLoader_Collider( const char* Format )
+{
+	LIFEENGINE_ASSERT( Format );
+
+	auto		it = loaderColliders.find( Format );
+	if ( it == loaderColliders.end() ) return;
+
+	loaderColliders.erase( it );
+	g_consoleSystem->PrintInfo( "Loader collider for format [%s] unregistered", Format );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Unload collider
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadCollider( const char* Name )
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto				it = colliders.find( Name );
+	if ( it == colliders.end() || it->second->GetCountReferences() > 1 )	return;
+
+	it->second->Release();
+	colliders.erase( it );
+
+	g_consoleSystem->PrintInfo( "Unloaded collider [%s]", Name );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Load collider
+// ------------------------------------------------------------------------------------ //
+le::ICollider* le::ResourceSystem::LoadCollider( const char* Name, const char* Path )
+{
+	LIFEENGINE_ASSERT( Name );
+	LIFEENGINE_ASSERT( Path );
+
+	try
+	{
+		if ( colliders.find( Name ) != colliders.end() )	return colliders[ Name ];
+		if ( loaderColliders.empty() )						throw std::runtime_error( "No collider loaders" );
+
+		std::string			path = gameDir + "/" + Path;
+
+		g_consoleSystem->PrintInfo( "Loading collider [%s] with name [%s]", Path, Name );
+
+		std::string			format = GetFormatFile( path );
+		if ( format.empty() )								throw std::runtime_error( "In collider format not found" );
+
+		auto				parser = loaderColliders.find( format );
+		if ( parser == loaderColliders.end() )		throw std::runtime_error( "Loader for format collider not found" );
+
+		le::ICollider*			collider = parser->second( path.c_str(), g_physicsSystemFactory );
+		if ( !collider )		throw std::runtime_error( "Fail loading collider" );
+
+		collider->IncrementReference();
+		colliders.insert( std::make_pair( Name, collider ) );
+		g_consoleSystem->PrintInfo( "Loaded collider [%s]", Name );
+
+		return collider;
+	}
+	catch ( std::exception & Exception )
+	{
+		g_consoleSystem->PrintError( "Collider [%s] not loaded: %s", Path, Exception.what() );
+		return nullptr;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Unload colliders
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadColliders()
+{
+	if ( colliders.empty() ) return;
+
+	for ( auto it = colliders.begin(), itEnd = colliders.end(); it != itEnd; )
+		if ( it->second->GetCountReferences() <= 1 )
+		{
+			it->second->Release();
+
+			g_consoleSystem->PrintInfo( "Unloaded collider [%s]", it->first.c_str() );
+			it = colliders.erase( it );
+			itEnd = colliders.end();
+		}
+		else
+			++it;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get collider
+// ------------------------------------------------------------------------------------ //
+le::ICollider* le::ResourceSystem::GetCollider( const char* Name ) const
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto	it = colliders.find( Name );
+	if ( it != colliders.end() )	return it->second;
+
+	return nullptr;
 }
