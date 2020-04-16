@@ -172,3 +172,32 @@ scripts_api::uint32_t scripts_api::Collider_GetCountShapes( collider_t Object )
 	if ( !Object ) return 0;
 	return COLLIDER( Object )->GetCountShapes();
 }
+
+// ------------------------------------------------------------------------------------ //
+// Scale
+// ------------------------------------------------------------------------------------ //
+void scripts_api::Collider_Scale( collider_t Object, vec3f_t FactorScale )
+{
+	if ( !Object ) return;
+	COLLIDER( Object )->Scale( { FactorScale.x, FactorScale.y, FactorScale.z } );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set scale
+// ------------------------------------------------------------------------------------ //
+void scripts_api::Collider_SetScale( collider_t Object, vec3f_t Scale )
+{
+	if ( !Object ) return;
+	COLLIDER( Object )->SetScale( { Scale.x, Scale.y, Scale.z } );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get scale
+// ------------------------------------------------------------------------------------ //
+scripts_api::vec3f_t scripts_api::Collider_GetScale( collider_t Object )
+{
+	if ( !Object ) return { 0.f, 0.f, 0.f };
+
+	const le::Vector3D_t&			vec3 = COLLIDER( Object )->GetScale();
+	return { vec3.x, vec3.y, vec3.z };
+}

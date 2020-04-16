@@ -390,6 +390,9 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( Collider_AddConvexHull );
 	REGISTER_FUNCTION( Collider_GetCountShapes );
 	REGISTER_FUNCTION( Collider_RemoveAllShapes );
+	REGISTER_FUNCTION( Collider_Scale );
+	REGISTER_FUNCTION( Collider_SetScale );
+	REGISTER_FUNCTION( Collider_GetScale );
 
 	// Body
 	REGISTER_FUNCTION( Body_Create );

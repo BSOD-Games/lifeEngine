@@ -220,7 +220,8 @@ le::UInt32_t le::Collider::GetCountShapes() const
 // Constructor
 // ------------------------------------------------------------------------------------ //
 le::Collider::Collider() :
-	countReferences( 0 )
+	countReferences( 0 ),
+	scale( 1.f, 1.f, 1.f )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -278,4 +279,30 @@ le::Collider::ColliderMeshDescriptor::~ColliderMeshDescriptor()
 {
 	if ( triangleMesh )		delete triangleMesh;
 	if ( shape )			delete shape;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Scale
+// ------------------------------------------------------------------------------------ //
+void le::Collider::Scale( const le::Vector3D_t& FactorScale )
+{
+	scale += FactorScale;
+	shape.setLocalScaling( btVector3( scale.x, scale.y, scale.z ) );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set scale
+// ------------------------------------------------------------------------------------ //
+void le::Collider::SetScale( const le::Vector3D_t& Scale )
+{
+	scale = Scale;
+	shape.setLocalScaling( btVector3( Scale.x, Scale.y, Scale.z ) );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get scale
+// ------------------------------------------------------------------------------------ //
+const le::Vector3D_t& le::Collider::GetScale() const
+{
+	return scale;
 }

@@ -59,11 +59,20 @@ extern void					Collider_RemoveShape( collider_t Object, uint32_t Index );
 /* Remove all shape */
 extern void					Collider_RemoveAllShapes( collider_t Object );
 
+/* Scale */
+extern void					Collider_Scale( collider_t Object, vec3f_t FactorScale );
+
+/* Set scale */
+extern void					Collider_SetScale( collider_t Object, vec3f_t Scale );
+
 /* Get AABB */
 extern void					Collider_GetAABB( collider_t Object, vec3f_t* Min, vec3f_t* Max );
 
 /* Get count shapes */
 extern uint32_t				Collider_GetCountShapes( collider_t Object );
+
+/* Get scale */
+extern vec3f_t				Collider_GetScale( collider_t Object );
 
 //---------------------------------------------------------------------//
 
