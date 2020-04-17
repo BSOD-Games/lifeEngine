@@ -12,12 +12,14 @@ set( PROJECT_STDSHADERS stdshaders )
 set( PROJECT_PHYSICS physics )
 set( PROJECT_LMDL tools/lmdl )
 set( PROJECT_SHADERCOMPILE tools/shadercompile )
+set( PROJECT_MATERIALS_EDITOR tools/lmteditor ) 
 
 #
 #   --- Настройки сборки ---
 #
 
 set( EXTLIBS_DIR ${PROJECT_SOURCE_DIR}/extlibs )
+set( QT5_DIR CACHE PATH "Qt5 dir (ex. D:/Soft/Qt/5.12.2/mingw73_64)" )
 
 option( LIFEENGINE_DEBUG "Enable debug mode" OFF )
 option( BUILD_LAUNCHER "Build launcher engine" OFF )
@@ -27,6 +29,7 @@ option( BUILD_PHYSICS "Build physics" OFF )
 option( BUILD_STDSHADERS "Build stdshaders" OFF )
 option( BUILD_CONVERTER_MODELS "Build converter models" OFF )
 option( BUILD_SHADERCOMPILE "Build shader compile" OFF )
+option( BUILD_MATERIALS_EDITOR "Build materials editor" OFF )
 
 if( LIFEENGINE_DEBUG )
     message( STATUS "Debug mode enabled" )
@@ -55,6 +58,12 @@ endif()
 set( BUILD_DIR ${PROJECT_SOURCE_DIR}/../build )
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake" )
 set( CMAKE_PREFIX_PATH ${QT5_DIR} )
+set( CMAKE_INCLUDE_CURRENT_DIR ON )
+set( CMAKE_AUTOUIC ON )
+set( CMAKE_AUTOMOC ON )
+set( CMAKE_AUTORCC ON )
+set( CMAKE_CXX_STANDARD 11 )
+set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 #
 # Добавляем подпроекты
@@ -88,4 +97,8 @@ endif()
 
 if ( BUILD_CONVERTER_MODELS )
 	add_subdirectory( ${PROJECT_LMDL} )
+endif()
+
+if ( BUILD_MATERIALS_EDITOR )
+	add_subdirectory( ${PROJECT_MATERIALS_EDITOR} )
 endif()

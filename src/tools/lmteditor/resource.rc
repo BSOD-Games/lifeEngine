@@ -16,10 +16,10 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "BSOD"
-            VALUE "FileDescription", "Converter models to MDL and PHY"
-            VALUE "InternalName", "lmdl.exe"
+            VALUE "FileDescription", "Editor materials"
+            VALUE "InternalName", "lmteditor.exe"
             VALUE "LegalCopyright", "Copyright (C) 2016-2020"
-            VALUE "OriginalFilename", "lmdl.exe"
+            VALUE "OriginalFilename", "lmteditor.exe"
             VALUE "ProductName", "lifeEngine"
             VALUE "ProductVersion", LIFEENGINE_VERSION
         END
