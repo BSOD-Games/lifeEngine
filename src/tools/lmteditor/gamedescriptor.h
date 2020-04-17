@@ -8,36 +8,19 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef WINDOW_SELECTGAME_H
-#define WINDOW_SELECTGAME_H
+#ifndef GAMEDESCRIPTOR_H
+#define GAMEDESCRIPTOR_H
 
-#include <QDialog>
-
-//---------------------------------------------------------------------//
-
-namespace Ui
-{
-	class Window_SelectGame;
-}
+#include <QString>
 
 //---------------------------------------------------------------------//
 
-class Window_SelectGame : public QDialog
+struct GameDescriptor
 {
-	Q_OBJECT
-
-public:
-	// Window_SelectGame
-	Window_SelectGame( QWidget* Parent = nullptr );
-	~Window_SelectGame();
-
-private slots:
-	void				on_pushButton_editGames_clicked();
-
-private:
-	Ui::Window_SelectGame*			ui;
+	QString			name;
+	QString			path;
 };
 
 //---------------------------------------------------------------------//
 
-#endif // WINDOW_SELECTGAME_H
+#endif // GAMEDESCRIPTOR_H
