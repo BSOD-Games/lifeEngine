@@ -11,6 +11,7 @@
 #include "engine/global.h"
 #include "engine/ifactory.h"
 #include "physics/icollider.h"
+#include "physics/iphysicsmodel.h"
 #include "physics/shapeboxdescriptor.h"
 #include "physics/shapecylinderdescriptor.h"
 #include "physics/shapecapsuledescriptor.h"
@@ -200,4 +201,13 @@ scripts_api::vec3f_t scripts_api::Collider_GetScale( collider_t Object )
 
 	const le::Vector3D_t&			vec3 = COLLIDER( Object )->GetScale();
 	return { vec3.x, vec3.y, vec3.z };
+}
+
+// ------------------------------------------------------------------------------------ //
+// Add physics model
+// ------------------------------------------------------------------------------------ //
+void scripts_api::Collider_AddPhysicsModel( collider_t Object, physicsModel_t PhysicsModel, mat4_t LocalTransformation )
+{
+	if ( !Object ) return;
+	COLLIDER( Object )->AddShape( ( le::IPhysicsModel* ) PhysicsModel, glm::make_mat4( LocalTransformation.matrix ) );
 }

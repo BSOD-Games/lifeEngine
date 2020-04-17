@@ -36,6 +36,7 @@ namespace scripts_api
 #include "scripts_api/physics/body.h"
 #include "scripts_api/physics/charctercontroller.h"
 #include "scripts_api/physics/physicssystem.h"
+#include "scripts_api/physics/physicsmodel.h"
 }
 
 #define REGISTER_FUNCTION( Function )		( functions[ #Function ] = ( void* ) &Function )
@@ -120,23 +121,23 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( ResourceSystem_LoadMaterial );
 	REGISTER_FUNCTION( ResourceSystem_LoadMesh );
 	REGISTER_FUNCTION( ResourceSystem_LoadFont );
-	REGISTER_FUNCTION( ResourceSystem_LoadCollider );
+	REGISTER_FUNCTION( ResourceSystem_LoadPhysicsModel );
 	REGISTER_FUNCTION( ResourceSystem_UnloadTexture );
 	REGISTER_FUNCTION( ResourceSystem_UnloadMaterial );
 	REGISTER_FUNCTION( ResourceSystem_UnloadMesh );
 	REGISTER_FUNCTION( ResourceSystem_UnloadFont );
-	REGISTER_FUNCTION( ResourceSystem_UnloadCollider );
+	REGISTER_FUNCTION( ResourceSystem_UnloadPhysicsModel );
 	REGISTER_FUNCTION( ResourceSystem_UnloadTextures );
 	REGISTER_FUNCTION( ResourceSystem_UnloadMaterials );
 	REGISTER_FUNCTION( ResourceSystem_UnloadMeshes );
 	REGISTER_FUNCTION( ResourceSystem_UnloadFonts );
-	REGISTER_FUNCTION( ResourceSystem_UnloadColliders );
+	REGISTER_FUNCTION( ResourceSystem_UnloadPhysicsModels );
 	REGISTER_FUNCTION( ResourceSystem_UnloadAll );
 	REGISTER_FUNCTION( ResourceSystem_GetTexture );
 	REGISTER_FUNCTION( ResourceSystem_GetMaterial );
 	REGISTER_FUNCTION( ResourceSystem_GetMesh );
 	REGISTER_FUNCTION( ResourceSystem_GetFont );
-	REGISTER_FUNCTION( ResourceSystem_GetCollider );
+	REGISTER_FUNCTION( ResourceSystem_GetPhysicsModel );
 
 	// Camera
 	REGISTER_FUNCTION( Camera_Create );
@@ -388,6 +389,7 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( Collider_AddCylinder );
 	REGISTER_FUNCTION( Collider_RemoveShape );
 	REGISTER_FUNCTION( Collider_AddConvexHull );
+	REGISTER_FUNCTION( Collider_AddPhysicsModel );
 	REGISTER_FUNCTION( Collider_GetCountShapes );
 	REGISTER_FUNCTION( Collider_RemoveAllShapes );
 	REGISTER_FUNCTION( Collider_Scale );
@@ -442,6 +444,13 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( PhysicsSystem_RemoveCharcterController );
 	REGISTER_FUNCTION( PhysicsSystem_GetCountCharcterControllers );
 	REGISTER_FUNCTION( PhysicsSystem_RemoveAllCharcterControllers );
+
+	// Physics model
+	REGISTER_FUNCTION( PhysicsModel_Create );
+	REGISTER_FUNCTION( PhysicsModel_Delete );
+	REGISTER_FUNCTION( PhysicsModel_ClearMesh );
+	REGISTER_FUNCTION( PhysicsModel_InitializeMesh );
+	REGISTER_FUNCTION( PhysicsModel_IsInitializedMesh );
 
 	return true;
 }

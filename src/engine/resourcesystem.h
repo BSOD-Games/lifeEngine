@@ -39,7 +39,7 @@ namespace le
 		virtual void					RegisterLoader_Level( const char* Format, LoadLevelFn_t LoadLevel );
 		virtual void					RegisterLoader_Font( const char* Format, LoadFontFn_t LoadFont );
 		virtual void					RegisterLoader_Script( const char* Format, LoadScriptFn_t LoadScript );
-		virtual void					RegisterLoader_Collider( const char* Format, LoadColliderFn_t LoadCollider );
+		virtual void					RegisterLoader_PhysicsModel( const char* Format, LoadPhysicsModelFn_t LoadPhysicsModel );
 		virtual void					UnregisterLoader_Image( const char* Format );
 		virtual void					UnregisterLoader_Texture( const char* Format );
 		virtual void					UnregisterLoader_Material( const char* Format );
@@ -47,7 +47,7 @@ namespace le
 		virtual void					UnregisterLoader_Level( const char* Format );
 		virtual void					UnregisterLoader_Font( const char* Format );
 		virtual void					UnregisterLoader_Script( const char* Format );
-		virtual void					UnregisterLoader_Collider( const char* Format );
+		virtual void					UnregisterLoader_PhysicsModel( const char* Format );
 
 		virtual Image					LoadImage( const char* Path, bool& IsError, bool IsFlipVertical = false, bool IsSwitchRedAndBlueChannels = false );
 		virtual ITexture*				LoadTexture( const char* Name, const char* Path );
@@ -56,7 +56,7 @@ namespace le
         virtual ILevel*					LoadLevel( const char* Name, const char* Path, IFactory* GameFactory );
 		virtual IFont*					LoadFont( const char* Name, const char* Path );
 		virtual IScript*				LoadScript( const char* Name, const char* Path, UInt32_t CountFunctions = 0, ScriptDescriptor::Symbol* Functions = nullptr, UInt32_t CountVars = 0, ScriptDescriptor::Symbol* Vars = nullptr );
-		virtual ICollider*				LoadCollider( const char* Name, const char* Path );
+		virtual IPhysicsModel*			LoadPhysicsModel( const char* Name, const char* Path );
 		virtual void					UnloadImage( Image& Image );
 		virtual void					UnloadTexture( const char* Name );
 		virtual void					UnloadMaterial( const char* Name );
@@ -64,14 +64,14 @@ namespace le
 		virtual void					UnloadLevel( const char* Name );
 		virtual void					UnloadFont( const char* Name );
 		virtual void					UnloadScript( const char* Name );
-		virtual void					UnloadCollider( const char* Name );
+		virtual void					UnloadPhysicsModel( const char* Name );
 		virtual void					UnloadTextures();
 		virtual void					UnloadMaterials();
 		virtual void					UnloadMeshes();
 		virtual void					UnloadLevels();
 		virtual void					UnloadFonts();			
 		virtual void					UnloadScripts();
-		virtual void					UnloadColliders();
+		virtual void					UnloadPhysicsModels();
 		virtual void					UnloadAll();
 
 		virtual ITexture*				GetTexture( const char* Name ) const;
@@ -80,7 +80,7 @@ namespace le
 		virtual ILevel*					GetLevel( const char* Name ) const;
 		virtual IFont*					GetFont( const char* Name ) const;
 		virtual IScript*				GetScript( const char* Name ) const;
-		virtual ICollider*				GetCollider( const char* Name ) const;
+		virtual IPhysicsModel*			GetPhysicsModel( const char* Name ) const;
 
 		// IResourceSystemInternal
 		virtual bool					Initialize( IEngine* Engine );
@@ -101,14 +101,14 @@ namespace le
 		typedef			std::unordered_map< std::string, LoadLevelFn_t >			LoaderLevelMap_t;
 		typedef			std::unordered_map< std::string, LoadFontFn_t >				LoaderFontMap_t;
 		typedef			std::unordered_map< std::string, LoadScriptFn_t >			LoaderScriptMap_t;
-		typedef			std::unordered_map< std::string, LoadColliderFn_t >			LoaderColliderMap_t;
+		typedef			std::unordered_map< std::string, LoadPhysicsModelFn_t >		LoaderPhysicsModelMap_t;
 		typedef			std::unordered_map< std::string, ITexture* >				TextureMap_t;
 		typedef			std::unordered_map< std::string, IMaterial* >				MaterialMap_t;
 		typedef			std::unordered_map< std::string, IMesh* >					MeshMap_t;
 		typedef			std::unordered_map< std::string, ILevel* >					LevelMap_t;
 		typedef			std::unordered_map< std::string, IFont* >					FontMap_t;
 		typedef			std::unordered_map< std::string, IScript* >					ScriptMap_t;
-		typedef			std::unordered_map< std::string, ICollider* >				ColliderMap_t;
+		typedef			std::unordered_map< std::string, IPhysicsModel* >			PhysicsModelMap_t;
 
 		IFactory*					studioRenderFactory;
 		IFactory*					scriptSystemFactory;
@@ -122,7 +122,7 @@ namespace le
 		LoaderLevelMap_t			loaderLevels;
 		LoaderFontMap_t				loaderFonts;
 		LoaderScriptMap_t			loaderScripts;
-		LoaderColliderMap_t			loaderColliders;
+		LoaderPhysicsModelMap_t		loaderPhysicsModels;
 
 		TextureMap_t				textures;
 		MaterialMap_t				materials;
@@ -130,7 +130,7 @@ namespace le
 		LevelMap_t					levels;
 		FontMap_t					fonts;	
 		ScriptMap_t					scripts;
-		ColliderMap_t				colliders;
+		PhysicsModelMap_t			physicsModels;
 	};
 
 	//---------------------------------------------------------------------//

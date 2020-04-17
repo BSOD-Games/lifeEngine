@@ -12,11 +12,13 @@
 #define PHYSICS_SYSTEM_H
 
 #include <vector>
+#include <list>
 
 #include "common/types.h"
 #include "physics/iphysicssysteminternal.h"
 #include "physicssystemfactory.h"
 #include "debugdrawer.h"
+#include "body.h"
 
 //---------------------------------------------------------------------//
 
@@ -37,6 +39,7 @@ namespace le
 	class IStudioRender;
 	class Body;
 	class CharcterController;
+	class Collider;
 
     //---------------------------------------------------------------------//
 
@@ -72,6 +75,8 @@ namespace le
         PhysicsSystem();
         ~PhysicsSystem();
 
+		void								UpdateCollider( Collider* Collider );
+
     private:
 		bool									isInitialize;
 
@@ -91,6 +96,7 @@ namespace le
 
 		std::vector< Body* >					bodies;
 		std::vector< CharcterController* >		charcterControllers;
+		std::list< Collider* >					updateColliders;
 	};
 
     //---------------------------------------------------------------------//

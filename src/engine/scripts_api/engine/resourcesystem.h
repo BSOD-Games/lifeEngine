@@ -12,7 +12,7 @@
 #define API_RESOURCESYSTEM_H
 
 #include "../common/types.h"
-#include "../physics/collider.h"
+#include "../physics/physicsmodel.h"
 #include "material.h"
 #include "model.h"
 #include "text.h"
@@ -34,8 +34,8 @@ extern mesh_t				ResourceSystem_LoadMesh( const char* Name, const char* Path );
 /* Load font */
 extern font_t				ResourceSystem_LoadFont( const char* Name, const char* Path );
 
-/* Load collider */
-extern collider_t			ResourceSystem_LoadCollider( const char* Name, const char* Path );
+/* Load physics model */
+extern physicsModel_t		ResourceSystem_LoadPhysicsModel( const char* Name, const char* Path );
 
 /* Load script */
 //TODO: implement this
@@ -55,8 +55,8 @@ extern void					ResourceSystem_UnloadMesh( const char* Name );
 /* Unload font */
 extern void					ResourceSystem_UnloadFont( const char* Name );
 
-/* Unload collider */
-extern void					ResourceSystem_UnloadCollider( const char* Name );
+/* Unload physics model */
+extern void					ResourceSystem_UnloadPhysicsModel( const char* Name );
 
 /* Unload script */
 //TODO: implement this
@@ -79,8 +79,8 @@ extern void					ResourceSystem_UnloadFonts();
 /* Unload scripts */
 //TODO: implement this
 
-/* Unload colliders */
-extern void					ResourceSystem_UnloadColliders();
+/* Unload physics models */
+extern void					ResourceSystem_UnloadPhysicsModels();
 
 /* Unload all */
 extern void					ResourceSystem_UnloadAll();
@@ -103,8 +103,8 @@ extern font_t				ResourceSystem_GetFont( const char* Name );
 /* Get script */
 //TODO: implement this
 
-/* Get collider */
-extern collider_t			ResourceSystem_GetCollider( const char* Name );
+/* Get physics model */
+extern physicsModel_t		ResourceSystem_GetPhysicsModel( const char* Name );
 
 //---------------------------------------------------------------------//
 

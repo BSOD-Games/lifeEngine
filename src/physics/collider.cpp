@@ -8,7 +8,9 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include "engine/lifeengine.h"
 #include "physics/collider.h"
+#include "physics/physicsmodel.h"
 #include "physics/shapeboxdescriptor.h"
 #include "physics/shapecapsuledescriptor.h"
 #include "physics/shapecylinderdescriptor.h"
@@ -20,6 +22,7 @@
 
 #include "global.h"
 #include "engine/iconsolesystem.h"
+#include "physics/physicssystem.h"
 
 // ------------------------------------------------------------------------------------ //
 // Add shape
@@ -86,19 +89,35 @@ void le::Collider::AddShape( const le::ShapeSphereDescriptor& Shape, const le::M
 // ------------------------------------------------------------------------------------ //
 void le::Collider::AddShape( const le::ShapeMeshDescriptor& Shape, const le::Matrix4x4_t& LocalTransormation )
 {
+	LIFEENGINE_ASSERT( Shape.verteces && Shape.countVerteces > 0 );
+
 	ColliderMeshDescriptor*			colliderMeshDescriptor = new ColliderMeshDescriptor();
 	colliderMeshDescriptor->triangleMesh = new btTriangleMesh();
 
-	for ( UInt32_t index = 0; index < Shape.countIndeces; index += 3 )
-	{
-		glm::vec3&		vertex1 = Shape.verteces[ Shape.indeces[ index ] ];
-		glm::vec3&		vertex2 = Shape.verteces[ Shape.indeces[ index + 1 ] ];
-		glm::vec3&		vertex3 = Shape.verteces[ Shape.indeces[ index + 2 ] ];
+	// If mesh with indeces
+	if ( Shape.indeces && Shape.countIndeces > 0)
+		for ( UInt32_t index = 0, offset = 0, count = Shape.countIndeces / 3; index < count; ++index, offset += 3 )
+		{
+			Vector3D_t&		vertex1 = Shape.verteces[ Shape.indeces[ offset ] ];
+			Vector3D_t&		vertex2 = Shape.verteces[ Shape.indeces[ offset + 1 ] ];
+			Vector3D_t&		vertex3 = Shape.verteces[ Shape.indeces[ offset + 2 ] ];
 
-		colliderMeshDescriptor->triangleMesh->addTriangle( btVector3( vertex1.x, vertex1.y, vertex1.z ),
-														   btVector3( vertex2.x, vertex2.y, vertex2.z),
-														   btVector3( vertex3.x, vertex3.y, vertex3.z ) );
-	}
+			colliderMeshDescriptor->triangleMesh->addTriangle( btVector3( vertex1.x, vertex1.y, vertex1.z ),
+															   btVector3( vertex2.x, vertex2.y, vertex2.z),
+															   btVector3( vertex3.x, vertex3.y, vertex3.z ) );
+		}
+	else
+		for ( UInt32_t index = 0, offset = 0, count = Shape.countVerteces / 3; index < count; ++index, offset += 3 )
+		{
+			Vector3D_t&		vertex1 = Shape.verteces[ offset ];
+			Vector3D_t&		vertex2 = Shape.verteces[ offset + 1 ];
+			Vector3D_t&		vertex3 = Shape.verteces[ offset + 2 ];
+
+			colliderMeshDescriptor->triangleMesh->addTriangle( btVector3( vertex1.x, vertex1.y, vertex1.z ),
+															   btVector3( vertex2.x, vertex2.y, vertex2.z),
+															   btVector3( vertex3.x, vertex3.y, vertex3.z ) );
+		}
+
 	colliderMeshDescriptor->shape = new btBvhTriangleMeshShape( colliderMeshDescriptor->triangleMesh, true );
 
 	ShapeDescriptor			shapeDescriptor;
@@ -152,13 +171,14 @@ void le::Collider::RemoveShape( le::UInt32_t Index )
 	ShapeDescriptor            shapeDescriptor = shapesDescriptors[ Index ];
 	switch ( shapeDescriptor.type )
 	{
-	case ST_BOX:				delete static_cast< btBoxShape* >( shapeDescriptor.shape );				break;
-	case ST_CONVEX_HULL:		delete static_cast< btConvexHullShape* >( shapeDescriptor.shape );		break;
-	case ST_MESH:				delete static_cast< ColliderMeshDescriptor* >( shapeDescriptor.shape );	break;
-	case ST_SPHERE:				delete static_cast< btSphereShape* >( shapeDescriptor.shape );			break;
-	case ST_CAPSULE:			delete static_cast< btCapsuleShape* >( shapeDescriptor.shape );			break;
-	case ST_CYLINDER:			delete static_cast< btCylinderShape* >( shapeDescriptor.shape );		break;
-	case ST_CONE:				delete static_cast< btConeShape* >( shapeDescriptor.shape );			break;
+	case ST_BOX:				delete static_cast< btBoxShape* >( shapeDescriptor.shape );						break;
+	case ST_CONVEX_HULL:		delete static_cast< btConvexHullShape* >( shapeDescriptor.shape );				break;
+	case ST_MESH:				delete static_cast< ColliderMeshDescriptor* >( shapeDescriptor.shape );			break;
+	case ST_PHYSICSMODEL:		delete static_cast< btScaledBvhTriangleMeshShape* >( shapeDescriptor.shape );	break;
+	case ST_SPHERE:				delete static_cast< btSphereShape* >( shapeDescriptor.shape );					break;
+	case ST_CAPSULE:			delete static_cast< btCapsuleShape* >( shapeDescriptor.shape );					break;
+	case ST_CYLINDER:			delete static_cast< btCylinderShape* >( shapeDescriptor.shape );				break;
+	case ST_CONE:				delete static_cast< btConeShape* >( shapeDescriptor.shape );					break;
 	}
 
 	shape.removeChildShapeByIndex( Index );
@@ -175,13 +195,14 @@ void le::Collider::RemoveAllShapes()
 		ShapeDescriptor            shapeDescriptor = shapesDescriptors[ index ];
 		switch ( shapeDescriptor.type )
 		{
-		case ST_BOX:				delete static_cast< btBoxShape* >( shapeDescriptor.shape );				break;
-		case ST_CONVEX_HULL:		delete static_cast< btConvexHullShape* >( shapeDescriptor.shape );		break;
-		case ST_MESH:				delete static_cast< ColliderMeshDescriptor* >( shapeDescriptor.shape );	break;
-		case ST_SPHERE:				delete static_cast< btSphereShape* >( shapeDescriptor.shape );			break;
-		case ST_CAPSULE:			delete static_cast< btCapsuleShape* >( shapeDescriptor.shape );			break;
-		case ST_CYLINDER:			delete static_cast< btCylinderShape* >( shapeDescriptor.shape );		break;
-		case ST_CONE:				delete static_cast< btConeShape* >( shapeDescriptor.shape );			break;
+		case ST_BOX:				delete static_cast< btBoxShape* >( shapeDescriptor.shape );						break;
+		case ST_CONVEX_HULL:		delete static_cast< btConvexHullShape* >( shapeDescriptor.shape );				break;
+		case ST_MESH:				delete static_cast< ColliderMeshDescriptor* >( shapeDescriptor.shape );			break;
+		case ST_PHYSICSMODEL:		delete static_cast< btScaledBvhTriangleMeshShape* >( shapeDescriptor.shape );	break;
+		case ST_SPHERE:				delete static_cast< btSphereShape* >( shapeDescriptor.shape );					break;
+		case ST_CAPSULE:			delete static_cast< btCapsuleShape* >( shapeDescriptor.shape );					break;
+		case ST_CYLINDER:			delete static_cast< btCylinderShape* >( shapeDescriptor.shape );				break;
+		case ST_CONE:				delete static_cast< btConeShape* >( shapeDescriptor.shape );					break;
 		}
 
 		shape.removeChildShapeByIndex( index );
@@ -220,6 +241,7 @@ le::UInt32_t le::Collider::GetCountShapes() const
 // Constructor
 // ------------------------------------------------------------------------------------ //
 le::Collider::Collider() :
+	isNeadUpdateTransformation( false ),
 	countReferences( 0 ),
 	scale( 1.f, 1.f, 1.f )
 {}
@@ -230,6 +252,66 @@ le::Collider::Collider() :
 le::Collider::~Collider()
 {
 	RemoveAllShapes();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register body on update this collider
+// ------------------------------------------------------------------------------------ //
+void le::Collider::RegisterBody( le::Body* Body )
+{
+	LIFEENGINE_ASSERT( Body );
+	bodies.push_back( Body );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Unregister body from update this collider
+// ------------------------------------------------------------------------------------ //
+void le::Collider::UnregisterBody( le::Body* Body )
+{
+	if ( bodies.empty() ) return;
+
+	for ( UInt32_t index = 0, count = bodies.size(); index < count; ++index )
+		if ( bodies[ index ] == Body )
+		{
+			bodies.erase( bodies.begin() + index );
+			return;
+		}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Update transformation shapes
+// ------------------------------------------------------------------------------------ //
+void le::Collider::UpdateTransformation()
+{
+	btTransform				transform;
+	Matrix4x4_t				matrixTransform = glm::scale( scale );
+	transform.setFromOpenGLMatrix( glm::value_ptr( matrixTransform ) );
+
+	for ( UInt32_t index = 0, count = shape.getNumChildShapes(); index < count; ++index )
+		shape.updateChildTransform( index, transform );
+
+	UpdateBodies();
+	isNeadUpdateTransformation = false;
+}
+
+// ------------------------------------------------------------------------------------ //
+// NeadUpdateTransformation
+// ------------------------------------------------------------------------------------ //
+inline void le::Collider::NeadUpdateTransformation()
+{
+	if ( isNeadUpdateTransformation ) return;
+
+	g_physicsSystem->UpdateCollider( this );
+	isNeadUpdateTransformation = true;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Update all bodies
+// ------------------------------------------------------------------------------------ //
+void le::Collider::UpdateBodies()
+{
+	for ( UInt32_t index = 0, count = bodies.size(); index < count; ++index )
+		bodies[ index ]->UpdateLocalInertia();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -287,7 +369,7 @@ le::Collider::ColliderMeshDescriptor::~ColliderMeshDescriptor()
 void le::Collider::Scale( const le::Vector3D_t& FactorScale )
 {
 	scale += FactorScale;
-	shape.setLocalScaling( btVector3( scale.x, scale.y, scale.z ) );
+	NeadUpdateTransformation();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -296,7 +378,7 @@ void le::Collider::Scale( const le::Vector3D_t& FactorScale )
 void le::Collider::SetScale( const le::Vector3D_t& Scale )
 {
 	scale = Scale;
-	shape.setLocalScaling( btVector3( Scale.x, Scale.y, Scale.z ) );
+	NeadUpdateTransformation();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -305,4 +387,22 @@ void le::Collider::SetScale( const le::Vector3D_t& Scale )
 const le::Vector3D_t& le::Collider::GetScale() const
 {
 	return scale;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Add shape
+// ------------------------------------------------------------------------------------ //
+void le::Collider::AddShape( le::IPhysicsModel* PhysicsModel, const le::Matrix4x4_t& LocalTransormation )
+{
+	LIFEENGINE_ASSERT( PhysicsModel );
+	if ( !PhysicsModel->IsInitializedMesh() ) return;
+
+	ShapeDescriptor			shapeDescriptor;
+	shapeDescriptor.type = ST_PHYSICSMODEL;
+	shapeDescriptor.shape = static_cast< le::PhysicsModel* >( PhysicsModel )->GetMesh();
+
+	btTransform		transform;
+	transform.setIdentity();
+	transform.setFromOpenGLMatrix( glm::value_ptr( LocalTransormation ) );
+	shape.addChildShape( transform, ( btCollisionShape* ) shapeDescriptor.shape );
 }

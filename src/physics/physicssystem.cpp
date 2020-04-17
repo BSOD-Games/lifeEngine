@@ -21,6 +21,7 @@
 #include "engine/icamera.h"
 #include "physics/physicssystem.h"
 #include "physics/body.h"
+#include "physics/collider.h"
 #include "physics/charactercontroller.h"
 #include "studiorender/istudiorender.h"
 #include "global.h"
@@ -63,6 +64,15 @@ bool le::PhysicsSystem::Initialize( le::IEngine* Engine )
 void le::PhysicsSystem::Update()
 {
 	if ( !isInitialize ) return;
+
+	// If we neaded update collider - update
+	if ( !updateColliders.empty() )
+	{
+		for ( auto it = updateColliders.begin(), itEnd = updateColliders.end(); it != itEnd; ++it )
+			(*it)->UpdateTransformation();
+
+		updateColliders.clear();
+	}
 
 	dynamicsWorld->stepSimulation( PHYSICS_TIME_STEP, maxSubSteps, fixedTimeStep );
 
@@ -123,7 +133,15 @@ le::PhysicsSystem::~PhysicsSystem()
 			debugCamera->Release();
 		else
 			debugCamera->DecrementReference();
-	}	
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Update collider
+// ------------------------------------------------------------------------------------ //
+void le::PhysicsSystem::UpdateCollider( le::Collider* Collider )
+{
+	updateColliders.push_back( Collider );
 }
 
 // ------------------------------------------------------------------------------------ //

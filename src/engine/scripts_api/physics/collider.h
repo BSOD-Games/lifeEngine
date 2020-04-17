@@ -19,6 +19,7 @@
 #include "shapemeshdescriptor.h"
 #include "shapeconedescriptor.h"
 #include "shapeconvexhulldescriptor.h"
+#include "physicsmodel.h"
 
 //---------------------------------------------------------------------//
 
@@ -49,6 +50,9 @@ extern void					Collider_AddMesh( collider_t Object, shapeMeshDescriptor_t Shape
 
 /* Add cone */
 extern void					Collider_AddCone( collider_t Object, shapeConeDescriptor_t Shape, mat4_t LocalTransformation );
+
+/* Add physics model */
+extern void					Collider_AddPhysicsModel( collider_t Object, physicsModel_t PhysicsModel, mat4_t LocalTransformation );
 
 /* Add convex hull */
 extern void					Collider_AddConvexHull( collider_t Object, shapeConvexHullDescriptor_t Shape, mat4_t LocalTransformation );

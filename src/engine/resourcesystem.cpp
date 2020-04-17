@@ -26,8 +26,7 @@
 #include "engine/imaterialproxy.h"
 #include "engine/materialproxyvar.h"
 #include "engine/script.h"
-#include "physics/icollider.h"
-#include "physics/shapemeshdescriptor.h"
+#include "physics/iphysicsmodel.h"
 #include "studiorender/istudiorender.h"
 #include "studiorender/itexture.h"
 #include "studiorender/imesh.h"
@@ -816,7 +815,7 @@ le::IScript* LE_LoadScript( const char* Path, le::UInt32_t CountFunctions, le::S
 // ------------------------------------------------------------------------------------ //
 // Loading collider
 // ------------------------------------------------------------------------------------ //
-le::ICollider* LE_LoadCollider( const char* Path, le::IFactory* PhysicsSystemFactory )
+le::IPhysicsModel* LE_LoadPhysicsModel( const char* Path, le::IFactory* PhysicsSystemFactory )
 {
 	std::ifstream				file( Path, std::ios::binary );
 	if ( !file.is_open() )		return nullptr;
@@ -853,18 +852,12 @@ le::ICollider* LE_LoadCollider( const char* Path, le::IFactory* PhysicsSystemFac
 
 	if ( verteces.empty() ) return nullptr;
 
-	// Creating collider
-	le::ICollider*					collider = ( le::ICollider* ) PhysicsSystemFactory->Create( COLLIDER_INTERFACE_VERSION );
-	if ( !collider )	return nullptr;
+	// Creating physics models
+	le::IPhysicsModel*		physicsModel = ( le::IPhysicsModel* ) PhysicsSystemFactory->Create( PHYSICSMODEL_INTERFACE_VERSION );
+	if ( !physicsModel )	return nullptr;
 
-	le::ShapeMeshDescriptor			shapeMeshDescriptor;
-	shapeMeshDescriptor.indeces = indeces.data();
-	shapeMeshDescriptor.verteces = verteces.data();
-	shapeMeshDescriptor.countIndeces = indeces.size();
-	shapeMeshDescriptor.countVerteces = verteces.size();
-	collider->AddShape( shapeMeshDescriptor, glm::mat4( 1.f ) );
-
-	return collider;
+	physicsModel->InitializeMesh( verteces.data(), verteces.size(), indeces.data(), indeces.size() );
+	return physicsModel;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1465,7 +1458,7 @@ void le::ResourceSystem::UnloadAll()
     UnloadFonts();
     UnloadMaterials();
     UnloadTextures();
-	UnloadColliders();
+	UnloadPhysicsModels();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1557,7 +1550,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
         RegisterLoader_Level( "bsp", LE_LoadLevel );
         RegisterLoader_Font( "ttf", LE_LoadFont );
 		RegisterLoader_Script( "c", LE_LoadScript );
-		RegisterLoader_Collider( "phy", LE_LoadCollider );
+		RegisterLoader_PhysicsModel( "phy", LE_LoadPhysicsModel );
     }
     catch ( std::exception & Exception )
     {
@@ -1726,115 +1719,115 @@ le::IScript* le::ResourceSystem::GetScript( const char* Name ) const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Register loader for collider
+// Register loader for physics model
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterLoader_Collider( const char* Format, LoadColliderFn_t LoadCollider )
+void le::ResourceSystem::RegisterLoader_PhysicsModel( const char *Format, LoadPhysicsModelFn_t LoadPhysicsModel )
 {
 	LIFEENGINE_ASSERT( Format );
-	LIFEENGINE_ASSERT( LoadCollider );
+	LIFEENGINE_ASSERT( LoadPhysicsModel );
 
-	g_consoleSystem->PrintInfo( "Loader LoadCollider for format [%s] registered", Format );
-	loaderColliders[ Format ] = LoadCollider;
+	g_consoleSystem->PrintInfo( "Loader physics model for format [%s] registered", Format );
+	loaderPhysicsModels[ Format ] = LoadPhysicsModel;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Unregister loader for collider
+// Unregister loader for physics model
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnregisterLoader_Collider( const char* Format )
+void le::ResourceSystem::UnregisterLoader_PhysicsModel( const char *Format )
 {
 	LIFEENGINE_ASSERT( Format );
 
-	auto		it = loaderColliders.find( Format );
-	if ( it == loaderColliders.end() ) return;
+	auto		it = loaderPhysicsModels.find( Format );
+	if ( it == loaderPhysicsModels.end() ) return;
 
-	loaderColliders.erase( it );
-	g_consoleSystem->PrintInfo( "Loader collider for format [%s] unregistered", Format );
+	loaderPhysicsModels.erase( it );
+	g_consoleSystem->PrintInfo( "Loader physics model for format [%s] unregistered", Format );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Unload collider
+// Unload physics model
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnloadCollider( const char* Name )
+void le::ResourceSystem::UnloadPhysicsModel( const char *Name )
 {
 	LIFEENGINE_ASSERT( Name );
 
-	auto				it = colliders.find( Name );
-	if ( it == colliders.end() || it->second->GetCountReferences() > 1 )	return;
+	auto				it = physicsModels.find( Name );
+	if ( it == physicsModels.end() || it->second->GetCountReferences() > 1 )	return;
 
 	it->second->Release();
-	colliders.erase( it );
+	physicsModels.erase( it );
 
-	g_consoleSystem->PrintInfo( "Unloaded collider [%s]", Name );
+	g_consoleSystem->PrintInfo( "Unloaded physics model [%s]", Name );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Load collider
+// Load physics model
 // ------------------------------------------------------------------------------------ //
-le::ICollider* le::ResourceSystem::LoadCollider( const char* Name, const char* Path )
+le::IPhysicsModel* le::ResourceSystem::LoadPhysicsModel( const char *Name, const char *Path )
 {
 	LIFEENGINE_ASSERT( Name );
 	LIFEENGINE_ASSERT( Path );
 
 	try
 	{
-		if ( colliders.find( Name ) != colliders.end() )	return colliders[ Name ];
-		if ( loaderColliders.empty() )						throw std::runtime_error( "No collider loaders" );
+		if ( physicsModels.find( Name ) != physicsModels.end() )	return physicsModels[ Name ];
+		if ( loaderPhysicsModels.empty() )							throw std::runtime_error( "No physics model loaders" );
 
 		std::string			path = gameDir + "/" + Path;
 
-		g_consoleSystem->PrintInfo( "Loading collider [%s] with name [%s]", Path, Name );
+		g_consoleSystem->PrintInfo( "Loading physics model [%s] with name [%s]", Path, Name );
 
 		std::string			format = GetFormatFile( path );
 		if ( format.empty() )								throw std::runtime_error( "In collider format not found" );
 
-		auto				parser = loaderColliders.find( format );
-		if ( parser == loaderColliders.end() )		throw std::runtime_error( "Loader for format collider not found" );
+		auto				parser = loaderPhysicsModels.find( format );
+		if ( parser == loaderPhysicsModels.end() )			throw std::runtime_error( "Loader for format physics model not found" );
 
-		le::ICollider*			collider = parser->second( path.c_str(), g_physicsSystemFactory );
-		if ( !collider )		throw std::runtime_error( "Fail loading collider" );
+		le::IPhysicsModel*			physicsModel = parser->second( path.c_str(), g_physicsSystemFactory );
+		if ( !physicsModel )		throw std::runtime_error( "Fail loading physics model" );
 
-		collider->IncrementReference();
-		colliders.insert( std::make_pair( Name, collider ) );
+		physicsModel->IncrementReference();
+		physicsModels.insert( std::make_pair( Name, physicsModel ) );
 		g_consoleSystem->PrintInfo( "Loaded collider [%s]", Name );
 
-		return collider;
+		return physicsModel;
 	}
 	catch ( std::exception & Exception )
 	{
-		g_consoleSystem->PrintError( "Collider [%s] not loaded: %s", Path, Exception.what() );
+		g_consoleSystem->PrintError( "Physics model [%s] not loaded: %s", Path, Exception.what() );
 		return nullptr;
 	}
 }
 
 // ------------------------------------------------------------------------------------ //
-// Unload colliders
+// Unload physics models
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnloadColliders()
+void le::ResourceSystem::UnloadPhysicsModels()
 {
-	if ( colliders.empty() ) return;
+	if ( physicsModels.empty() ) return;
 
-	for ( auto it = colliders.begin(), itEnd = colliders.end(); it != itEnd; )
+	for ( auto it = physicsModels.begin(), itEnd = physicsModels.end(); it != itEnd; )
 		if ( it->second->GetCountReferences() <= 1 )
 		{
 			it->second->Release();
 
-			g_consoleSystem->PrintInfo( "Unloaded collider [%s]", it->first.c_str() );
-			it = colliders.erase( it );
-			itEnd = colliders.end();
+			g_consoleSystem->PrintInfo( "Unloaded physics model [%s]", it->first.c_str() );
+			it = physicsModels.erase( it );
+			itEnd = physicsModels.end();
 		}
 		else
 			++it;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get collider
+// Get physics model
 // ------------------------------------------------------------------------------------ //
-le::ICollider* le::ResourceSystem::GetCollider( const char* Name ) const
+le::IPhysicsModel* le::ResourceSystem::GetPhysicsModel( const char *Name ) const
 {
 	LIFEENGINE_ASSERT( Name );
 
-	auto	it = colliders.find( Name );
-	if ( it != colliders.end() )	return it->second;
+	auto	it = physicsModels.find( Name );
+	if ( it != physicsModels.end() )	return it->second;
 
 	return nullptr;
 }

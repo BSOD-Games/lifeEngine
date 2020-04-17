@@ -153,33 +153,33 @@ scripts_api::font_t scripts_api::ResourceSystem_GetFont( const char* Name )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Load collider
+// Load physics model
 // ------------------------------------------------------------------------------------ //
-scripts_api::collider_t scripts_api::ResourceSystem_LoadCollider( const char* Name, const char* Path )
+scripts_api::physicsModel_t scripts_api::ResourceSystem_LoadPhysicsModel( const char* Name, const char* Path )
 {
-	return le::g_resourceSystem->LoadCollider( Name, Path );
+	return le::g_resourceSystem->LoadPhysicsModel( Name, Path );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Unload collider
+// Unload physics model
 // ------------------------------------------------------------------------------------ //
-void scripts_api::ResourceSystem_UnloadCollider( const char* Name )
+void scripts_api::ResourceSystem_UnloadPhysicsModel( const char* Name )
 {
-	return le::g_resourceSystem->UnloadCollider( Name );
+	return le::g_resourceSystem->UnloadPhysicsModel( Name );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Unload colliders
+// Unload physics models
 // ------------------------------------------------------------------------------------ //
-void scripts_api::ResourceSystem_UnloadColliders()
+void scripts_api::ResourceSystem_UnloadPhysicsModels()
 {
-	return le::g_resourceSystem->UnloadColliders();
+	return le::g_resourceSystem->UnloadPhysicsModels();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get collider
+// Get physics model
 // ------------------------------------------------------------------------------------ //
-scripts_api::collider_t scripts_api::ResourceSystem_GetCollider( const char* Name )
+scripts_api::physicsModel_t scripts_api::ResourceSystem_GetPhysicsModel( const char* Name )
 {
-	return le::g_resourceSystem->GetCollider( Name );
+	return le::g_resourceSystem->GetPhysicsModel( Name );
 }
