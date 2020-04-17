@@ -57,6 +57,7 @@ namespace le
 		Body();
 		~Body();
 
+		void							UpdateLocalInertia();
 		btRigidBody*					GetHandle() const		{ return rigidBody; }
 
     private:

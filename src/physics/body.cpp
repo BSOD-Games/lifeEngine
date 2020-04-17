@@ -64,10 +64,13 @@ void le::Body::Delete()
 	if ( motionState )		delete motionState;
 	if ( collider )
 	{
-		if ( collider->GetCountShapes() <= 1 )
+		if ( collider->GetCountReferences() <= 1 )
 			collider->Release();
 		else
+		{
 			collider->DecrementReference();
+			collider->UnregisterBody( this );
+		}
 	}
 
 	transform = nullptr;
@@ -181,6 +184,19 @@ le::Body::~Body()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Update local inertia
+// ------------------------------------------------------------------------------------ //
+void le::Body::UpdateLocalInertia()
+{
+	if ( !collider || !rigidBody ) return;
+
+	btVector3			inertia;
+	collider->GetCollisionShape().calculateLocalInertia( mass, inertia );
+	rigidBody->setMassProps( mass, inertia );
+	this->inertia = Vector3D_t( inertia.getX(), inertia.getY(), inertia.getZ() );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Create body
 // ------------------------------------------------------------------------------------ //
 bool le::Body::Create( ICollider* Collider, float Mass, const Vector3D_t &Inertia, bool IsStatic )
@@ -195,6 +211,7 @@ bool le::Body::Create( ICollider* Collider, float Mass, const Vector3D_t &Inerti
 
 	collider = ( le::Collider* ) Collider;
 	collider->IncrementReference();
+	collider->RegisterBody( this );
 	btCollisionShape*			shape = &collider->GetCollisionShape();
 
 	if ( IsStatic )

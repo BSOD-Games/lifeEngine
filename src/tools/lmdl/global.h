@@ -18,6 +18,7 @@
 extern std::string				g_sourceFile;
 extern std::string				g_outputFile;
 extern std::string				g_materialsDir;
+extern std::string				g_collisionFile;
 
 //---------------------------------------------------------------------//
 

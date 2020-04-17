@@ -7,11 +7,6 @@ cmake_minimum_required( VERSION 3.7 )
 file( GLOB SOURCE_FILES "*.h" "*.cpp" "../public/stdshaders/*.h" "glsl/*.glsl" )
 set( MODULE_NAME stdshaders )
 
-set( SHADERCOMPILE_FILE CACHE FILEPATH "Path to shadercompile" )
-if ( NOT SHADERCOMPILE_FILE )
-    message( SEND_ERROR "Error: shadercompile not set" )
-endif()
-
 #   Платформозависимые исходники для Windows
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
     set( ICON resource.rc )
@@ -45,20 +40,18 @@ install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
 #   --- Настройки компиляции шейдеров ---
 #
 
-add_dependencies( ${MODULE_NAME} shadercompile )
 file( MAKE_DIRECTORY shaders )
-add_custom_command( TARGET ${MODULE_NAME}
+add_custom_target( shaders COMMAND $<TARGET_FILE:shadercompile> -s "glsl/unlitgeneric_vertex.glsl" -o "shaders/unlitgeneric_vertex"
+    COMMAND  $<TARGET_FILE:shadercompile> -s "glsl/unlitgeneric_fragment.glsl" -o "shaders/unlitgeneric_fragment"
+    COMMAND $<TARGET_FILE:shadercompile> -s "glsl/textgeneric_vertex.glsl" -o "shaders/textgeneric_vertex"
+    COMMAND  $<TARGET_FILE:shadercompile> -s "glsl/textgeneric_fragment.glsl" -o "shaders/textgeneric_fragment"
+    COMMAND $<TARGET_FILE:shadercompile> -s "glsl/testshader_vertex.glsl" -o "shaders/testshader_vertex"
+    COMMAND  $<TARGET_FILE:shadercompile> -s "glsl/testshader_fragment.glsl" -o "shaders/testshader_fragment"
+    COMMAND $<TARGET_FILE:shadercompile> -s "glsl/spritegeneric_vertex.glsl" -o "shaders/spritegeneric_vertex"
+    COMMAND  $<TARGET_FILE:shadercompile> -s "glsl/spritegeneric_fragment.glsl" -o "shaders/spritegeneric_fragment"
+    COMMAND $<TARGET_FILE:shadercompile> -s "glsl/lightmappedgeneric_vertex.glsl" -o "shaders/lightmappedgeneric_vertex"
+    COMMAND  $<TARGET_FILE:shadercompile> -s "glsl/lightmappedgeneric_fragment.glsl" -o "shaders/lightmappedgeneric_fragment"
 
-COMMAND $<TARGET_FILE:shadercompile> -s "glsl/unlitgeneric_vertex.glsl" -o "shaders/unlitgeneric_vertex"
-COMMAND  $<TARGET_FILE:shadercompile> -s "glsl/unlitgeneric_fragment.glsl" -o "shaders/unlitgeneric_fragment"
-COMMAND $<TARGET_FILE:shadercompile> -s "glsl/textgeneric_vertex.glsl" -o "shaders/textgeneric_vertex"
-COMMAND  $<TARGET_FILE:shadercompile> -s "glsl/textgeneric_fragment.glsl" -o "shaders/textgeneric_fragment"
-COMMAND $<TARGET_FILE:shadercompile> -s "glsl/testshader_vertex.glsl" -o "shaders/testshader_vertex"
-COMMAND  $<TARGET_FILE:shadercompile> -s "glsl/testshader_fragment.glsl" -o "shaders/testshader_fragment"
-COMMAND $<TARGET_FILE:shadercompile> -s "glsl/spritegeneric_vertex.glsl" -o "shaders/spritegeneric_vertex"
-COMMAND  $<TARGET_FILE:shadercompile> -s "glsl/spritegeneric_fragment.glsl" -o "shaders/spritegeneric_fragment"
-COMMAND $<TARGET_FILE:shadercompile> -s "glsl/lightmappedgeneric_vertex.glsl" -o "shaders/lightmappedgeneric_vertex"
-COMMAND  $<TARGET_FILE:shadercompile> -s "glsl/lightmappedgeneric_fragment.glsl" -o "shaders/lightmappedgeneric_fragment"
-
-WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-COMMENT "Generated shaders" )
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "*** Generated shaders ***" )
+add_dependencies( ${MODULE_NAME} shaders )

@@ -30,6 +30,7 @@ namespace le
 	class IInputSystem;
     class IMaterialManager;
     class IPhysicsSystem;
+	class IScriptSystem;
 
 	//---------------------------------------------------------------------//
 
@@ -51,6 +52,7 @@ namespace le
 		virtual IInputSystem*			GetInputSystem() const = 0;
         virtual IMaterialManager*       GetMaterialManager() const = 0;
         virtual IPhysicsSystem*         GetPhysicsSystem() const = 0;
+		virtual IScriptSystem*			GetScriptSystem() const = 0;
 		virtual IWindow*				GetWindow() const = 0;
 		virtual IFactory*				GetFactory() const = 0;
 		virtual float					GetDeltaTime() const = 0;

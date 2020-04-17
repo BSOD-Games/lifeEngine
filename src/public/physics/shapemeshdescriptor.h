@@ -19,12 +19,12 @@ namespace le
 {
     //---------------------------------------------------------------------//
 
-	struct ShapeMeshDescriptor
+    struct ShapeMeshDescriptor
     {
-		int             countVerteces;
-		Vector3D_t*     verteces;
-		int             countIndeces;
-		int*            indeces;
+        UInt32_t        countVerteces;
+        Vector3D_t*     verteces;
+        UInt32_t        countIndeces;
+        UInt32_t*       indeces;
     };
 
     //---------------------------------------------------------------------//

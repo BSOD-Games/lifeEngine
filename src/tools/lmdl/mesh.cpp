@@ -20,8 +20,8 @@
 #include "global.h"
 #include "mesh.h"
 
-#define LMD_ID			"LMD"
-#define LMD_VERSION		2
+#define MDL_ID			"LMDL"
+#define MDL_VERSION		1
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
@@ -43,6 +43,10 @@ Mesh::~Mesh()
 // ------------------------------------------------------------------------------------ //
 void Mesh::Load( const std::string& Path )
 {
+	std::cout << "Model loading\n";
+
+	if ( Path.empty() )		throw std::runtime_error( "Path to mesh is empty" );
+
 	// Loading mesh with help Assimp
 	Assimp::Importer		import;
 	const aiScene*			scene = import.ReadFile( Path.c_str(), aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals | aiProcess_LimitBoneWeights | aiProcess_Triangulate );
@@ -58,9 +62,9 @@ void Mesh::Load( const std::string& Path )
 
 	// Go through the material ID, take the mesh and write its vertices, and indices
 	// to the shared buffer
-	Surface					surface;
-	Vertex					vertex;
-	std::vector<Vertex>		vertexBuffer;
+	MDLSurface					surface;
+	MDLVertex					vertex;
+	std::vector<MDLVertex>		vertexBuffer;
 	for ( auto itRoot = meshes.begin(), itRootEnd = meshes.end(); itRoot != itRootEnd; ++itRoot )
 	{
 		surface.startVertexIndex = indices.size();
@@ -166,7 +170,9 @@ void Mesh::Load( const std::string& Path )
 		}
 	}
 
+	import.FreeScene();
 	isLoaded = true;
+
 	std::cout << "Model loaded\n";
 }
 
@@ -175,49 +181,36 @@ void Mesh::Load( const std::string& Path )
 // ------------------------------------------------------------------------------------ //
 void Mesh::Save( const std::string& Path )
 {
-	std::ofstream				file( Path + ".lmd", std::ios::binary );
-	if ( !file.is_open() )		throw std::runtime_error( "Failed create file" );
+	if ( !isLoaded )					throw std::runtime_error( "Mesh not loaded" );
+	std::ofstream						file( Path + ".mdl", std::ios::binary );
+	if ( !file.is_open() )				throw std::runtime_error( "Failed create file" );
 
 	// Write header fille
-	const le::UInt16_t			version = LMD_VERSION;
-	file.write( LMD_ID, 3 );
-	file.write( ( char* ) &version, sizeof( le::UInt16_t ) );
+	MDLHeader			mdlHeader;
+	memcpy( mdlHeader.strId, MDL_ID, sizeof( char ) * 4 );
+	mdlHeader.version = MDL_VERSION;
+	file.write( ( char* ) &mdlHeader, sizeof( MDLHeader ) );
 
-	// Write materials in mesh
-	le::UInt32_t			countMaterials = materials.size();
-	file.write( ( char* ) &countMaterials, sizeof( le::UInt32_t ) );
-	for ( uint32_t index = 0; index < countMaterials; ++index )
-	{
-		std::string*		nameMaterial = &materials[ index ];
-		le::UInt32_t		sizeString = 0;
+	// Write null info lumps
+	MDLLump				mdlLumps[ ML_MAX_LUMPS ];
+	le::UInt32_t		offsetToLumps = file.tellp();
+	memset( mdlLumps, 0, sizeof( MDLLump ) * ML_MAX_LUMPS );
+	file.write( ( char* ) &mdlLumps[ 0 ], sizeof( MDLLump ) * ML_MAX_LUMPS );
 
-		sizeString = nameMaterial->size();
-		file.write( ( char* ) &sizeString, sizeof( le::UInt32_t ) );
-		file.write( nameMaterial->data(), sizeString );
-	}
+	// Write materials
+	WriteMaterials( file, mdlLumps[ ML_MATERIALS ] );
 
 	// Write verteces
-	le::UInt32_t					countVerteces = verteces.size();
-	file.write( ( char* ) &countVerteces, sizeof( le::UInt32_t ) );
-	file.write( ( char* ) &verteces[ 0 ], countVerteces * sizeof( Vertex ) );
+	WriteVerteces( file, mdlLumps[ ML_VERTECES ] );
 
 	// Write indeces
-	le::UInt32_t					countIndeces = indices.size();
-	file.write( ( char* ) &countIndeces, sizeof( le::UInt32_t ) );
-	file.write( ( char* ) &indices[ 0 ], countIndeces * sizeof( le::UInt32_t ) );
+	WriteIndeces( file, mdlLumps[ ML_INDECES ] );
 
 	// Write surfaces
-	Surface*				surface;
-	le::UInt32_t			countSurfaces = surfaces.size();
-	file.write( ( char* ) &countSurfaces, sizeof( le::UInt32_t ) );
-	for ( le::UInt32_t index = 0; index < countSurfaces; ++index )
-	{
-		surface = &surfaces[ index ];
+	WriteSurfaces( file, mdlLumps[ ML_SURFACES ] );
 
-		file.write( ( char* ) &surface->materialId, sizeof( le::UInt32_t ) );
-		file.write( ( char* ) &surface->startVertexIndex, sizeof( le::UInt32_t ) );
-		file.write( ( char* ) &surface->countVertexIndex, sizeof( le::UInt32_t ) );
-	}
+	// Update lumps
+	UpdateLumps( file, &mdlLumps[ 0 ], offsetToLumps );
 
 	std::cout << "Model saved\n";
 }
@@ -229,12 +222,12 @@ void Mesh::Clear()
 {
 	verteces.clear();
 	indices.clear();
-	surfaces.clear();
 	materials.clear();
+	surfaces.clear();
 	isLoaded = false;
 }
 
-// ------------------------------------------------------------------------------------ //
+// ----------------------------------------------------------------------------------- //
 // Process node scene in assimp
 // ------------------------------------------------------------------------------------ //
 void Mesh::ProcessNode( aiNode* Node, const aiScene* Scene, std::unordered_map<le::UInt32_t, std::vector< aiMesh* > >& Meshes )
@@ -247,9 +240,82 @@ void Mesh::ProcessNode( aiNode* Node, const aiScene* Scene, std::unordered_map<l
 }
 
 // ------------------------------------------------------------------------------------ //
+// Update lumps in file
+// ------------------------------------------------------------------------------------ //
+void Mesh::UpdateLumps( std::ofstream& File, Mesh::MDLLump* Lumps, le::UInt32_t OffsetToLumps )
+{
+	File.seekp( OffsetToLumps, std::ios::beg );
+	File.write( ( char* ) &Lumps[ 0 ], sizeof( MDLLump ) * ML_MAX_LUMPS );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Write materials to file
+// ------------------------------------------------------------------------------------ //
+void Mesh::WriteMaterials( std::ofstream& File, Mesh::MDLLump& Lump )
+{
+	le::UInt32_t			countMaterials = materials.size();
+	le::UInt32_t			totalSizeLump = countMaterials * sizeof( le::UInt32_t );
+
+	for ( le::UInt32_t index = 0; index < countMaterials; ++index )
+		totalSizeLump += materials[ index ].size();
+
+	Lump.offset = File.tellp();
+	Lump.length = totalSizeLump;
+
+	File.write( ( char* ) &countMaterials, sizeof( le::UInt32_t ) );
+	for ( le::UInt32_t index = 0; index < countMaterials; ++index )
+	{
+		std::string&			path = materials[ index ];
+		le::UInt32_t			sizePath = path.size();
+
+		File.write( ( char* ) &sizePath, sizeof( le::UInt32_t ) );
+		File.write( path.data(), sizePath * sizeof( char ) );
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Write verteces to file
+// ------------------------------------------------------------------------------------ //
+void Mesh::WriteVerteces( std::ofstream& File, Mesh::MDLLump& Lump )
+{
+	le::UInt32_t		countVerteces = verteces.size();
+	Lump.offset = File.tellp();
+	Lump.length = countVerteces * sizeof( MDLVertex );
+
+	File.write( ( char* ) &countVerteces, sizeof( le::UInt32_t ) );
+	File.write( ( char* ) &verteces[ 0 ], countVerteces * sizeof( MDLVertex ) );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Write indeces to file
+// ------------------------------------------------------------------------------------ //
+void Mesh::WriteIndeces( std::ofstream& File, Mesh::MDLLump& Lump )
+{
+	le::UInt32_t		countIndeces = indices.size();
+	Lump.offset = File.tellp();
+	Lump.length = countIndeces * sizeof( le::UInt32_t );
+
+	File.write( ( char* ) &countIndeces, sizeof( le::UInt32_t ) );
+	File.write( ( char* ) &indices[ 0 ], countIndeces * sizeof( le::UInt32_t ) );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Write surfaces to file
+// ------------------------------------------------------------------------------------ //
+void Mesh::WriteSurfaces( std::ofstream& File, Mesh::MDLLump& Lump )
+{
+	le::UInt32_t		countSurfaces = surfaces.size();
+	Lump.offset = File.tellp();
+	Lump.length = countSurfaces * sizeof( MDLSurface );
+
+	File.write( ( char* ) &countSurfaces, sizeof( le::UInt32_t ) );
+	File.write( ( char* ) &surfaces[ 0 ], countSurfaces * sizeof( MDLSurface ) );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
-Vertex::Vertex()
+Mesh::MDLVertex::MDLVertex()
 {
 	position[ 0 ] = 0.f;
 	position[ 1 ] = 0.f;
@@ -274,7 +340,7 @@ Vertex::Vertex()
 // ------------------------------------------------------------------------------------ //
 // Operator ==
 // ------------------------------------------------------------------------------------ //
-bool Vertex::operator==( const Vertex& Right )
+bool Mesh::MDLVertex::operator==( const MDLVertex& Right )
 {
 	return
 			position[ 0 ] == Right.position[ 0 ] &&
@@ -300,7 +366,7 @@ bool Vertex::operator==( const Vertex& Right )
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
-Surface::Surface() :
+Mesh::MDLSurface::MDLSurface() :
 	materialId( 0 ),
 	startVertexIndex( 0 ),
 	countVertexIndex( 0 )

@@ -127,7 +127,7 @@ le::MaterialManager::MaterialManager() :
 // ------------------------------------------------------------------------------------ //
 le::MaterialManager::~MaterialManager()
 {
-    RemoveAllProxes();
+	RemoveAllProxes();
 }
 
 // ------------------------------------------------------------------------------------ //

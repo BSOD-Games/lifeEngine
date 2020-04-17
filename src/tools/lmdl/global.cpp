@@ -13,3 +13,4 @@
 std::string				g_sourceFile;
 std::string				g_outputFile;
 std::string				g_materialsDir;
+std::string				g_collisionFile;

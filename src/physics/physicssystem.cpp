@@ -21,6 +21,7 @@
 #include "engine/icamera.h"
 #include "physics/physicssystem.h"
 #include "physics/body.h"
+#include "physics/collider.h"
 #include "physics/charactercontroller.h"
 #include "studiorender/istudiorender.h"
 #include "global.h"
@@ -64,10 +65,21 @@ void le::PhysicsSystem::Update()
 {
 	if ( !isInitialize ) return;
 
-	// TODO: move activation bodies to level manager
-	for ( auto it = bodies.begin(), itEnd = bodies.end(); it != itEnd; ++it )
-		if ( !(*it)->IsStatic() )
-			(*it)->Activate();
+	// If we neaded update collider - update
+	if ( !updateColliders.empty() )
+	{
+		for ( auto it = updateColliders.begin(), itEnd = updateColliders.end(); it != itEnd; ++it )
+		{
+			(*it)->UpdateTransformation();
+
+			if ( (*it)->GetCountReferences() <= 1 )
+				(*it)->Release();
+			else
+				(*it)->DecrementReference();
+		}
+
+		updateColliders.clear();
+	}
 
 	dynamicsWorld->stepSimulation( PHYSICS_TIME_STEP, maxSubSteps, fixedTimeStep );
 
@@ -111,6 +123,8 @@ le::PhysicsSystem::PhysicsSystem() :
 // ------------------------------------------------------------------------------------ //
 le::PhysicsSystem::~PhysicsSystem()
 {
+	RemoveAllBodies();
+
 	if ( isInitialize )
 	{
 		delete collisionConfiguration;
@@ -127,8 +141,15 @@ le::PhysicsSystem::~PhysicsSystem()
 		else
 			debugCamera->DecrementReference();
 	}
+}
 
-	RemoveAllBodies();
+// ------------------------------------------------------------------------------------ //
+// Update collider
+// ------------------------------------------------------------------------------------ //
+void le::PhysicsSystem::UpdateCollider( le::Collider* Collider )
+{
+	Collider->IncrementReference();
+	updateColliders.push_back( Collider );
 }
 
 // ------------------------------------------------------------------------------------ //

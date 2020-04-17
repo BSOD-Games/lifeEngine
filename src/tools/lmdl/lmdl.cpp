@@ -16,10 +16,11 @@
 #include "common/types.h"
 #include "global.h"
 #include "mesh.h"
+#include "collision.h"
 
 #define GOLD_DATE				43379			// Oct 8 2019 (start coding lmdl)
 #define LMDL_VERSION_MAJOR		0
-#define LMDL_VERSION_MINOR		2
+#define LMDL_VERSION_MINOR		3
 #define LMDL_VERSION_PATCH		0
 
 // ------------------------------------------------------------------------------------ //
@@ -76,6 +77,7 @@ void PrintUsage()
 			  << "-s | -source\t->\tpath to source file\n"
 			  << "-o | -output\t->\tpath to output file\n"
 			  << "-m | -mat\t->\tpath to materials (relative to the game directory)\n"
+			  << "-c | -collision\t->\tpath to collision mesh\n"
 			  << "-------------------------\n\n"
 			  << "Supported formats:\n"
 			  << "-------------------------\n";
@@ -125,6 +127,13 @@ void ParseArgs( int argc, char** argv )
 			g_materialsDir = argv[ index + 1 ];
 			++index;
 		}
+
+		// Set collision file
+		else if ( ( strstr( argv[ index ], "-c" ) || strstr( argv[ index ], "-collision" ) ) && index + 1 < argc )
+		{
+			g_collisionFile = argv[ index + 1 ];
+			++index;
+		}
 	}
 }
 
@@ -148,11 +157,24 @@ int main( int argc, char** argv )
 				g_materialsDir = "materials/";
 			}
 
-			std::cout << "Model: " << g_sourceFile << std::endl;
+			if ( !g_sourceFile.empty() )
+			{
+				std::cout << "Model: " << g_sourceFile << std::endl;
 
-			Mesh		mesh;
-			mesh.Load( g_sourceFile );
-			mesh.Save( g_outputFile );
+				Mesh		mesh;
+				mesh.Load( g_sourceFile );
+				mesh.Save( g_outputFile );
+			}
+
+			if ( !g_collisionFile.empty() )
+			{
+				std::cout << "\nCollision: " << g_collisionFile << std::endl;
+
+				Collision		collision;
+				collision.Load( g_collisionFile );
+				collision.Save( g_outputFile );
+
+			}
 		}
 		catch ( const std::exception& Exception )
 		{

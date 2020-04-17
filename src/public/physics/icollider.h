@@ -27,6 +27,7 @@ namespace le
 	struct ShapeMeshDescriptor;
 	struct ShapeConeDescriptor;
 	struct ShapeConvexHullDescriptor;
+	class IPhysicsModel;
 
 	//---------------------------------------------------------------------//
 
@@ -34,17 +35,23 @@ namespace le
 	{
 	public:
 		virtual ~ICollider() {}
-		virtual void			AddShape( const ShapeBoxDescriptor& Shape, const Matrix4x4_t& LocalTransormation ) = 0;
-		virtual void			AddShape( const ShapeCylinderDescriptor& Shape, const Matrix4x4_t& LocalTransormation ) = 0;
-		virtual void			AddShape( const ShapeCapsuleDescriptor& Shape, const Matrix4x4_t& LocalTransormation ) = 0;
-		virtual void			AddShape( const ShapeSphereDescriptor& Shape, const Matrix4x4_t& LocalTransormation ) = 0;
-		virtual void			AddShape( const ShapeMeshDescriptor& Shape, const Matrix4x4_t& LocalTransormation ) = 0;
-		virtual void			AddShape( const ShapeConeDescriptor& Shape, const Matrix4x4_t& LocalTransormation ) = 0;
-		virtual void			AddShape( const ShapeConvexHullDescriptor& Shape, const Matrix4x4_t& LocalTransormation ) = 0;
-		virtual void			RemoveShape( UInt32_t Index ) = 0;
-		virtual void			RemoveAllShapes() = 0;
+                virtual void				AddShape( const ShapeBoxDescriptor& Shape, const Matrix4x4_t& LocalTransormation ) = 0;
+                virtual void				AddShape( const ShapeCylinderDescriptor& Shape, const Matrix4x4_t& LocalTransormation ) = 0;
+                virtual void				AddShape( const ShapeCapsuleDescriptor& Shape, const Matrix4x4_t& LocalTransormation ) = 0;
+                virtual void				AddShape( const ShapeSphereDescriptor& Shape, const Matrix4x4_t& LocalTransormation ) = 0;
+                virtual void				AddShape( const ShapeMeshDescriptor& Shape, const Matrix4x4_t& LocalTransormation ) = 0;
+                virtual void				AddShape( const ShapeConeDescriptor& Shape, const Matrix4x4_t& LocalTransormation ) = 0;
+                virtual void				AddShape( const ShapeConvexHullDescriptor& Shape, const Matrix4x4_t& LocalTransormation ) = 0;
+                virtual void				AddShape( IPhysicsModel* PhysicsModel, const Matrix4x4_t& LocalTransormation ) = 0;
+                virtual void				RemoveShape( UInt32_t Index ) = 0;
+                virtual void				RemoveAllShapes() = 0;
+                virtual void				Scale( const Vector3D_t& FactorScale ) = 0;
 
-		virtual UInt32_t		GetCountShapes() const = 0;
+                virtual void				SetScale( const Vector3D_t& Scale ) = 0;
+
+                virtual void				GetAABB( Vector3D_t& Min, Vector3D_t& Max ) const = 0;
+                virtual UInt32_t			GetCountShapes() const = 0;
+		virtual const Vector3D_t&		GetScale() const = 0;
 	};
 
 	//---------------------------------------------------------------------//
@@ -52,7 +59,7 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#define COLLIDER_INTERFACE_VERSION "LE_Collider001"
+#define COLLIDER_INTERFACE_VERSION "LE_Collider002"
 
 //---------------------------------------------------------------------//
 

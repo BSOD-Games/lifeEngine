@@ -4,7 +4,19 @@ cmake_minimum_required( VERSION 2.6 )
 #   --- Задаем переменные ---
 #
 
-file( GLOB SOURCE_FILES "*.h" "*.cpp" "../public/engine/*.h" "../public/common/*.h" )
+file( GLOB SOURCE_FILES "*.h"
+                        "*.cpp"
+                        "../public/engine/*.h"
+                        "../public/common/*.h"
+                        "scripts_api/engine/*.h"
+                        "scripts_api/engine/*.cpp"
+                        "scripts_api/studiorender/*.h"
+                        "scripts_api/studiorender/*.cpp"
+                        "scripts_api/mathlib/*.h"
+                        "scripts_api/mathlib/*.cpp"
+                        "scripts_api/physics/*.h"
+                        "scripts_api/physics/*.cpp"
+                        "scripts_api/common/*.h" )
 set( MODULE_NAME engine )
 
 set( SDL2_PATH ${EXTLIBS_DIR}/SDL2 CACHE PATH "Path to SDL2" )
@@ -12,6 +24,7 @@ set( RAPIDJSON_PATH ${EXTLIBS_DIR} CACHE PATH "Path to RapidJSON" )
 set( GLM_PATH ${EXTLIBS_DIR} CACHE PATH "Path to GLM" )
 set( FREEIMAGE_PATH ${EXTLIBS_DIR}/FreeImage CACHE PATH "Path to FreeImage" )
 set( FREETYPE_PATH ${EXTLIBS_DIR}/freetype CACHE PATH "Path to Freetype" )
+set( TCC_PATH ${EXTLIBS_DIR}/tcc CACHE PATH "Path to Tiny C Compiler" )
 
 #
 #   --- Название модулей движка ---
@@ -67,6 +80,18 @@ include_directories( ../public )
 include_directories( ../ )
 
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
+
+file( GLOB SCRIPTAPI_ENGINE "scripts_api/engine/*.h" )
+file( GLOB SCRIPTAPI_COMMON "scripts_api/common/*.h" )
+file( GLOB SCRIPTAPI_STUDIORENDER "scripts_api/studiorender/*.h" )
+file( GLOB SCRIPTAPI_MATHLIB "scripts_api/mathlib/*.h" )
+file( GLOB SCRIPTAPI_PHYSICS "scripts_api/physics/*.h" )
+
+install( FILES ${SCRIPTAPI_ENGINE} DESTINATION ${BUILD_DIR}/engine/scripts/engine )
+install( FILES ${SCRIPTAPI_COMMON} DESTINATION ${BUILD_DIR}/engine/scripts/common )
+install( FILES ${SCRIPTAPI_STUDIORENDER} DESTINATION ${BUILD_DIR}/engine/scripts/studiorender )
+install( FILES ${SCRIPTAPI_MATHLIB} DESTINATION ${BUILD_DIR}/engine/scripts/mathlib )
+install( FILES ${SCRIPTAPI_PHYSICS} DESTINATION ${BUILD_DIR}/engine/scripts/physics )
 
 #
 #   --- Ищим и подключаем зависимости ---
@@ -129,3 +154,15 @@ else()
     include_directories( ${FREETYPE_INCLUDE} )
     target_link_libraries( ${MODULE_NAME} ${FREETYPE_LIB} )
 endif()  
+
+#---------------
+#   Tiny C Compiler
+
+find_package( TCC REQUIRED )
+if( NOT TCC_FOUND )
+    message( SEND_ERROR "Failed to find Tiny C Compiler" )
+    return()
+else()
+    include_directories( ${TCC_INCLUDE} )
+    target_link_libraries( ${MODULE_NAME} ${TCC_LIB} ${CMAKE_DL_LIBS} )
+endif()
