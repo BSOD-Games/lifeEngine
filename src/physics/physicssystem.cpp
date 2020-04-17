@@ -69,7 +69,14 @@ void le::PhysicsSystem::Update()
 	if ( !updateColliders.empty() )
 	{
 		for ( auto it = updateColliders.begin(), itEnd = updateColliders.end(); it != itEnd; ++it )
+		{
 			(*it)->UpdateTransformation();
+
+			if ( (*it)->GetCountReferences() <= 1 )
+				(*it)->Release();
+			else
+				(*it)->DecrementReference();
+		}
 
 		updateColliders.clear();
 	}
@@ -141,6 +148,7 @@ le::PhysicsSystem::~PhysicsSystem()
 // ------------------------------------------------------------------------------------ //
 void le::PhysicsSystem::UpdateCollider( le::Collider* Collider )
 {
+	Collider->IncrementReference();
 	updateColliders.push_back( Collider );
 }
 

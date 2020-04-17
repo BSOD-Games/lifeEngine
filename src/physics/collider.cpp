@@ -174,7 +174,15 @@ void le::Collider::RemoveShape( le::UInt32_t Index )
 	case ST_BOX:				delete static_cast< btBoxShape* >( shapeDescriptor.shape );						break;
 	case ST_CONVEX_HULL:		delete static_cast< btConvexHullShape* >( shapeDescriptor.shape );				break;
 	case ST_MESH:				delete static_cast< ColliderMeshDescriptor* >( shapeDescriptor.shape );			break;
-	case ST_PHYSICSMODEL:		delete static_cast< btScaledBvhTriangleMeshShape* >( shapeDescriptor.shape );	break;
+	case ST_PHYSICSMODEL:
+	{
+		PhysicsModel*			physicsModel = static_cast< PhysicsModel* >( shapeDescriptor.shape );
+		if ( physicsModel->GetCountReferences() <= 1 )
+			physicsModel->Release();
+		else
+			physicsModel->DecrementReference();
+		break;
+	}
 	case ST_SPHERE:				delete static_cast< btSphereShape* >( shapeDescriptor.shape );					break;
 	case ST_CAPSULE:			delete static_cast< btCapsuleShape* >( shapeDescriptor.shape );					break;
 	case ST_CYLINDER:			delete static_cast< btCylinderShape* >( shapeDescriptor.shape );				break;
@@ -198,7 +206,15 @@ void le::Collider::RemoveAllShapes()
 		case ST_BOX:				delete static_cast< btBoxShape* >( shapeDescriptor.shape );						break;
 		case ST_CONVEX_HULL:		delete static_cast< btConvexHullShape* >( shapeDescriptor.shape );				break;
 		case ST_MESH:				delete static_cast< ColliderMeshDescriptor* >( shapeDescriptor.shape );			break;
-		case ST_PHYSICSMODEL:		delete static_cast< btScaledBvhTriangleMeshShape* >( shapeDescriptor.shape );	break;
+		case ST_PHYSICSMODEL:
+		{
+			PhysicsModel*			physicsModel = static_cast< PhysicsModel* >( shapeDescriptor.shape );
+			if ( physicsModel->GetCountReferences() <= 1 )
+				physicsModel->Release();
+			else
+				physicsModel->DecrementReference();
+			break;
+		}
 		case ST_SPHERE:				delete static_cast< btSphereShape* >( shapeDescriptor.shape );					break;
 		case ST_CAPSULE:			delete static_cast< btCapsuleShape* >( shapeDescriptor.shape );					break;
 		case ST_CYLINDER:			delete static_cast< btCylinderShape* >( shapeDescriptor.shape );				break;
@@ -397,12 +413,14 @@ void le::Collider::AddShape( le::IPhysicsModel* PhysicsModel, const le::Matrix4x
 	LIFEENGINE_ASSERT( PhysicsModel );
 	if ( !PhysicsModel->IsInitializedMesh() ) return;
 
+	le::PhysicsModel*		physicsModel = static_cast< le::PhysicsModel* >( PhysicsModel );
 	ShapeDescriptor			shapeDescriptor;
 	shapeDescriptor.type = ST_PHYSICSMODEL;
-	shapeDescriptor.shape = static_cast< le::PhysicsModel* >( PhysicsModel )->GetMesh();
+	shapeDescriptor.shape = &physicsModel;
 
 	btTransform		transform;
 	transform.setIdentity();
 	transform.setFromOpenGLMatrix( glm::value_ptr( LocalTransormation ) );
-	shape.addChildShape( transform, ( btCollisionShape* ) shapeDescriptor.shape );
+	shape.addChildShape( transform, ( btCollisionShape* ) physicsModel->GetMesh() );
+	physicsModel->IncrementReference();
 }
