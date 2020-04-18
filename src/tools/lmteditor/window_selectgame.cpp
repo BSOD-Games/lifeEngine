@@ -8,6 +8,7 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include "configuration.h"
 #include "window_selectgame.h"
 #include "window_editgame.h"
 #include "ui_window_selectgame.h"
@@ -20,6 +21,12 @@ Window_SelectGame::Window_SelectGame( QWidget* Parent ) :
 	ui( new Ui::Window_SelectGame() )
 {
 	ui->setupUi( this );
+
+	Configuration		configuration;
+	if ( !configuration.Load() ) return;
+
+	games = configuration.GetGames();
+	UpdateListGames();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -35,11 +42,27 @@ Window_SelectGame::~Window_SelectGame()
 // ------------------------------------------------------------------------------------ //
 void Window_SelectGame::on_pushButton_editGames_clicked()
 {
-	Window_EditGame::RESULT_TYPE		result;
-	std::vector<GameDescriptor>			arrayGames = Window_EditGame::EditGames( result, this );
-	if ( result == Window_EditGame::RT_CANCEL ) return;
+	std::vector<GameDescriptor>		editGames = games;
+	Window_EditGame					window_EditGame( editGames, this );
+	Window_EditGame::RESULT_TYPE	Result = ( Window_EditGame::RESULT_TYPE ) window_EditGame.exec();
 
+	if ( Result == Window_EditGame::RT_OK )
+	{
+		Configuration		configurations;
+		configurations.SetGames( editGames );
+		configurations.Save();
+
+		games = editGames;
+		UpdateListGames();
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Update list games in combobox
+// ------------------------------------------------------------------------------------ //
+void Window_SelectGame::UpdateListGames()
+{
 	ui->comboBox_games->clear();
-	for ( int index = 0, count = arrayGames.size(); index < count; ++index )
-		ui->comboBox_games->addItem( arrayGames[ index ].name );
+	for ( int index = 0, count = games.size(); index < count; ++index )
+		ui->comboBox_games->addItem( games[ index ].name );
 }

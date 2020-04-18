@@ -8,12 +8,17 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include <stdexcept>
 #include <qinputdialog.h>
 #include <qfiledialog.h>
+#include <qmessagebox.h>
 #include <QListWidgetItem>
+#include <QCloseEvent>
 
+#include "common/types.h"
 #include "window_editgame.h"
 #include "ui_window_editgame.h"
+#include "configuration.h"
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
@@ -25,6 +30,10 @@ Window_EditGame::Window_EditGame( std::vector<GameDescriptor>& ArrayGames, QWidg
 	ui( new Ui::Window_EditGame() )
 {
 	ui->setupUi( this );
+
+	// Fill list games
+	for ( le::UInt32_t index = 0, count = ArrayGames.size(); index < count; ++index )
+		ui->listWidget_games->addItem( ArrayGames[ index ].name );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -33,18 +42,6 @@ Window_EditGame::Window_EditGame( std::vector<GameDescriptor>& ArrayGames, QWidg
 Window_EditGame::~Window_EditGame()
 {
 	delete ui;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Edit games
-// ------------------------------------------------------------------------------------ //
-std::vector<GameDescriptor> Window_EditGame::EditGames( RESULT_TYPE& Result, QWidget* Parent )
-{
-	std::vector<GameDescriptor>			arrayGames;
-	Window_EditGame			window_EditGame( arrayGames, Parent );
-	Result = ( RESULT_TYPE ) window_EditGame.exec();
-
-	return arrayGames;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -72,6 +69,7 @@ void Window_EditGame::on_pushButton_removeGame_clicked()
 	if ( !selectIndex.isValid() ) return;
 
 	ui->listWidget_games->model()->removeRow( selectIndex.row() );
+	arrayGames->erase( selectIndex.row() + arrayGames->begin() );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -86,6 +84,7 @@ void Window_EditGame::SetEditGame( int IndexEditItem )
 
 		ui->pushButton_removeGame->setEnabled( false );
 		ui->toolButton_gamePath->setEnabled( false );
+		ui->lineEdit_gamePath->setEnabled( false );
 		return;
 	}
 
@@ -93,6 +92,7 @@ void Window_EditGame::SetEditGame( int IndexEditItem )
 	ui->lineEdit_gamePath->setText( currentGame->path );
 	ui->pushButton_removeGame->setEnabled( true );
 	ui->toolButton_gamePath->setEnabled( true );
+	ui->lineEdit_gamePath->setEnabled( true );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -100,7 +100,7 @@ void Window_EditGame::SetEditGame( int IndexEditItem )
 // ------------------------------------------------------------------------------------ //
 void Window_EditGame::on_toolButton_gamePath_clicked()
 {
-	QString			path = QFileDialog::getOpenFileName( this, "Select path to gameinfo.txt", "", "gameinfo.txt" );
+	QString			path = QFileDialog::getExistingDirectory( this, "Select path to game" );
 	if ( path.isEmpty() ) return;
 
 	ui->lineEdit_gamePath->setText( path );
@@ -128,5 +128,31 @@ void Window_EditGame::on_pushButton_cancel_clicked()
 // ------------------------------------------------------------------------------------ //
 void Window_EditGame::on_pushButton_ok_clicked()
 {
+	try
+	{
+		for ( le::UInt32_t index = 0, count = arrayGames->size(); index < count; ++index )
+		{
+			GameDescriptor&			game = arrayGames->at( index );
+			if ( game.name.isEmpty() )		throw std::runtime_error( "In game #" + std::to_string( index+1 ) + " name is empty" );
+			if ( game.path.isEmpty() )		throw std::runtime_error( "In game #" + std::to_string( index+1 ) + " path is empty" );
+		}
+	}
+	catch ( const std::exception& Exception )
+	{
+		QMessageBox::critical( this, "Error lmtedit", Exception.what() );
+		return;
+	}
+
 	done( RT_OK );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event close window
+// ------------------------------------------------------------------------------------ //
+void Window_EditGame::closeEvent( QCloseEvent* Event )
+{
+	if ( Event->type() == QCloseEvent::Close )
+		done( RT_CANCEL );
+
+	Event->accept();
 }

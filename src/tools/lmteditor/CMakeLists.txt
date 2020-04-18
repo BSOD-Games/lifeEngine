@@ -40,6 +40,8 @@ qt5_add_resources ( RCC_SOURCES ${RESOURCES} )
 add_executable( ${MODULE_NAME} WIN32 ${SOURCE_FILES} ${RCC_SOURCES} ${UI_HEADERS} ${FORMS_FILES} ${RESOURCE} )
 target_link_libraries( ${MODULE_NAME} ${CMAKE_DL_LIBS} )
 target_link_libraries( ${MODULE_NAME} Qt5::Widgets Qt5::Core )
+
+install( DIRECTORY styles DESTINATION ${BUILD_DIR}/engine )
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
 
 include_directories( ../../public )

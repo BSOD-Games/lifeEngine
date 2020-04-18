@@ -46,17 +46,17 @@ public:
 	Window_EditGame( std::vector<GameDescriptor>& ArrayGames, QWidget* Parent = nullptr );
 	~Window_EditGame();
 
-	static std::vector<GameDescriptor>		EditGames( RESULT_TYPE& Result, QWidget* Parent = nullptr );
-
 private slots:
 	void			on_pushButton_addGame_clicked();
 	void			on_pushButton_removeGame_clicked();
 	void			on_toolButton_gamePath_clicked();
 	void			on_listWidget_games_currentRowChanged( int currentRow );
+	void			on_pushButton_cancel_clicked();
+	void			on_pushButton_ok_clicked();
 
-	void on_pushButton_cancel_clicked();
-
-	void on_pushButton_ok_clicked();
+protected:
+	// QWidget
+	virtual void	closeEvent( QCloseEvent* Event );
 
 private:
 	void			SetEditGame( int IndexEditItem );

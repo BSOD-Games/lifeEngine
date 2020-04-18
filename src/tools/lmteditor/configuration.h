@@ -8,42 +8,33 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef WINDOW_SELECTGAME_H
-#define WINDOW_SELECTGAME_H
+#ifndef CONFIGURATION_H
+#define CONFIGURATION_H
 
 #include <vector>
-#include <QDialog>
 
 #include "gamedescriptor.h"
 
 //---------------------------------------------------------------------//
 
-namespace Ui
+class Configuration
 {
-	class Window_SelectGame;
-}
-
-//---------------------------------------------------------------------//
-
-class Window_SelectGame : public QDialog
-{
-	Q_OBJECT
-
 public:
-	// Window_SelectGame
-	Window_SelectGame( QWidget* Parent = nullptr );
-	~Window_SelectGame();
+	// Configuration
+	Configuration();
+	~Configuration();
 
-private slots:
-	void				on_pushButton_editGames_clicked();
+	bool									Load();
+	void									Save();
+
+	void									SetGames( const std::vector<GameDescriptor>& Games );
+
+	const std::vector<GameDescriptor>&		GetGames() const;
 
 private:
-	void				UpdateListGames();
-
-	Ui::Window_SelectGame*			ui;
-	std::vector<GameDescriptor>		games;
+	std::vector<GameDescriptor>			games;
 };
 
 //---------------------------------------------------------------------//
 
-#endif // WINDOW_SELECTGAME_H
+#endif // CONFIGURATION_H
