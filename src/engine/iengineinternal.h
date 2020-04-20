@@ -19,21 +19,23 @@
 
 namespace le
 {
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 
-	typedef void			( *CriticalErrorCallbackFn_t )( const char* Message );
+    typedef void			( *CriticalErrorCallbackFn_t )( const char* Message );
 
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 
-	class IEngineInternal : public IEngine
-	{
-	public:
-        virtual bool		Initialize( const char* EngineDirectory, WindowHandle_t WindowHandle = nullptr ) = 0;
-		virtual bool		LoadGame( const char* DirGame, UInt32_t CountArguments = 0, const char** Arguments = nullptr ) = 0;
+    class IEngineInternal : public IEngine
+    {
+    public:
+        virtual bool            Initialize( const char* EngineDirectory, const char* LogFile = "console.log" ) = 0;
+        virtual bool		LoadGame( const char* DirGame, UInt32_t CountArguments = 0, const char** Arguments = nullptr ) = 0;
         virtual void		UnloadGame() = 0;
-	};
 
-	//---------------------------------------------------------------------//
+        virtual const char*     GetEngineDirectory() const = 0;
+    };
+
+    //---------------------------------------------------------------------//
 }
 
 //---------------------------------------------------------------------//

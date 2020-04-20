@@ -12,7 +12,7 @@
 
 #include "common/configurations.h"
 #include "engine/lifeengine.h"
-#include "engine/iengine.h"
+#include "engine/iengineinternal.h"
 #include "engine/iwindow.h"
 #include "engine/iconsolesystem.h"
 #include "engine/iconvar.h"
@@ -38,6 +38,7 @@
 #include "engine/iconcmd.h"
 #include "engine/icamera.h"
 #include "engine/isprite.h"
+#include "studiorender/paths.h"
 
 LIFEENGINE_STUDIORENDER_API( le::StudioRender );
 
@@ -161,65 +162,20 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 	if ( isInitialize ) return true;
 
 	g_consoleSystem = Engine->GetConsoleSystem();
+	g_engine = Engine;
+
 	if ( !g_consoleSystem )
 	{
 		g_consoleSystem->PrintError( "Studiorender requared console system" );
 		return false;
 	}
 
-	// Если в ядре окно не создано (указатель на IWindow nullptr) или
-	// заголовок окна nullptr, то выбрасываем ошибку
+	// Loading std shaders
+	std::string			pathToShadersLib = std::string( static_cast<le::IEngineInternal*>( Engine )->GetEngineDirectory() ) + "/" LIFEENGINE_STDSHADERS_DLL;
+	if ( !shaderManager.LoadShaderDLL( pathToShadersLib.c_str() ) )
+		throw std::runtime_error( "Failed loading stdshaders" );
 
-	if ( !Engine->GetWindow() || !Engine->GetWindow()->GetHandle() )
-	{
-		g_consoleSystem->PrintError( "Window not open or not valid handle" );
-		return false;
-	}
-
-	// Создаем контекст OpenGL
-
-	Configurations				configurations = Engine->GetConfigurations();
-	SettingsContext				settingsContext;
-	settingsContext.redBits = 8;
-	settingsContext.greenBits = 8;
-	settingsContext.blueBits = 8;
-	settingsContext.alphaBits = 8;
-	settingsContext.depthBits = 24;
-	settingsContext.stencilBits = 8;
-	settingsContext.majorVersion = 3;
-	settingsContext.minorVersion = 3;
-	settingsContext.attributeFlags = SettingsContext::CA_CORE;
-
-	if ( !renderContext.Create( Engine->GetWindow()->GetHandle(), settingsContext ) )
-	{
-		g_consoleSystem->PrintError( "Failed created context" );
-		return false;
-	}
-
-	renderContext.SetVerticalSync( configurations.isVerticalSinc );
-
-	// Инициализируем OpenGL
-
-	glEnable( GL_TEXTURE_2D );
-	OpenGLState::Initialize();
-	glPolygonOffset( 1.f, 1.f );
-
-	// Getting configurations videocard
-	GLint			tempValue = 0;
-
-	glGetIntegerv( GL_MAX_TEXTURE_SIZE, &tempValue );
-	deviceConfigurations.maxTextureSize = tempValue;
-
-	viewport.x = viewport.y = 0;
-	Engine->GetWindow()->GetSize( viewport.width, viewport.height );
-
-	if ( !gbuffer.Initialize( Vector2DInt_t( viewport.width, viewport.height ) ) )
-	{
-		g_consoleSystem->PrintError( "Failed initialize GBuffer" );
-		return false;
-	}
-
-	// Инициализируем консольные команды
+	// Register console commands and vars
 	r_wireframe = ( IConVar* ) g_consoleSystem->GetFactory()->Create( CONVAR_INTERFACE_VERSION );
 	r_wireframe->Initialize( "r_wireframe", "0", CVT_BOOL, "Enable wireframe mode", true, 0, true, 1,
 							 []( le::IConVar* Var )
@@ -235,8 +191,73 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 
 	g_consoleSystem->RegisterVar( r_wireframe );
 	g_consoleSystem->RegisterVar( r_showgbuffer );
-	g_engine = Engine;
 
+	isInitialize = true;
+	return true;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Create render context
+// ------------------------------------------------------------------------------------ //
+bool le::StudioRender::CreateContext( le::WindowHandle_t WindowHandle )
+{
+	if ( renderContext.IsCreated() )		return true;
+	if ( !isInitialize )
+	{
+		g_consoleSystem->PrintError( "Studiorender not initialized" );
+		return false;
+	}
+
+	if ( !WindowHandle )
+	{
+		g_consoleSystem->PrintError( "Window handle is nullptr" );
+		return false;
+	}
+
+	g_consoleSystem->PrintInfo( "Creating render context" );
+
+	Configurations				configurations = g_engine->GetConfigurations();
+	SettingsContext				settingsContext;
+	settingsContext.redBits = 8;
+	settingsContext.greenBits = 8;
+	settingsContext.blueBits = 8;
+	settingsContext.alphaBits = 8;
+	settingsContext.depthBits = 24;
+	settingsContext.stencilBits = 8;
+	settingsContext.majorVersion = 3;
+	settingsContext.minorVersion = 3;
+	settingsContext.attributeFlags = SettingsContext::CA_CORE;
+
+	if ( !renderContext.Create( WindowHandle, settingsContext ) )
+	{
+		g_consoleSystem->PrintError( "Failed created context" );
+		return false;
+	}
+
+	renderContext.SetVerticalSync( configurations.isVerticalSinc );
+
+	// Initialize OpenGL
+	glEnable( GL_TEXTURE_2D );
+	OpenGLState::Initialize();
+	glPolygonOffset( 1.f, 1.f );
+
+	// Getting configurations videocard
+	GLint			tempValue = 0;
+
+	glGetIntegerv( GL_MAX_TEXTURE_SIZE, &tempValue );
+	deviceConfigurations.maxTextureSize = tempValue;
+
+	viewport.x = viewport.y = 0;
+	g_engine->GetWindow()->GetSize( viewport.width, viewport.height );
+
+	// Initialize GBuffer
+	if ( !gbuffer.Initialize( Vector2DInt_t( viewport.width, viewport.height ) ) )
+	{
+		g_consoleSystem->PrintError( "Failed initialize GBuffer" );
+		return false;
+	}
+
+	// Initialize primitives
 	quad.Create();
 	sphere.Create();
 	cone.Create();
@@ -308,6 +329,7 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 		vao_DebugPrimitive.Unbind();
 	}
 
+	g_consoleSystem->PrintInfo( "Craeted render context" );
 	return true;
 }
 

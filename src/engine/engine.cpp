@@ -60,7 +60,7 @@ void CMD_Version( le::UInt32_t CountArguments, const char** Arguments )
 // ------------------------------------------------------------------------------------ //
 le::Engine::Engine() :
 	isRunSimulation( false ),
-	isInit( false ),
+	isInitialized( false ),
 	studioRender( nullptr ),
 	studioRenderDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
 	physicSystem( nullptr ),
@@ -90,18 +90,6 @@ le::Engine::Engine() :
 	configurations.sensitivityMouse = 0.15f;
 	configurations.windowWidth = 800;
 	configurations.windowHeight = 600;
-
-	consoleSystem.Initialize();
-	scriptSystem.Initialize( this );
-	inputSystem.Initialize( this );
-
-	cmd_Exit->Initialize( "exit", "close game", CMD_Exit );
-	cmd_Version->Initialize( "version", "show version engine", CMD_Version );
-	cvar_phyDebug->Initialize( "phy_debug", "0", CVT_BOOL, "bool value for showing physics debug info", true, 0.f, true, 1.f, nullptr );
-
-	consoleSystem.RegisterCommand( cmd_Exit );
-	consoleSystem.RegisterCommand( cmd_Version );
-	consoleSystem.RegisterVar( cvar_phyDebug );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -113,7 +101,7 @@ le::Engine::~Engine()
 
 	resourceSystem.UnloadAll();
 
-	if ( physicSystem )     UnloadModule_PhysicsSystem();	
+	if ( physicSystem )     UnloadModule_PhysicsSystem();
 
 	if ( studioRender )		UnloadModule_StudioRender();
 	if ( window.IsOpen() )	window.Close();
@@ -152,8 +140,6 @@ bool le::Engine::LoadModule_StudioRender( const char* PathDLL )
 			studioRenderDescriptor.LE_SetCriticalError( g_criticalError );
 
 		studioRender = ( IStudioRenderInternal* ) studioRenderDescriptor.LE_CreateStudioRender();
-		if ( !studioRender->Initialize( this ) )				throw std::runtime_error( "Fail initialize studiorender" );
-
 		g_studioRender = studioRender;
 		g_studioRenderFactory = studioRender->GetFactory();
 	}
@@ -213,8 +199,6 @@ bool le::Engine::LoadModule_PhysicsSystem( const char *PathDLL )
 			physicSystemDescriptor.LE_SetCriticalError( g_criticalError );
 
 		physicSystem = ( IPhysicsSystemInternal* ) physicSystemDescriptor.LE_CreatePhysicsSystem();
-		if ( !physicSystem->Initialize( this ) )	throw std::runtime_error( "Fail initialize physics system" );
-
 		g_physicsSystem = physicSystem;
 		g_physicsSystemFactory = physicSystem->GetFactory();
 	}
@@ -494,7 +478,12 @@ void le::Engine::RunSimulation()
 {
 	LIFEENGINE_ASSERT( window.IsOpen() && studioRender );
 
-	if ( !game )
+	if ( !isInitialized )
+	{
+		consoleSystem.PrintError( "The simulation is not running because engine not initialized" );
+		return;
+	}
+	else if ( !game )
 	{
 		consoleSystem.PrintError( "The simulation is not running because the game is not loaded" );
 		return;
@@ -701,73 +690,86 @@ const le::Version& le::Engine::GetVersion() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Р�РЅРёС†РёР°Р»РёР·РёСЂРѕРІР°С‚СЊ РґРІРёР¶РѕРє
+// Initialize engine
 // ------------------------------------------------------------------------------------ //
-bool le::Engine::Initialize( const char* EngineDirectory, WindowHandle_t WindowHandle )
+bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile )
 {
-	if ( isInit ) return true;
+	if ( isInitialized ) return true;
 	engineDirectory = EngineDirectory;
 	consoleSystem.PrintInfo( "Initialization lifeEngine" );
 
-	// Р’С‹РІРѕРґРёРј СЃРёСЃС‚РµРјРЅСѓСЋ РёРЅС„РѕСЂРјР°С†РёСЋ
-	SDL_version		sdlVersion;
-	SDL_GetVersion( &sdlVersion );
-
-	consoleSystem.PrintInfo( "*** System info start ****" );
-	consoleSystem.PrintInfo( "  Base path: %s", SDL_GetBasePath() );
-	consoleSystem.PrintInfo( "" );
-	consoleSystem.PrintInfo( "  lifeEngine %s (build %i)", LIFEENGINE_VERSION, Engine_BuildNumber() );
-	consoleSystem.PrintInfo( "  SDL version: %i.%i.%i", sdlVersion.major, sdlVersion.minor, sdlVersion.patch );
-	consoleSystem.PrintInfo( "  Platform: %s", SDL_GetPlatform() );
-	consoleSystem.PrintInfo( "  CPU cache L1 size: %i bytes", SDL_GetCPUCacheLineSize() );
-	consoleSystem.PrintInfo( "  CPU cores: %i", SDL_GetCPUCount() );
-	consoleSystem.PrintInfo( "  RAM: %i MB", SDL_GetSystemRAM() );
-	consoleSystem.PrintInfo( "  Has 3DNow: %s", ( SDL_Has3DNow() == SDL_TRUE ? "true" : "false" ) );
-	consoleSystem.PrintInfo( "  Has AVX: %s", ( SDL_HasAVX() == SDL_TRUE ? "true" : "false" ) );
-	consoleSystem.PrintInfo( "  Has AVX2: %s", ( SDL_HasAVX2() == SDL_TRUE ? "true" : "false" ) );
-	consoleSystem.PrintInfo( "  Has AltiVec: %s", ( SDL_HasAltiVec() == SDL_TRUE ? "true" : "false" ) );
-	consoleSystem.PrintInfo( "  Has MMX: %s", ( SDL_HasMMX() == SDL_TRUE ? "true" : "false" ) );
-	consoleSystem.PrintInfo( "  Has RDTSC: %s", ( SDL_HasRDTSC() == SDL_TRUE ? "true" : "false" ) );
-	consoleSystem.PrintInfo( "  Has SSE: %s", ( SDL_HasSSE() == SDL_TRUE ? "true" : "false" ) );
-	consoleSystem.PrintInfo( "  Has SSE2: %s", ( SDL_HasSSE2() == SDL_TRUE ? "true" : "false" ) );
-	consoleSystem.PrintInfo( "  Has SSE3: %s", ( SDL_HasSSE3() == SDL_TRUE ? "true" : "false" ) );
-	consoleSystem.PrintInfo( "  Has SSE41: %s", ( SDL_HasSSE41() == SDL_TRUE ? "true" : "false" ) );
-	consoleSystem.PrintInfo( "  Has SSE42: %s", ( SDL_HasSSE42() == SDL_TRUE ? "true" : "false" ) );
-	consoleSystem.PrintInfo( "*** System info end ****" );
-
 	try
 	{
-		// Р�РЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РѕРєРЅРѕ РїСЂРёР»РѕР¶РµРЅРёСЏ. Р•СЃР»Рё Р·Р°РіРѕР»РѕРІРѕРє РЅР° РѕРєРЅРѕ РІ Р°СЂРіСѓРјРµРЅС‚Р°С… РїСѓСЃС‚,
-		// С‚Рѕ СЃРѕР·РґР°РµРј СЃРІРѕРµ РѕРєРЅРѕ, РёРЅР°С‡Рµ Р·Р°РїРѕРјРёРЅР°РµРј РµРіРѕ
+		// Initialize console system
+		consoleSystem.Initialize( LogFile );
 
-		if ( !WindowHandle )
-		{
-			if ( !window.Create( "lifeEngine", configurations.windowWidth, configurations.windowHeight, configurations.isFullscreen ? SW_FULLSCREEN : SW_DEFAULT ) )
-				throw std::runtime_error( SDL_GetError() );
-		}
-		else
-			window.SetHandle( WindowHandle );
+		// Print info by sysem
+		SDL_version		sdlVersion;
+		SDL_GetVersion( &sdlVersion );
+
+		consoleSystem.PrintInfo( "*** System info start ****" );
+		consoleSystem.PrintInfo( "  Base path: %s", SDL_GetBasePath() );
+		consoleSystem.PrintInfo( "" );
+		consoleSystem.PrintInfo( "  lifeEngine %s (build %i)", LIFEENGINE_VERSION, Engine_BuildNumber() );
+		consoleSystem.PrintInfo( "  SDL version: %i.%i.%i", sdlVersion.major, sdlVersion.minor, sdlVersion.patch );
+		consoleSystem.PrintInfo( "  Platform: %s", SDL_GetPlatform() );
+		consoleSystem.PrintInfo( "  CPU cache L1 size: %i bytes", SDL_GetCPUCacheLineSize() );
+		consoleSystem.PrintInfo( "  CPU cores: %i", SDL_GetCPUCount() );
+		consoleSystem.PrintInfo( "  RAM: %i MB", SDL_GetSystemRAM() );
+		consoleSystem.PrintInfo( "  Has 3DNow: %s", ( SDL_Has3DNow() == SDL_TRUE ? "true" : "false" ) );
+		consoleSystem.PrintInfo( "  Has AVX: %s", ( SDL_HasAVX() == SDL_TRUE ? "true" : "false" ) );
+		consoleSystem.PrintInfo( "  Has AVX2: %s", ( SDL_HasAVX2() == SDL_TRUE ? "true" : "false" ) );
+		consoleSystem.PrintInfo( "  Has AltiVec: %s", ( SDL_HasAltiVec() == SDL_TRUE ? "true" : "false" ) );
+		consoleSystem.PrintInfo( "  Has MMX: %s", ( SDL_HasMMX() == SDL_TRUE ? "true" : "false" ) );
+		consoleSystem.PrintInfo( "  Has RDTSC: %s", ( SDL_HasRDTSC() == SDL_TRUE ? "true" : "false" ) );
+		consoleSystem.PrintInfo( "  Has SSE: %s", ( SDL_HasSSE() == SDL_TRUE ? "true" : "false" ) );
+		consoleSystem.PrintInfo( "  Has SSE2: %s", ( SDL_HasSSE2() == SDL_TRUE ? "true" : "false" ) );
+		consoleSystem.PrintInfo( "  Has SSE3: %s", ( SDL_HasSSE3() == SDL_TRUE ? "true" : "false" ) );
+		consoleSystem.PrintInfo( "  Has SSE41: %s", ( SDL_HasSSE41() == SDL_TRUE ? "true" : "false" ) );
+		consoleSystem.PrintInfo( "  Has SSE42: %s", ( SDL_HasSSE42() == SDL_TRUE ? "true" : "false" ) );
+		consoleSystem.PrintInfo( "*** System info end ****" );
 
 		// Р—Р°РіСЂСѓР¶Р°РµРј Рё РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РїРѕРґСЃРёСЃС‚РµРјС‹
-		std::string         engineDir = EngineDirectory;
-		if ( !LoadModule_StudioRender( ( engineDir + "/" + LIFEENGINE_STUDIORENDER_DLL ).c_str() ) )        throw std::runtime_error( "Failed loading studiorender" );
-		if ( !LoadModule_PhysicsSystem( ( engineDir + "/" + LIFEENGINE_PHYSICSSYSTEM_DLL ).c_str() ) )      throw std::runtime_error( "Failed loading physics system" );
+		if ( !LoadModule_StudioRender( ( engineDirectory + "/" + LIFEENGINE_STUDIORENDER_DLL ).c_str() ) )        throw std::runtime_error( "Failed loading studiorender" );
+		if ( !LoadModule_PhysicsSystem( ( engineDirectory + "/" + LIFEENGINE_PHYSICSSYSTEM_DLL ).c_str() ) )      throw std::runtime_error( "Failed loading physics system" );
 
-		auto*		shaderManager = studioRender->GetShaderManager();
-		if ( !shaderManager )		throw std::runtime_error( "In studiorender not exist shader manager" );
-		if ( !shaderManager->LoadShaderDLL( ( engineDir + "/" + LIFEENGINE_STDSHADERS_DLL ).c_str() ) )   throw std::runtime_error( "Failed loading stdshaders" );
+		// Initialize studiorender
+		if ( !studioRender )							throw std::runtime_error( "Studiorender not loaded" );
+		else if ( !studioRender->Initialize( this ) )	throw std::runtime_error( "Fail initialize studiorender" );
 
-		FontFreeType::InitializeFreeType();
-		resourceSystem.Initialize( this );
+		// Initialize physics
+		if ( !physicSystem )							throw std::runtime_error( "Physics system not loaded" );
+		else if ( !physicSystem->Initialize( this ) )	throw std::runtime_error( "Fail initialize physics system" );
+
+		// Initialize fonts
+		if ( !FontFreeType::InitializeFreeType() )		throw std::runtime_error( "Fail initialize freetype library" );
+
+		// Initialize script system
+		if ( !scriptSystem.Initialize( this ) )			throw std::runtime_error( "Fail initialize script system" );
+
+		// Initialize input system
+		if ( !inputSystem.Initialize( this ) )			throw std::runtime_error( "Fail initialize input system" );
+
+		// Initialize resource system
+		if ( !resourceSystem.Initialize( this ) )		throw std::runtime_error( "Fail initialize resource system" );
+
+		// Register console commands and vars
+		cmd_Exit->Initialize( "exit", "close game", CMD_Exit );
+		cmd_Version->Initialize( "version", "show version engine", CMD_Version );
+		cvar_phyDebug->Initialize( "phy_debug", "0", CVT_BOOL, "bool value for showing physics debug info", true, 0.f, true, 1.f, nullptr );
+
+		consoleSystem.RegisterCommand( cmd_Exit );
+		consoleSystem.RegisterCommand( cmd_Version );
+		consoleSystem.RegisterVar( cvar_phyDebug );
 	}
 	catch ( const std::exception& Exception )
 	{
-		if ( g_criticalError )		g_criticalError( Exception.what() );
+		consoleSystem.PrintError( Exception.what() );
 		return false;
 	}
 
 	consoleSystem.PrintInfo( "Initialized lifeEngine" );
-	isInit = true;
+	isInitialized = true;
 	return true;
 }
 
@@ -815,6 +817,14 @@ void le::Engine::UnloadGame()
 	resourceSystem.SetGameDir( "" );
 
 	if ( game ) UnloadModule_Game();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get engine directory
+// ------------------------------------------------------------------------------------ //
+const char* le::Engine::GetEngineDirectory() const
+{
+	return engineDirectory.c_str();
 }
 
 // ------------------------------------------------------------------------------------ //

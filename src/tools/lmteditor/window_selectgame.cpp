@@ -8,6 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include <QCloseEvent>
+
 #include "configuration.h"
 #include "window_selectgame.h"
 #include "window_editgame.h"
@@ -65,4 +67,31 @@ void Window_SelectGame::UpdateListGames()
 	ui->comboBox_games->clear();
 	for ( int index = 0, count = games.size(); index < count; ++index )
 		ui->comboBox_games->addItem( games[ index ].name );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Clicked on "OK"
+// ------------------------------------------------------------------------------------ //
+void Window_SelectGame::on_pushButton_ok_clicked()
+{
+	done( RT_OK );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Clicked on "Cancel"
+// ------------------------------------------------------------------------------------ //
+void Window_SelectGame::on_pushButton_cancel_clicked()
+{
+	done( RT_CANCEL );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event close window
+// ------------------------------------------------------------------------------------ //
+void Window_SelectGame::closeEvent( QCloseEvent* Event )
+{
+	if ( Event->type() == QCloseEvent::Close )
+		done( RT_CANCEL );
+
+	Event->accept();
 }

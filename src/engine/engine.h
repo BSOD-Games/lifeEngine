@@ -95,18 +95,15 @@ namespace le
 		virtual const Version&			GetVersion() const;
 
 		// IEngineInternal
-        virtual bool					Initialize( const char* EngineDirectory, WindowHandle_t WindowHandle = nullptr );
+		virtual bool					Initialize( const char* EngineDirectory, const char* LogFile = "console.log" );
 		virtual bool					LoadGame( const char* DirGame, UInt32_t CountArguments = 0, const char** Arguments = nullptr );
 		virtual void					UnloadGame();
+
+		virtual const char*				GetEngineDirectory() const;
 
 		// Engine
 		Engine();
 		~Engine();
-
-		const std::string&			GetEngineDirectory() const
-		{
-			return engineDirectory;
-		}
 
 	private:
 		bool							LoadModule_StudioRender( const char* PathDLL );
@@ -117,7 +114,7 @@ namespace le
 		bool							LoadModule_Game( const char* PathDLL, UInt32_t CountArguments, const char** Arguments  );
 		void							UnloadModule_Game();
 
-		bool							isInit;
+		bool							isInitialized;
 		bool							isRunSimulation;
 		float							deltaTime;
 

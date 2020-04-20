@@ -14,6 +14,9 @@ set( SDL2_PATH ${EXTLIBS_DIR}/SDL2 CACHE PATH "Path to SDL2" )
 #   --- Указываем платформозависимые исходники ---
 #
 
+set( STDSHADERS_DLL "stdshaders" )
+set( PATHS_H paths.h )
+
 #   Платформозависимые исходники для Windows
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
     set( SOURCE_FILES ${SOURCE_FILES}
@@ -21,6 +24,7 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
                         win32/wglcontext.h )
 
     set( ICON resource.rc )
+    set( STDSHADERS_DLL ${STDSHADERS_DLL}.dll )
 
 #   Платформозависимые исходники для Linux
 elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
@@ -29,6 +33,7 @@ elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
                         unix/glxcontext.h )
 
     set( ICON "" )
+    set( STDSHADERS_DLL ${STDSHADERS_DLL}.so )
 else()
     message( SEND_ERROR "Unknow platform")
 endif()
@@ -43,6 +48,7 @@ add_definitions( -DLIFEENGINE_EXPORT )
 #   --- Настройки проекта ---
 #
 
+configure_file( ${PATHS_H}.in ${PATHS_H} )
 add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${ICON} )
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
 set_target_properties( ${MODULE_NAME} PROPERTIES PREFIX "" )

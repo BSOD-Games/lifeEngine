@@ -52,9 +52,9 @@ namespace le
 // ------------------------------------------------------------------------------------ //
 // Инициализировать систему консоли
 // ------------------------------------------------------------------------------------ //
-void le::ConsoleSystem::Initialize()
+void le::ConsoleSystem::Initialize( const char* LogFile )
 {
-	fileLog = fopen( "engine.log", "w" );
+	fileLog = fopen( LogFile, "w" );
 
 	con_help = new ConCmd();
 	con_help->Initialize( "help", "Show help variables and comands", CMD_Help );

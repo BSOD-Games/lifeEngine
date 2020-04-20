@@ -34,8 +34,6 @@ set( ENGINE_DLL "engine" )
 set( STUDIORENDER_DLL "studiorender" )
 set( PHYSICSSYSTEM_DLL "physics" )
 set( GAME_DLL "game" )
-set( STDSHADERS_DLL "stdshaders" )
-set( MATERIALSYSTEM_DLL "materialsystem" )
 set( PATHS_H paths.h )
 
 #   Название модулей для Windows
@@ -44,8 +42,6 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
     set( PHYSICSSYSTEM_DLL ${PHYSICSSYSTEM_DLL}.dll )
     set( STUDIORENDER_DLL ${STUDIORENDER_DLL}.dll )
     set( GAME_DLL ${GAME_DLL}.dll )
-    set( STDSHADERS_DLL ${STDSHADERS_DLL}.dll )
-    set( MATERIALSYSTEM_DLL ${MATERIALSYSTEM_DLL}.dll )
     set( ICON resource.rc )
 
  #   Название модулей для Linux
@@ -54,8 +50,6 @@ elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
     set( PHYSICSSYSTEM_DLL ${PHYSICSSYSTEM_DLL}.so )
     set( STUDIORENDER_DLL ${STUDIORENDER_DLL}.so )
     set( GAME_DLL ${GAME_DLL}.so )
-    set( STDSHADERS_DLL ${STDSHADERS_DLL}.so )
-    set( MATERIALSYSTEM_DLL ${MATERIALSYSTEM_DLL}.so )
 
 else()
     message( SEND_ERROR "Unknow platform" )

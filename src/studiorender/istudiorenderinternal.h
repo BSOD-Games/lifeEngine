@@ -11,6 +11,7 @@
 #ifndef ISTUDIORENDER_INTERNAL_H
 #define ISTUDIORENDER_INTERNAL_H
 
+#include "engine/iwindow.h"
 #include "studiorender/istudiorender.h"
 
 //---------------------------------------------------------------------//
@@ -20,6 +21,7 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	class IEngine;
+	typedef void*				RenderContext_t;
 
 	//---------------------------------------------------------------------//
 
@@ -27,6 +29,7 @@ namespace le
 	{
 	public:
 		virtual bool			Initialize( IEngine* Engine ) = 0;
+		virtual bool            CreateContext( WindowHandle_t WindowHandle ) = 0;
 		virtual void			Begin() = 0;
 		virtual void			End() = 0;
 		virtual void			Present() = 0;

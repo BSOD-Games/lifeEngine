@@ -14,9 +14,6 @@
 //---------------------------------------------------------------------//
 
 #define LIFEENGINE_ENGINE_DLL		"${ENGINE_DLL}"
-#define LIFEENGINE_STUDIORENDER_DLL	"${STUDIORENDER_DLL}"
-#define LIFEENGINE_PHYSICSSYSTEM_DLL    "${PHYSICSSYSTEM_DLL}"
-#define LIFEENGINE_GAME_DLL		${GAME_DLL}"
 
 //---------------------------------------------------------------------//
 

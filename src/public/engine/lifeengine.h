@@ -15,35 +15,35 @@
 
 namespace le
 {
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 
-	class IEngine;
-	class IStudioRender;
-	class IGame;
-	class IShaderDLL;
+    class IEngine;
+    class IStudioRender;
+    class IGame;
+    class IShaderDLL;
     class IPhysicsSystem;
 
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 
-	typedef		void						( *CriticalErrorFn_t )( const char* Message );
-	typedef		void*						WindowHandle_t;
-	typedef		IEngine*					( *LE_CreateEngineFn_t )( );
-	typedef		void						( *LE_DeleteEngineFn_t )( IEngine* Engine );
-	typedef		IStudioRender*				( *LE_CreateStudioRenderFn_t )( );
-	typedef		void						( *LE_DeleteStudioRenderFn_t )( IStudioRender* StudioRender );
-	typedef		IGame*						( *LE_CreateGameFn_t )( );
-	typedef		void						( *LE_DeleteGameFn_t )( IGame* Game );
-	typedef		void						( *LE_SetCriticalErrorFn_t )( CriticalErrorFn_t CriticalError );
-	typedef		IShaderDLL*					( *LE_CreateShaderDLLFn_t )();
-	typedef		void						( *LE_DeleteShaderDLLFn_t )( IShaderDLL* ShaderDLL );
+    typedef		void						( *CriticalErrorFn_t )( const char* Message );
+    typedef		void*						WindowHandle_t;
+    typedef		IEngine*					( *LE_CreateEngineFn_t )();
+    typedef		void						( *LE_DeleteEngineFn_t )( IEngine* Engine );
+    typedef		IStudioRender*				( *LE_CreateStudioRenderFn_t )( );
+    typedef		void						( *LE_DeleteStudioRenderFn_t )( IStudioRender* StudioRender );
+    typedef		IGame*						( *LE_CreateGameFn_t )( );
+    typedef		void						( *LE_DeleteGameFn_t )( IGame* Game );
+    typedef		void						( *LE_SetCriticalErrorFn_t )( CriticalErrorFn_t CriticalError );
+    typedef		IShaderDLL*					( *LE_CreateShaderDLLFn_t )();
+    typedef		void						( *LE_DeleteShaderDLLFn_t )( IShaderDLL* ShaderDLL );
     typedef     IPhysicsSystem*             ( *LE_CreatePhysicsSystemFn_t )( );
     typedef     void                        ( *LE_DeletePhysicsSystemFn_t )( IPhysicsSystem* PhysicsSystem );
 
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 
-	static CriticalErrorFn_t			g_criticalError;
+    static CriticalErrorFn_t			g_criticalError;
 
-	//---------------------------------------------------------------------//
+    //---------------------------------------------------------------------//
 }
 
 //---------------------------------------------------------------------//
@@ -77,47 +77,47 @@ namespace le
 //---------------------------------------------------------------------//
 
 #	define LIFEENGINE_ENGINE_API( EngineClass ) \
-		namespace le { class IEngine; } \
-		LIFEENGINE_API le::IEngine* LE_CreateEngine() { return new EngineClass(); } \
-		LIFEENGINE_API void LE_DeleteEngine( le::IEngine* Object ) { delete static_cast<EngineClass*>( Object ); } \
-		LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
+    namespace le { class IEngine; } \
+    LIFEENGINE_API le::IEngine* LE_CreateEngine() { return new EngineClass(); } \
+    LIFEENGINE_API void LE_DeleteEngine( le::IEngine* Object ) { delete static_cast<EngineClass*>( Object ); } \
+    LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
 
 #	define LIFEENGINE_STUDIORENDER_API( StudioRenderClass ) \
-		namespace le { class IStudioRender; } \
-		LIFEENGINE_API le::IStudioRender* LE_CreateStudioRender() { return new StudioRenderClass(); } \
-		LIFEENGINE_API void LE_DeleteStudioRender( le::IStudioRender* Object ) { delete static_cast<StudioRenderClass*>( Object ); } \
-		LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
+    namespace le { class IStudioRender; } \
+    LIFEENGINE_API le::IStudioRender* LE_CreateStudioRender() { return new StudioRenderClass(); } \
+    LIFEENGINE_API void LE_DeleteStudioRender( le::IStudioRender* Object ) { delete static_cast<StudioRenderClass*>( Object ); } \
+    LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
 
 #	define LIFEENGINE_GAME_API( GameClass ) \
-		namespace le { class IGame; } \
-		LIFEENGINE_API le::IGame* LE_CreateGame() { return new GameClass(); } \
-		LIFEENGINE_API void LE_DeleteGame( le::IGame* Object ) { delete static_cast<GameClass*>( Object ); } \
-		LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
+    namespace le { class IGame; } \
+    LIFEENGINE_API le::IGame* LE_CreateGame() { return new GameClass(); } \
+    LIFEENGINE_API void LE_DeleteGame( le::IGame* Object ) { delete static_cast<GameClass*>( Object ); } \
+    LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
 
 #	define LIFEENGINE_STDSHADERS_API( ShaderDLLClass ) \
-		namespace le { class IShaderDLL; } \
-		LIFEENGINE_API le::IShaderDLL* LE_CreateShaderDLL() { return new ShaderDLLClass(); } \
-		LIFEENGINE_API void LE_DeleteShaderDLL( le::IShaderDLL* Object ) { delete static_cast<ShaderDLLClass*>( Object ); } \
-		LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
+    namespace le { class IShaderDLL; } \
+    LIFEENGINE_API le::IShaderDLL* LE_CreateShaderDLL() { return new ShaderDLLClass(); } \
+    LIFEENGINE_API void LE_DeleteShaderDLL( le::IShaderDLL* Object ) { delete static_cast<ShaderDLLClass*>( Object ); } \
+    LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
 
 #	define LIFEENGINE_PHYSICSSYSTEM_API( PhysicsSystemClass ) \
-        namespace le { class IPhysicsSystem; } \
-        LIFEENGINE_API le::IPhysicsSystem* LE_CreatePhysicsSystem() { return new PhysicsSystemClass(); } \
-        LIFEENGINE_API void LE_DeletePhysicsSystem( le::IPhysicsSystem* Object ) { delete static_cast<PhysicsSystemClass*>( Object ); } \
-        LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
+    namespace le { class IPhysicsSystem; } \
+    LIFEENGINE_API le::IPhysicsSystem* LE_CreatePhysicsSystem() { return new PhysicsSystemClass(); } \
+    LIFEENGINE_API void LE_DeletePhysicsSystem( le::IPhysicsSystem* Object ) { delete static_cast<PhysicsSystemClass*>( Object ); } \
+    LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
 
 //---------------------------------------------------------------------//
 
 #	if defined ( LIFEENGINE_DEBUG )
 #		define LIFEENGINE_ASSERT_MSG( X, File, Line ) \
-			if ( le::g_criticalError ) \
-                le::g_criticalError( "*** LIFEENGINE_ASSERT ***" "\nFile: " File "\nLine: " TO_STRING( Line ) "\n\nAssertion failed: " #X )
+    if ( le::g_criticalError ) \
+    le::g_criticalError( "*** LIFEENGINE_ASSERT ***" "\nFile: " File "\nLine: " TO_STRING( Line ) "\n\nAssertion failed: " #X )
 
 #		define LIFEENGINE_ASSERT( X ) \
-			if ( !( X ) ) \
-			{ \
-                LIFEENGINE_ASSERT_MSG( X, __FILE__, __LINE__ ); \
-			}		
+    if ( !( X ) ) \
+{ \
+    LIFEENGINE_ASSERT_MSG( X, __FILE__, __LINE__ ); \
+    }
 #	else
 #		define LIFEENGINE_ASSERT( X )
 #	endif // LIFEENGINE_DEBUG

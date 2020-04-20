@@ -42,6 +42,7 @@ namespace le
 	public:
 		// IStudioRenderInternal
 		virtual bool											Initialize( IEngine* Engine );
+		virtual bool											CreateContext( WindowHandle_t WindowHandle );
 		virtual void											Begin();
 		virtual void											End();
 		virtual void											Present();

@@ -30,12 +30,24 @@ class Window_SelectGame : public QDialog
 	Q_OBJECT
 
 public:
+	enum RESULT_TYPE
+	{
+		RT_OK,
+		RT_CANCEL
+	};
+
 	// Window_SelectGame
 	Window_SelectGame( QWidget* Parent = nullptr );
 	~Window_SelectGame();
 
 private slots:
 	void				on_pushButton_editGames_clicked();
+	void				on_pushButton_ok_clicked();
+	void				on_pushButton_cancel_clicked();
+
+protected:
+	// QWidget
+	virtual void		closeEvent( QCloseEvent* event );
 
 private:
 	void				UpdateListGames();

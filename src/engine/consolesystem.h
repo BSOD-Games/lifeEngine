@@ -31,7 +31,7 @@ namespace le
 		friend void			CMD_Help( UInt32_t CountArguments, const char** Arguments );
 
 		// IConsoleSystemInternal
-		virtual void		Initialize();
+		virtual void		Initialize( const char* LogFile );
 
 		// IConsoleSystem
 		virtual void		RegisterVar( IConVar* ConVar );

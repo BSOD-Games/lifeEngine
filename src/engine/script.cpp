@@ -78,7 +78,7 @@ bool le::Script::Load( const le::ScriptDescriptor& ScriptDescriptor )
 		tcc_set_error_func( tccContext, tccContext, ErrorCallback);
 		tcc_set_output_type( tccContext, TCC_OUTPUT_MEMORY );
 		tcc_add_include_path( tccContext, g_engine->GetGameInfo().gameDir );
-		tcc_add_sysinclude_path( tccContext, ( g_engine->GetEngineDirectory() + "/scripts" ).c_str() );
+		tcc_add_sysinclude_path( tccContext, ( std::string( g_engine->GetEngineDirectory() ) + "/scripts" ).c_str() );
         tcc_set_options( tccContext, "-nostdlib -nostdinc" );
 
 		if ( tcc_compile_string( tccContext, ScriptDescriptor.code ) == -1 )
