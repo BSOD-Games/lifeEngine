@@ -29,7 +29,7 @@ namespace le
 	{
 	public:
 		virtual bool			Initialize( IEngine* Engine ) = 0;
-		virtual bool            CreateContext( WindowHandle_t WindowHandle ) = 0;
+                virtual bool                    CreateContext( WindowHandle_t WindowHandle, UInt32_t Width, UInt32_t Height ) = 0;
 		virtual void			Begin() = 0;
 		virtual void			End() = 0;
 		virtual void			Present() = 0;

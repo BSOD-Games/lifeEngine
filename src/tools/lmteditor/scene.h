@@ -8,38 +8,34 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef WINDOW_EDITOR_H
-#define WINDOW_EDITOR_H
-
-#include <QMainWindow>
+#ifndef SCENE_H
+#define SCENE_H
 
 #include "engine/icamera.h"
-#include "scene.h"
+#include "studiorender/istudiorender.h"
+#include "tsingleton.h"
 
 //---------------------------------------------------------------------//
 
-namespace Ui
+class Scene : public TSingleton<Scene>
 {
-	class Window_Editor;
-}
-
-//---------------------------------------------------------------------//
-
-class Window_Editor : public QMainWindow
-{
-	Q_OBJECT
-
 public:
-	// Window_Editor
-	Window_Editor( QWidget* Parent = nullptr );
-	~Window_Editor();
+	// Scene
+	Scene();
+	~Scene();
+
+	void				Render();
+
+	inline void			SetStudioRender( le::IStudioRender* StudioRender )		{ studioRender = StudioRender; }
+	void				SetCamera( le::ICamera* Camera );
 
 private:
-	Scene						scene;
-	le::ICamera*				camera;
-	Ui::Window_Editor*			ui;
+	void				Clear();
+
+	le::ICamera*					camera;
+	le::IStudioRender*				studioRender;
 };
 
 //---------------------------------------------------------------------//
 
-#endif // WINDOW_EDITOR_H
+#endif // SCENE_H

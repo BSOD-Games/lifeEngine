@@ -98,7 +98,7 @@ int main( int argc, const char** argv )
 			if ( !window->Create( LIFEENGINE_VERSION, configurations.windowWidth, configurations.windowHeight, configurations.isFullscreen ? le::SW_FULLSCREEN : le::SW_DEFAULT ) )
 				throw std::runtime_error( "Fail creating window" );
 
-			if ( !static_cast<le::IStudioRenderInternal*>( engine->GetStudioRender() )->CreateContext( window->GetHandle() ) )
+			if ( !static_cast<le::IStudioRenderInternal*>( engine->GetStudioRender() )->CreateContext( window->GetHandle(), configurations.windowWidth, configurations.windowHeight ) )
 				throw std::runtime_error( "Fail creating context render" );
 
 			// Loading game

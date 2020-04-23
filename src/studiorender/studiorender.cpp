@@ -199,7 +199,7 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 // ------------------------------------------------------------------------------------ //
 // Create render context
 // ------------------------------------------------------------------------------------ //
-bool le::StudioRender::CreateContext( le::WindowHandle_t WindowHandle )
+bool le::StudioRender::CreateContext( le::WindowHandle_t WindowHandle, UInt32_t Width, UInt32_t Height )
 {
 	if ( renderContext.IsCreated() )		return true;
 	if ( !isInitialize )
@@ -248,7 +248,8 @@ bool le::StudioRender::CreateContext( le::WindowHandle_t WindowHandle )
 	deviceConfigurations.maxTextureSize = tempValue;
 
 	viewport.x = viewport.y = 0;
-	g_engine->GetWindow()->GetSize( viewport.width, viewport.height );
+	viewport.width = Width;
+	viewport.height = Height;
 
 	// Initialize GBuffer
 	if ( !gbuffer.Initialize( Vector2DInt_t( viewport.width, viewport.height ) ) )

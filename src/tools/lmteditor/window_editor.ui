@@ -12,14 +12,14 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>714</width>
-    <height>766</height>
+    <width>0</width>
+    <height>0</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>714</width>
-    <height>766</height>
+    <width>16777215</width>
+    <height>16777215</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -108,7 +108,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>340</width>
-                <height>83</height>
+                <height>82</height>
                </rect>
               </property>
               <layout class="QGridLayout" name="gridLayout_3">
@@ -171,7 +171,7 @@
           <property name="minimumSize">
            <size>
             <width>0</width>
-            <height>120</height>
+            <height>115</height>
            </size>
           </property>
           <property name="title">
@@ -201,6 +201,12 @@
                <height>0</height>
               </size>
              </property>
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Plain</enum>
+             </property>
              <property name="widgetResizable">
               <bool>true</bool>
              </property>
@@ -210,7 +216,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>340</width>
-                <height>92</height>
+                <height>87</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -265,7 +271,7 @@
           <property name="minimumSize">
            <size>
             <width>0</width>
-            <height>200</height>
+            <height>0</height>
            </size>
           </property>
           <property name="title">
@@ -297,7 +303,7 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>340</width>
+                <width>326</width>
                 <height>199</height>
                </rect>
               </property>
@@ -404,7 +410,7 @@
           <property name="minimumSize">
            <size>
             <width>0</width>
-            <height>240</height>
+            <height>0</height>
            </size>
           </property>
           <property name="title">
@@ -437,7 +443,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>340</width>
-                <height>212</height>
+                <height>264</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_10">
@@ -574,7 +580,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>340</width>
-                <height>326</height>
+                <height>343</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_13">
@@ -676,7 +682,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>340</width>
-                <height>326</height>
+                <height>309</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -797,7 +803,7 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QWidget" name="widget_viewport" native="true">
+        <widget class="Widget_Viewport" name="widget_viewport" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
            <horstretch>0</horstretch>
@@ -890,6 +896,14 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Widget_Viewport</class>
+   <extends>QWidget</extends>
+   <header>widget_viewport.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
