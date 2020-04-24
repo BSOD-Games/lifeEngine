@@ -301,6 +301,28 @@ bool le::Engine::LoadGameInfo( const char* DirGame )
 			memcpy( gameInfo.title, it->value.GetString(), stringLength );
 			gameInfo.title[ stringLength ] = '\0';
 		}
+
+		// Get path to resources
+		if ( strcmp( it->name.GetString(), "resources" ) == 0 && it->value.IsString() )
+		{
+			std::string					path = it->value.GetString();
+			std::string					dirGame( DirGame );
+			std::string::size_type		indexGameDirValue = path.find( "$gameDir" );
+			std::string::size_type		indexEngineDirValue = path.find( "$engineDir" );
+
+			if ( indexGameDirValue != std::string::npos )
+			{
+				path.erase( indexGameDirValue, 8 );
+				path.insert( indexGameDirValue, dirGame );
+			}
+			if ( indexEngineDirValue != std::string::npos )
+			{
+				path.erase( indexEngineDirValue, 10 );
+				path.insert( indexEngineDirValue, engineDirectory );
+			}
+
+			resourceSystem.AddPath( path.c_str() );
+		}
 	}
 
 	stringLength = strlen( DirGame );
@@ -782,9 +804,6 @@ bool le::Engine::LoadGame( const char* DirGame, UInt32_t CountArguments, const c
 	if ( !LoadGameInfo( DirGame ) )
 		return false;
 
-	// Р—Р°РґР°РµРј РєР°С‚Р°Р»РѕРі РёРіСЂС‹ РґР»СЏ Р·Р°РіСЂСѓР·РєРё СЂРµСЃСѓСЂСЃРѕРІ
-	resourceSystem.SetGameDir( gameInfo.gameDir );
-
 	// Р—Р°РіСЂСѓР¶Р°РµРј РёРіСЂРѕРІСѓСЋ Р»РѕРіРёРєСѓ
 	if ( !LoadModule_Game( ( std::string( DirGame ) + "/" + gameInfo.gameDLL ).c_str(), CountArguments, Arguments ) )
 		return false;
@@ -814,8 +833,7 @@ void le::Engine::UnloadGame()
 	StopSimulation();
 
 	gameInfo.Clear();
-	resourceSystem.SetGameDir( "" );
-
+	resourceSystem.ClearPaths();
 	if ( game ) UnloadModule_Game();
 }
 

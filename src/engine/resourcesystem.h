@@ -84,8 +84,9 @@ namespace le
 
 		// IResourceSystemInternal
 		virtual bool					Initialize( IEngine* Engine );
-
-		virtual void					SetGameDir( const char* GameDir );
+		virtual void					AddPath( const char* Path );
+		virtual void					RemovePath( UInt32_t Index );
+		virtual void					ClearPaths();
 
 		// ResourceSystem
 		ResourceSystem();
@@ -114,7 +115,7 @@ namespace le
 		IFactory*					scriptSystemFactory;
         IMaterialManager*           materialManager;
 
-		std::string					gameDir;
+		std::vector< std::string >	paths;
 		LoaderImageMap_t			loaderImages;
 		LoaderTextureMap_t			loaderTextures;
 		LoaderMaterialMap_t			loaderMaterials;

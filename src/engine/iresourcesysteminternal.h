@@ -28,7 +28,9 @@ namespace le
 	public:
 		virtual bool			Initialize( IEngine* Engine ) = 0;
 
-		virtual void			SetGameDir( const char* GameDir ) = 0;
+		virtual void			AddPath( const char* Path ) = 0;
+		virtual void			RemovePath( UInt32_t Index ) = 0;
+		virtual void			ClearPaths() = 0;
 	};
 
 	//---------------------------------------------------------------------//

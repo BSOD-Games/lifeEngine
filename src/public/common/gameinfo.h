@@ -33,7 +33,7 @@ namespace le
 			if ( gameDir )		delete[] gameDir;
 			if ( title )		delete[] title;
 			if ( gameDLL )		delete[] gameDLL;
-			if ( icon )			delete[] icon;
+                        if ( icon )		delete[] icon;
 		}
 
 		char*			gameDir;

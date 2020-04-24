@@ -1021,23 +1021,30 @@ void le::ResourceSystem::UnregisterLoader_Font( const char* Format )
 le::Image le::ResourceSystem::LoadImage( const char* Path, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels )
 {
     LIFEENGINE_ASSERT( Path );
-    IsError = false;
+	IsError = true;
 
     try
     {
         if ( loaderImages.empty() )					throw std::runtime_error( "No image loaders" );
-        std::string			path = gameDir + "/" + Path;
 
-        std::string			format = GetFormatFile( path );
+		std::string			format = GetFormatFile( Path );
         if ( format.empty() )						throw std::runtime_error( "In image format not found" );
 
         auto				parser = loaderImages.find( format );
         if ( parser == loaderImages.end() )			throw std::runtime_error( "Loader for format image not found" );
 
         Image				image;
-        parser->second( path.c_str(), image, IsError, IsFlipVertical, IsSwitchRedAndBlueChannels );
-        if ( IsError )								throw std::runtime_error( "Fail loading image" );
+		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+		{
+			parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), image, IsError, IsFlipVertical, IsSwitchRedAndBlueChannels );
+			if ( image.data )
+			{
+				g_consoleSystem->PrintInfo( "Image founded in [%s]", paths[ index ].c_str() );
+				break;
+			}
+		}
 
+		if ( IsError )								throw std::runtime_error( "Fail loading image" );
         return image;
     }
     catch ( std::exception & Exception )
@@ -1062,19 +1069,26 @@ le::ITexture* le::ResourceSystem::LoadTexture( const char* Name, const char* Pat
         if ( textures.find( Name ) != textures.end() )		return textures[ Name ];
         if ( loaderTextures.empty() )						throw std::runtime_error( "No texture loaders" );
 
-        std::string			path = gameDir + "/" + Path;
-
         g_consoleSystem->PrintInfo( "Loading texture [%s] with name [%s]", Path, Name );
 
-        std::string			format = GetFormatFile( path );
+		std::string			format = GetFormatFile( Path );
         if ( format.empty() )						throw std::runtime_error( "In texture format not found" );
 
         auto				parser = loaderTextures.find( format );
         if ( parser == loaderTextures.end() )		throw std::runtime_error( "Loader for format texture not found" );
 
-        ITexture* texture = parser->second( path.c_str(), studioRenderFactory );
-        if ( !texture )								throw std::runtime_error( "Fail loading texture" );
+		ITexture*			texture = nullptr;
+		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+		{
+			texture = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), studioRenderFactory );
+			if ( texture )
+			{
+				g_consoleSystem->PrintInfo( "Texture founded in [%s]", paths[ index ].c_str() );
+				break;
+			}
+		}
 
+        if ( !texture )								throw std::runtime_error( "Fail loading texture" );
         texture->IncrementReference();
         textures.insert( std::make_pair( Name, texture ) );
         g_consoleSystem->PrintInfo( "Loaded texture [%s]", Name );
@@ -1103,19 +1117,26 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
         if ( materials.find( Name ) != materials.end() )	return materials[ Name ];
         if ( loaderMaterials.empty() )						throw std::runtime_error( "No material loaders" );
 
-        std::string			path = gameDir + "/" + Path;
+		g_consoleSystem->PrintInfo( "Loading material [%s] with name [%s]", Path, Name );
 
-        g_consoleSystem->PrintInfo( "Loading material [%s] with name [%s]", Path, Name );
-
-        std::string			format = GetFormatFile( path );
+		std::string			format = GetFormatFile( Path );
         if ( format.empty() )						throw std::runtime_error( "In material format not found" );
 
         auto				parser = loaderMaterials.find( format );
         if ( parser == loaderMaterials.end() )		throw std::runtime_error( "Loader for format material not found" );
 
-        IMaterial* material = parser->second( path.c_str(), this, materialManager, studioRenderFactory );
-        if ( !material )	throw std::runtime_error( "Fail loading material" );
+		IMaterial*			material = nullptr;
+		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+		{
+			material = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), this, materialManager, studioRenderFactory );
+			if ( material )
+			{
+				g_consoleSystem->PrintInfo( "Material founded in [%s]", paths[ index ].c_str() );
+				break;
+			}
+		}
 
+		if ( !material )	throw std::runtime_error( "Fail loading material" );
         material->IncrementReference();
         materials.insert( std::make_pair( Name, material ) );
         g_consoleSystem->PrintInfo( "Loaded material [%s]", Name );
@@ -1144,19 +1165,26 @@ le::IMesh* le::ResourceSystem::LoadMesh( const char* Name, const char* Path )
         if ( meshes.find( Name ) != meshes.end() )			return meshes[ Name ];
         if ( loaderMeshes.empty() )							throw std::runtime_error( "No mesh loaders" );
 
-        std::string			path = gameDir + "/" + Path;
-
         g_consoleSystem->PrintInfo( "Loading mesh [%s] with name [%s]", Path, Name );
 
-        std::string			format = GetFormatFile( path );
+		std::string			format = GetFormatFile( Path );
         if ( format.empty() )						throw std::runtime_error( "In mesh format not found" );
 
         auto				parser = loaderMeshes.find( format );
         if ( parser == loaderMeshes.end() )		throw std::runtime_error( "Loader for format mesh not found" );
 
-        IMesh* mesh = parser->second( path.c_str(), this, studioRenderFactory );
-        if ( !mesh )							throw std::runtime_error( "Fail loading mesh" );
+		IMesh*			mesh = nullptr;
+		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+		{
+			mesh = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), this, studioRenderFactory );
+			if ( mesh )
+			{
+				g_consoleSystem->PrintInfo( "Mesh founded in [%s]", paths[ index ].c_str() );
+				break;
+			}
+		}
 
+		if ( !mesh )							throw std::runtime_error( "Fail loading mesh" );
         mesh->IncrementReference();
         meshes.insert( std::make_pair( Name, mesh ) );
         g_consoleSystem->PrintInfo( "Loaded mesh [%s]", Name );
@@ -1185,19 +1213,26 @@ le::ILevel* le::ResourceSystem::LoadLevel( const char* Name, const char* Path, I
         if ( levels.find( Name ) != levels.end() )			return levels[ Name ];
         if ( loaderLevels.empty() )							throw std::runtime_error( "No level loaders" );
 
-        std::string			path = gameDir + "/" + Path;
-
         g_consoleSystem->PrintInfo( "Loading level [%s] with name [%s]", Path, Name );
 
-        std::string			format = GetFormatFile( path );
+		std::string			format = GetFormatFile( Path );
         if ( format.empty() )						throw std::runtime_error( "In level format not found" );
 
         auto				parser = loaderLevels.find( format );
         if ( parser == loaderLevels.end() )		throw std::runtime_error( "Loader for format level not found" );
 
-        ILevel* level = parser->second( path.c_str(), GameFactory );
-        if ( !level )							throw std::runtime_error( "Fail loading level" );
+		ILevel*			level = nullptr;
+		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+		{
+			level = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), GameFactory );
+			if ( level )
+			{
+				g_consoleSystem->PrintInfo( "Level founded in [%s]", paths[ index ].c_str() );
+				break;
+			}
+		}
 
+		if ( !level )							throw std::runtime_error( "Fail loading level" );
         level->IncrementReference();
         levels.insert( std::make_pair( Name, level ) );
         g_consoleSystem->PrintInfo( "Loaded level [%s]", Name );
@@ -1224,19 +1259,26 @@ le:: IFont* le::ResourceSystem::LoadFont( const char* Name, const char* Path )
         if ( fonts.find( Name ) != fonts.end() )			return fonts[ Name ];
         if ( loaderFonts.empty() )							throw std::runtime_error( "No font loaders" );
 
-        std::string			path = gameDir + "/" + Path;
-
         g_consoleSystem->PrintInfo( "Loading font [%s] with name [%s]", Path, Name );
 
-        std::string			format = GetFormatFile( path );
+		std::string			format = GetFormatFile( Path );
         if ( format.empty() )						throw std::runtime_error( "In font format not found" );
 
         auto				parser = loaderFonts.find( format );
         if ( parser == loaderFonts.end() )		throw std::runtime_error( "Loader for format font not found" );
 
-        IFont* 		font = parser->second( path.c_str() );
-        if ( !font )							throw std::runtime_error( "Fail loading font" );
+		IFont*			font = nullptr;
+		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+		{
+			font = parser->second( std::string( paths[ index ] + "/" + Path ).c_str() );
+			if ( font )
+			{
+				g_consoleSystem->PrintInfo( "Font founded in [%s]", paths[ index ].c_str() );
+				break;
+			}
+		}
 
+		if ( !font )							throw std::runtime_error( "Fail loading font" );
         font->IncrementReference();
         fonts.insert( std::make_pair( Name, font ) );
         g_consoleSystem->PrintInfo( "Loaded font [%s]", Name );
@@ -1557,15 +1599,41 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
         g_consoleSystem->PrintError( Exception.what() );
         return false;
     }
-    return true;
+	return true;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Задать каталог игры
+// Add path to resources
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::SetGameDir( const char* GameDir )
+void le::ResourceSystem::AddPath( const char* Path )
 {
-    gameDir = GameDir;
+	if ( !Path ) return;
+
+	g_consoleSystem->PrintInfo( "Resources path [%s] added to resource system", Path );
+	paths.push_back( Path );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Remove path to resources
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RemovePath( le::UInt32_t Index )
+{
+	LIFEENGINE_ASSERT( Index < paths.size() );
+
+	g_consoleSystem->PrintInfo( "Resources path [%s] removed from resource system", paths[ Index ].c_str() );
+	paths.erase( paths.begin() + Index );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Clear paths
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::ClearPaths()
+{
+	if ( paths.empty() ) return;
+
+	for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+		g_consoleSystem->PrintInfo( "Resources path [%s] removed from resource system", paths[ index ].c_str() );
+	paths.clear();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1643,19 +1711,26 @@ le::IScript* le::ResourceSystem::LoadScript( const char* Name, const char* Path,
 		if ( scripts.find( Name ) != scripts.end() )		return scripts[ Name ];
 		if ( loaderScripts.empty() )						throw std::runtime_error( "No script loaders" );
 
-		std::string			path = gameDir + "/" + Path;
-
 		g_consoleSystem->PrintInfo( "Loading script [%s] with name [%s]", Path, Name );
 
-		std::string			format = GetFormatFile( path );
+		std::string			format = GetFormatFile( Path );
 		if ( format.empty() )						throw std::runtime_error( "In script format not found" );
 
 		auto				parser = loaderScripts.find( format );
 		if ( parser == loaderScripts.end() )		throw std::runtime_error( "Loader for format script not found" );
 
-		IScript*			script = parser->second( path.c_str(), CountFunctions, Functions, CountVars, Vars, scriptSystemFactory );
-		if ( !script )							throw std::runtime_error( "Fail loading script" );
+		IScript*			script = nullptr;
+		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+		{
+			script = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), CountFunctions, Functions, CountVars, Vars, scriptSystemFactory );
+			if ( script )
+			{
+				g_consoleSystem->PrintInfo( "Script founded in [%s]", paths[ index ].c_str() );
+				break;
+			}
+		}
 
+		if ( !script )							throw std::runtime_error( "Fail loading script" );
 		script->IncrementReference();
 		scripts.insert( std::make_pair( Name, script ) );
 		g_consoleSystem->PrintInfo( "Loaded script [%s]", Name );
@@ -1773,19 +1848,26 @@ le::IPhysicsModel* le::ResourceSystem::LoadPhysicsModel( const char *Name, const
 		if ( physicsModels.find( Name ) != physicsModels.end() )	return physicsModels[ Name ];
 		if ( loaderPhysicsModels.empty() )							throw std::runtime_error( "No physics model loaders" );
 
-		std::string			path = gameDir + "/" + Path;
-
 		g_consoleSystem->PrintInfo( "Loading physics model [%s] with name [%s]", Path, Name );
 
-		std::string			format = GetFormatFile( path );
+		std::string			format = GetFormatFile( Path );
 		if ( format.empty() )								throw std::runtime_error( "In collider format not found" );
 
 		auto				parser = loaderPhysicsModels.find( format );
 		if ( parser == loaderPhysicsModels.end() )			throw std::runtime_error( "Loader for format physics model not found" );
 
-		le::IPhysicsModel*			physicsModel = parser->second( path.c_str(), g_physicsSystemFactory );
-		if ( !physicsModel )		throw std::runtime_error( "Fail loading physics model" );
+		le::IPhysicsModel*			physicsModel = nullptr;
+		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+		{
+			physicsModel = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), g_physicsSystemFactory );
+			if ( physicsModel )
+			{
+				g_consoleSystem->PrintInfo( "Physics model founded in [%s]", paths[ index ].c_str() );
+				break;
+			}
+		}
 
+		if ( !physicsModel )		throw std::runtime_error( "Fail loading physics model" );
 		physicsModel->IncrementReference();
 		physicsModels.insert( std::make_pair( Name, physicsModel ) );
 		g_consoleSystem->PrintInfo( "Loaded collider [%s]", Name );
