@@ -1,6 +1,9 @@
 cmake_minimum_required( VERSION 2.6 )
 project( lifeEngine )
 
+include( ${CMAKE_ROOT}/Modules/ExternalProject.cmake )
+find_package( Git REQUIRED )	
+
 #
 #   --- Название проектов ---
 #
@@ -15,11 +18,40 @@ set( PROJECT_SHADERCOMPILE tools/shadercompile )
 set( PROJECT_MATERIALS_EDITOR tools/lmteditor ) 
 
 #
-#   --- Настройки сборки ---
+#   --- Настройки сборки и пути к каталогам ---
 #
 
-set( EXTLIBS_DIR ${PROJECT_SOURCE_DIR}/extlibs )
+set( EXTLIBS_DIR ${CMAKE_BINARY_DIR}/extlibs )
 set( QT5_DIR CACHE PATH "Qt5 dir (ex. D:/Soft/Qt/5.12.2/mingw73_64)" )
+set( BUILD_DIR ${PROJECT_SOURCE_DIR}/../build )
+set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake" )
+set( CMAKE_PREFIX_PATH ${QT5_DIR} )
+
+set( CMAKE_INCLUDE_CURRENT_DIR ON )
+set( CMAKE_AUTOUIC ON )
+set( CMAKE_AUTOMOC ON )
+set( CMAKE_AUTORCC ON )
+set( CMAKE_CXX_STANDARD 11 )
+set( CMAKE_CXX_STANDARD_REQUIRED ON )
+
+# Загрузка зависимостей из репозитория
+if ( NOT EXISTS ${EXTLIBS_DIR} )
+	set( EXTLIBS_REP https://github.com/BSOD-Games/lifeEngine-extlibs.git )	
+	execute_process( COMMAND ${GIT_EXECUTABLE} clone ${EXTLIBS_REP} ${EXTLIBS_DIR} )
+
+	if ( NOT EXISTS ${EXTLIBS_DIR} )
+		message( SEND_ERROR Failed loading extlibs from [${EXTLIBS_REP}] )
+	endif()
+endif( )
+
+# Если каталог с зависимостями присудствует - настраиваем установку бинарников в
+# каталог билда
+if ( EXISTS ${EXTLIBS_DIR} )
+	execute_process( COMMAND ${GIT_EXECUTABLE} -C ${EXTLIBS_DIR} pull origin )
+
+	include( ${EXTLIBS_DIR}/cmake/install_extlibs.cmake )
+	install_extlibs( ${EXTLIBS_DIR} ${BUILD_DIR}/engine )
+endif()
 
 option( LIFEENGINE_DEBUG "Enable debug mode" OFF )
 option( BUILD_LAUNCHER "Build launcher engine" OFF )
@@ -48,20 +80,6 @@ elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
 else()
     message( SEND_ERROR "Unknow platform" )
 endif()
-
-#
-#   --- Пути к каталогам ---
-#
-
-set( BUILD_DIR ${PROJECT_SOURCE_DIR}/../build )
-set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake" )
-set( CMAKE_PREFIX_PATH ${QT5_DIR} )
-set( CMAKE_INCLUDE_CURRENT_DIR ON )
-set( CMAKE_AUTOUIC ON )
-set( CMAKE_AUTOMOC ON )
-set( CMAKE_AUTORCC ON )
-set( CMAKE_CXX_STANDARD 11 )
-set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 #
 # Добавляем подпроекты
