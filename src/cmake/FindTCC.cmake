@@ -24,7 +24,7 @@ find_path( 	TCC_INCLUDE
 		PATHS ${TCC_SEARCH_PATHS} )
 		
 find_library( 	TCC_LIB 
-                NAMES tcc
+                NAMES libtcc tcc
                 PATH_SUFFIXES lib lib32 lib64 lib/x86_64-linux-gnu
                 PATHS ${TCC_SEARCH_PATHS} )
 

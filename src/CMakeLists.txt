@@ -36,9 +36,7 @@ if( LIFEENGINE_DEBUG )
     add_definitions( -DLIFEENGINE_DEBUG )
 endif()
 
-if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
-	set( CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES} ".dll" )
-
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )	
     if ( MINGW )
         set( CMAKE_RC_COMPILER_INIT windres )
         enable_language( RC )

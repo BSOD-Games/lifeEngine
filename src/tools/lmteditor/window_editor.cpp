@@ -10,11 +10,12 @@
 
 #include "engine/ifactory.h"
 #include "engine/icamera.h"
+#include "studiorender/imesh.h"
 
 #include "engineapi.h"
 #include "window_editor.h"
 #include "ui_window_editor.h"
-
+#include <fstream>
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
@@ -33,7 +34,12 @@ Window_Editor::Window_Editor( QWidget* Parent ) :
 	camera->InitProjection_Perspective( 75.f, ( float ) ui->widget_viewport->width() / ui->widget_viewport->height(), 0.1f, 1500.f );
 	scene.SetCamera( camera );
 
-	// TODO:
+    try {
+       EngineAPI::GetInstance()->GetResourceSystem()->LoadMesh( "model", "models/sphere.mdl" );
+    } catch (...) {
+    }
+
+    // TODO:
 	// 1. Add loading sphere mesh and render
 	// 2. Add filling comboboxes: Techniques and Passes
 }

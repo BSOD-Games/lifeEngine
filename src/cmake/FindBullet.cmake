@@ -20,7 +20,7 @@ SET( BULLET_SEARCH_PATHS
 
 find_path( 		BULLET_INCLUDE
                         NAMES "btBulletDynamicsCommon.h"
-                        PATH_SUFFIXES src include/bullet
+                        PATH_SUFFIXES include src include/bullet
 			PATHS ${BULLET_SEARCH_PATHS} )
 
 find_library( 		BULLET_LIB_DYNAMICS 

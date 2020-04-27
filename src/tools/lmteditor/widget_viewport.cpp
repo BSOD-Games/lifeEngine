@@ -10,6 +10,7 @@
 
 #include <QResizeEvent>
 
+#include "engineapi.h"
 #include "engine/lifeengine.h"
 #include "studiorender/studiorenderviewport.h"
 
@@ -34,8 +35,8 @@ Widget_Viewport::Widget_Viewport( QWidget* Parent) :
 Widget_Viewport::~Widget_Viewport()
 {
 	isInitialize = false;
-	disconnect( &timerUpdate, &QTimer::timeout, this, &Widget_Viewport::Render );
-	timerUpdate.stop();
+    disconnect( &timerUpdate, &QTimer::timeout, this, &Widget_Viewport::Render );
+    timerUpdate.stop();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -61,7 +62,7 @@ bool Widget_Viewport::Initialize()
 
 	Scene::GetInstance()->SetStudioRender( studioRender );
 	connect( &timerUpdate, &QTimer::timeout, this, &Widget_Viewport::Render );
-	timerUpdate.start( 0 );
+	timerUpdate.start( 0 );   
 	return isInitialize;
 }
 
@@ -74,7 +75,7 @@ void Widget_Viewport::Render()
 		return;
 
 	studioRender->Begin();
-	Scene::GetInstance()->Render();
+    Scene::GetInstance()->Render();
 	studioRender->End();
 	studioRender->Present();
 }

@@ -16,6 +16,8 @@
 #include "engine/paths.h"
 #include "engine/lifeengine.h"
 #include "engine/iengineinternal.h"
+#include "engine/iwindowinternal.h"
+#include "studiorender/istudiorenderinternal.h"
 
 #define DEFAULT_GAME		"episodic"
 
@@ -24,7 +26,7 @@
 // ------------------------------------------------------------------------------------ //
 void Engine_CriticalError( const char* Message )
 {
-    std::ofstream			fileLog( "engine.log", std::ios::app );
+    std::ofstream			fileLog( "console.log", std::ios::app );
 
     MessageBoxA( nullptr, Message, "Error lifeEngine", MB_OK | MB_ICONERROR );
     fileLog << "\nCritical error: " << Message;
@@ -65,8 +67,8 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
             if ( !engine->LoadConfig( "config.cfg" ) )
                 engine->SaveConfig( "config.cfg" );
 
-            std::string				gameDir = DEFAULT_GAME;
-            le::Configurations                  configurations = engine->GetConfigurations();
+            std::string                 gameDir = DEFAULT_GAME;
+            le::Configurations          configurations = engine->GetConfigurations();
 
             // Cчитываем аргументы запуска лаунчера
             int				argc;
@@ -104,8 +106,16 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
             engine->SetConfig( configurations );
 
             // Инициализируем движок для запуска игры
-            if ( !engine->Initialize( "engine" ) )
+            if ( !engine->Initialize( "engine", "console.log" ) )
                 throw std::runtime_error( "The engine is not initialized. See the logs for details" );
+
+            // Create window and context render
+            le::IWindowInternal*			window = ( le::IWindowInternal* ) engine->GetWindow();
+            if ( !window->Create( "lifeEngine " LIFEENGINE_VERSION, configurations.windowWidth, configurations.windowHeight, configurations.isFullscreen ? le::SW_FULLSCREEN : le::SW_DEFAULT ) )
+                throw std::runtime_error( "Fail creating window" );
+
+            if ( !static_cast<le::IStudioRenderInternal*>( engine->GetStudioRender() )->CreateContext( window->GetHandle(), configurations.windowWidth, configurations.windowHeight ) )
+                throw std::runtime_error( "Fail creating context render" );
 
             // Загружаем игру
             if ( !engine->LoadGame( gameDir.c_str(), argc, ( const char** ) argv ) )

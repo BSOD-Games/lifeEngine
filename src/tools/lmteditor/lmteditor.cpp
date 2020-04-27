@@ -70,7 +70,7 @@ int Application_ComputeBuildNumber( int GoldDate )
 void Application_CriticalError( const char* Message )
 {
 	std::ofstream			fileLog( "lmteditor.log", std::ios::app );
-
+	
 	QMessageBox::critical( nullptr, "Error lmtedit", Message );
 	fileLog << "\nCritical error: " << Message;
 	exit( 1 );
@@ -125,7 +125,7 @@ int main( int argc, char** argv )
 		return 1;
 	}
 
-	qInstallMessageHandler( Application_MessageOutput  );
+    qInstallMessageHandler( Application_MessageOutput  );
 	{
 		std::stringstream				strStream;
 		strStream << "LMTEditor " << LMTEDITOR_VERSION_MAJOR << "." << LMTEDITOR_VERSION_MINOR << "." << LMTEDITOR_VERSION_PATCH << " (build " << Application_ComputeBuildNumber( GOLD_DATE ) << ")";

@@ -32,6 +32,8 @@ void Engine_CriticalError( const char* Message )
 // ------------------------------------------------------------------------------------ //
 EngineAPI::EngineAPI() :
 	engine( nullptr ),
+    resourceSystem( nullptr ),
+    consoleSystem( nullptr ),
 	LE_CreateEngine( nullptr ),
 	LE_SetCriticalError( nullptr ),
 	LE_DeleteEngine( nullptr )
@@ -67,6 +69,9 @@ bool EngineAPI::Load()
 		engine = ( le::IEngineInternal* ) LE_CreateEngine();
 		if ( !engine->Initialize( "./", "lmteditor.log" ) )
 			throw std::runtime_error( "Failed initialize engine" );
+
+        resourceSystem = ( le::IResourceSystemInternal* ) engine->GetResourceSystem();
+        consoleSystem = engine->GetConsoleSystem();
 	}
 	catch ( const std::exception& Exception)
 	{
@@ -82,31 +87,16 @@ bool EngineAPI::Load()
 // ------------------------------------------------------------------------------------ //
 void EngineAPI::Unload()
 {
-	if ( engine )
+    if ( engine )
 	{
 		if ( LE_DeleteEngine )		LE_DeleteEngine( engine );
 		engineDLL.unload();
 	}
 
 	engine = nullptr;
+    resourceSystem = nullptr;
+    consoleSystem = nullptr;
 	LE_CreateEngine = nullptr;
 	LE_SetCriticalError = nullptr;
-	LE_DeleteEngine = nullptr;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Get engine
-// ------------------------------------------------------------------------------------ //
-le::IEngineInternal* EngineAPI::GetEngine() const
-{
-	return engine;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Get console system
-// ------------------------------------------------------------------------------------ //
-le::IConsoleSystem* EngineAPI::GetConsoleSystem() const
-{
-	if ( !engine ) return nullptr;
-	return engine->GetConsoleSystem();
+    LE_DeleteEngine = nullptr;
 }

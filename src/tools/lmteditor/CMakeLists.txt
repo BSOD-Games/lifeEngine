@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 2.6 )
+﻿cmake_minimum_required( VERSION 2.6 )
 
 #
 #   --- Задаем переменные ---
@@ -43,9 +43,8 @@ qt5_wrap_ui( UI_HEADERS ${FORMS_FILES} )
 qt5_add_resources ( RCC_SOURCES ${RESOURCES} )
 
 configure_file( ${PATHS_H}.in ${PATHS_H} )
-add_executable( ${MODULE_NAME} WIN32 ${SOURCE_FILES} ${RCC_SOURCES} ${UI_HEADERS} ${FORMS_FILES} ${RESOURCE} )
-target_link_libraries( ${MODULE_NAME} ${CMAKE_DL_LIBS} )
-target_link_libraries( ${MODULE_NAME} Qt5::Widgets Qt5::Core )
+add_executable( ${MODULE_NAME} ${SOURCE_FILES} ${RCC_SOURCES} ${UI_HEADERS} ${FORMS_FILES} ${RESOURCE} )
+target_link_libraries( ${MODULE_NAME} Qt5::Widgets Qt5::Core ${CMAKE_DL_LIBS} )
 
 install( DIRECTORY styles DESTINATION ${BUILD_DIR}/engine )
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )

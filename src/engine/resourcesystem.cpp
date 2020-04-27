@@ -82,58 +82,58 @@ struct MaterialTechnique
 
 enum MDL_LUMPS
 {
-	ML_MATERIALS,
-	ML_VERTECES,
-	ML_INDECES,
-	ML_SURFACES,
-	ML_MAX_LUMPS
+    ML_MATERIALS,
+    ML_VERTECES,
+    ML_INDECES,
+    ML_SURFACES,
+    ML_MAX_LUMPS
 };
 
 struct MDLHeader
 {
-	char				strId[ 4 ]; // Always 'LMDL'
-	le::UInt32_t		version;
+    char				strId[ 4 ]; // Always 'LMDL'
+    le::UInt32_t		version;
 };
 
 struct MDLLump
 {
-	le::UInt32_t		offset;
-	le::UInt32_t		length;
+    le::UInt32_t		offset;
+    le::UInt32_t		length;
 };
 
 struct MDLVertex
 {
-	le::Vector3D_t		position;
-	le::Vector3D_t		normal;
-	le::Vector2D_t		texCoords;
-	le::Vector3D_t		tangent;
-	le::Vector3D_t		bitangent;
+    le::Vector3D_t		position;
+    le::Vector3D_t		normal;
+    le::Vector2D_t		texCoords;
+    le::Vector3D_t		tangent;
+    le::Vector3D_t		bitangent;
 };
 
 struct MDLSurface
 {
-	le::UInt32_t		materialId;
-	le::UInt32_t        startIndex;
-	le::UInt32_t        countIndex;
+    le::UInt32_t		materialId;
+    le::UInt32_t        startIndex;
+    le::UInt32_t        countIndex;
 };
 
 enum PHY_LUMPS
 {
-	PL_VERTECES,
-	PL_INDECES,
-	PL_MAX_LUMPS
+    PL_VERTECES,
+    PL_INDECES,
+    PL_MAX_LUMPS
 };
 
 struct PHYHeader
 {
-	char				strId[ 4 ]; // Always 'LPHY'
-	le::UInt32_t		version;
+    char				strId[ 4 ]; // Always 'LPHY'
+    le::UInt32_t		version;
 };
 
 struct PHYLump
 {
-	le::UInt32_t		offset;
-	le::UInt32_t		length;
+    le::UInt32_t		offset;
+    le::UInt32_t		length;
 };
 
 // ------------------------------------------------------------------------------------ //
@@ -615,140 +615,141 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 // Загрузить меш
 // ------------------------------------------------------------------------------------ //
 le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, le::IFactory* StudioRenderFactory )
-{
-	std::ifstream				file( Path, std::ios::binary );
-	if ( !file.is_open() )		return nullptr;
+{      
+    std::ifstream				file( Path, std::ios::binary );
+    if ( !file.is_open() )		return nullptr;
 
-	// Read header file
-	MDLHeader			mdlHeader;
-	file.read( ( char* ) &mdlHeader, sizeof( MDLHeader ) );
-	if ( strncmp( mdlHeader.strId, MDL_ID, 4 ) != 0 || mdlHeader.version != MDL_VERSION )
-		return nullptr;
+    // Read header file
+    MDLHeader			mdlHeader;
+    file.read( ( char* ) &mdlHeader, sizeof( MDLHeader ) );
+    if ( strncmp( mdlHeader.strId, MDL_ID, 4 ) != 0 || mdlHeader.version != MDL_VERSION )
+        return nullptr;
 
-	// Read all lumps
-	MDLLump				mdlLumps[ ML_MAX_LUMPS ];
-	file.read( ( char* ) &mdlLumps[ 0 ], sizeof( MDLLump ) * ML_MAX_LUMPS );
+    // Read all lumps
+    MDLLump				mdlLumps[ ML_MAX_LUMPS ];
+    file.read( ( char* ) &mdlLumps[ 0 ], sizeof( MDLLump ) * ML_MAX_LUMPS );
 
-	// Read materials
-	std::vector< le::IMaterial* >		materials;
-	le::UInt32_t						countMaterials;
+    // Read materials
+    std::vector< le::IMaterial* >		materials;
+    le::UInt32_t						countMaterials;
 
-	file.seekg( mdlLumps[ ML_MATERIALS ].offset, std::ios::beg );
-	file.read( ( char* ) &countMaterials, sizeof( le::UInt32_t ) );
+    file.seekg( mdlLumps[ ML_MATERIALS ].offset, std::ios::beg );
+    file.read( ( char* ) &countMaterials, sizeof( le::UInt32_t ) );
 
-	for ( le::UInt32_t index = 0; index < countMaterials; ++index )
-	{
-		le::UInt32_t		sizePath;
-		std::string			path;
+    for ( le::UInt32_t index = 0; index < countMaterials; ++index )
+    {
+        le::UInt32_t		sizePath;
+        std::string			path;
 
-		file.read( ( char* ) &sizePath, sizeof( le::UInt32_t ) );
-		path.resize( sizePath );
-		file.read( ( char* ) path.data(), sizePath );
+        file.read( ( char* ) &sizePath, sizeof( le::UInt32_t ) );
+        path.resize( sizePath );
+        file.read( ( char* ) path.data(), sizePath );
 
-		le::IMaterial*			material = ResourceSystem->LoadMaterial( path.data(), path.data() );
-		if ( !material ) continue;
+        le::IMaterial*			material = 0;//ResourceSystem->LoadMaterial( path.data(), path.data() );
 
-		materials.push_back( material );
-	}
+        if ( !material ) continue;
 
-	// Read verteces
-	std::vector< MDLVertex >		verteces;
-	le::UInt32_t					countVerteces;
+        materials.push_back( material );
+    }
 
-	file.seekg( mdlLumps[ ML_VERTECES ].offset, std::ios::beg );
-	file.read( ( char* ) &countVerteces, sizeof( le::UInt32_t ) );
+    // Read verteces
+    std::vector< MDLVertex >		verteces;
+    le::UInt32_t					countVerteces;
 
-	verteces.resize( countVerteces );
-	file.read( ( char* ) verteces.data(), countVerteces * sizeof( MDLVertex ) );
+    file.seekg( mdlLumps[ ML_VERTECES ].offset, std::ios::beg );
+    file.read( ( char* ) &countVerteces, sizeof( le::UInt32_t ) );
 
-	// Read indeces
-	std::vector< le::UInt32_t >		indeces;
-	le::UInt32_t					countIndeces;
+    verteces.resize( countVerteces );
+    file.read( ( char* ) verteces.data(), countVerteces * sizeof( MDLVertex ) );
 
-	file.seekg( mdlLumps[ ML_INDECES ].offset, std::ios::beg );
-	file.read( ( char* ) &countIndeces, sizeof( le::UInt32_t ) );
+    // Read indeces
+    std::vector< le::UInt32_t >		indeces;
+    le::UInt32_t					countIndeces;
 
-	indeces.resize( countIndeces );
-	file.read( ( char* ) indeces.data(), countIndeces * sizeof( le::UInt32_t ) );
+    file.seekg( mdlLumps[ ML_INDECES ].offset, std::ios::beg );
+    file.read( ( char* ) &countIndeces, sizeof( le::UInt32_t ) );
 
-	// Read surfaces
-	std::vector< le::MeshSurface >		surfaces;
-	le::UInt32_t						countSurfaces;
+    indeces.resize( countIndeces );
+    file.read( ( char* ) indeces.data(), countIndeces * sizeof( le::UInt32_t ) );
 
-	file.seekg( mdlLumps[ ML_SURFACES ].offset, std::ios::beg );
-	file.read( ( char* ) &countSurfaces, sizeof( le::UInt32_t ) );
-	surfaces.resize( countSurfaces );
+    // Read surfaces
+    std::vector< le::MeshSurface >		surfaces;
+    le::UInt32_t						countSurfaces;
 
-	for ( le::UInt32_t index = 0; index < countSurfaces; ++index )
-	{
-		MDLSurface			mdlSurface;
-		file.read( ( char* ) &mdlSurface, sizeof( MDLSurface ) );
+    file.seekg( mdlLumps[ ML_SURFACES ].offset, std::ios::beg );
+    file.read( ( char* ) &countSurfaces, sizeof( le::UInt32_t ) );
+    surfaces.resize( countSurfaces );
 
-		le::MeshSurface&	surface = surfaces[ index ];
-		surface.startVertexIndex = 0;
-		surface.lightmapID = 0;
-		surface.materialID = mdlSurface.materialId;
-		surface.startIndex = mdlSurface.startIndex;
-		surface.countIndeces = mdlSurface.countIndex;
-	}
+    for ( le::UInt32_t index = 0; index < countSurfaces; ++index )
+    {
+        MDLSurface			mdlSurface;
+        file.read( ( char* ) &mdlSurface, sizeof( MDLSurface ) );
 
-	// Find min xyz and max
-	le::Vector3D_t			min = verteces[ 0 ].position;
-	le::Vector3D_t			max = verteces[ 0 ].position;
+        le::MeshSurface&	surface = surfaces[ index ];
+        surface.startVertexIndex = 0;
+        surface.lightmapID = 0;
+        surface.materialID = mdlSurface.materialId;
+        surface.startIndex = mdlSurface.startIndex;
+        surface.countIndeces = mdlSurface.countIndex;
+    }
 
-	for ( uint32_t index = 0; index < countVerteces; ++index )
-	{
-		min.x = glm::min( min.x, verteces[ index ].position.x );
-		min.y = glm::min( min.y, verteces[ index ].position.y );
-		min.z = glm::min( min.z, verteces[ index ].position.z );
+    // Find min xyz and max
+    le::Vector3D_t			min = verteces[ 0 ].position;
+    le::Vector3D_t			max = verteces[ 0 ].position;
 
-		max.x = glm::max( max.x, verteces[ index ].position.x );
-		max.y = glm::max( max.y, verteces[ index ].position.y );
-		max.z = glm::max( max.z, verteces[ index ].position.z );
-	}
+    for ( uint32_t index = 0; index < countVerteces; ++index )
+    {
+        min.x = glm::min( min.x, verteces[ index ].position.x );
+        min.y = glm::min( min.y, verteces[ index ].position.y );
+        min.z = glm::min( min.z, verteces[ index ].position.z );
 
-	le::IMesh* mesh = ( le::IMesh* ) StudioRenderFactory->Create( MESH_INTERFACE_VERSION );
-	if ( !mesh )				return nullptr;
+        max.x = glm::max( max.x, verteces[ index ].position.x );
+        max.y = glm::max( max.y, verteces[ index ].position.y );
+        max.z = glm::max( max.z, verteces[ index ].position.z );
+    }
 
-	// Create descriptor format verteces
-	std::vector< le::StudioVertexElement >			vertexElements =
-	{
-		{ 3, le::VET_FLOAT },
-		{ 3, le::VET_FLOAT },
-		{ 2, le::VET_FLOAT },
-		{ 3, le::VET_FLOAT },
-		{ 3, le::VET_FLOAT }
-	};
+    le::IMesh* mesh = ( le::IMesh* ) StudioRenderFactory->Create( MESH_INTERFACE_VERSION );
+    if ( !mesh )				return nullptr;
 
-	// Creating mesh descriptor and loading to gpu
-	le::MeshDescriptor				meshDescriptor;
-	meshDescriptor.countIndeces = indeces.size();
-	meshDescriptor.countMaterials = materials.size();
-	meshDescriptor.countLightmaps = 0;
-	meshDescriptor.countSurfaces = surfaces.size();
-	meshDescriptor.sizeVerteces = verteces.size() * sizeof( MDLVertex );
+    // Create descriptor format verteces
+    std::vector< le::StudioVertexElement >			vertexElements =
+    {
+        { 3, le::VET_FLOAT },
+        { 3, le::VET_FLOAT },
+        { 2, le::VET_FLOAT },
+        { 3, le::VET_FLOAT },
+        { 3, le::VET_FLOAT }
+    };
 
-	meshDescriptor.indeces = indeces.data();
-	meshDescriptor.materials = materials.data();
-	meshDescriptor.lightmaps = nullptr;
-	meshDescriptor.surfaces = surfaces.data();
-	meshDescriptor.verteces = verteces.data();
+    // Creating mesh descriptor and loading to gpu
+    le::MeshDescriptor				meshDescriptor;
+    meshDescriptor.countIndeces = indeces.size();
+    meshDescriptor.countMaterials = materials.size();
+    meshDescriptor.countLightmaps = 0;
+    meshDescriptor.countSurfaces = surfaces.size();
+    meshDescriptor.sizeVerteces = verteces.size() * sizeof( MDLVertex );
 
-	meshDescriptor.min = min;
-	meshDescriptor.max = max;
-	meshDescriptor.primitiveType = le::PT_TRIANGLES;
-	meshDescriptor.countVertexElements = vertexElements.size();
-	meshDescriptor.vertexElements = vertexElements.data();
+    meshDescriptor.indeces = indeces.data();
+    meshDescriptor.materials = materials.data();
+    meshDescriptor.lightmaps = nullptr;
+    meshDescriptor.surfaces = surfaces.data();
+    meshDescriptor.verteces = verteces.data();
 
-	// Loading mesh to gpu
-	mesh->Create( meshDescriptor );
-	if ( !mesh->IsCreated() )
-	{
-		StudioRenderFactory->Delete( mesh );
-		return nullptr;
-	}
+    meshDescriptor.min = min;
+    meshDescriptor.max = max;
+    meshDescriptor.primitiveType = le::PT_TRIANGLES;
+    meshDescriptor.countVertexElements = vertexElements.size();
+    meshDescriptor.vertexElements = vertexElements.data();
 
-	return mesh;
+    // Loading mesh to gpu
+    mesh->Create( meshDescriptor );
+    if ( !mesh->IsCreated() )
+    {
+        StudioRenderFactory->Delete( mesh );
+        return nullptr;
+    }
+
+    return mesh;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -786,30 +787,30 @@ le::ILevel* LE_LoadLevel( const char* Path, le::IFactory* GameFactory )
 // ------------------------------------------------------------------------------------ //
 le::IScript* LE_LoadScript( const char* Path, le::UInt32_t CountFunctions, le::ScriptDescriptor::Symbol* Functions, le::UInt32_t CountVars, le::ScriptDescriptor::Symbol* Vars, le::IFactory* ScriptSystemFactory )
 {
-	std::ifstream			file( Path );
-	if ( !file.is_open() )	return nullptr;
+    std::ifstream			file( Path );
+    if ( !file.is_open() )	return nullptr;
 
-	std::string			code;
-	std::getline( file, code, '\0' );
-	if ( code.empty() )		return nullptr;
+    std::string			code;
+    std::getline( file, code, '\0' );
+    if ( code.empty() )		return nullptr;
 
-	le::IScript*		script = ( le::IScript* ) ScriptSystemFactory->Create( SCRIPT_INTERFACE_VERSION );
-	if ( !script )			return nullptr;
+    le::IScript*		script = ( le::IScript* ) ScriptSystemFactory->Create( SCRIPT_INTERFACE_VERSION );
+    if ( !script )			return nullptr;
 
-	le::ScriptDescriptor		scriptDescriptor;
-	scriptDescriptor.code = code.c_str();
-	scriptDescriptor.countFunctions = CountFunctions;
-	scriptDescriptor.functions = Functions;
-	scriptDescriptor.countVars = CountVars;
-	scriptDescriptor.vars = Vars;
+    le::ScriptDescriptor		scriptDescriptor;
+    scriptDescriptor.code = code.c_str();
+    scriptDescriptor.countFunctions = CountFunctions;
+    scriptDescriptor.functions = Functions;
+    scriptDescriptor.countVars = CountVars;
+    scriptDescriptor.vars = Vars;
 
-	if ( !script->Load( scriptDescriptor ) )
-	{
-		script->Release();
-		return nullptr;
-	}
+    if ( !script->Load( scriptDescriptor ) )
+    {
+        script->Release();
+        return nullptr;
+    }
 
-	return script;
+    return script;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -817,47 +818,47 @@ le::IScript* LE_LoadScript( const char* Path, le::UInt32_t CountFunctions, le::S
 // ------------------------------------------------------------------------------------ //
 le::IPhysicsModel* LE_LoadPhysicsModel( const char* Path, le::IFactory* PhysicsSystemFactory )
 {
-	std::ifstream				file( Path, std::ios::binary );
-	if ( !file.is_open() )		return nullptr;
+    std::ifstream				file( Path, std::ios::binary );
+    if ( !file.is_open() )		return nullptr;
 
-	// Read header file
-	PHYHeader			phyHeader;
-	file.read( ( char* ) &phyHeader, sizeof( PHYHeader ) );
-	if ( strncmp( phyHeader.strId, PHY_ID, 4 ) != 0 || phyHeader.version != PHY_VERSION )
-		return nullptr;
+    // Read header file
+    PHYHeader			phyHeader;
+    file.read( ( char* ) &phyHeader, sizeof( PHYHeader ) );
+    if ( strncmp( phyHeader.strId, PHY_ID, 4 ) != 0 || phyHeader.version != PHY_VERSION )
+        return nullptr;
 
-	// Read all lumps
-	PHYLump				phyLumps[ PL_MAX_LUMPS ];
-	file.read( ( char* ) &phyLumps[ 0 ], sizeof( PHYLump ) * PL_MAX_LUMPS );
+    // Read all lumps
+    PHYLump				phyLumps[ PL_MAX_LUMPS ];
+    file.read( ( char* ) &phyLumps[ 0 ], sizeof( PHYLump ) * PL_MAX_LUMPS );
 
-	// Read verteces
-	std::vector< le::Vector3D_t >		verteces;
-	le::UInt32_t						countVerteces;
+    // Read verteces
+    std::vector< le::Vector3D_t >		verteces;
+    le::UInt32_t						countVerteces;
 
-	file.seekg( phyLumps[ PL_VERTECES ].offset, std::ios::beg );
-	file.read( ( char* ) &countVerteces, sizeof( le::UInt32_t ) );
+    file.seekg( phyLumps[ PL_VERTECES ].offset, std::ios::beg );
+    file.read( ( char* ) &countVerteces, sizeof( le::UInt32_t ) );
 
-	verteces.resize( countVerteces );
-	file.read( ( char* ) verteces.data(), countVerteces * sizeof( le::Vector3D_t ) );
+    verteces.resize( countVerteces );
+    file.read( ( char* ) verteces.data(), countVerteces * sizeof( le::Vector3D_t ) );
 
-	// Read indeces
-	std::vector< le::UInt32_t >		indeces;
-	le::UInt32_t					countIndeces;
+    // Read indeces
+    std::vector< le::UInt32_t >		indeces;
+    le::UInt32_t					countIndeces;
 
-	file.seekg( phyLumps[ PL_INDECES ].offset, std::ios::beg );
-	file.read( ( char* ) &countIndeces, sizeof( le::UInt32_t ) );
+    file.seekg( phyLumps[ PL_INDECES ].offset, std::ios::beg );
+    file.read( ( char* ) &countIndeces, sizeof( le::UInt32_t ) );
 
-	indeces.resize( countIndeces );
-	file.read( ( char* ) indeces.data(), countIndeces * sizeof( le::UInt32_t ) );
+    indeces.resize( countIndeces );
+    file.read( ( char* ) indeces.data(), countIndeces * sizeof( le::UInt32_t ) );
 
-	if ( verteces.empty() ) return nullptr;
+    if ( verteces.empty() ) return nullptr;
 
-	// Creating physics models
-	le::IPhysicsModel*		physicsModel = ( le::IPhysicsModel* ) PhysicsSystemFactory->Create( PHYSICSMODEL_INTERFACE_VERSION );
-	if ( !physicsModel )	return nullptr;
+    // Creating physics models
+    le::IPhysicsModel*		physicsModel = ( le::IPhysicsModel* ) PhysicsSystemFactory->Create( PHYSICSMODEL_INTERFACE_VERSION );
+    if ( !physicsModel )	return nullptr;
 
-	physicsModel->InitializeMesh( verteces.data(), verteces.size(), indeces.data(), indeces.size() );
-	return physicsModel;
+    physicsModel->InitializeMesh( verteces.data(), verteces.size(), indeces.data(), indeces.size() );
+    return physicsModel;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1021,30 +1022,30 @@ void le::ResourceSystem::UnregisterLoader_Font( const char* Format )
 le::Image le::ResourceSystem::LoadImage( const char* Path, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels )
 {
     LIFEENGINE_ASSERT( Path );
-	IsError = true;
+    IsError = true;
 
     try
     {
         if ( loaderImages.empty() )					throw std::runtime_error( "No image loaders" );
 
-		std::string			format = GetFormatFile( Path );
+        std::string			format = GetFormatFile( Path );
         if ( format.empty() )						throw std::runtime_error( "In image format not found" );
 
         auto				parser = loaderImages.find( format );
         if ( parser == loaderImages.end() )			throw std::runtime_error( "Loader for format image not found" );
 
         Image				image;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), image, IsError, IsFlipVertical, IsSwitchRedAndBlueChannels );
-			if ( image.data )
-			{
-				g_consoleSystem->PrintInfo( "Image founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+        for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+        {
+            parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), image, IsError, IsFlipVertical, IsSwitchRedAndBlueChannels );
+            if ( image.data )
+            {
+                g_consoleSystem->PrintInfo( "Image founded in [%s]", paths[ index ].c_str() );
+                break;
+            }
+        }
 
-		if ( IsError )								throw std::runtime_error( "Fail loading image" );
+        if ( IsError )								throw std::runtime_error( "Fail loading image" );
         return image;
     }
     catch ( std::exception & Exception )
@@ -1071,22 +1072,22 @@ le::ITexture* le::ResourceSystem::LoadTexture( const char* Name, const char* Pat
 
         g_consoleSystem->PrintInfo( "Loading texture [%s] with name [%s]", Path, Name );
 
-		std::string			format = GetFormatFile( Path );
+        std::string			format = GetFormatFile( Path );
         if ( format.empty() )						throw std::runtime_error( "In texture format not found" );
 
         auto				parser = loaderTextures.find( format );
         if ( parser == loaderTextures.end() )		throw std::runtime_error( "Loader for format texture not found" );
 
-		ITexture*			texture = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			texture = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), studioRenderFactory );
-			if ( texture )
-			{
-				g_consoleSystem->PrintInfo( "Texture founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+        ITexture*			texture = nullptr;
+        for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+        {
+            texture = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), studioRenderFactory );
+            if ( texture )
+            {
+                g_consoleSystem->PrintInfo( "Texture founded in [%s]", paths[ index ].c_str() );
+                break;
+            }
+        }
 
         if ( !texture )								throw std::runtime_error( "Fail loading texture" );
         texture->IncrementReference();
@@ -1117,26 +1118,26 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
         if ( materials.find( Name ) != materials.end() )	return materials[ Name ];
         if ( loaderMaterials.empty() )						throw std::runtime_error( "No material loaders" );
 
-		g_consoleSystem->PrintInfo( "Loading material [%s] with name [%s]", Path, Name );
+        g_consoleSystem->PrintInfo( "Loading material [%s] with name [%s]", Path, Name );
 
-		std::string			format = GetFormatFile( Path );
+        std::string			format = GetFormatFile( Path );
         if ( format.empty() )						throw std::runtime_error( "In material format not found" );
 
         auto				parser = loaderMaterials.find( format );
         if ( parser == loaderMaterials.end() )		throw std::runtime_error( "Loader for format material not found" );
 
-		IMaterial*			material = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			material = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), this, materialManager, studioRenderFactory );
-			if ( material )
-			{
-				g_consoleSystem->PrintInfo( "Material founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+        IMaterial*			material = nullptr;
+        for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+        {
+            material = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), this, materialManager, studioRenderFactory );
+            if ( material )
+            {
+                g_consoleSystem->PrintInfo( "Material founded in [%s]", paths[ index ].c_str() );
+                break;
+            }
+        }
 
-		if ( !material )	throw std::runtime_error( "Fail loading material" );
+        if ( !material )	throw std::runtime_error( "Fail loading material" );
         material->IncrementReference();
         materials.insert( std::make_pair( Name, material ) );
         g_consoleSystem->PrintInfo( "Loaded material [%s]", Name );
@@ -1167,24 +1168,24 @@ le::IMesh* le::ResourceSystem::LoadMesh( const char* Name, const char* Path )
 
         g_consoleSystem->PrintInfo( "Loading mesh [%s] with name [%s]", Path, Name );
 
-		std::string			format = GetFormatFile( Path );
+        std::string			format = GetFormatFile( Path );
         if ( format.empty() )						throw std::runtime_error( "In mesh format not found" );
 
         auto				parser = loaderMeshes.find( format );
         if ( parser == loaderMeshes.end() )		throw std::runtime_error( "Loader for format mesh not found" );
 
-		IMesh*			mesh = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			mesh = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), this, studioRenderFactory );
-			if ( mesh )
-			{
-				g_consoleSystem->PrintInfo( "Mesh founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+        IMesh*			mesh = nullptr;
+        for ( UInt32_t index = 0; index < paths.size(); ++index )
+        {
+            mesh = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), this, studioRenderFactory );
+            if ( mesh )
+            {
+                g_consoleSystem->PrintInfo( "Mesh founded in [%s]", paths[ index ].c_str() );
+                break;
+            }
+        }
 
-		if ( !mesh )							throw std::runtime_error( "Fail loading mesh" );
+        if ( !mesh )							throw std::runtime_error( "Fail loading mesh" );
         mesh->IncrementReference();
         meshes.insert( std::make_pair( Name, mesh ) );
         g_consoleSystem->PrintInfo( "Loaded mesh [%s]", Name );
@@ -1215,24 +1216,24 @@ le::ILevel* le::ResourceSystem::LoadLevel( const char* Name, const char* Path, I
 
         g_consoleSystem->PrintInfo( "Loading level [%s] with name [%s]", Path, Name );
 
-		std::string			format = GetFormatFile( Path );
+        std::string			format = GetFormatFile( Path );
         if ( format.empty() )						throw std::runtime_error( "In level format not found" );
 
         auto				parser = loaderLevels.find( format );
         if ( parser == loaderLevels.end() )		throw std::runtime_error( "Loader for format level not found" );
 
-		ILevel*			level = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			level = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), GameFactory );
-			if ( level )
-			{
-				g_consoleSystem->PrintInfo( "Level founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+        ILevel*			level = nullptr;
+        for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+        {
+            level = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), GameFactory );
+            if ( level )
+            {
+                g_consoleSystem->PrintInfo( "Level founded in [%s]", paths[ index ].c_str() );
+                break;
+            }
+        }
 
-		if ( !level )							throw std::runtime_error( "Fail loading level" );
+        if ( !level )							throw std::runtime_error( "Fail loading level" );
         level->IncrementReference();
         levels.insert( std::make_pair( Name, level ) );
         g_consoleSystem->PrintInfo( "Loaded level [%s]", Name );
@@ -1261,24 +1262,24 @@ le:: IFont* le::ResourceSystem::LoadFont( const char* Name, const char* Path )
 
         g_consoleSystem->PrintInfo( "Loading font [%s] with name [%s]", Path, Name );
 
-		std::string			format = GetFormatFile( Path );
+        std::string			format = GetFormatFile( Path );
         if ( format.empty() )						throw std::runtime_error( "In font format not found" );
 
         auto				parser = loaderFonts.find( format );
         if ( parser == loaderFonts.end() )		throw std::runtime_error( "Loader for format font not found" );
 
-		IFont*			font = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			font = parser->second( std::string( paths[ index ] + "/" + Path ).c_str() );
-			if ( font )
-			{
-				g_consoleSystem->PrintInfo( "Font founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+        IFont*			font = nullptr;
+        for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+        {
+            font = parser->second( std::string( paths[ index ] + "/" + Path ).c_str() );
+            if ( font )
+            {
+                g_consoleSystem->PrintInfo( "Font founded in [%s]", paths[ index ].c_str() );
+                break;
+            }
+        }
 
-		if ( !font )							throw std::runtime_error( "Fail loading font" );
+        if ( !font )							throw std::runtime_error( "Fail loading font" );
         font->IncrementReference();
         fonts.insert( std::make_pair( Name, font ) );
         g_consoleSystem->PrintInfo( "Loaded font [%s]", Name );
@@ -1494,13 +1495,13 @@ void le::ResourceSystem::UnloadTextures()
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadAll()
 {
-	UnloadScripts();
+    UnloadScripts();
     UnloadLevels();
     UnloadMeshes();
     UnloadFonts();
     UnloadMaterials();
     UnloadTextures();
-	UnloadPhysicsModels();
+    UnloadPhysicsModels();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1578,7 +1579,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
         if ( !studioRender )	throw std::runtime_error( "Resource system requared studiorender" );
 
         studioRenderFactory = studioRender->GetFactory();
-		scriptSystemFactory = g_scriptSystem->GetFactory();
+        scriptSystemFactory = g_scriptSystem->GetFactory();
         materialManager = Engine->GetMaterialManager();
 
         RegisterLoader_Image( "png", LE_LoadImage );
@@ -1588,18 +1589,18 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
         RegisterLoader_Texture( "jpg", LE_LoadTexture );
         RegisterLoader_Texture( "tga", LE_LoadTexture );
         RegisterLoader_Material( "lmt", LE_LoadMaterial );
-		RegisterLoader_Mesh( "mdl", LE_LoadMesh );
+        RegisterLoader_Mesh( "mdl", LE_LoadMesh );
         RegisterLoader_Level( "bsp", LE_LoadLevel );
         RegisterLoader_Font( "ttf", LE_LoadFont );
-		RegisterLoader_Script( "c", LE_LoadScript );
-		RegisterLoader_PhysicsModel( "phy", LE_LoadPhysicsModel );
+        RegisterLoader_Script( "c", LE_LoadScript );
+        RegisterLoader_PhysicsModel( "phy", LE_LoadPhysicsModel );
     }
     catch ( std::exception & Exception )
     {
         g_consoleSystem->PrintError( Exception.what() );
         return false;
     }
-	return true;
+    return true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1607,10 +1608,10 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::AddPath( const char* Path )
 {
-	if ( !Path ) return;
+    if ( !Path ) return;
 
-	g_consoleSystem->PrintInfo( "Resources path [%s] added to resource system", Path );
-	paths.push_back( Path );
+    g_consoleSystem->PrintInfo( "Resources path [%s] added to resource system", Path );
+    paths.push_back( Path );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1618,10 +1619,10 @@ void le::ResourceSystem::AddPath( const char* Path )
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::RemovePath( le::UInt32_t Index )
 {
-	LIFEENGINE_ASSERT( Index < paths.size() );
+    LIFEENGINE_ASSERT( Index < paths.size() );
 
-	g_consoleSystem->PrintInfo( "Resources path [%s] removed from resource system", paths[ Index ].c_str() );
-	paths.erase( paths.begin() + Index );
+    g_consoleSystem->PrintInfo( "Resources path [%s] removed from resource system", paths[ Index ].c_str() );
+    paths.erase( paths.begin() + Index );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1629,11 +1630,11 @@ void le::ResourceSystem::RemovePath( le::UInt32_t Index )
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::ClearPaths()
 {
-	if ( paths.empty() ) return;
+    if ( paths.empty() ) return;
 
-	for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		g_consoleSystem->PrintInfo( "Resources path [%s] removed from resource system", paths[ index ].c_str() );
-	paths.clear();
+    for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+        g_consoleSystem->PrintInfo( "Resources path [%s] removed from resource system", paths[ index ].c_str() );
+    paths.clear();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1641,8 +1642,8 @@ void le::ResourceSystem::ClearPaths()
 // ------------------------------------------------------------------------------------ //
 le::ResourceSystem::ResourceSystem() :
     studioRenderFactory( nullptr ),
-	materialManager( nullptr ),
-	scriptSystemFactory( nullptr )
+    materialManager( nullptr ),
+    scriptSystemFactory( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -1658,16 +1659,16 @@ le::ResourceSystem::~ResourceSystem()
 // ------------------------------------------------------------------------------------ //
 std::string le::ResourceSystem::GetFormatFile(const std::string& Route)
 {
-	UInt32_t		position = Route.find_last_of( '.' );
-	if ( position == std::string::npos )
-		return "";
+    UInt32_t		position = Route.find_last_of( '.' );
+    if ( position == std::string::npos )
+        return "";
 
-	// Если расширение есть, то переводим в малый регистр и возвращаем
-	std::string		format = Route.substr( position + 1, std::string::npos );
-	for ( UInt32_t index = 0, count = format.size(); index < count; ++index )
-		format[ index ] = tolower( format[ index ] );
+    // Если расширение есть, то переводим в малый регистр и возвращаем
+    std::string		format = Route.substr( position + 1, std::string::npos );
+    for ( UInt32_t index = 0, count = format.size(); index < count; ++index )
+        format[ index ] = tolower( format[ index ] );
 
-	return format;
+    return format;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1675,11 +1676,11 @@ std::string le::ResourceSystem::GetFormatFile(const std::string& Route)
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::RegisterLoader_Script( const char* Format, LoadScriptFn_t LoadScript )
 {
-	LIFEENGINE_ASSERT( Format );
-	LIFEENGINE_ASSERT( LoadScript );
+    LIFEENGINE_ASSERT( Format );
+    LIFEENGINE_ASSERT( LoadScript );
 
-	g_consoleSystem->PrintInfo( "Loader script for format [%s] registered", Format );
-	loaderScripts[ Format ] = LoadScript;
+    g_consoleSystem->PrintInfo( "Loader script for format [%s] registered", Format );
+    loaderScripts[ Format ] = LoadScript;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1687,13 +1688,13 @@ void le::ResourceSystem::RegisterLoader_Script( const char* Format, LoadScriptFn
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnregisterLoader_Script( const char* Format )
 {
-	LIFEENGINE_ASSERT( Format );
+    LIFEENGINE_ASSERT( Format );
 
-	auto		it = loaderScripts.find( Format );
-	if ( it == loaderScripts.end() ) return;
+    auto		it = loaderScripts.find( Format );
+    if ( it == loaderScripts.end() ) return;
 
-	loaderScripts.erase( it );
-	g_consoleSystem->PrintInfo( "Loader script for format [%s] unregistered", Format );
+    loaderScripts.erase( it );
+    g_consoleSystem->PrintInfo( "Loader script for format [%s] unregistered", Format );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1701,47 +1702,47 @@ void le::ResourceSystem::UnregisterLoader_Script( const char* Format )
 // ------------------------------------------------------------------------------------ //
 le::IScript* le::ResourceSystem::LoadScript( const char* Name, const char* Path, UInt32_t CountFunctions, ScriptDescriptor::Symbol* Functions, UInt32_t CountVars, ScriptDescriptor::Symbol* Vars )
 {
-	LIFEENGINE_ASSERT( Name );
-	LIFEENGINE_ASSERT( Path );
+    LIFEENGINE_ASSERT( Name );
+    LIFEENGINE_ASSERT( Path );
 
-	try
-	{
-		if ( !scriptSystemFactory )							throw std::runtime_error( "Resource system not initialized" );
+    try
+    {
+        if ( !scriptSystemFactory )							throw std::runtime_error( "Resource system not initialized" );
 
-		if ( scripts.find( Name ) != scripts.end() )		return scripts[ Name ];
-		if ( loaderScripts.empty() )						throw std::runtime_error( "No script loaders" );
+        if ( scripts.find( Name ) != scripts.end() )		return scripts[ Name ];
+        if ( loaderScripts.empty() )						throw std::runtime_error( "No script loaders" );
 
-		g_consoleSystem->PrintInfo( "Loading script [%s] with name [%s]", Path, Name );
+        g_consoleSystem->PrintInfo( "Loading script [%s] with name [%s]", Path, Name );
 
-		std::string			format = GetFormatFile( Path );
-		if ( format.empty() )						throw std::runtime_error( "In script format not found" );
+        std::string			format = GetFormatFile( Path );
+        if ( format.empty() )						throw std::runtime_error( "In script format not found" );
 
-		auto				parser = loaderScripts.find( format );
-		if ( parser == loaderScripts.end() )		throw std::runtime_error( "Loader for format script not found" );
+        auto				parser = loaderScripts.find( format );
+        if ( parser == loaderScripts.end() )		throw std::runtime_error( "Loader for format script not found" );
 
-		IScript*			script = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			script = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), CountFunctions, Functions, CountVars, Vars, scriptSystemFactory );
-			if ( script )
-			{
-				g_consoleSystem->PrintInfo( "Script founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+        IScript*			script = nullptr;
+        for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+        {
+            script = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), CountFunctions, Functions, CountVars, Vars, scriptSystemFactory );
+            if ( script )
+            {
+                g_consoleSystem->PrintInfo( "Script founded in [%s]", paths[ index ].c_str() );
+                break;
+            }
+        }
 
-		if ( !script )							throw std::runtime_error( "Fail loading script" );
-		script->IncrementReference();
-		scripts.insert( std::make_pair( Name, script ) );
-		g_consoleSystem->PrintInfo( "Loaded script [%s]", Name );
+        if ( !script )							throw std::runtime_error( "Fail loading script" );
+        script->IncrementReference();
+        scripts.insert( std::make_pair( Name, script ) );
+        g_consoleSystem->PrintInfo( "Loaded script [%s]", Name );
 
-		return script;
-	}
-	catch ( std::exception & Exception )
-	{
-		g_consoleSystem->PrintError( "Script [%s] not loaded: %s", Path, Exception.what() );
-		return nullptr;
-	}
+        return script;
+    }
+    catch ( std::exception & Exception )
+    {
+        g_consoleSystem->PrintError( "Script [%s] not loaded: %s", Path, Exception.what() );
+        return nullptr;
+    }
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1749,15 +1750,15 @@ le::IScript* le::ResourceSystem::LoadScript( const char* Name, const char* Path,
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadScript( const char* Name )
 {
-	LIFEENGINE_ASSERT( Name );
+    LIFEENGINE_ASSERT( Name );
 
-	auto				it = scripts.find( Name );
-	if ( it == scripts.end() || it->second->GetCountReferences() > 1 )	return;
+    auto				it = scripts.find( Name );
+    if ( it == scripts.end() || it->second->GetCountReferences() > 1 )	return;
 
-	it->second->Release();
-	scripts.erase( it );
+    it->second->Release();
+    scripts.erase( it );
 
-	g_consoleSystem->PrintInfo( "Unloaded script [%s]", Name );
+    g_consoleSystem->PrintInfo( "Unloaded script [%s]", Name );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1765,19 +1766,19 @@ void le::ResourceSystem::UnloadScript( const char* Name )
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadScripts()
 {
-	if ( scripts.empty() ) return;
+    if ( scripts.empty() ) return;
 
-	for ( auto it = scripts.begin(), itEnd = scripts.end(); it != itEnd; )
-		if ( it->second->GetCountReferences() <= 1 )
-		{
-			it->second->Release();
+    for ( auto it = scripts.begin(), itEnd = scripts.end(); it != itEnd; )
+        if ( it->second->GetCountReferences() <= 1 )
+        {
+            it->second->Release();
 
-			g_consoleSystem->PrintInfo( "Unloaded script [%s]", it->first.c_str() );
-			it = scripts.erase( it );
-			itEnd = scripts.end();
-		}
-		else
-			++it;
+            g_consoleSystem->PrintInfo( "Unloaded script [%s]", it->first.c_str() );
+            it = scripts.erase( it );
+            itEnd = scripts.end();
+        }
+        else
+            ++it;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1785,12 +1786,12 @@ void le::ResourceSystem::UnloadScripts()
 // ------------------------------------------------------------------------------------ //
 le::IScript* le::ResourceSystem::GetScript( const char* Name ) const
 {
-	LIFEENGINE_ASSERT( Name );
+    LIFEENGINE_ASSERT( Name );
 
-	auto	it = scripts.find( Name );
-	if ( it != scripts.end() )		return it->second;
+    auto	it = scripts.find( Name );
+    if ( it != scripts.end() )		return it->second;
 
-	return nullptr;
+    return nullptr;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1798,11 +1799,11 @@ le::IScript* le::ResourceSystem::GetScript( const char* Name ) const
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::RegisterLoader_PhysicsModel( const char *Format, LoadPhysicsModelFn_t LoadPhysicsModel )
 {
-	LIFEENGINE_ASSERT( Format );
-	LIFEENGINE_ASSERT( LoadPhysicsModel );
+    LIFEENGINE_ASSERT( Format );
+    LIFEENGINE_ASSERT( LoadPhysicsModel );
 
-	g_consoleSystem->PrintInfo( "Loader physics model for format [%s] registered", Format );
-	loaderPhysicsModels[ Format ] = LoadPhysicsModel;
+    g_consoleSystem->PrintInfo( "Loader physics model for format [%s] registered", Format );
+    loaderPhysicsModels[ Format ] = LoadPhysicsModel;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1810,13 +1811,13 @@ void le::ResourceSystem::RegisterLoader_PhysicsModel( const char *Format, LoadPh
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnregisterLoader_PhysicsModel( const char *Format )
 {
-	LIFEENGINE_ASSERT( Format );
+    LIFEENGINE_ASSERT( Format );
 
-	auto		it = loaderPhysicsModels.find( Format );
-	if ( it == loaderPhysicsModels.end() ) return;
+    auto		it = loaderPhysicsModels.find( Format );
+    if ( it == loaderPhysicsModels.end() ) return;
 
-	loaderPhysicsModels.erase( it );
-	g_consoleSystem->PrintInfo( "Loader physics model for format [%s] unregistered", Format );
+    loaderPhysicsModels.erase( it );
+    g_consoleSystem->PrintInfo( "Loader physics model for format [%s] unregistered", Format );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1824,15 +1825,15 @@ void le::ResourceSystem::UnregisterLoader_PhysicsModel( const char *Format )
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadPhysicsModel( const char *Name )
 {
-	LIFEENGINE_ASSERT( Name );
+    LIFEENGINE_ASSERT( Name );
 
-	auto				it = physicsModels.find( Name );
-	if ( it == physicsModels.end() || it->second->GetCountReferences() > 1 )	return;
+    auto				it = physicsModels.find( Name );
+    if ( it == physicsModels.end() || it->second->GetCountReferences() > 1 )	return;
 
-	it->second->Release();
-	physicsModels.erase( it );
+    it->second->Release();
+    physicsModels.erase( it );
 
-	g_consoleSystem->PrintInfo( "Unloaded physics model [%s]", Name );
+    g_consoleSystem->PrintInfo( "Unloaded physics model [%s]", Name );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1840,45 +1841,45 @@ void le::ResourceSystem::UnloadPhysicsModel( const char *Name )
 // ------------------------------------------------------------------------------------ //
 le::IPhysicsModel* le::ResourceSystem::LoadPhysicsModel( const char *Name, const char *Path )
 {
-	LIFEENGINE_ASSERT( Name );
-	LIFEENGINE_ASSERT( Path );
+    LIFEENGINE_ASSERT( Name );
+    LIFEENGINE_ASSERT( Path );
 
-	try
-	{
-		if ( physicsModels.find( Name ) != physicsModels.end() )	return physicsModels[ Name ];
-		if ( loaderPhysicsModels.empty() )							throw std::runtime_error( "No physics model loaders" );
+    try
+    {
+        if ( physicsModels.find( Name ) != physicsModels.end() )	return physicsModels[ Name ];
+        if ( loaderPhysicsModels.empty() )							throw std::runtime_error( "No physics model loaders" );
 
-		g_consoleSystem->PrintInfo( "Loading physics model [%s] with name [%s]", Path, Name );
+        g_consoleSystem->PrintInfo( "Loading physics model [%s] with name [%s]", Path, Name );
 
-		std::string			format = GetFormatFile( Path );
-		if ( format.empty() )								throw std::runtime_error( "In collider format not found" );
+        std::string			format = GetFormatFile( Path );
+        if ( format.empty() )								throw std::runtime_error( "In collider format not found" );
 
-		auto				parser = loaderPhysicsModels.find( format );
-		if ( parser == loaderPhysicsModels.end() )			throw std::runtime_error( "Loader for format physics model not found" );
+        auto				parser = loaderPhysicsModels.find( format );
+        if ( parser == loaderPhysicsModels.end() )			throw std::runtime_error( "Loader for format physics model not found" );
 
-		le::IPhysicsModel*			physicsModel = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			physicsModel = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), g_physicsSystemFactory );
-			if ( physicsModel )
-			{
-				g_consoleSystem->PrintInfo( "Physics model founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+        le::IPhysicsModel*			physicsModel = nullptr;
+        for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+        {
+            physicsModel = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), g_physicsSystemFactory );
+            if ( physicsModel )
+            {
+                g_consoleSystem->PrintInfo( "Physics model founded in [%s]", paths[ index ].c_str() );
+                break;
+            }
+        }
 
-		if ( !physicsModel )		throw std::runtime_error( "Fail loading physics model" );
-		physicsModel->IncrementReference();
-		physicsModels.insert( std::make_pair( Name, physicsModel ) );
-		g_consoleSystem->PrintInfo( "Loaded collider [%s]", Name );
+        if ( !physicsModel )		throw std::runtime_error( "Fail loading physics model" );
+        physicsModel->IncrementReference();
+        physicsModels.insert( std::make_pair( Name, physicsModel ) );
+        g_consoleSystem->PrintInfo( "Loaded collider [%s]", Name );
 
-		return physicsModel;
-	}
-	catch ( std::exception & Exception )
-	{
-		g_consoleSystem->PrintError( "Physics model [%s] not loaded: %s", Path, Exception.what() );
-		return nullptr;
-	}
+        return physicsModel;
+    }
+    catch ( std::exception & Exception )
+    {
+        g_consoleSystem->PrintError( "Physics model [%s] not loaded: %s", Path, Exception.what() );
+        return nullptr;
+    }
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1886,19 +1887,19 @@ le::IPhysicsModel* le::ResourceSystem::LoadPhysicsModel( const char *Name, const
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadPhysicsModels()
 {
-	if ( physicsModels.empty() ) return;
+    if ( physicsModels.empty() ) return;
 
-	for ( auto it = physicsModels.begin(), itEnd = physicsModels.end(); it != itEnd; )
-		if ( it->second->GetCountReferences() <= 1 )
-		{
-			it->second->Release();
+    for ( auto it = physicsModels.begin(), itEnd = physicsModels.end(); it != itEnd; )
+        if ( it->second->GetCountReferences() <= 1 )
+        {
+            it->second->Release();
 
-			g_consoleSystem->PrintInfo( "Unloaded physics model [%s]", it->first.c_str() );
-			it = physicsModels.erase( it );
-			itEnd = physicsModels.end();
-		}
-		else
-			++it;
+            g_consoleSystem->PrintInfo( "Unloaded physics model [%s]", it->first.c_str() );
+            it = physicsModels.erase( it );
+            itEnd = physicsModels.end();
+        }
+        else
+            ++it;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1906,10 +1907,10 @@ void le::ResourceSystem::UnloadPhysicsModels()
 // ------------------------------------------------------------------------------------ //
 le::IPhysicsModel* le::ResourceSystem::GetPhysicsModel( const char *Name ) const
 {
-	LIFEENGINE_ASSERT( Name );
+    LIFEENGINE_ASSERT( Name );
 
-	auto	it = physicsModels.find( Name );
-	if ( it != physicsModels.end() )	return it->second;
+    auto	it = physicsModels.find( Name );
+    if ( it != physicsModels.end() )	return it->second;
 
-	return nullptr;
+    return nullptr;
 }
