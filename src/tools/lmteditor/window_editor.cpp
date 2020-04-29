@@ -15,29 +15,32 @@
 #include "engineapi.h"
 #include "window_editor.h"
 #include "ui_window_editor.h"
-#include <fstream>
+#include <nodes/NodeData>
+#include <nodes/FlowScene>
+#include <nodes/FlowView>
+#include <nodes/ConnectionStyle>
+#include <nodes/TypeConverter>
+
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
+using QtNodes::FlowScene;
+
 Window_Editor::Window_Editor( QWidget* Parent ) :
 	QMainWindow( Parent ),
 	ui( new Ui::Window_Editor() ),
 	camera( nullptr )
 {
+	
 	ui->setupUi( this );
-	ui->widget_viewport->Initialize();
+	ui->widget_preview->Initialize();
 
 	camera = ( le::ICamera* ) EngineAPI::GetInstance()->GetEngine()->GetFactory()->Create( CAMERA_INTERFACE_VERSION );
 	LIFEENGINE_ASSERT( camera );
 
 	camera->IncrementReference();
-	camera->InitProjection_Perspective( 75.f, ( float ) ui->widget_viewport->width() / ui->widget_viewport->height(), 0.1f, 1500.f );
+	camera->InitProjection_Perspective( 75.f, ( float ) ui->widget_preview->width() / ui->widget_preview->height(), 0.1f, 1500.f );
 	scene.SetCamera( camera );
-
-    try {
-       EngineAPI::GetInstance()->GetResourceSystem()->LoadMesh( "model", "models/sphere.mdl" );
-    } catch (...) {
-    }
 
     // TODO:
 	// 1. Add loading sphere mesh and render

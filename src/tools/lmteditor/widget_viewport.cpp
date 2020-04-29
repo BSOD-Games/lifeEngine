@@ -9,6 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <QResizeEvent>
+#include <qdebug.h>
 
 #include "engineapi.h"
 #include "engine/lifeengine.h"
@@ -17,11 +18,16 @@
 #include "engineapi.h"
 #include "scene.h"
 #include "widget_viewport.h"
+#include "engineapi.h"
+#include "engine/ifactory.h"
+#include "engine/icamera.h"
+#include "studiorender/imesh.h"
+#include "scene.h"
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
-Widget_Viewport::Widget_Viewport( QWidget* Parent) :
+Widget_Viewport::Widget_Viewport( QWidget* Parent ) :
 	QWidget( Parent ),
 	isInitialize( false ),
 	studioRender( nullptr )

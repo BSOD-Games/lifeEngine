@@ -157,6 +157,6 @@ int main( int argc, char** argv )
 
 	// Start editor
 	Window_Editor				window_Editor;
-	window_Editor.show();
+	window_Editor.showMaximized();	
 	return application.exec();
 }
