@@ -645,8 +645,7 @@ le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, l
         path.resize( sizePath );
         file.read( ( char* ) path.data(), sizePath );
 
-        le::IMaterial*			material = 0;//ResourceSystem->LoadMaterial( path.data(), path.data() );
-
+        le::IMaterial*			material = ResourceSystem->LoadMaterial( path.c_str(), path.c_str() );
         if ( !material ) continue;
 
         materials.push_back( material );
