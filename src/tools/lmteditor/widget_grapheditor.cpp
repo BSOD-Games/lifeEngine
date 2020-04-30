@@ -18,6 +18,13 @@
 #include "node_material.h"
 #include "node_surface.h"
 #include "node_techniques.h"
+#include "node_technique.h"
+#include "node_pass.h"
+#include "node_shader.h"
+#include "node_shaderparameter.h"
+#include "node_proxies.h"
+#include "node_proxy.h"
+#include "node_proxyvalue.h"
 
 // ------------------------------------------------------------------------------------ //
 // Register data models
@@ -28,6 +35,13 @@ std::shared_ptr<QtNodes::DataModelRegistry> Widget_GraphEditor::RegisterDataMode
 	dataModels->registerModel< Node_Material >( "Nodes" );
 	dataModels->registerModel< Node_Surface >( "Nodes" );
 	dataModels->registerModel< Node_Techniques >( "Nodes" );
+	dataModels->registerModel< Node_Technique >( "Nodes" );
+	dataModels->registerModel< Node_Pass >( "Nodes" );
+	dataModels->registerModel< Node_Shader >( "Nodes" );
+	dataModels->registerModel< Node_ShaderParameter >( "Nodes" );
+	dataModels->registerModel< Node_Proxies >( "Nodes" );
+	dataModels->registerModel< Node_Proxy >( "Nodes" );
+	dataModels->registerModel< Node_ProxyValue >( "Nodes" );
 	return dataModels;
 }
 
