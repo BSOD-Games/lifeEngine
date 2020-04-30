@@ -33,6 +33,12 @@ public:
 
 	quint32			GetCountTechniques() const;
 
+signals:
+	void			CountTechniquesChanged( quint32 Value );
+
+private slots:
+	void			on_spinBox_count_valueChanged( int Value );
+
 private:
 	Ui::Widget_NodeTechniques*			ui;
 };

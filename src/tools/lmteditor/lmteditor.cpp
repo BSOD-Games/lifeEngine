@@ -160,3 +160,20 @@ int main( int argc, char** argv )
 	window_Editor.showMaximized();	
 	return application.exec();
 }
+
+//---------------------------------------------------------------------//
+
+#ifdef PLATFORM_WINDOWS
+#include <Windows.h>
+
+// ------------------------------------------------------------------------------------ //
+// Windows main function
+// ------------------------------------------------------------------------------------ //
+int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nCmdShow )
+{
+	return main( 0, nullptr );
+}
+
+#endif // PLATFORM_WINDOWS
+
+//---------------------------------------------------------------------//

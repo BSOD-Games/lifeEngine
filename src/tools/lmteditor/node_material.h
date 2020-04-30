@@ -11,7 +11,7 @@
 #ifndef NODE_MATERIAL_H
 #define NODE_MATERIAL_H
 
-#include <nodes/NodeDataModel>
+#include "node_base.h"
 
 //---------------------------------------------------------------------//
 
@@ -19,7 +19,7 @@ class Widget_NodeMaterial;
 
 //---------------------------------------------------------------------//
 
-class Node_Material : public QtNodes::NodeDataModel
+class Node_Material : public Node_Base
 {
 	Q_OBJECT
 
@@ -37,7 +37,7 @@ public:
 	Node_Material();
 	~Node_Material();
 
-	static QString					NodeName()		{ return "Material"; }
+	static QString						NodeName()		{ return "Material"; }
 
 private:
 	Widget_NodeMaterial*				widget_nodematerial;

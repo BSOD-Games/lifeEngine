@@ -30,6 +30,14 @@ Widget_NodeTechniques::~Widget_NodeTechniques()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Event: count techniques changed
+// ------------------------------------------------------------------------------------ //
+void Widget_NodeTechniques::on_spinBox_count_valueChanged( int Value )
+{
+	CountTechniquesChanged( Value );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Get count techniques
 // ------------------------------------------------------------------------------------ //
 quint32 Widget_NodeTechniques::GetCountTechniques() const

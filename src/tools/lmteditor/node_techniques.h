@@ -11,7 +11,7 @@
 #ifndef NODE_TECHNIQUES_H
 #define NODE_TECHNIQUES_H
 
-#include <nodes/NodeDataModel>
+#include "node_base.h"
 
 //---------------------------------------------------------------------//
 
@@ -19,7 +19,7 @@ class Widget_NodeTechniques;
 
 //---------------------------------------------------------------------//
 
-class Node_Techniques : public QtNodes::NodeDataModel
+class Node_Techniques : public Node_Base
 {
 	Q_OBJECT
 
@@ -38,6 +38,9 @@ public:
 	~Node_Techniques();
 
 	static QString					NodeName() { return "Techniques"; }
+
+private slots:
+	void							OnCountTechniquesChanged( quint32 Value );
 
 private:
 	Widget_NodeTechniques*			widget_nodeTechniques;

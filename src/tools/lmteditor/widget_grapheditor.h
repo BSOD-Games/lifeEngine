@@ -27,6 +27,9 @@ public:
 	Widget_GraphEditor( QWidget* Parent = nullptr );
 	~Widget_GraphEditor();
 
+private slots:
+	void					NodeCreated( QtNodes::Node& Node );
+
 private:
 	static std::shared_ptr<QtNodes::DataModelRegistry>			RegisterDataModels();
 

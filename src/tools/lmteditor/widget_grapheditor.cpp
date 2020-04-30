@@ -11,8 +11,10 @@
 #include <qpoint.h>
 #include <qdebug.h>
 #include <nodes\Node>
+#include <qdebug.h>
 
 #include "widget_grapheditor.h"
+#include "node_base.h"
 #include "node_material.h"
 #include "node_surface.h"
 #include "node_techniques.h"
@@ -39,17 +41,20 @@ Widget_GraphEditor::Widget_GraphEditor( QWidget* Parent ) :
 	flowView( new QtNodes::FlowView( flowScene ) ),
 	isNodeMaterialExist( false )
 {
+	connect( flowScene, Q_SIGNAL( &QtNodes::FlowScene::nodeCreated ), this, Q_SLOT( &Widget_GraphEditor::NodeCreated ) );
+
 	auto		type = flowScene->registry().create( Node_Material::NodeName() );
 	if ( type )
 	{
-		auto&			node = flowScene->createNode( std::move( type ) );
+		auto&			node = flowScene->createNode( std::move( type ) );		
 		node.nodeGraphicsObject().setPos( QPoint( flowView->width() / 2, flowView->height() / 2 ) );
+		NodeCreated( node );
 		flowScene->nodePlaced( node );
 	}
 	
-	vboxLayout->addWidget( flowView );
+	vboxLayout->addWidget( flowView ); 
 	vboxLayout->setContentsMargins( 0, 0, 0, 0 );
-	vboxLayout->setSpacing( 0 );
+	vboxLayout->setSpacing( 0 );	
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -57,7 +62,19 @@ Widget_GraphEditor::Widget_GraphEditor( QWidget* Parent ) :
 // ------------------------------------------------------------------------------------ //
 Widget_GraphEditor::~Widget_GraphEditor()
 {
+	disconnect( flowScene, Q_SIGNAL( &QtNodes::FlowScene::nodeCreated ), this, Q_SLOT( &Widget_GraphEditor::NodeCreated ) );
+	
 	delete flowView;
 	delete flowScene;
 	delete vboxLayout;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: node created
+// ------------------------------------------------------------------------------------ //
+void Widget_GraphEditor::NodeCreated( QtNodes::Node& Node )
+{
+	Node_Base*			node = static_cast< Node_Base* >( Node.nodeDataModel() );
+	node->SetNode( &Node );
+	node->SetScene( flowScene );
 }

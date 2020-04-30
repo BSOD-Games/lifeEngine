@@ -8,22 +8,29 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include <nodes/Node>
+#include <nodes/FlowScene>
+#include <qgraphicsproxywidget.h>
+
 #include "node_techniques.h"
 #include "widget_nodetechniques.h"
-#include "nodes\internal\NodeStyle.hpp"
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
 Node_Techniques::Node_Techniques() :
 	widget_nodeTechniques( new Widget_NodeTechniques() )
-{}
+{
+	connect( widget_nodeTechniques, &Widget_NodeTechniques::CountTechniquesChanged, this, &Node_Techniques::OnCountTechniquesChanged );
+}
 
 // ------------------------------------------------------------------------------------ //
 // Destructor
 // ------------------------------------------------------------------------------------ //
 Node_Techniques::~Node_Techniques()
-{}
+{
+	disconnect( widget_nodeTechniques, &Widget_NodeTechniques::CountTechniquesChanged, this, &Node_Techniques::OnCountTechniquesChanged );
+}
 
 // ------------------------------------------------------------------------------------ //
 // Get caption
@@ -87,4 +94,37 @@ std::shared_ptr< QtNodes::NodeData > Node_Techniques::outData( QtNodes::PortInde
 QWidget* Node_Techniques::embeddedWidget()
 {
 	return widget_nodeTechniques;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: count techniques changed
+// ------------------------------------------------------------------------------------ //
+void Node_Techniques::OnCountTechniquesChanged( quint32 Value )
+{
+	if ( !node || !scene || inPort->size() == Value ) return;
+
+	// If we deleting any ports
+	if ( inPort->size() > Value )
+	{
+		quint32		countForDeleting = inPort->size() - Value;
+		for ( quint32 index = inPort->size() - 1, countDeleted = 0; index >= 0 && countDeleted < countForDeleting; --index, ++countDeleted )
+		{
+			// Deleting all connections in current port
+			auto&			connections = inPort->at( index );
+			while ( !connections.empty() )
+			{
+				auto		itConnection = connections.begin();
+				scene->deleteConnection( *itConnection->second );
+			}
+		}	
+	}
+
+	// Updating position widget, size graphicsObject and count ports
+	QPointF		positionWidget = widget_nodeTechniques->graphicsProxyWidget()->pos();
+	positionWidget.setX( node->nodeGeometry().widgetPosition().x() );
+	widget_nodeTechniques->graphicsProxyWidget()->setPos( positionWidget );
+
+	inPort->resize( Value );
+	node->nodeGraphicsObject().setGeometryChanged();
+	node->onNodeSizeUpdated();
 }

@@ -68,7 +68,8 @@ QtNodes::NodeDataType Node_Material::dataType( QtNodes::PortType PortType, QtNod
 			return QtNodes::NodeDataType{ "surface", "Surface" };
 		else if ( PortIndex == 1 )
 			return QtNodes::NodeDataType{ "techiques", "Techiques" };
-
+	
+	case QtNodes::PortType::Out:
 	default:
 		return QtNodes::NodeDataType();
 	}	

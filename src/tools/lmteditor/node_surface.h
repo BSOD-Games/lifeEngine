@@ -11,7 +11,7 @@
 #ifndef NODE_SURFACE_H
 #define NODE_SURFACE_H
 
-#include <nodes/NodeDataModel>
+#include "node_base.h"
 
 //---------------------------------------------------------------------//
 
@@ -19,7 +19,7 @@ class Widget_NodeSurface;
 
 //---------------------------------------------------------------------//
 
-class Node_Surface : public QtNodes::NodeDataModel
+class Node_Surface : public Node_Base
 {
 	Q_OBJECT
 
