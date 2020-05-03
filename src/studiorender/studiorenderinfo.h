@@ -8,11 +8,12 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef ISTUDIORENDER_INTERNAL_H
-#define ISTUDIORENDER_INTERNAL_H
+#ifndef STUDIORENDERINFO_H
+#define STUDIORENDERINFO_H
 
-#include "engine/iwindow.h"
-#include "studiorender/istudiorender.h"
+#include <vector>
+
+#include "studiorender/istudiorenderinfo.h"
 
 //---------------------------------------------------------------------//
 
@@ -20,22 +21,18 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IEngine;
-	class IStudioRenderInfo;
-	typedef void*				RenderContext_t;
-
-	//---------------------------------------------------------------------//
-
-	class IStudioRenderInternal : public IStudioRender
+	class StudioRenderInfo : public IStudioRenderInfo
 	{
 	public:
-		virtual bool							Initialize( IEngine* Engine ) = 0;
-        virtual bool							CreateContext( WindowHandle_t WindowHandle, UInt32_t Width, UInt32_t Height ) = 0;
-		virtual void							Begin() = 0;
-		virtual void							End() = 0;
-		virtual void							Present() = 0;
+		// IStudioRenderInfo
+		virtual UInt32_t				GetCountTypesTechnique() const;
+		virtual const char*				GetNameTechnique( UInt32_t Index ) const;
+		virtual const char*				GetTypeTechnique( UInt32_t Index ) const;
+		virtual const char**			GetTypesTechnique() const;
 
-		virtual IStudioRenderInfo*				GetStudioRenderInfo() const = 0;
+		// StudioRenderInfo
+		StudioRenderInfo();
+		~StudioRenderInfo();
 	};
 
 	//---------------------------------------------------------------------//
@@ -43,4 +40,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !ISTUDIORENDER_INTERNAL_H
+#endif // !STUDIORENDERINFO_H

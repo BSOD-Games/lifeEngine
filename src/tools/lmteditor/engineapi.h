@@ -16,6 +16,8 @@
 #include "engine/lifeengine.h"
 #include "engine/iengineinternal.h"
 #include "engine/iresourcesysteminternal.h"
+#include "studiorender/istudiorenderinternal.h"
+#include "studiorender/istudiorenderinfo.h"
 #include "tsingleton.h"
 
 //---------------------------------------------------------------------//
@@ -32,10 +34,12 @@ public:
 	bool								Load();
 	void								Unload();
 
-    inline le::IEngineInternal*			GetEngine() const           { return engine; }
-    inline le::IResourceSystemInternal* GetResourceSystem() const   { return resourceSystem; }
-    inline le::IConsoleSystem*			GetConsoleSystem() const    { return consoleSystem; }
-	inline QString						GetErrorString() const		{ return errorString; }
+    inline le::IEngineInternal*			GetEngine() const				{ return engine; }
+    inline le::IResourceSystemInternal* GetResourceSystem() const		{ return resourceSystem; }
+    inline le::IConsoleSystem*			GetConsoleSystem() const		{ return consoleSystem; }
+	inline le::IStudioRenderInternal*	GetStudioRender() const			{ return studioRender; }
+	inline le::IStudioRenderInfo*		GetStudioRenderInfo() const		{ return studioRenderInfo; }
+	inline QString						GetErrorString() const			{ return errorString; }
 
 private:
 	QLibrary							engineDLL;
@@ -44,6 +48,8 @@ private:
 	le::IEngineInternal*				engine;
     le::IResourceSystemInternal*        resourceSystem;
     le::IConsoleSystem*                 consoleSystem;
+	le::IStudioRenderInternal*			studioRender;
+	le::IStudioRenderInfo*				studioRenderInfo;
 
 	le::LE_CreateEngineFn_t				LE_CreateEngine;
 	le::LE_SetCriticalErrorFn_t			LE_SetCriticalError;

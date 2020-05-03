@@ -26,6 +26,7 @@
 #include "studiorender/sphere.h"
 #include "studiorender/cone.h"
 #include "studiorender/studiorenderdeviceconfigurations.h"
+#include "studiorender/studiorenderinfo.h"
 
 #include "shader_lighting.h"
 #include "shader_depth.h"
@@ -46,6 +47,8 @@ namespace le
 		virtual void											Begin();
 		virtual void											End();
 		virtual void											Present();
+
+		virtual IStudioRenderInfo*								GetStudioRenderInfo() const;
 
 		// IStudioRender				
 		virtual void											BeginScene( ICamera* Camera );
@@ -83,6 +86,7 @@ namespace le
 		StudioRenderFactory					studioRenderFactory;
 		StudioRenderViewport				viewport;
 		ShaderManager						shaderManager;
+		StudioRenderInfo					studioRenderInfo;
 		GBuffer								gbuffer;
 		Quad								quad;
 		Sphere								sphere;

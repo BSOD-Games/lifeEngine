@@ -32,16 +32,16 @@
 std::shared_ptr<QtNodes::DataModelRegistry> Widget_GraphEditor::RegisterDataModels()
 {
 	auto			dataModels = std::make_shared< QtNodes::DataModelRegistry >();
-	dataModels->registerModel< Node_Material >( "Nodes" );
-	dataModels->registerModel< Node_Surface >( "Nodes" );
-	dataModels->registerModel< Node_Techniques >( "Nodes" );
-	dataModels->registerModel< Node_Technique >( "Nodes" );
-	dataModels->registerModel< Node_Pass >( "Nodes" );
-	dataModels->registerModel< Node_Shader >( "Nodes" );
-	dataModels->registerModel< Node_ShaderParameter >( "Nodes" );
-	dataModels->registerModel< Node_Proxies >( "Nodes" );
-	dataModels->registerModel< Node_Proxy >( "Nodes" );
-	dataModels->registerModel< Node_ProxyValue >( "Nodes" );
+	dataModels->registerModel< Node_Material >( "General" );
+	dataModels->registerModel< Node_Surface >( "General" );
+	dataModels->registerModel< Node_Techniques >( "Render" );
+	dataModels->registerModel< Node_Technique >( "Render" );
+	dataModels->registerModel< Node_Pass >( "Render" );
+	dataModels->registerModel< Node_Shader >( "Render" );
+	dataModels->registerModel< Node_ShaderParameter >( "Values" );
+	dataModels->registerModel< Node_Proxies >( "Animations" );
+	dataModels->registerModel< Node_Proxy >( "Animations" );
+	dataModels->registerModel< Node_ProxyValue >( "Values" );
 	return dataModels;
 }
 

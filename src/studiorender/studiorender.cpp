@@ -42,8 +42,8 @@
 
 LIFEENGINE_STUDIORENDER_API( le::StudioRender );
 
-le::IConVar*		r_wireframe = nullptr;
-le::IConVar*		r_showgbuffer = nullptr;
+static le::IConVar*		r_wireframe = nullptr;
+static le::IConVar*		r_showgbuffer = nullptr;
 
 // ------------------------------------------------------------------------------------ //
 // Начать отрисовку сцены
@@ -617,6 +617,14 @@ le::IFactory* le::StudioRender::GetFactory() const
 le::IShaderManager* le::StudioRender::GetShaderManager() const
 {
 	return ( IShaderManager* ) &shaderManager;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get studio render info
+// ------------------------------------------------------------------------------------ //
+le::IStudioRenderInfo* le::StudioRender::GetStudioRenderInfo() const
+{
+	return ( le::IStudioRenderInfo* ) &studioRenderInfo;
 }
 
 // ------------------------------------------------------------------------------------ //

@@ -8,6 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include "studiorender/istudiorenderinternal.h"
+#include "studiorender/istudiorenderinfo.h"
+
+#include "engineapi.h"
 #include "widget_nodetechnique.h"
 #include "ui_widget_nodetechnique.h"
 
@@ -19,6 +23,12 @@ Widget_NodeTechnique::Widget_NodeTechnique( QWidget* Parent ) :
 	ui( new Ui::Widget_NodeTechnique() )
 {
 	ui->setupUi( this );
+
+	le::IStudioRenderInfo*				studioRenderInfo = EngineAPI::GetInstance()->GetStudioRenderInfo();
+	le::UInt32_t						count = studioRenderInfo->GetCountTypesTechnique();
+
+	for ( le::UInt32_t index = 0; index < count; ++index )
+		ui->comboBox_type->addItem( studioRenderInfo->GetNameTechnique( index ) );
 }
 
 // ------------------------------------------------------------------------------------ //
