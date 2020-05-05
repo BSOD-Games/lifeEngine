@@ -16,6 +16,7 @@
 //---------------------------------------------------------------------//
 
 class Widget_NodePass;
+class Node_Technique;
 
 //---------------------------------------------------------------------//
 
@@ -33,13 +34,20 @@ public:
 	virtual std::shared_ptr< QtNodes::NodeData >	outData( QtNodes::PortIndex Port );
 	virtual QWidget*								embeddedWidget();
 
+	virtual void									outputConnectionCreated( const QtNodes::Connection& Connection );
+	virtual void									outputConnectionDeleted( const QtNodes::Connection& Connection );
+
 	// Node_Pass
 	Node_Pass();
 	~Node_Pass();
 
 	static QString					NodeName() { return "Pass"; }
 
+private slots:
+	void							OnUpdateTypeTechnique( quint32 IDTypeTechnique );
+
 private:
+	Node_Technique*					nodeTechnique;
 	Widget_NodePass*				widget_nodePass;
 };
 

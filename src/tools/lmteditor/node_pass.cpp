@@ -9,13 +9,15 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "node_pass.h"
+#include "node_technique.h"
 #include "widget_nodepass.h"
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
 Node_Pass::Node_Pass() :
-	widget_nodePass( new Widget_NodePass() )
+	widget_nodePass( new Widget_NodePass() ),
+	nodeTechnique( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -91,4 +93,34 @@ std::shared_ptr< QtNodes::NodeData > Node_Pass::outData( QtNodes::PortIndex Port
 QWidget* Node_Pass::embeddedWidget()
 {
 	return widget_nodePass;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Output connection created
+// ------------------------------------------------------------------------------------ //
+void Node_Pass::outputConnectionCreated( const QtNodes::Connection& Connection )
+{
+	nodeTechnique = static_cast< Node_Technique* >( Connection.getNode( QtNodes::PortType::In )->nodeDataModel() );
+	connect( nodeTechnique, &Node_Technique::UpdateTypeTechnique, this, &Node_Pass::OnUpdateTypeTechnique );
+
+	widget_nodePass->SetTechnique( nodeTechnique->Data()->GetIDTechnique() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Output connection deleted
+// ------------------------------------------------------------------------------------ //
+void Node_Pass::outputConnectionDeleted( const QtNodes::Connection& Connection )
+{
+	disconnect( nodeTechnique, &Node_Technique::UpdateTypeTechnique, this, &Node_Pass::OnUpdateTypeTechnique );
+	nodeTechnique = nullptr;
+
+	widget_nodePass->Clear();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: update type technique
+// ------------------------------------------------------------------------------------ //
+void Node_Pass::OnUpdateTypeTechnique( quint32 IDTypeTechnique )
+{
+	widget_nodePass->SetTechnique( IDTypeTechnique );
 }

@@ -11,54 +11,83 @@
 #include "engine/lifeengine.h"
 #include "studiorender/studiorenderinfo.h"
 
-static const char*			g_typesTechniques[] =
-{
-	"deffered_shading"
-};
-
-static const char*			g_namesTechniques[] =
-{
-	"Deffered shading"
-};
-
 // ------------------------------------------------------------------------------------ //
-// Get count types technique
+// Get count techniques
 // ------------------------------------------------------------------------------------ //
-le::UInt32_t le::StudioRenderInfo::GetCountTypesTechnique() const
+le::UInt32_t le::StudioRenderInfo::GetCountTechniques() const
 {
-	return sizeof( g_typesTechniques ) / sizeof( const char* );
+	return techniques.size();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get type technique
+// Get count passes
 // ------------------------------------------------------------------------------------ //
-const char* le::StudioRenderInfo::GetTypeTechnique( UInt32_t Index ) const
+le::UInt32_t le::StudioRenderInfo::GetCountPasses( UInt32_t IDTechnique ) const
 {
-	LIFEENGINE_ASSERT( sizeof( g_typesTechniques ) / sizeof( const char* ) < Index );
-	return g_typesTechniques[ Index ];
+	if ( IDTechnique >= techniques.size() )	
+		return 0;
+
+	return passes[ IDTechnique ].size();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get name technique
+// Get technique
 // ------------------------------------------------------------------------------------ //
-const char* le::StudioRenderInfo::GetNameTechnique( UInt32_t Index ) const
+le::StudioRenderInfo::TechniqueInfo le::StudioRenderInfo::GetTechnique( UInt32_t IDTechnique ) const
 {
-	LIFEENGINE_ASSERT( sizeof( g_namesTechniques ) / sizeof( const char* ) < Index );
-	return g_namesTechniques[ Index ];
+	if ( IDTechnique >= techniques.size() ) 
+		return TechniqueInfo();
+
+	return techniques[ IDTechnique ];
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get types technique
+// Get pass
 // ------------------------------------------------------------------------------------ //
-const char** le::StudioRenderInfo::GetTypesTechnique() const
+le::StudioRenderInfo::PassInfo le::StudioRenderInfo::GetPass( UInt32_t IDTechnique, UInt32_t IDPass ) const
 {
-	return g_typesTechniques;
+	if ( IDTechnique >= techniques.size() || IDPass >= passes.size() )
+		return PassInfo();
+
+	return passes[ IDTechnique ][ IDPass ];
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get techniques
+// ------------------------------------------------------------------------------------ //
+le::StudioRenderInfo::TechniqueInfo* le::StudioRenderInfo::GetTechniques() const
+{
+	return ( TechniqueInfo* ) techniques.data();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get passes
+// ------------------------------------------------------------------------------------ //
+le::StudioRenderInfo::PassInfo* le::StudioRenderInfo::GetPasses( UInt32_t IDTechnique ) const
+{
+	if ( IDTechnique >= techniques.size() )
+		return nullptr;
+
+	return ( PassInfo* ) passes[ IDTechnique ].data();
 }
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
-le::StudioRenderInfo::StudioRenderInfo()
+le::StudioRenderInfo::StudioRenderInfo() :
+	techniques( 
+	{
+		// index: 0
+		{ "deffered_shading", "Deffered shading" }
+	} ),
+	passes( 
+	{
+		// index: 0
+		// deffered_shading
+		{
+			{ "gbuffer", "GBuffer" }
+		},
+	} )
 {}
 
 // ------------------------------------------------------------------------------------ //

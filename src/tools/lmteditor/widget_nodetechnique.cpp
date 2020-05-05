@@ -25,10 +25,10 @@ Widget_NodeTechnique::Widget_NodeTechnique( QWidget* Parent ) :
 	ui->setupUi( this );
 
 	le::IStudioRenderInfo*				studioRenderInfo = EngineAPI::GetInstance()->GetStudioRenderInfo();
-	le::UInt32_t						count = studioRenderInfo->GetCountTypesTechnique();
+	le::UInt32_t						count = studioRenderInfo->GetCountTechniques();
 
 	for ( le::UInt32_t index = 0; index < count; ++index )
-		ui->comboBox_type->addItem( studioRenderInfo->GetNameTechnique( index ) );
+		ui->comboBox_type->addItem( studioRenderInfo->GetTechnique( index ).name );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -44,7 +44,7 @@ Widget_NodeTechnique::~Widget_NodeTechnique()
 // ------------------------------------------------------------------------------------ //
 void Widget_NodeTechnique::on_spinBox_countPass_valueChanged( int Value )
 {
-	CountPassesChanged( Value );
+	emit CountPassesChanged( Value );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -53,4 +53,12 @@ void Widget_NodeTechnique::on_spinBox_countPass_valueChanged( int Value )
 quint32 Widget_NodeTechnique::GetCountPasses() const
 {
 	return ui->spinBox_countPass->value();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: type technique changed
+// ------------------------------------------------------------------------------------ //
+void Widget_NodeTechnique::on_comboBox_type_currentIndexChanged( int Value )
+{
+	emit TypeTechniqueChanged( Value );
 }

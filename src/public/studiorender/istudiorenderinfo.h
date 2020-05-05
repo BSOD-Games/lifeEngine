@@ -22,12 +22,33 @@ namespace le
 	class IStudioRenderInfo
 	{
 	public:
+
+		//---------------------------------------------------------------------//
+
+		struct TechniqueInfo
+		{
+			const char*			type;
+			const char*			name;
+		};
+
+		//---------------------------------------------------------------------//
+
+		struct PassInfo
+		{
+			const char*			type;
+			const char*			name;
+		};
+
+		//---------------------------------------------------------------------//
+
 		virtual ~IStudioRenderInfo() {}
 
-		virtual UInt32_t				GetCountTypesTechnique() const = 0;
-		virtual const char*				GetNameTechnique( UInt32_t Index ) const = 0;
-		virtual const char*				GetTypeTechnique( UInt32_t Index ) const = 0;
-		virtual const char**			GetTypesTechnique() const = 0;
+		virtual UInt32_t				GetCountTechniques() const = 0;
+		virtual UInt32_t				GetCountPasses( UInt32_t IDTechnique ) const = 0;
+		virtual TechniqueInfo			GetTechnique( UInt32_t IDTechnique ) const = 0;
+		virtual PassInfo				GetPass( UInt32_t IDTechnique, UInt32_t IDPass ) const = 0;
+		virtual TechniqueInfo*			GetTechniques() const = 0;
+		virtual PassInfo*				GetPasses( UInt32_t IDTechnique ) const = 0;
 	};
 
 	//---------------------------------------------------------------------//

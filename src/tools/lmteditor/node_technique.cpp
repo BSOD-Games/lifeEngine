@@ -8,16 +8,6 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////
-//
-//			*** lifeEngine (Двигатель жизни) ***
-//				Copyright (C) 2018-2020
-//
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
-//
-//////////////////////////////////////////////////////////////////////////
-
 #include <nodes/Node>
 #include <nodes/FlowScene>
 #include <qgraphicsproxywidget.h>
@@ -29,9 +19,11 @@
 // Constructor
 // ------------------------------------------------------------------------------------ //
 Node_Technique::Node_Technique() :
-	widget_nodeTechnique( new Widget_NodeTechnique() )
+	widget_nodeTechnique( new Widget_NodeTechnique() ),
+	data( new TechniqueData() )
 {
 	connect( widget_nodeTechnique, &Widget_NodeTechnique::CountPassesChanged, this, &Node_Technique::OnCountPassesChanged );
+	connect( widget_nodeTechnique, &Widget_NodeTechnique::TypeTechniqueChanged, this, &Node_Technique::OnTypeTechniqueChanged );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -40,6 +32,16 @@ Node_Technique::Node_Technique() :
 Node_Technique::~Node_Technique()
 {
 	disconnect( widget_nodeTechnique, &Widget_NodeTechnique::CountPassesChanged, this, &Node_Technique::OnCountPassesChanged );
+	disconnect( widget_nodeTechnique, &Widget_NodeTechnique::TypeTechniqueChanged, this, &Node_Technique::OnTypeTechniqueChanged );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: type technique changed
+// ------------------------------------------------------------------------------------ //
+void Node_Technique::OnTypeTechniqueChanged( quint32 Value )
+{
+	data->idTechnique = Value;
+	emit UpdateTypeTechnique( Value );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -78,7 +80,7 @@ QtNodes::NodeDataType Node_Technique::dataType( QtNodes::PortType PortType, QtNo
 {
 	switch ( PortType )
 	{
-	case QtNodes::PortType::Out:	return QtNodes::NodeDataType{ "techique", "Techique" };
+	case QtNodes::PortType::Out:	return TechniqueData().type();
 	case QtNodes::PortType::In:		return QtNodes::NodeDataType{ "pass", "Pass" };
 	default:						return QtNodes::NodeDataType();
 	}
@@ -95,7 +97,7 @@ void Node_Technique::setInData( std::shared_ptr< QtNodes::NodeData > NodeData, Q
 // ------------------------------------------------------------------------------------ //
 std::shared_ptr< QtNodes::NodeData > Node_Technique::outData( QtNodes::PortIndex Port )
 {
-	return std::shared_ptr<QtNodes::NodeData>();
+	return data;
 }
 
 // ------------------------------------------------------------------------------------ //

@@ -8,41 +8,38 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef WIDGET_NODEPASS_H
-#define WIDGET_NODEPASS_H
+#ifndef TECHNIQUE_DATA_H
+#define TECHNIQUE_DATA_H
 
-#include <qwidget.h>
-
-//---------------------------------------------------------------------//
-
-namespace Ui
-{
-	class Widget_NodePass;
-}
-
-class Node_Pass;
+#include <qtypeinfo.h>
+#include <nodes/NodeDataModel>
 
 //---------------------------------------------------------------------//
 
-class Widget_NodePass : public QWidget
-{
-	Q_OBJECT
+class Node_Technique;
 
+//---------------------------------------------------------------------//
+
+class TechniqueData : public QtNodes::NodeData
+{
 public:
-	friend Node_Pass;
+	friend Node_Technique;
 
-	// Widget_NodePass
-	Widget_NodePass( QWidget* Parent = nullptr );
-	~Widget_NodePass();
+	// NodeData
+	virtual QtNodes::NodeDataType			type() const;
 
-	void		Clear();
-	void		SetTechnique( quint32 IDTechnique );
+	// TechniqueData
+	TechniqueData();
+	TechniqueData( quint32 IDTechnique );
+	~TechniqueData();
+
+	inline quint32			GetIDTechnique() const		{ return idTechnique; }
 
 private:
-	Ui::Widget_NodePass*			ui;
+	quint32			idTechnique;
 };
 
 //---------------------------------------------------------------------//
 
-#endif // !WIDGET_NODEPASS_H
+#endif // !TECHNIQUE_DATA_H
 

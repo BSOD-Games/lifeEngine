@@ -34,11 +34,13 @@ public:
 	// TODO: Add method for getting type technique
 	quint32				GetCountPasses() const;
 
-signals:
+Q_SIGNALS:
 	void				CountPassesChanged( quint32 Value );
+	void				TypeTechniqueChanged( quint32 Value );
 
 private slots:
 	void				on_spinBox_countPass_valueChanged( int Value );
+	void				on_comboBox_type_currentIndexChanged( int Value );
 
 private:
 	Ui::Widget_NodeTechnique*			ui;

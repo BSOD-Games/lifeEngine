@@ -12,6 +12,7 @@
 #define NODE_TECHNIQUE_H
 
 #include "node_base.h"
+#include "techniquedata.h"
 
 //---------------------------------------------------------------------//
 
@@ -37,13 +38,19 @@ public:
 	Node_Technique();
 	~Node_Technique();
 
-	static QString					NodeName() { return "Technique"; }
+	static inline QString							NodeName()		{ return "Technique"; }
+	inline std::shared_ptr< TechniqueData >			Data() const	{ return data; }
+
+signals:
+	void							UpdateTypeTechnique( quint32 IDTypeTechnique );
 
 private slots:
 	void							OnCountPassesChanged( quint32 Value );
+	void							OnTypeTechniqueChanged( quint32 Value );
 
 private:
-	Widget_NodeTechnique*			widget_nodeTechnique;
+	std::shared_ptr< TechniqueData >		data;
+	Widget_NodeTechnique*					widget_nodeTechnique;
 };
 
 //---------------------------------------------------------------------//

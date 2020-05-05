@@ -12,7 +12,6 @@
 #define STUDIORENDERINFO_H
 
 #include <vector>
-
 #include "studiorender/istudiorenderinfo.h"
 
 //---------------------------------------------------------------------//
@@ -25,14 +24,20 @@ namespace le
 	{
 	public:
 		// IStudioRenderInfo
-		virtual UInt32_t				GetCountTypesTechnique() const;
-		virtual const char*				GetNameTechnique( UInt32_t Index ) const;
-		virtual const char*				GetTypeTechnique( UInt32_t Index ) const;
-		virtual const char**			GetTypesTechnique() const;
+		virtual UInt32_t				GetCountTechniques() const;
+		virtual UInt32_t				GetCountPasses( UInt32_t IDTechnique ) const;
+		virtual TechniqueInfo			GetTechnique( UInt32_t IDTechnique ) const;
+		virtual PassInfo				GetPass( UInt32_t IDTechnique, UInt32_t IDPass ) const;
+		virtual TechniqueInfo*			GetTechniques() const;
+		virtual PassInfo*				GetPasses( UInt32_t IDTechnique ) const;
 
 		// StudioRenderInfo
 		StudioRenderInfo();
 		~StudioRenderInfo();
+
+	private:
+		std::vector< le::StudioRenderInfo::TechniqueInfo >					techniques;
+		std::vector< std::vector< le::StudioRenderInfo::PassInfo > >		passes;
 	};
 
 	//---------------------------------------------------------------------//

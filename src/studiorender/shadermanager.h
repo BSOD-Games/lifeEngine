@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "engine/lifeengine.h"
-#include "studiorender/ishadermanager.h"
+#include "studiorender/ishadermanagerinternal.h"
 
 //---------------------------------------------------------------------//
 
@@ -49,14 +49,14 @@ namespace le
 	};
 
 	//---------------------------------------------------------------------//
-
+	
 	class ShaderManager : public IShaderManager
 	{
 	public:
 		// IShaderSystem
 		virtual bool			LoadShaderDLL( const char* FullPath );
 		virtual void			UnloadShaderDLL( const char* FullPath );
-		
+
 		// ShaderSystem
 		ShaderManager();
 		~ShaderManager();
