@@ -14,7 +14,7 @@
 #include "engine/iconsolesystem.h"
 #include "engine/imaterialproxy.h"
 #include "engine/iengine.h"
-#include "stdshaders/ishader.h"
+#include "studiorender/ishader.h"
 #include "global.h"
 #include "studiorender.h"
 #include "studiorenderpass.h"

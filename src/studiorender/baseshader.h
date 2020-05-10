@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "common/shaderparaminfo.h"
-#include "stdshaders/ishader.h"
+#include "studiorender/ishader.h"
 
 //---------------------------------------------------------------------//
 

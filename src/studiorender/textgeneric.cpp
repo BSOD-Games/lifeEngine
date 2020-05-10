@@ -1,30 +1,43 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
-//				Copyright (C) 2018-2019
+//			        *** lifeEngine ***
+//				Copyright (C) 2018-2020
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Repository engine:   https://github.com/zombihello/lifeEngine
+// Authors:				Egor Pogulyaka (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include <string.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+
 #include "engine/icamera.h"
+#include "engine/iengineinternal.h"
+#include "engine/iconsolesystem.h"
 #include "studiorender/igpuprogram.h"
 #include "studiorender/itexture.h"
 
 #include "global.h"
-#include "lightmappedgeneric.h"
-#include "shaders/lightmappedgeneric_vertex.h"
-#include "shaders/lightmappedgeneric_fragment.h"
+#include "textgeneric.h"
 
 // ------------------------------------------------------------------------------------ //
 // Инициализировать экземпляр шейдера
 // ------------------------------------------------------------------------------------ //
-bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
+bool le::TextGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
 	ShaderDescriptor			shaderDescriptor;
-	shaderDescriptor.vertexShaderSource = shader_lightmappedgeneric_vertex;
-	shaderDescriptor.fragmentShaderSource = shader_lightmappedgeneric_fragment;
+	std::string					engineDir = static_cast< IEngineInternal* >( g_engine )->GetEngineDirectory();
+	std::ifstream				fileVS( engineDir + "/shaders/vs_textgeneric.glsl" );
+	std::ifstream				filePS( engineDir + "/shaders/ps_textgeneric.glsl" );
+	std::string					vs, ps;
+
+	std::getline( fileVS, vs, '\0' );
+	std::getline( filePS, ps, '\0' );
+
+	shaderDescriptor.vertexShaderSource = vs.c_str();
+	shaderDescriptor.fragmentShaderSource = ps.c_str();
 
 	std::vector< const char* >			defines;
 	UInt32_t							flags = 0;
@@ -37,7 +50,6 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParamete
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "basetexture", 0 );
-	gpuProgram->SetUniform( "lightmap", 1 );
 	gpuProgram->Unbind();
 
 	return true;
@@ -46,15 +58,35 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParamete
 // ------------------------------------------------------------------------------------ //
 // Подготовка к отрисовке элементов
 // ------------------------------------------------------------------------------------ //
-void le::LightmappedGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+void le::TextGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
-	IGPUProgram*		gpuProgram = GetGPUProgram( 0 );
+	UInt32_t			flags = 0;
+	IShaderParameter*   textColor = nullptr;
+
+	for ( UInt32_t index = 0; index < CountParams; ++index )
+    {
+        IShaderParameter*           shaderParameter = ShaderParameters[ index ];
+        if ( !shaderParameter->IsDefined() ) continue;
+
+        if ( strcmp( shaderParameter->GetName(), "basetexture" ) == 0 )  
+		{         
+			shaderParameter->GetValueTexture()->Bind( 0 );
+		}
+		else if ( strcmp( shaderParameter->GetName(), "color" ) == 0  )  
+			textColor = shaderParameter;   
+	}
+
+	IGPUProgram*		gpuProgram = GetGPUProgram( flags );
 	if ( !gpuProgram ) return;
 
-	if ( ShaderParameters[ 0 ]->IsDefined() )		ShaderParameters[ 0 ]->GetValueTexture()->Bind( 0 );
-	if ( Lightmap )			Lightmap->Bind( 1 );
-
 	gpuProgram->Bind();
+
+	if ( !textColor )
+		gpuProgram->SetUniform( "color", textColor->GetValueVector3D() );
+	else
+		gpuProgram->SetUniform( "color", Vector3D_t( 1.f ) );
+	
+
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
 	gpuProgram->SetUniform( "matrix_Projection", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
 }
@@ -62,15 +94,15 @@ void le::LightmappedGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter*
 // ------------------------------------------------------------------------------------ //
 // Получить название шейдера
 // ------------------------------------------------------------------------------------ //
-const char* le::LightmappedGeneric::GetName() const
+const char* le::TextGeneric::GetName() const
 {
-	return "LightmappedGeneric";
+	return "TextGeneric";
 }
 
 // ------------------------------------------------------------------------------------ //
 // Получить запасной шейдер
 // ------------------------------------------------------------------------------------ //
-const char* le::LightmappedGeneric::GetFallbackShader() const
+const char* le::TextGeneric::GetFallbackShader() const
 {
 	return nullptr;
 }
@@ -78,7 +110,7 @@ const char* le::LightmappedGeneric::GetFallbackShader() const
 // ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
-le::LightmappedGeneric::LightmappedGeneric()
+le::TextGeneric::TextGeneric()
 {
 	shaderParams =
 	{

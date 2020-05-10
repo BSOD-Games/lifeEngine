@@ -9,11 +9,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "engine/ifactory.h"
-#include "studiorender/igpuprogram.h"
 
 #include "global.h"
-#include "shaderdll.h"
 #include "baseshader.h"
+#include "gpuprogram.h"
 
 // ------------------------------------------------------------------------------------ //
 // Получить количество параметров
@@ -52,7 +51,7 @@ le::BaseShader::BaseShader()
 le::BaseShader::~BaseShader()
 {
 	for ( auto it = gpuPrograms.begin(), itEnd = gpuPrograms.end(); it != itEnd; ++it )
-		g_studioRenderFactory->Delete( it->second );
+		delete it->second;
 
 	gpuPrograms.clear();	
 }
@@ -65,12 +64,12 @@ bool le::BaseShader::LoadShader( const ShaderDescriptor& ShaderDescriptor, const
 	if ( gpuPrograms.find( Flags ) != gpuPrograms.end() )
 		return true;
 
-	IGPUProgram*			gpuProgram = ( IGPUProgram* ) g_studioRenderFactory->Create( GPUPROGRAM_INTERFACE_VERSION );
+	IGPUProgram*			gpuProgram = new GPUProgram();
 	if ( !gpuProgram ) return false;
 
 	if ( !gpuProgram->Compile( ShaderDescriptor, Defines.size(), ( const char** ) Defines.data() ) )
 	{
-		g_studioRenderFactory->Delete( gpuProgram );
+		delete gpuProgram;
 		gpuProgram = nullptr;
 		return false;
 	}

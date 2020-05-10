@@ -170,11 +170,6 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 		return false;
 	}
 
-	// Loading std shaders
-	std::string			pathToShadersLib = std::string( static_cast<le::IEngineInternal*>( Engine )->GetEngineDirectory() ) + "/" LIFEENGINE_STDSHADERS_DLL;
-	if ( !shaderManager.LoadShaderDLL( pathToShadersLib.c_str() ) )
-		throw std::runtime_error( "Failed loading stdshaders" );
-
 	// Register console commands and vars
 	r_wireframe = ( IConVar* ) g_consoleSystem->GetFactory()->Create( CONVAR_INTERFACE_VERSION );
 	r_wireframe->Initialize( "r_wireframe", "0", CVT_BOOL, "Enable wireframe mode", true, 0, true, 1,

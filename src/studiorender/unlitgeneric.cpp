@@ -10,15 +10,17 @@
 
 #include <string.h>
 #include <vector>
+#include <fstream>
+#include <string>
+#include <iostream>
 
 #include "engine/icamera.h"
+#include "engine/iengineinternal.h"
 #include "studiorender/igpuprogram.h"
 #include "studiorender/itexture.h"
 
 #include "global.h"
 #include "unlitgeneric.h"
-#include "shaders/unlitgeneric_vertex.h"
-#include "shaders/unlitgeneric_fragment.h"
 
 // ------------------------------------------------------------------------------------ //
 // Инициализировать экземпляр шейдера
@@ -26,8 +28,16 @@
 bool le::UnlitGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
 	ShaderDescriptor			shaderDescriptor;
-	shaderDescriptor.vertexShaderSource = shader_unlitgeneric_vertex;
-	shaderDescriptor.fragmentShaderSource = shader_unlitgeneric_fragment;
+	std::string					engineDir = static_cast< IEngineInternal* >( g_engine )->GetEngineDirectory();
+	std::ifstream				fileVS( engineDir + "/shaders/vs_unlitgeneric.glsl" );
+	std::ifstream				filePS( engineDir + "/shaders/ps_unlitgeneric.glsl" );
+	std::string					vs, ps;
+
+	std::getline( fileVS, vs, '\0' );
+	std::getline( filePS, ps, '\0' );
+
+	shaderDescriptor.vertexShaderSource = vs.c_str();
+	shaderDescriptor.fragmentShaderSource = ps.c_str();
 
 	std::vector< const char* >			defines;
 	UInt32_t							flags = SF_NONE;

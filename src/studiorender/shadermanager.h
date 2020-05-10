@@ -16,57 +16,25 @@
 #include <vector>
 
 #include "engine/lifeengine.h"
-#include "studiorender/ishadermanagerinternal.h"
+#include "studiorender/ishadermanager.h"
 
 //---------------------------------------------------------------------//
 
 namespace le
 {
 	//---------------------------------------------------------------------//
-
-	class IShaderDLL;
-
-	//---------------------------------------------------------------------//
-
-	struct ShaderDLLDescriptor
-	{
-		ShaderDLLDescriptor() :
-			handle( nullptr ),
-			shaderDLL( nullptr ),
-			LE_CreateShaderDLL( nullptr ),
-			LE_DeleteShaderDLL( nullptr ),
-			LE_SetCriticalError( nullptr )
-		{}
-
-		std::string										fileName;
-		void*											handle;
-		IShaderDLL*										shaderDLL;
-		std::unordered_map< std::string, IShader* >		shaders;
-
-		LE_CreateShaderDLLFn_t							LE_CreateShaderDLL;
-		LE_DeleteShaderDLLFn_t							LE_DeleteShaderDLL;
-		LE_SetCriticalErrorFn_t							LE_SetCriticalError;
-	};
-
-	//---------------------------------------------------------------------//
 	
-	class ShaderManager : public IShaderManager
+	class ShaderManager
 	{
 	public:
-		// IShaderSystem
-		virtual bool			LoadShaderDLL( const char* FullPath );
-		virtual void			UnloadShaderDLL( const char* FullPath );
-
 		// ShaderSystem
 		ShaderManager();
 		~ShaderManager();
 
-		IShader*				FindShader( const char* ShaderName ) const;
+		IShader*		FindShader( const char* Name ) const;
 
 	private:
-		void					UnloadShaderDLL( const ShaderDLLDescriptor& ShaderDLLDescriptor );
-
-		std::vector< ShaderDLLDescriptor >		shaderLibs;
+		std::vector< IShader* >			shaders;
 	};
 
 	//---------------------------------------------------------------------//
