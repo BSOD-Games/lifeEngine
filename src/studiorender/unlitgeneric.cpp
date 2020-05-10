@@ -16,29 +16,17 @@
 
 #include "engine/icamera.h"
 #include "engine/iengineinternal.h"
-#include "studiorender/igpuprogram.h"
 #include "studiorender/itexture.h"
 
 #include "global.h"
 #include "unlitgeneric.h"
+#include "gpuprogram.h"
 
 // ------------------------------------------------------------------------------------ //
 // Инициализировать экземпляр шейдера
 // ------------------------------------------------------------------------------------ //
 bool le::UnlitGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
-	ShaderDescriptor			shaderDescriptor;
-	std::string					engineDir = static_cast< IEngineInternal* >( g_engine )->GetEngineDirectory();
-	std::ifstream				fileVS( engineDir + "/shaders/vs_unlitgeneric.glsl" );
-	std::ifstream				filePS( engineDir + "/shaders/ps_unlitgeneric.glsl" );
-	std::string					vs, ps;
-
-	std::getline( fileVS, vs, '\0' );
-	std::getline( filePS, ps, '\0' );
-
-	shaderDescriptor.vertexShaderSource = vs.c_str();
-	shaderDescriptor.fragmentShaderSource = ps.c_str();
-
 	std::vector< const char* >			defines;
 	UInt32_t							flags = SF_NONE;
 
@@ -57,11 +45,8 @@ bool le::UnlitGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** Sh
 		}
 	}
 
-	if ( !LoadShader( shaderDescriptor, defines, flags ) )
+	if ( !LoadShader( "UnlitGeneric", "shaders/unlitgeneric.shader", defines, flags ) )
 		return false;
-
-	IGPUProgram*		gpuProgram = GetGPUProgram( flags );
-	if ( !gpuProgram ) return false;
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "basetexture", 0 );
@@ -99,9 +84,6 @@ void le::UnlitGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** Shad
 			shaderParameter->GetValueTexture()->Bind( 2 );
 		}
 	}
-
-	IGPUProgram*		gpuProgram = GetGPUProgram( flags );
-	if ( !gpuProgram ) return;
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );

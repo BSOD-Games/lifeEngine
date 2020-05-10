@@ -51,7 +51,7 @@ bool le::GPUProgram::Compile( const ShaderDescriptor& ShaderDescriptor, UInt32_t
 	try
 	{
 		// Компилируем вершиный шейдер
-		if ( ShaderDescriptor.vertexShaderSource )
+		if ( ShaderDescriptor.vertexShaderSource && ShaderDescriptor.vertexShaderSource != "" )
 		{
 			codeShader = ShaderDescriptor.vertexShaderSource;
 			InstertDefinesToShaderCode( codeShader, defineCode );
@@ -60,7 +60,7 @@ bool le::GPUProgram::Compile( const ShaderDescriptor& ShaderDescriptor, UInt32_t
 		}
 
 		// Компилируем геометрический шейдер
-		if ( ShaderDescriptor.geometryShaderSource )
+		if ( ShaderDescriptor.geometryShaderSource && ShaderDescriptor.geometryShaderSource != "" )
 		{
 			codeShader = ShaderDescriptor.geometryShaderSource;
 			InstertDefinesToShaderCode( codeShader, defineCode );
@@ -69,7 +69,7 @@ bool le::GPUProgram::Compile( const ShaderDescriptor& ShaderDescriptor, UInt32_t
 		}
 
 		// Компилируем фрагментный шейдер
-		if ( ShaderDescriptor.fragmentShaderSource )
+		if ( ShaderDescriptor.fragmentShaderSource && ShaderDescriptor.fragmentShaderSource != "" )
 		{
 			codeShader = ShaderDescriptor.fragmentShaderSource;
 			InstertDefinesToShaderCode( codeShader, defineCode );

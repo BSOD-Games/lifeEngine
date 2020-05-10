@@ -19,6 +19,7 @@ namespace le
 	IConsoleSystem*				g_consoleSystem = nullptr;
 	StudioRender*				g_studioRender = nullptr;
 	IEngine*					g_engine = nullptr;
+	IResourceSystem*			g_resourceSystem = nullptr;
 
 	//---------------------------------------------------------------------//
 }

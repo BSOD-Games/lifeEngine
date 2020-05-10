@@ -30,7 +30,6 @@
 #include "engine/fontfreetype.h"
 #include "studiorender/istudiorenderinternal.h"
 #include "studiorender/studiorenderviewport.h"
-#include "studiorender/ishadermanager.h"
 #include "physics/iphysicssysteminternal.h"
 
 #define	FIXED_TIME_UPDATE		( 1 / 60.f )

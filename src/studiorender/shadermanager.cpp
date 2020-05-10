@@ -24,7 +24,6 @@
 #include "unlitgeneric.h"
 #include "spritegeneric.h"
 #include "textgeneric.h"
-#include "testshader.h"
 
 // ------------------------------------------------------------------------------------ //
 // Конструктор
@@ -35,7 +34,6 @@ le::ShaderManager::ShaderManager()
 	shaders.push_back( new UnlitGeneric() );
 	shaders.push_back( new SpriteGeneric() );
 	shaders.push_back( new TextGeneric() );
-	shaders.push_back( new TestShader() );
 }
 
 // ------------------------------------------------------------------------------------ //

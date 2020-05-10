@@ -16,37 +16,22 @@
 #include "engine/icamera.h"
 #include "engine/iengineinternal.h"
 #include "engine/iconsolesystem.h"
-#include "studiorender/igpuprogram.h"
 #include "studiorender/itexture.h"
 
 #include "global.h"
 #include "textgeneric.h"
+#include "gpuprogram.h"
 
 // ------------------------------------------------------------------------------------ //
 // Инициализировать экземпляр шейдера
 // ------------------------------------------------------------------------------------ //
 bool le::TextGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
-	ShaderDescriptor			shaderDescriptor;
-	std::string					engineDir = static_cast< IEngineInternal* >( g_engine )->GetEngineDirectory();
-	std::ifstream				fileVS( engineDir + "/shaders/vs_textgeneric.glsl" );
-	std::ifstream				filePS( engineDir + "/shaders/ps_textgeneric.glsl" );
-	std::string					vs, ps;
-
-	std::getline( fileVS, vs, '\0' );
-	std::getline( filePS, ps, '\0' );
-
-	shaderDescriptor.vertexShaderSource = vs.c_str();
-	shaderDescriptor.fragmentShaderSource = ps.c_str();
-
 	std::vector< const char* >			defines;
 	UInt32_t							flags = 0;
 
-	if ( !LoadShader( shaderDescriptor, defines, flags ) )
+	if ( !LoadShader( "TextGeneric", "shaders/textgeneric.shader", defines, flags ) )
 		return false;
-
-	IGPUProgram*		gpuProgram = GetGPUProgram( flags );
-	if ( !gpuProgram ) return false;
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "basetexture", 0 );
@@ -76,9 +61,6 @@ void le::TextGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** Shade
 			textColor = shaderParameter;   
 	}
 
-	IGPUProgram*		gpuProgram = GetGPUProgram( flags );
-	if ( !gpuProgram ) return;
-
 	gpuProgram->Bind();
 
 	if ( !textColor )
@@ -86,7 +68,6 @@ void le::TextGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** Shade
 	else
 		gpuProgram->SetUniform( "color", Vector3D_t( 1.f ) );
 	
-
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
 	gpuProgram->SetUniform( "matrix_Projection", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
 }

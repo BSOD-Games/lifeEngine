@@ -16,7 +16,6 @@
 #include <vector>
 
 #include "engine/lifeengine.h"
-#include "studiorender/ishadermanager.h"
 
 //---------------------------------------------------------------------//
 
@@ -24,6 +23,10 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 	
+	class IShader;
+
+	//---------------------------------------------------------------------//
+
 	class ShaderManager
 	{
 	public:

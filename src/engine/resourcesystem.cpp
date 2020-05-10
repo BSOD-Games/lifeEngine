@@ -35,6 +35,7 @@
 #include "studiorender/istudiorendertechnique.h"
 #include "studiorender/istudiorenderpass.h"
 #include "studiorender/ishaderparameter.h"
+#include "studiorender/igpuprogram.h"
 
 #include "global.h"
 #include "consolesystem.h"
@@ -861,6 +862,67 @@ le::IPhysicsModel* LE_LoadPhysicsModel( const char* Path, le::IFactory* PhysicsS
 }
 
 // ------------------------------------------------------------------------------------ //
+// Loading gpu program
+// ------------------------------------------------------------------------------------ //
+le::IGPUProgram* LE_LoadGPUProgram( const char* Directory, const char* Path, le::UInt32_t CountDefines, const char** Defines, le::IFactory* StudioRenderFactory )
+{
+	std::ifstream				file( Path );
+	if ( !file.is_open() )		return nullptr;
+
+	std::string					stringBuffer;
+	std::getline( file, stringBuffer, '\0' );
+
+	rapidjson::Document			document;
+	document.Parse( stringBuffer.c_str() );
+	if ( document.HasParseError() )				return nullptr;
+
+	std::string				vertexShader;
+	std::string				pixelShader;
+
+	// Reading all path to shaders
+	for ( auto itRoot = document.MemberBegin(), itRootEnd = document.MemberEnd(); itRoot != itRootEnd; ++itRoot )
+	{
+		// Vertex shader
+		if ( strcmp( itRoot->name.GetString(), "vertex" ) == 0 && itRoot->value.IsString() )
+			vertexShader = itRoot->value.GetString();
+
+		// Pixel shader
+		else if ( strcmp( itRoot->name.GetString(), "pixel" ) == 0 && itRoot->value.IsString() )
+			pixelShader = itRoot->value.GetString();
+	}
+
+	// Loading vertex shader
+	file.close();
+	file.open( std::string( Directory ) + "/" + vertexShader );
+	if ( !file.is_open() )			return nullptr;
+	
+	vertexShader.clear();
+	std::getline( file, vertexShader, '\0' );
+
+	// Loading pixel shader
+	file.close();
+	file.open( std::string( Directory ) + "/" + pixelShader );
+	if ( !file.is_open() )			return nullptr;
+
+	pixelShader.clear();
+	std::getline( file, pixelShader, '\0' );
+
+	// Creating gpu program
+	le::IGPUProgram*			gpuProgram = ( le::IGPUProgram* ) StudioRenderFactory->Create( GPUPROGRAM_INTERFACE_VERSION );
+	if ( !gpuProgram )			return nullptr;
+
+	le::ShaderDescriptor		shaderDescriptor;
+	shaderDescriptor.vertexShaderSource = vertexShader.c_str();
+	shaderDescriptor.fragmentShaderSource = pixelShader.c_str();
+	shaderDescriptor.geometryShaderSource = nullptr;
+
+	if ( !gpuProgram->Compile( shaderDescriptor, CountDefines, Defines ) )
+		return nullptr;
+
+	return gpuProgram;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Зарегестрировать загрузчик картинок
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::RegisterLoader_Image( const char* Format, LoadImageFn_t LoadImage )
@@ -1501,6 +1563,7 @@ void le::ResourceSystem::UnloadAll()
     UnloadMaterials();
     UnloadTextures();
     UnloadPhysicsModels();
+	UnloadGPUPrograms();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1593,6 +1656,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
         RegisterLoader_Font( "ttf", LE_LoadFont );
         RegisterLoader_Script( "c", LE_LoadScript );
         RegisterLoader_PhysicsModel( "phy", LE_LoadPhysicsModel );
+		RegisterLoader_GPUProgram( "shader", LE_LoadGPUProgram );
     }
     catch ( std::exception & Exception )
     {
@@ -1806,6 +1870,18 @@ void le::ResourceSystem::RegisterLoader_PhysicsModel( const char *Format, LoadPh
 }
 
 // ------------------------------------------------------------------------------------ //
+// Rigister loader gpu program
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader_GPUProgram( const char* Format, LoadGPUProgramFn_t LoadGPUProgram )
+{
+	LIFEENGINE_ASSERT( Format );
+	LIFEENGINE_ASSERT( LoadGPUProgram );
+
+	g_consoleSystem->PrintInfo( "Loader gpu program for format [%s] registered", Format );
+	loaderGPUProgram[ Format ] = LoadGPUProgram;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Unregister loader for physics model
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnregisterLoader_PhysicsModel( const char *Format )
@@ -1817,6 +1893,20 @@ void le::ResourceSystem::UnregisterLoader_PhysicsModel( const char *Format )
 
     loaderPhysicsModels.erase( it );
     g_consoleSystem->PrintInfo( "Loader physics model for format [%s] unregistered", Format );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Unregister loader gpu program
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnregisterLoader_GPUProgram( const char* Format )
+{
+	LIFEENGINE_ASSERT( Format );
+
+	auto		it = loaderGPUProgram.find( Format );
+	if ( it == loaderGPUProgram.end() ) return;
+
+	loaderGPUProgram.erase( it );
+	g_consoleSystem->PrintInfo( "Loader gpu program for format [%s] unregistered", Format );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1833,6 +1923,52 @@ void le::ResourceSystem::UnloadPhysicsModel( const char *Name )
     physicsModels.erase( it );
 
     g_consoleSystem->PrintInfo( "Unloaded physics model [%s]", Name );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Unload gpu program
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadGPUProgram( const char* Name, UInt32_t Flags )
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto				itShaders = gpuPrograms.find( Name );
+	if ( itShaders == gpuPrograms.end() )	return;
+
+	auto				itShader = itShaders->second.find( Flags );
+	if ( itShader == itShaders->second.end() || itShader->second->GetCountReferences() > 1 )
+		return;
+
+	itShader->second->Release();
+	itShaders->second.erase( itShader );
+
+	if ( itShaders->second.empty() )
+		gpuPrograms.erase( itShaders );
+
+	g_consoleSystem->PrintInfo( "Unloaded gpu program [%s] with flags [%i]", Name, Flags );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Unload gpu programs
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadGPUProgram( const char* Name )
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto				itShaders = gpuPrograms.find( Name );
+	if ( itShaders == gpuPrograms.end() )	return;
+
+	for ( auto itShader = itShaders->second.begin(), itShaderEnd = itShaders->second.end(); itShader != itShaderEnd; )
+		if ( itShader->second->GetCountReferences() <= 1 )
+		{
+			itShader->second->Release();
+
+			g_consoleSystem->PrintInfo( "Unloaded gpu program [%s] with flags [%i]", Name, itShader->first );
+			itShader = itShaders->second.erase( itShader );
+			itShaderEnd = itShaders->second.end();
+		}
+		else
+			++itShader;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1882,6 +2018,64 @@ le::IPhysicsModel* le::ResourceSystem::LoadPhysicsModel( const char *Name, const
 }
 
 // ------------------------------------------------------------------------------------ //
+// Load gpu program
+// ------------------------------------------------------------------------------------ //
+le::IGPUProgram* le::ResourceSystem::LoadGPUProgram( const char* Name, const char* Path, UInt32_t Flags, UInt32_t CountDefines, const char** Defines )
+{
+	LIFEENGINE_ASSERT( Name );
+	LIFEENGINE_ASSERT( Path );
+
+	try
+	{
+		if ( !studioRenderFactory )							throw std::runtime_error( "Resource system not initialized" );
+
+		// Find loaded gpu program
+		{
+			auto			itShaders = gpuPrograms.find( Name );
+			if ( itShaders != gpuPrograms.end() )
+			{
+				auto		itShader = itShaders->second.find( Flags );
+				if ( itShader != itShaders->second.end() )
+					return itShader->second;
+			}
+		}
+
+		if ( loaderGPUProgram.empty() )						throw std::runtime_error( "No gpu program loaders" );
+
+		g_consoleSystem->PrintInfo( "Loading gpu program [%s] with name [%s] and flags [%i]", Path, Name, Flags );
+
+		std::string			format = GetFormatFile( Path );
+		if ( format.empty() )						throw std::runtime_error( "In gpu program format not found" );
+
+		auto				parser = loaderGPUProgram.find( format );
+		if ( parser == loaderGPUProgram.end() )		throw std::runtime_error( "Loader for format gpu program not found" );
+
+		IGPUProgram*			gpuProgram = nullptr;
+		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+		{
+			gpuProgram = parser->second( paths[ index ].c_str(), std::string( paths[ index ] + "/" + Path ).c_str(), CountDefines, Defines, studioRenderFactory );
+			if ( gpuProgram )
+			{
+				g_consoleSystem->PrintInfo( "GPU program founded in [%s]", paths[ index ].c_str() );
+				break;
+			}
+		}
+
+		if ( !gpuProgram )							throw std::runtime_error( "Fail loading gpu program" );
+		gpuProgram->IncrementReference();
+		gpuPrograms[ Name ][ Flags ] = gpuProgram;
+		g_consoleSystem->PrintInfo( "Loaded gpu program [%s] with flags [%i]", Name, Flags );
+
+		return gpuProgram;
+	}
+	catch ( std::exception & Exception )
+	{
+		g_consoleSystem->PrintError( "Gpu program [%s] with flags [%i] not loaded: %s", Path, Flags, Exception.what() );
+		return nullptr;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
 // Unload physics models
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadPhysicsModels()
@@ -1902,9 +2096,40 @@ void le::ResourceSystem::UnloadPhysicsModels()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Unload all gpu programs
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadGPUPrograms()
+{
+	if ( gpuPrograms.empty() ) return;
+
+	for ( auto it = gpuPrograms.begin(), itEnd = gpuPrograms.end(); it != itEnd; )
+	{
+		for ( auto itShader = it->second.begin(), itShaderEnd = it->second.end(); itShader != itShaderEnd; )
+			if ( itShader->second->GetCountReferences() <= 1 )
+			{
+				itShader->second->Release();
+
+				g_consoleSystem->PrintInfo( "Unloaded gpu program [%s] with flags [%i]", it->first.c_str(), itShader->first );
+				itShader = it->second.erase( itShader );
+				itShaderEnd = it->second.end();
+			}
+			else
+				++itShader;
+
+		if ( it->second.empty() )
+		{
+			it = gpuPrograms.erase( it );
+			itEnd = gpuPrograms.end();
+		}
+		else
+			++it;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
 // Get physics model
 // ------------------------------------------------------------------------------------ //
-le::IPhysicsModel* le::ResourceSystem::GetPhysicsModel( const char *Name ) const
+le::IPhysicsModel* le::ResourceSystem::GetPhysicsModel( const char* Name ) const
 {
     LIFEENGINE_ASSERT( Name );
 
@@ -1912,4 +2137,20 @@ le::IPhysicsModel* le::ResourceSystem::GetPhysicsModel( const char *Name ) const
     if ( it != physicsModels.end() )	return it->second;
 
     return nullptr;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get gpu program
+// ------------------------------------------------------------------------------------ //
+le::IGPUProgram* le::ResourceSystem::GetGPUProgram( const char* Name, UInt32_t Flags ) const
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto		itShaders = gpuPrograms.find( Name );
+	if ( itShaders == gpuPrograms.end() )		return nullptr;
+
+	auto		itShader = itShaders->second.find( Flags );
+	if ( itShader == itShaders->second.end() )	return nullptr;
+
+	return itShader->second;
 }

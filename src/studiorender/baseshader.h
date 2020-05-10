@@ -13,6 +13,7 @@
 
 #include <unordered_map>
 #include <vector>
+#include <string>
 
 #include "common/shaderparaminfo.h"
 #include "studiorender/ishader.h"
@@ -23,8 +24,7 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IGPUProgram;
-	struct ShaderDescriptor;
+	class GPUProgram;
 
 	//---------------------------------------------------------------------//
 
@@ -41,13 +41,14 @@ namespace le
 		virtual ~BaseShader();
 
 	protected:
-		bool							LoadShader( const ShaderDescriptor& ShaderDescriptor, const std::vector< const char* >& Defines, UInt32_t Flags = 0 );
-		IGPUProgram*					GetGPUProgram( UInt32_t Flags ) const;
+		bool								LoadShader( const std::string& Name, const std::string& Path, const std::vector< const char* >& Defines, UInt32_t Flags = 0 );
 
-		std::vector< ShaderParamInfo >						shaderParams;
+		GPUProgram*							gpuProgram;
+		std::vector< ShaderParamInfo >		shaderParams;
 
 	private:
-		std::unordered_map< UInt32_t, IGPUProgram* >		gpuPrograms;
+		std::string				nameShader;
+		UInt32_t				flagShader;
 	};
 
 	//---------------------------------------------------------------------//

@@ -162,6 +162,7 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 	if ( isInitialize ) return true;
 
 	g_consoleSystem = Engine->GetConsoleSystem();
+	g_resourceSystem = Engine->GetResourceSystem();
 	g_engine = Engine;
 
 	if ( !g_consoleSystem )

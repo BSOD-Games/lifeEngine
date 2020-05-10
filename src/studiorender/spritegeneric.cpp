@@ -16,10 +16,10 @@
 #include "engine/icamera.h"
 #include "engine/iengineinternal.h"
 #include "engine/iconsolesystem.h"
-#include "studiorender/igpuprogram.h"
 #include "studiorender/itexture.h"
 
 #include "global.h"
+#include "gpuprogram.h"
 #include "spritegeneric.h"
 
 // ------------------------------------------------------------------------------------ //
@@ -27,18 +27,6 @@
 // ------------------------------------------------------------------------------------ //
 bool le::SpriteGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
-	ShaderDescriptor			shaderDescriptor;
-	std::string					engineDir = static_cast< IEngineInternal* >( g_engine )->GetEngineDirectory();
-	std::ifstream				fileVS( engineDir + "/shaders/vs_spritegeneric.glsl" );
-	std::ifstream				filePS( engineDir + "/shaders/ps_spritegeneric.glsl" );
-	std::string					vs, ps;
-
-	std::getline( fileVS, vs, '\0' );
-	std::getline( filePS, ps, '\0' );
-
-	shaderDescriptor.vertexShaderSource = vs.c_str();
-	shaderDescriptor.fragmentShaderSource = ps.c_str();
-
 	std::vector< const char* >			defines;
 	UInt32_t							flags = SF_NONE;
 
@@ -57,11 +45,8 @@ bool le::SpriteGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** S
 		}
 	}
 
-	if ( !LoadShader( shaderDescriptor, defines, flags ) )
+	if ( !LoadShader( "SpriteGeneric", "shaders/spritegeneric.shader", defines, flags ) )
 		return false;
-
-	IGPUProgram*		gpuProgram = GetGPUProgram( flags );
-	if ( !gpuProgram ) return false;
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "basetexture", 0 );
@@ -103,9 +88,6 @@ void le::SpriteGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** Sha
 			textureRect = shaderParameter;   
 	}
 
-	IGPUProgram*		gpuProgram = GetGPUProgram( flags );
-	if ( !gpuProgram ) return;
-
 	gpuProgram->Bind();
 
     if ( textureRect )
@@ -113,7 +95,6 @@ void le::SpriteGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** Sha
 	else
 		gpuProgram->SetUniform( "textureRect", Vector4D_t( 0.f, 0.f, 1.f, 1.f ) );
 	
-
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
 	gpuProgram->SetUniform( "matrix_Projection", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
 }

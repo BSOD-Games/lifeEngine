@@ -9,6 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "engine/ifactory.h"
+#include "engine/iresourcesystem.h"
 
 #include "global.h"
 #include "baseshader.h"
@@ -42,7 +43,9 @@ le::ShaderParamInfo* le::BaseShader::GetParam( UInt32_t Index ) const
 // ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
-le::BaseShader::BaseShader()
+le::BaseShader::BaseShader() :
+	gpuProgram( nullptr ),
+	flagShader( 0 )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -50,42 +53,22 @@ le::BaseShader::BaseShader()
 // ------------------------------------------------------------------------------------ //
 le::BaseShader::~BaseShader()
 {
-	for ( auto it = gpuPrograms.begin(), itEnd = gpuPrograms.end(); it != itEnd; ++it )
-		delete it->second;
-
-	gpuPrograms.clear();	
+	if ( gpuProgram )
+	{
+		gpuProgram->DecrementReference();
+		
+		if ( gpuProgram->GetCountReferences() <= 1 )
+			g_resourceSystem->UnloadGPUProgram( nameShader.c_str(), flagShader );
+	}
 }
 
 // ------------------------------------------------------------------------------------ //
 // Загрузить шейдер
 // ------------------------------------------------------------------------------------ //
-bool le::BaseShader::LoadShader( const ShaderDescriptor& ShaderDescriptor, const std::vector< const char* >& Defines, UInt32_t Flags )
+bool le::BaseShader::LoadShader( const std::string& Name, const std::string& Path, const std::vector< const char* >& Defines, UInt32_t Flags )
 {
-	if ( gpuPrograms.find( Flags ) != gpuPrograms.end() )
-		return true;
+	gpuProgram = ( GPUProgram* ) g_resourceSystem->LoadGPUProgram( Name.c_str(), Path.c_str(), Flags, Defines.size(), ( const char** ) Defines.data() );
+	if ( gpuProgram )		gpuProgram->IncrementReference();
 
-	IGPUProgram*			gpuProgram = new GPUProgram();
-	if ( !gpuProgram ) return false;
-
-	if ( !gpuProgram->Compile( ShaderDescriptor, Defines.size(), ( const char** ) Defines.data() ) )
-	{
-		delete gpuProgram;
-		gpuProgram = nullptr;
-		return false;
-	}
-
-	gpuPrograms[ Flags ] = gpuProgram;
-	return true;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Get gpu program by shader flags
-// ------------------------------------------------------------------------------------ //
-le::IGPUProgram* le::BaseShader::GetGPUProgram( UInt32_t Flags ) const
-{
-	auto 		itGpuProgram = gpuPrograms.find( Flags );
-	if ( itGpuProgram == gpuPrograms.end() )
-		return nullptr;
-
-	return itGpuProgram->second;
+	return gpuProgram;
 }

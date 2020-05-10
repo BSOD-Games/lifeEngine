@@ -18,37 +18,23 @@
 
 #include "engine/iengineinternal.h"
 #include "engine/icamera.h"
-#include "studiorender/igpuprogram.h"
+
 #include "studiorender/itexture.h"
-#include "engine\iconsolesystem.h"
+
 #include "global.h"
 #include "lightmappedgeneric.h"
+#include "gpuprogram.h"
 
 // ------------------------------------------------------------------------------------ //
 // Инициализировать экземпляр шейдера
 // ------------------------------------------------------------------------------------ //
 bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
-	ShaderDescriptor			shaderDescriptor;
-	std::string					engineDir = static_cast< IEngineInternal* >( g_engine )->GetEngineDirectory();
-	std::ifstream				fileVS( engineDir + "/shaders/vs_lightmappedgeneric.glsl" );
-	std::ifstream				filePS( engineDir + "/shaders/ps_lightmappedgeneric.glsl" );
-	std::string					vs, ps;
-
-	std::getline( fileVS, vs, '\0' );
-	std::getline( filePS, ps, '\0' );
-
-	shaderDescriptor.vertexShaderSource = vs.c_str();
-	shaderDescriptor.fragmentShaderSource = ps.c_str();
-
 	std::vector< const char* >			defines;
 	UInt32_t							flags = 0;
 
-	if ( !LoadShader( shaderDescriptor, defines, flags ) )
+	if ( !LoadShader( "LightmappedGeneric", "shaders/lightmappedgeneric.shader", defines, flags ) )
 		return false;
-
-	IGPUProgram*		gpuProgram = GetGPUProgram( flags );
-	if ( !gpuProgram ) return false;
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "basetexture", 0 );
@@ -63,7 +49,6 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParamete
 // ------------------------------------------------------------------------------------ //
 void le::LightmappedGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
-	IGPUProgram*		gpuProgram = GetGPUProgram( 0 );
 	if ( !gpuProgram ) return;
 
 	if ( ShaderParameters[ 0 ]->IsDefined() )		ShaderParameters[ 0 ]->GetValueTexture()->Bind( 0 );
