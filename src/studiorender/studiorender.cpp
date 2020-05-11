@@ -16,7 +16,6 @@
 #include "engine/iwindow.h"
 #include "engine/iconsolesystem.h"
 #include "engine/iconvar.h"
-#include "engine/imaterial.h"
 #include "settingscontext.h"
 #include "common/shaderdescriptor.h"
 #include "common/meshsurface.h"
@@ -26,8 +25,7 @@
 #include "gpuprogram.h"
 #include "texture.h"
 #include "mesh.h"
-#include "studiorendertechnique.h"
-#include "studiorenderpass.h"
+#include "material.h"
 #include "openglstate.h"
 #include "pointlight.h"
 #include "spotlight.h"
@@ -444,17 +442,9 @@ void le::StudioRender::Render_GeometryPass()
 		for ( UInt32_t indexObject = 0, countObjects = sceneDescriptor.renderObjects.size(); indexObject < countObjects; ++indexObject )
 		{
 			const RenderObject&		renderObject = sceneDescriptor.renderObjects[ indexObject ];
-			StudioRenderTechnique*	technique = ( StudioRenderTechnique* ) renderObject.material->GetTechnique( RT_DEFFERED_SHADING );
-			if ( !technique ) continue;
-
-			for ( UInt32_t indexPass = 0, countPasses = technique->GetCountPasses(); indexPass < countPasses; ++indexPass )
-			{
-				StudioRenderPass*		pass = ( StudioRenderPass* ) technique->GetPass( indexPass );
-
-				pass->Apply( renderObject.transformation, sceneDescriptor.camera, renderObject.lightmap );
+				static_cast< Material* >( renderObject.material )->Apply( renderObject.transformation, sceneDescriptor.camera, renderObject.lightmap );
 				renderObject.vertexArrayObject->Bind();
 				glDrawRangeElementsBaseVertex( renderObject.primitiveType, 0, renderObject.countIndeces, renderObject.countIndeces, GL_UNSIGNED_INT, ( void* ) ( renderObject.startIndex * sizeof( UInt32_t ) ), renderObject.startVertexIndex );
-			}
 		}
 	}
 }

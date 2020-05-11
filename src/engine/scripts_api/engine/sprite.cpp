@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "engine/sprite.h"
-#include "engine/material.h"
+#include "studiorender/imaterial.h"
 
 namespace scripts_api
 {
@@ -47,7 +47,7 @@ void scripts_api::Sprite_Delete( sprite_t Object )
 scripts_api::bool_t scripts_api::Sprite_Initialize( sprite_t Object, vec2f_t Size, material_t Material, spriteType_t SpriteType )
 {
 	if ( !Object ) return B_FALSE;
-	return SPRITE( Object )->Initialize( { Size.x, Size.y }, ( le::Material* ) Material, ( le::SPRITE_TYPE ) SpriteType ) ? B_TRUE : B_FALSE;
+	return SPRITE( Object )->Initialize( { Size.x, Size.y }, ( le::IMaterial* ) Material, ( le::SPRITE_TYPE ) SpriteType ) ? B_TRUE : B_FALSE;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -56,7 +56,7 @@ scripts_api::bool_t scripts_api::Sprite_Initialize( sprite_t Object, vec2f_t Siz
 void scripts_api::Sprite_SetMaterial( sprite_t Object, material_t Material )
 {
 	if ( !Object || !Material ) return;
-	SPRITE( Object )->SetMaterial( ( le::Material* ) Material );
+	SPRITE( Object )->SetMaterial( ( le::IMaterial* ) Material );
 }
 
 // ------------------------------------------------------------------------------------ //

@@ -14,7 +14,7 @@
 #include <string>
 
 #include "engine/itext.h"
-#include "engine/imaterial.h"
+#include "studiorender/imaterial.h"
 
 //---------------------------------------------------------------------//
 

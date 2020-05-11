@@ -15,16 +15,14 @@
 #include "engine/ifactory.h"
 #include "engine/ifont.h"
 #include "studiorender/istudiorender.h"
-#include "studiorender/istudiorendertechnique.h"
-#include "studiorender/istudiorenderpass.h"
 #include "studiorender/itexture.h"
 #include "studiorender/imesh.h"
 #include "studiorender/ishaderparameter.h"
 #include "studiorender/studiovertexelement.h"
+#include "studiorender/imaterial.h"
 
 #include "global.h"
 #include "engine/consolesystem.h"
-#include "engine/material.h"
 #include "engine/text.h"
 
 //---------------------------------------------------------------------//
@@ -233,9 +231,7 @@ void le::Text::UpdateGeometry()
 		// Если класс материала не создан - создаем
 		if ( !material )
 		{
-			material = new Material();
-            IStudioRenderTechnique*         material_techique = ( IStudioRenderTechnique* ) studioRenderFactory->Create( TECHNIQUE_INTERFACE_VERSION );
-            IStudioRenderPass*              material_pass = ( IStudioRenderPass* ) studioRenderFactory->Create( PASS_INTERFACE_VERSION );
+			material = ( IMaterial* ) g_studioRenderFactory->Create( MATERIAL_INTERFACE_VERSION );
 			materialParam_basetexture = ( IShaderParameter* ) studioRenderFactory->Create( SHADERPARAMETER_INTERFACE_VERSION );
 			materialParam_color = ( IShaderParameter* ) studioRenderFactory->Create( SHADERPARAMETER_INTERFACE_VERSION );
 
@@ -247,15 +243,10 @@ void le::Text::UpdateGeometry()
 			materialParam_color->SetName( "color" );
 			materialParam_color->SetValueVector3D( color / 255.f );		
 
-			material_pass->SetShader( "TextGeneric" );
-			material_pass->AddParameter( materialParam_basetexture );
-			material_pass->AddParameter( materialParam_color );
-
-			material_techique->SetType( RT_DEFFERED_SHADING );
-			material_techique->AddPass( material_pass );
-
+			material->SetShader( "TextGeneric" );
+			material->AddParameter( materialParam_basetexture );
+			material->AddParameter( materialParam_color );
             material->IncrementReference();
-			material->AddTechnique( material_techique );
 		}
 
 		// Заполняем массив формата вершин

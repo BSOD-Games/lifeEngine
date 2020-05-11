@@ -13,7 +13,7 @@
 
 #include "../common/types.h"
 #include "../physics/physicsmodel.h"
-#include "material.h"
+#include "../studiorender/material.h"
 #include "model.h"
 #include "text.h"
 

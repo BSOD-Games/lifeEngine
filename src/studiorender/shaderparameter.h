@@ -21,7 +21,7 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class StudioRenderPass;
+	class Material;
 
 	//---------------------------------------------------------------------//
 
@@ -63,9 +63,9 @@ namespace le
 		ShaderParameter();
 		~ShaderParameter();
 
-		inline void							SetPass( StudioRenderPass* Pass )
+		inline void							SetMaterial( Material* Material )
 		{
-			studioRenderPass = Pass;
+			material = Material;
 		}
 
 	private:
@@ -73,7 +73,7 @@ namespace le
 
 		std::string				name;
 		SHADER_PARAMETER_TYPE	type;
-		StudioRenderPass*		studioRenderPass;
+		Material*				material;
         void*                   value;
         UInt32_t                countReferences;
     };

@@ -14,8 +14,7 @@
 #include "gpuprogram.h"
 #include "texture.h"
 #include "mesh.h"
-#include "studiorendertechnique.h"
-#include "studiorenderpass.h"
+#include "material.h"
 #include "shaderparameter.h"
 #include "pointlight.h"
 #include "spotlight.h"
@@ -29,8 +28,7 @@ void* le::StudioRenderFactory::Create( const char* NameInterface )
 	if ( strcmp( NameInterface, GPUPROGRAM_INTERFACE_VERSION ) == 0 )					return new GPUProgram();
 	else if ( strcmp( NameInterface, TEXTURE_INTERFACE_VERSION ) == 0 )					return new Texture();
 	else if ( strcmp( NameInterface, MESH_INTERFACE_VERSION ) == 0 )					return new Mesh();
-	else if ( strcmp( NameInterface, TECHNIQUE_INTERFACE_VERSION ) == 0 )				return new StudioRenderTechnique();
-	else if ( strcmp( NameInterface, PASS_INTERFACE_VERSION ) == 0 )					return new StudioRenderPass();
+	else if ( strcmp( NameInterface, MATERIAL_INTERFACE_VERSION ) == 0 )				return new Material();
 	else if ( strcmp( NameInterface, SHADERPARAMETER_INTERFACE_VERSION ) == 0 )			return new ShaderParameter();
 	else if ( strcmp( NameInterface, POINTLIGHT_INTERFACE_VERSION ) == 0 )				return new PointLight();
 	else if ( strcmp( NameInterface, SPOTLIGHT_INTERFACE_VERSION ) == 0 )				return new SpotLight();

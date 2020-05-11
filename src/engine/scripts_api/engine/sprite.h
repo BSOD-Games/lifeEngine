@@ -13,7 +13,7 @@
 
 #include "../common/types.h"
 #include "../mathlib/mathlib.h"
-#include "material.h"
+#include "../studiorender/material.h"
 
 //---------------------------------------------------------------------//
 

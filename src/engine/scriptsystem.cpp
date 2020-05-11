@@ -21,7 +21,6 @@ namespace scripts_api
 #include "scripts_api/engine/resourcesystem.h"
 #include "scripts_api/engine/model.h"
 #include "scripts_api/engine/camera.h"
-#include "scripts_api/engine/material.h"
 #include "scripts_api/engine/materialproxy.h"
 #include "scripts_api/engine/materialproxyvar.h"
 #include "scripts_api/engine/level.h"
@@ -29,8 +28,7 @@ namespace scripts_api
 #include "scripts_api/engine/text.h"
 
 #include "scripts_api/studiorender/shaderparameter.h"
-#include "scripts_api/studiorender/studiorenderpass.h"
-#include "scripts_api/studiorender/studiorendertechnique.h"
+#include "scripts_api/studiorender/material.h"
 
 #include "scripts_api/physics/collider.h"
 #include "scripts_api/physics/body.h"
@@ -170,14 +168,30 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( Material_Create );
 	REGISTER_FUNCTION( Material_Delete );
 	REGISTER_FUNCTION( Material_Clear );
-	REGISTER_FUNCTION( Material_AddTechnique );
-	REGISTER_FUNCTION( Material_GetTechniques );
 	REGISTER_FUNCTION( Material_GetSurfaceName );
 	REGISTER_FUNCTION( Material_SetSurfaceName );
-	REGISTER_FUNCTION( Material_RemoveTechnique );
-	REGISTER_FUNCTION( Material_GetCountTechniques );
-	REGISTER_FUNCTION( Material_GetTechniqueByType );
-	REGISTER_FUNCTION( Material_GetTechniqueByIndex );
+	REGISTER_FUNCTION( Material_AddParameter );
+	REGISTER_FUNCTION( Material_AddProxy );
+	REGISTER_FUNCTION( Material_EnableBlend );
+	REGISTER_FUNCTION( Material_EnableCullFace );
+	REGISTER_FUNCTION( Material_EnableDepthTest );
+	REGISTER_FUNCTION( Material_EnableDepthWrite );
+	REGISTER_FUNCTION( Material_FindParameter );
+	REGISTER_FUNCTION( Material_GetCountParameters );
+	REGISTER_FUNCTION( Material_GetCountProxes );
+	REGISTER_FUNCTION( Material_GetCullFaceType );
+	REGISTER_FUNCTION( Material_GetParameter );
+	REGISTER_FUNCTION( Material_GetParameters );
+	REGISTER_FUNCTION( Material_GetProxes );
+	REGISTER_FUNCTION( Material_GetProxy );
+	REGISTER_FUNCTION( Material_IsBlend );
+	REGISTER_FUNCTION( Material_IsCullFace );
+	REGISTER_FUNCTION( Material_IsDepthTest );
+	REGISTER_FUNCTION( Material_IsDepthWrite );
+	REGISTER_FUNCTION( Material_RemoveParameter );
+	REGISTER_FUNCTION( Material_RemoveProxy );
+	REGISTER_FUNCTION( Material_SetCullFaceType );
+	REGISTER_FUNCTION( Material_SetShader );
 
 	// Material proxy
 	REGISTER_FUNCTION( MaterialProxy_Create );
@@ -269,46 +283,6 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( ShaderParameter_SetValueTexture );
 	REGISTER_FUNCTION( ShaderParameter_GetValueShaderFlag );
 	REGISTER_FUNCTION( ShaderParameter_SetValueShaderFlag );
-
-	// Studiorender pass
-	REGISTER_FUNCTION( StudioRenderPass_Create );
-	REGISTER_FUNCTION( StudioRenderPass_Delete );
-	REGISTER_FUNCTION( StudioRenderPass_Clear );
-	REGISTER_FUNCTION( StudioRenderPass_IsBlend );
-	REGISTER_FUNCTION( StudioRenderPass_AddProxy );
-	REGISTER_FUNCTION( StudioRenderPass_GetProxy );
-	REGISTER_FUNCTION( StudioRenderPass_GetProxes );
-	REGISTER_FUNCTION( StudioRenderPass_SetShader );
-	REGISTER_FUNCTION( StudioRenderPass_IsCullFace );
-	REGISTER_FUNCTION( StudioRenderPass_EnableBlend );
-	REGISTER_FUNCTION( StudioRenderPass_IsDepthTest );
-	REGISTER_FUNCTION( StudioRenderPass_RemoveProxy );
-	REGISTER_FUNCTION( StudioRenderPass_AddParameter );
-	REGISTER_FUNCTION( StudioRenderPass_GetParameter );
-	REGISTER_FUNCTION( StudioRenderPass_IsDepthWrite );
-	REGISTER_FUNCTION( StudioRenderPass_FindParameter );
-	REGISTER_FUNCTION( StudioRenderPass_GetNameShader );
-	REGISTER_FUNCTION( StudioRenderPass_GetParameters );
-	REGISTER_FUNCTION( StudioRenderPass_EnableCullFace );
-	REGISTER_FUNCTION( StudioRenderPass_GetCountProxes );
-	REGISTER_FUNCTION( StudioRenderPass_EnableDepthTest );
-	REGISTER_FUNCTION( StudioRenderPass_GetCullFaceType );
-	REGISTER_FUNCTION( StudioRenderPass_RemoveParameter );
-	REGISTER_FUNCTION( StudioRenderPass_SetCullFaceType );
-	REGISTER_FUNCTION( StudioRenderPass_EnableDepthWrite );
-	REGISTER_FUNCTION( StudioRenderPass_GetCountParameters );
-
-	// Studiorender technique
-	REGISTER_FUNCTION( StudioRenderTechnique_Create );
-	REGISTER_FUNCTION( StudioRenderTechnique_Delete );
-	REGISTER_FUNCTION( StudioRenderTechnique_Clear );
-	REGISTER_FUNCTION( StudioRenderTechnique_AddPass );
-	REGISTER_FUNCTION( StudioRenderTechnique_GetPass );
-	REGISTER_FUNCTION( StudioRenderTechnique_GetType );
-	REGISTER_FUNCTION( StudioRenderTechnique_SetType );
-	REGISTER_FUNCTION( StudioRenderTechnique_GetPasses );
-	REGISTER_FUNCTION( StudioRenderTechnique_RemovePass );
-	REGISTER_FUNCTION( StudioRenderTechnique_GetCountPasses );
 
 	// Level
 	REGISTER_FUNCTION( Level_Clear );
