@@ -8,15 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef BASE_SHADER_H
-#define BASE_SHADER_H
+#ifndef IMATERIALPROXYFACTORY_H
+#define IMATERIALPROXYFACTORY_H
 
-#include <unordered_map>
-#include <vector>
-#include <string>
-
-#include "common/shaderparaminfo.h"
-#include "studiorender/ishader.h"
+#include "common/types.h"
 
 //---------------------------------------------------------------------//
 
@@ -24,31 +19,22 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class GPUProgram;
+	class IMaterialProxy;
+	typedef IMaterialProxy*					( *CreateMaterialProxyFn_t )( );
 
 	//---------------------------------------------------------------------//
 
-	class BaseShader : public IShader
+	class IMaterialProxyFactory
 	{
 	public:
-		// IShader
-		virtual UInt32_t				GetCountParams() const;
-		virtual ShaderParamInfo*		GetParam( UInt32_t Index ) const;
-		virtual ShaderParamInfo*		GetParams() const;
+        virtual ~IMaterialProxyFactory() {}
+		virtual void					Register( const char* Name, CreateMaterialProxyFn_t CreateMaterialProxy ) = 0;
+		virtual void					Unregister( const char* Name ) = 0;
+		virtual IMaterialProxy*			Create( const char* Name ) = 0;
 
-		// BaseShader
-		BaseShader();
-		virtual ~BaseShader();
-
-	protected:
-		bool								LoadShader( const std::string& Name, const std::string& Path, const std::vector< const char* >& Defines, UInt32_t Flags = 0 );
-
-		GPUProgram*							gpuProgram;
-		std::vector< ShaderParamInfo >		shaderParams;
-
-	private:
-		std::string				nameShader;
-		UInt32_t				flagShader;
+		virtual UInt32_t				GetCountMaterialProxes() const = 0;
+		virtual const char*				GetMaterialProxy( UInt32_t Index ) const = 0;
+		virtual const char**			GetMaterialProxes() const = 0;
 	};
 
 	//---------------------------------------------------------------------//
@@ -56,5 +42,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !BASE_SHADER_H
+#endif // !IMATERIALPROXYFACTORY_H
 

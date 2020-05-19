@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "engine/sprite.h"
-#include "studiorender/imaterial.h"
+#include "material.h"
 
 namespace scripts_api
 {

@@ -28,14 +28,14 @@ namespace le
 	class ILevel;
 	class IFont;
 	class IResourceSystem;
-	class IMaterialManager;
+	class IMaterialSystem;
 	class IScript;
 	class IPhysicsModel;
 	class IGPUProgram;
 
 	typedef		void				( *LoadImageFn_t )( const char* Path, Image& Image, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels );
 	typedef		ITexture*			( *LoadTextureFn_t )( const char* Path, IFactory* StudioRenderFactory );
-	typedef		IMaterial*			( *LoadMaterialFn_t )( const char* Path, IResourceSystem* ResourceSystem, IMaterialManager* MaterialManager, IFactory* StudioRenderFactory );
+	typedef		IMaterial*			( *LoadMaterialFn_t )( const char* Path, IResourceSystem* ResourceSystem, IMaterialSystem* MaterialSystem, IFactory* EngineFactory );
 	typedef		IMesh*				( *LoadMeshFn_t )( const char* Path, IResourceSystem* ResourceSystem, IFactory* StudioRenderFactory );
 	typedef		ILevel*				( *LoadLevelFn_t )( const char* Path, IFactory* GameFactory );
 	typedef		IFont*				( *LoadFontFn_t )( const char* Path );

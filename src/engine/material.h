@@ -15,8 +15,8 @@
 #include <vector>
 #include <unordered_map>
 
-#include "studiorender/imaterial.h"
-#include "studiorender/shaderparameter.h"
+#include "engine/imaterial.h"
+#include "engine/shaderparameter.h"
 
 //---------------------------------------------------------------------//
 
@@ -44,8 +44,9 @@ namespace le
 		virtual void                        EnableBlend( bool Enable = true );
 		virtual void                        EnableCullFace( bool Enable = true );
 		virtual IShaderParameter*           FindParameter( const char* Name ) const;
+		virtual void						OnBind( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr );
 
-		virtual void                        SetShader( const char* NameShader );
+		virtual void                        SetShader( const char* Name );
 		virtual void                        SetCullFaceType( CULLFACE_TYPE CullFaceType );
 		virtual void						SetSurfaceName( const char* Name );
 
@@ -54,7 +55,7 @@ namespace le
 		virtual bool                        IsBlend() const;
 		virtual bool                        IsCullFace() const;
 		virtual CULLFACE_TYPE               GetCullFaceType() const;
-		virtual IShader*					GetShader() const;
+		virtual const char*					GetShader() const;
 		virtual UInt32_t                    GetCountParameters() const;
 		virtual IShaderParameter**          GetParameters() const;
 		virtual IShaderParameter*           GetParameter( UInt32_t Index ) const;
@@ -66,23 +67,22 @@ namespace le
 		// Material
 		Material();
 		~Material();
-
-		void								Apply( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr );
-		void								InitStates();
-		bool								Refrash();
-
-		inline void							NeadRefrash()
+		
+		bool								UpdateShader();
+		void								UpdateMaterialProxy();
+		inline void							NeadUpdateShader()
 		{
-			isNeadRefrash = true;
+			isNeadUpdateShader = true;
 		}
-
-		inline bool							IsNeadRefrash() const
+		
+		inline void							NeadUpdateMaterialProxy()
 		{
-			return isNeadRefrash;
+			isNeadUpdateMaterialProxy = true;
 		}
 
 	private:	 
-		bool								isNeadRefrash;
+		bool								isNeadUpdateShader;
+		bool								isNeadUpdateMaterialProxy;
 		bool								isDepthTest;
 		bool								isDepthWrite;
 		bool								isBlend;

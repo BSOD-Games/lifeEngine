@@ -81,7 +81,7 @@ le::Engine::Engine() :
 	g_window = &window;
 	g_engine = this;
 	g_engineFactory = &engineFactory;
-	g_materialManager = &materialManager;
+	g_materialSystem = &materialSystem;
 
 	configurations.fov = 75.f;
 	configurations.isFullscreen = false;
@@ -572,7 +572,7 @@ void le::Engine::RunSimulation()
 				inputSystem.Update();
 				game->Update();
 				physicSystem->Update();
-				materialManager.UpdateProxes();
+				materialSystem.Update();
 				inputSystem.Clear();
 			}
 
@@ -649,9 +649,9 @@ le::IInputSystem* le::Engine::GetInputSystem() const
 // ------------------------------------------------------------------------------------ //
 // Return material manager
 // ------------------------------------------------------------------------------------ //
-le::IMaterialManager* le::Engine::GetMaterialManager() const
+le::IMaterialSystem* le::Engine::GetMaterialSystem() const
 {
-	return ( IMaterialManager* ) &materialManager;
+	return ( IMaterialSystem* ) &materialSystem;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -770,6 +770,9 @@ bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile )
 
 		// Initialize input system
 		if ( !inputSystem.Initialize( this ) )			throw std::runtime_error( "Fail initialize input system" );
+
+		// Initialize material system
+		if ( !materialSystem.Initialize( this ) )		throw std::runtime_error( "Fail initialize material system" );
 
 		// Initialize resource system
 		if ( !resourceSystem.Initialize( this ) )		throw std::runtime_error( "Fail initialize resource system" );

@@ -25,7 +25,6 @@
 #include "studiorender/ipointlight.h"
 #include "studiorender/ispotlight.h"
 #include "studiorender/idirectionallight.h"
-#include "studiorender/imaterial.h"
 #include "physics/iphysicssystem.h"
 #include "physics/ibody.h"
 #include "physics/icollider.h"
@@ -36,6 +35,7 @@
 #include "resourcesystem.h"
 #include "level.h"
 #include "model.h"
+#include "material.h"
 #include "sprite.h"
 
 // ------------------------------------------------------------------------------------ //

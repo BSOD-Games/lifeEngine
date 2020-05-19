@@ -8,10 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IMATERIAL_MANAGER_H
-#define IMATERIAL_MANAGER_H
+#ifndef IMATERIALSYSTEMINTERNAL_H
+#define IMATERIALSYSTEMINTERNAL_H
 
-#include "common/types.h"
+#include "engine/imaterialsystem.h"
 
 //---------------------------------------------------------------------//
 
@@ -19,23 +19,18 @@ namespace le
 {
     //---------------------------------------------------------------------//
 
-    class IMaterialProxy;
-    class IFactory;
+	class IEngine;
+	class IMaterial;
 
     //---------------------------------------------------------------------//
 
-    class IMaterialManager
+    class IMaterialSystemInternal : public IMaterialSystem
     {
     public:
-        virtual ~IMaterialManager() {}
-        virtual void                            RegisterProxyFactory( IFactory* MaterialProxyFactory ) = 0;
-        virtual void                            UnregisterProxyFactory() = 0;
-        virtual IMaterialProxy*                 CreateProxy( const char* NameProxy ) = 0;
-        virtual void                            RemoveProxy( IMaterialProxy* MaterialProxy ) = 0;
-        virtual void                            RemoveAllProxes() = 0;
-
-        virtual UInt32_t                        GetCountProxes() const = 0;
-        virtual IMaterialProxy**                GetProxes() const = 0;
+        virtual ~IMaterialSystemInternal() {}
+		virtual bool				Initialize( IEngine* Engine ) = 0;
+		virtual void				Update() = 0;
+		virtual void				SubmitUpdate( IMaterial* Material ) = 0;
     };
 
     //---------------------------------------------------------------------//
@@ -43,4 +38,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !IMATERIAL_MANAGER_H
+#endif // !IMATERIALSYSTEMINTERNAL_H

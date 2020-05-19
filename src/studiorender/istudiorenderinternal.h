@@ -21,8 +21,6 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	class IEngine;
-	class IStudioRenderInfo;
-	typedef void*				RenderContext_t;
 
 	//---------------------------------------------------------------------//
 
@@ -34,8 +32,6 @@ namespace le
 		virtual void							Begin() = 0;
 		virtual void							End() = 0;
 		virtual void							Present() = 0;
-
-		virtual IStudioRenderInfo*				GetStudioRenderInfo() const = 0;
 	};
 
 	//---------------------------------------------------------------------//

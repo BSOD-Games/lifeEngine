@@ -64,8 +64,8 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	class MaterialManager;
-	extern MaterialManager*			g_materialManager;
+	class MaterialSystem;
+	extern MaterialSystem*			g_materialSystem;
 
 	//---------------------------------------------------------------------//
 }

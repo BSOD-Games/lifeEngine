@@ -9,11 +9,11 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "engine/ifactory.h"
-#include "engine/iresourcesystem.h"
+#include "engine/resourcesystem.h"
+#include "studiorender/igpuprogram.h"
 
 #include "global.h"
 #include "baseshader.h"
-#include "gpuprogram.h"
 
 // ------------------------------------------------------------------------------------ //
 // Получить количество параметров
@@ -67,7 +67,7 @@ le::BaseShader::~BaseShader()
 // ------------------------------------------------------------------------------------ //
 bool le::BaseShader::LoadShader( const std::string& Name, const std::string& Path, const std::vector< const char* >& Defines, UInt32_t Flags )
 {
-	gpuProgram = ( GPUProgram* ) g_resourceSystem->LoadGPUProgram( Name.c_str(), Path.c_str(), Flags, Defines.size(), ( const char** ) Defines.data() );
+	gpuProgram = g_resourceSystem->LoadGPUProgram( Name.c_str(), Path.c_str(), Flags, Defines.size(), ( const char** ) Defines.data() );
 	if ( gpuProgram )		gpuProgram->IncrementReference();
 
 	return gpuProgram;

@@ -16,6 +16,7 @@
 #include "engine/iwindow.h"
 #include "engine/iconsolesystem.h"
 #include "engine/iconvar.h"
+#include "engine/imaterial.h"
 #include "settingscontext.h"
 #include "common/shaderdescriptor.h"
 #include "common/meshsurface.h"
@@ -25,7 +26,6 @@
 #include "gpuprogram.h"
 #include "texture.h"
 #include "mesh.h"
-#include "material.h"
 #include "openglstate.h"
 #include "pointlight.h"
 #include "spotlight.h"
@@ -173,12 +173,12 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 	r_wireframe = ( IConVar* ) g_consoleSystem->GetFactory()->Create( CONVAR_INTERFACE_VERSION );
 	r_wireframe->Initialize( "r_wireframe", "0", CVT_BOOL, "Enable wireframe mode", true, 0, true, 1,
 							 []( le::IConVar* Var )
-	{
-		if ( Var->GetValueBool() )
-			glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-		else
-			glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-	} );
+							 {
+								 if ( Var->GetValueBool() )
+									 glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+								 else
+									 glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+							 } );
 
 	r_showgbuffer = ( IConVar* ) g_consoleSystem->GetFactory()->Create( CONVAR_INTERFACE_VERSION );
 	r_showgbuffer->Initialize( "r_showgbuffer", "0", CVT_BOOL, "Enable view GBuffer", true, 0, true, 1, nullptr );
@@ -273,29 +273,29 @@ bool le::StudioRender::CreateContext( le::WindowHandle_t WindowHandle, UInt32_t 
 
 	ShaderDescriptor			shaderDescriptor;
 	shaderDescriptor.vertexShaderSource =
-			"#version 330 core\n"
-			"struct Primitive \n"
+		"#version 330 core\n"
+		"struct Primitive \n"
 
-			"{\n"
-			"vec3		verteces[ 2 ];\n"
-			"vec3		color;\n"
-			"};\n"
+		"{\n"
+		"vec3		verteces[ 2 ];\n"
+		"vec3		color;\n"
+		"};\n"
 
-			"out vec3				colorPrimitive;\n"
-			"uniform mat4			matrixProjection;\n"
-			"uniform Primitive		primitives[ 255 ];\n"
+		"out vec3				colorPrimitive;\n"
+		"uniform mat4			matrixProjection;\n"
+		"uniform Primitive		primitives[ 255 ];\n"
 
-			"void main()\n"
-			"{\n"
-			"colorPrimitive = primitives[ gl_InstanceID ].color;\n"
-			"gl_Position = matrixProjection * vec4( primitives[ gl_InstanceID ].verteces[ gl_VertexID ], 1.f ); \n"
-			"}";
+		"void main()\n"
+		"{\n"
+		"colorPrimitive = primitives[ gl_InstanceID ].color;\n"
+		"gl_Position = matrixProjection * vec4( primitives[ gl_InstanceID ].verteces[ gl_VertexID ], 1.f ); \n"
+		"}";
 
 	shaderDescriptor.fragmentShaderSource =
-			"#version 330 core\n"
-			"in vec3		colorPrimitive;\n"
-			"out vec4		color;\n"
-			"void main() { color = vec4( colorPrimitive, 1.f ); }";
+		"#version 330 core\n"
+		"in vec3		colorPrimitive;\n"
+		"out vec4		color;\n"
+		"void main() { color = vec4( colorPrimitive, 1.f ); }";
 
 	if ( debugPrimitivesShader.Compile( shaderDescriptor ) )
 	{
@@ -393,7 +393,7 @@ void le::StudioRender::Present()
 					++countLinesInGPU;
 				}
 
-				if ( countLinesInGPU == 255 || indexLine+1 == countLines )
+				if ( countLinesInGPU == 255 || indexLine + 1 == countLines )
 				{
 					glDrawArraysInstanced( GL_LINES, 0, 2, countLinesInGPU );
 					countLinesInGPU = 0;
@@ -410,7 +410,7 @@ void le::StudioRender::Present()
 					++countPointsInGPU;
 				}
 
-				if ( countPointsInGPU == 255 || indexPoint+1 == countPoints )
+				if ( countPointsInGPU == 255 || indexPoint + 1 == countPoints )
 				{
 					glDrawArraysInstanced( GL_POINTS, 0, 1, countPointsInGPU );
 					countPointsInGPU = 0;
@@ -430,11 +430,11 @@ void le::StudioRender::Present()
 // ------------------------------------------------------------------------------------ //
 // Геометрический проход Deffered Shading'a
 // ------------------------------------------------------------------------------------ //
-void le::StudioRender::Render_GeometryPass() 
+void le::StudioRender::Render_GeometryPass()
 {
 	gbuffer.Bind( GBuffer::BT_GEOMETRY );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	
+
 	for ( UInt32_t indexScene = 0, countScenes = scenes.size(); indexScene < countScenes; ++indexScene )
 	{
 		SceneDescriptor&				sceneDescriptor = scenes[ indexScene ];
@@ -442,9 +442,15 @@ void le::StudioRender::Render_GeometryPass()
 		for ( UInt32_t indexObject = 0, countObjects = sceneDescriptor.renderObjects.size(); indexObject < countObjects; ++indexObject )
 		{
 			const RenderObject&		renderObject = sceneDescriptor.renderObjects[ indexObject ];
-				static_cast< Material* >( renderObject.material )->Apply( renderObject.transformation, sceneDescriptor.camera, renderObject.lightmap );
-				renderObject.vertexArrayObject->Bind();
-				glDrawRangeElementsBaseVertex( renderObject.primitiveType, 0, renderObject.countIndeces, renderObject.countIndeces, GL_UNSIGNED_INT, ( void* ) ( renderObject.startIndex * sizeof( UInt32_t ) ), renderObject.startVertexIndex );
+			OpenGLState::EnableDepthTest( renderObject.material->IsDepthTest() );
+			OpenGLState::EnableDepthWrite( renderObject.material->IsDepthWrite() );
+			OpenGLState::EnableBlend( renderObject.material->IsBlend() );
+			OpenGLState::EnableCullFace( renderObject.material->IsCullFace() );
+			OpenGLState::SetCullFaceType( renderObject.material->GetCullFaceType() );
+
+			renderObject.material->OnBind( renderObject.transformation, sceneDescriptor.camera, renderObject.lightmap );
+			renderObject.vertexArrayObject->Bind();
+			glDrawRangeElementsBaseVertex( renderObject.primitiveType, 0, renderObject.countIndeces, renderObject.countIndeces, GL_UNSIGNED_INT, ( void* ) ( renderObject.startIndex * sizeof( UInt32_t ) ), renderObject.startVertexIndex );
 		}
 	}
 }
@@ -452,7 +458,7 @@ void le::StudioRender::Render_GeometryPass()
 // ------------------------------------------------------------------------------------ //
 // Световой проход Deffered Shading'a
 // ------------------------------------------------------------------------------------ //
-void le::StudioRender::Render_LightPass() 
+void le::StudioRender::Render_LightPass()
 {
 	gbuffer.Bind( GBuffer::BT_LIGHT );
 	glClear( GL_COLOR_BUFFER_BIT );
@@ -489,7 +495,7 @@ void le::StudioRender::Render_LightPass()
 			shaderLighting.SetPVTMatrix( sceneDescriptor.camera->GetProjectionMatrix() * sceneDescriptor.camera->GetViewMatrix() * light->GetTransformation() );
 			shaderLighting.SetLight( light );
 			shaderLighting.Bind();
-			
+
 			OpenGLState::SetColorMask( true, true, true, true );
 			OpenGLState::SetStencilFunc( GL_NOTEQUAL, 0, 0xFF );
 			OpenGLState::EnableDepthTest( false );
@@ -522,7 +528,7 @@ void le::StudioRender::Render_LightPass()
 			shaderLighting.SetPVTMatrix( sceneDescriptor.camera->GetProjectionMatrix() * sceneDescriptor.camera->GetViewMatrix() * light->GetTransformation() );
 			shaderLighting.SetLight( light );
 			shaderLighting.Bind();
-			
+
 			OpenGLState::SetColorMask( true, true, true, true );
 			OpenGLState::SetStencilFunc( GL_NOTEQUAL, 0, 0xFF );
 			OpenGLState::EnableDepthTest( false );
@@ -543,7 +549,7 @@ void le::StudioRender::Render_LightPass()
 		for ( UInt32_t indexLight = 0, countLights = sceneDescriptor.directionalLights.size(); indexLight < countLights; ++indexLight )
 		{
 			auto*			light = sceneDescriptor.directionalLights[ indexLight ];
-			
+
 			shaderLighting.SetLight( light );
 			shaderLighting.Bind();
 			glDrawElements( GL_TRIANGLES, quad.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( quad.GetStartIndex() * sizeof( UInt32_t ) ) );
@@ -559,7 +565,7 @@ void le::StudioRender::Render_LightPass()
 // ------------------------------------------------------------------------------------ //
 // Финальный проход Deffered Shading'a
 // ------------------------------------------------------------------------------------ //
-void le::StudioRender::Render_FinalPass() 
+void le::StudioRender::Render_FinalPass()
 {
 	OpenGLState::SetCullFaceType( CT_BACK );
 	OpenGLState::EnableDepthTest( false );
@@ -595,22 +601,6 @@ void le::StudioRender::SetViewport( const StudioRenderViewport& Viewport )
 le::IFactory* le::StudioRender::GetFactory() const
 {
 	return ( IFactory* ) &studioRenderFactory;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить менеджер шейдеров
-// ------------------------------------------------------------------------------------ //
-le::IShaderManager* le::StudioRender::GetShaderManager() const
-{
-	return ( IShaderManager* ) &shaderManager;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Get studio render info
-// ------------------------------------------------------------------------------------ //
-le::IStudioRenderInfo* le::StudioRender::GetStudioRenderInfo() const
-{
-	return ( le::IStudioRenderInfo* ) &studioRenderInfo;
 }
 
 // ------------------------------------------------------------------------------------ //

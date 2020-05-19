@@ -63,7 +63,7 @@ void le::ShaderParameter::SetValueInt( int Value )
     if ( !isDefined )                           value = new int;
 
     *static_cast< int* >( value ) = Value;
-    if ( material )		material->NeadRefrash();
+    if ( material )		material->NeadUpdateShader();
 
     type = SPT_INT;
     isDefined = true;
@@ -78,7 +78,7 @@ void le::ShaderParameter::SetValueFloat( float Value )
     if ( !isDefined )                           value = new float;
 
     *static_cast< float* >( value ) = Value;
-    if ( material )		material->NeadRefrash();
+    if ( material )		material->NeadUpdateShader();
 
     type = SPT_FLOAT;
     isDefined = true;
@@ -93,7 +93,7 @@ void le::ShaderParameter::SetValueShaderFlag( bool Value )
     if ( !isDefined )                                 value = new bool;
 
     *static_cast< bool* >( value ) = Value;
-    if ( material )		material->NeadRefrash();
+    if ( material )		material->NeadUpdateShader();
 
     type = SPT_SHADER_FLAG;
     isDefined = true;
@@ -108,7 +108,7 @@ void le::ShaderParameter::SetValueVector2D( const Vector2D_t& Value )
     if ( !isDefined )                               value = new Vector2D_t();
 
     *static_cast< Vector2D_t* >( value ) = Value;
-    if ( material )		material->NeadRefrash();
+    if ( material )		material->NeadUpdateShader();
 
     type = SPT_VECTOR_2D;
     isDefined = true;
@@ -123,7 +123,7 @@ void le::ShaderParameter::SetValueVector3D( const Vector3D_t& Value )
     if ( !isDefined )                               value = new Vector3D_t();
 
     *static_cast< Vector3D_t* >( value ) = Value;
-    if ( material )		material->NeadRefrash();
+    if ( material )		material->NeadUpdateShader();
 
     type = SPT_VECTOR_3D;
     isDefined = true;
@@ -138,7 +138,7 @@ void le::ShaderParameter::SetValueVector4D( const Vector4D_t& Value )
     if ( !isDefined )                               value = new Vector4D_t();
 
     *static_cast< Vector4D_t* >( value ) = Value;
-    if ( material )		material->NeadRefrash();
+    if ( material )		material->NeadUpdateShader();
 
     type = SPT_VECTOR_4D;
     isDefined = true;
@@ -153,7 +153,7 @@ void le::ShaderParameter::SetValueMatrix( const Matrix4x4_t& Value )
     if ( !isDefined )                               value = new Matrix4x4_t();
 
     *static_cast< Matrix4x4_t* >( value ) = Value;
-    if ( material )		material->NeadRefrash();
+    if ( material )		material->NeadUpdateShader();
 
     type = SPT_MATRIX;
     isDefined = true;
@@ -168,7 +168,7 @@ void le::ShaderParameter::SetValueTexture( ITexture* Value )
 
     Value->IncrementReference();
     value = Value;
-    if ( material )		material->NeadRefrash();
+    if ( material )		material->NeadUpdateShader();
 
     type = SPT_TEXTURE;
     isDefined = true;

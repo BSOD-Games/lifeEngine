@@ -21,6 +21,8 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
+	class ICamera;
+	class ITexture;
 	class IShader;
 	class IShaderParameter;
 	class IMaterialProxy;
@@ -41,8 +43,9 @@ namespace le
 		virtual void                        EnableBlend( bool Enable = true ) = 0;
 		virtual void                        EnableCullFace( bool Enable = true ) = 0;
 		virtual IShaderParameter*           FindParameter( const char* Name ) const = 0;
+		virtual void						OnBind( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr ) = 0;
 
-		virtual void                        SetShader( const char* NameShader ) = 0;
+		virtual void                        SetShader( const char* Name ) = 0;
 		virtual void                        SetCullFaceType( CULLFACE_TYPE CullFaceType ) = 0;
 		virtual void						SetSurfaceName( const char* Name ) = 0;
 
@@ -50,8 +53,8 @@ namespace le
 		virtual bool                        IsDepthWrite() const = 0;
 		virtual bool                        IsBlend() const = 0;
 		virtual bool                        IsCullFace() const = 0;
+		virtual const char*					GetShader() const = 0;
 		virtual CULLFACE_TYPE               GetCullFaceType() const = 0;
-		virtual IShader*					GetShader() const = 0;
 		virtual UInt32_t                    GetCountParameters() const = 0;
 		virtual IShaderParameter**          GetParameters() const = 0;
 		virtual IShaderParameter*           GetParameter( UInt32_t Index ) const = 0;

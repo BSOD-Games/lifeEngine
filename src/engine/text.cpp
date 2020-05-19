@@ -17,13 +17,13 @@
 #include "studiorender/istudiorender.h"
 #include "studiorender/itexture.h"
 #include "studiorender/imesh.h"
-#include "studiorender/ishaderparameter.h"
 #include "studiorender/studiovertexelement.h"
-#include "studiorender/imaterial.h"
 
 #include "global.h"
-#include "engine/consolesystem.h"
-#include "engine/text.h"
+#include "shaderparameter.h"
+#include "material.h"
+#include "consolesystem.h"
+#include "text.h"
 
 //---------------------------------------------------------------------//
 
@@ -231,9 +231,9 @@ void le::Text::UpdateGeometry()
 		// Если класс материала не создан - создаем
 		if ( !material )
 		{
-			material = ( IMaterial* ) g_studioRenderFactory->Create( MATERIAL_INTERFACE_VERSION );
-			materialParam_basetexture = ( IShaderParameter* ) studioRenderFactory->Create( SHADERPARAMETER_INTERFACE_VERSION );
-			materialParam_color = ( IShaderParameter* ) studioRenderFactory->Create( SHADERPARAMETER_INTERFACE_VERSION );
+			material = new Material();
+			materialParam_basetexture = new ShaderParameter();
+			materialParam_color = new ShaderParameter();
 
             materialParam_basetexture->IncrementReference();
 			materialParam_basetexture->SetName( "basetexture" );

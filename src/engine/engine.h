@@ -21,7 +21,7 @@
 #include "engine/window.h"
 #include "engine/enginefactory.h"
 #include "engine/inputsystem.h"
-#include "engine/materialmanager.h"
+#include "engine/materialsystem.h"
 #include "engine/scriptsystem.h"
 
 //---------------------------------------------------------------------//
@@ -83,7 +83,7 @@ namespace le
 		virtual IStudioRender*			GetStudioRender() const;
 		virtual IResourceSystem*		GetResourceSystem() const;
 		virtual IInputSystem*			GetInputSystem() const;
-        virtual IMaterialManager*       GetMaterialManager() const;
+        virtual IMaterialSystem*		GetMaterialSystem() const;
         virtual IPhysicsSystem*         GetPhysicsSystem() const;
 		virtual IScriptSystem*			GetScriptSystem() const;
 		virtual IWindow*				GetWindow() const;
@@ -135,7 +135,7 @@ namespace le
 		ConsoleSystem					consoleSystem;
 		ResourceSystem					resourceSystem;
 		InputSystem						inputSystem;
-        MaterialManager                 materialManager;
+		MaterialSystem					materialSystem;
 		ScriptSystem					scriptSystem;
 		Window							window;
 		EngineFactory					engineFactory;

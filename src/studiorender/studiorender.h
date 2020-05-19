@@ -18,7 +18,6 @@
 #include "studiorender/rendercontext.h"
 #include "studiorender/studiorenderfactory.h"
 #include "studiorender/scenedescriptor.h"
-#include "studiorender/shadermanager.h"
 #include "studiorender/gbuffer.h"
 #include "studiorender/mesh.h"
 #include "studiorender/gpuprogram.h"
@@ -26,7 +25,6 @@
 #include "studiorender/sphere.h"
 #include "studiorender/cone.h"
 #include "studiorender/studiorenderdeviceconfigurations.h"
-#include "studiorender/studiorenderinfo.h"
 
 #include "shader_lighting.h"
 #include "shader_depth.h"
@@ -48,8 +46,6 @@ namespace le
 		virtual void											End();
 		virtual void											Present();
 
-		virtual IStudioRenderInfo*								GetStudioRenderInfo() const;
-
 		// IStudioRender				
 		virtual void											BeginScene( ICamera* Camera );
 		virtual void											SubmitDebugLine( const Vector3D_t& From, const Vector3D_t& To, const Vector3D_t& Color );
@@ -65,7 +61,6 @@ namespace le
 		virtual void											SetViewport( const StudioRenderViewport& Viewport );
 
 		virtual IFactory*										GetFactory() const;
-		virtual IShaderManager*									GetShaderManager() const;
 		virtual const StudioRenderViewport&						GetViewport() const;
 		virtual const StudioRenderDeviceConfigurations&			GetDeviceConfigurations() const;
 		
@@ -85,8 +80,6 @@ namespace le
 		StudioRenderDeviceConfigurations	deviceConfigurations;
 		StudioRenderFactory					studioRenderFactory;
 		StudioRenderViewport				viewport;
-		ShaderManager						shaderManager;
-		StudioRenderInfo					studioRenderInfo;
 		GBuffer								gbuffer;
 		Quad								quad;
 		Sphere								sphere;

@@ -10,7 +10,7 @@
 
 #include "engine/global.h"
 #include "engine/ifactory.h"
-#include "studiorender/material.h"
+#include "engine/material.h"
 
 namespace scripts_api
 {

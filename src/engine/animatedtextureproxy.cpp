@@ -14,7 +14,7 @@
 #include "engine/imaterialproxyvar.h"
 #include "engine/animatedtextureproxy.h"
 #include "engine/consolesystem.h"
-#include "studiorender/ishaderparameter.h"
+#include "engine/ishaderparameter.h"
 
 // ------------------------------------------------------------------------------------ //
 // Set variable

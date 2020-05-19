@@ -4,19 +4,9 @@ cmake_minimum_required( VERSION 2.6 )
 #   --- Задаем переменные ---
 #
 
-file( GLOB SOURCE_FILES "*.h"
-                        "*.cpp"
-                        "../public/engine/*.h"
-                        "../public/common/*.h"
-                        "scripts_api/engine/*.h"
-                        "scripts_api/engine/*.cpp"
-                        "scripts_api/studiorender/*.h"
-                        "scripts_api/studiorender/*.cpp"
-                        "scripts_api/mathlib/*.h"
-                        "scripts_api/mathlib/*.cpp"
-                        "scripts_api/physics/*.h"
-                        "scripts_api/physics/*.cpp"
-                        "scripts_api/common/*.h" )
+file( GLOB_RECURSE SOURCE_FILES "*.h" "*.cpp"
+								"../public/common/*.h"
+								"../public/engine/*.h" )
 set( MODULE_NAME engine )
 
 set( SDL2_PATH ${EXTLIBS_DIR}/SDL2 CACHE PATH "Path to SDL2" )
@@ -83,6 +73,7 @@ install( FILES ${SCRIPTAPI_COMMON} DESTINATION ${BUILD_DIR}/engine/scripts/commo
 install( FILES ${SCRIPTAPI_STUDIORENDER} DESTINATION ${BUILD_DIR}/engine/scripts/studiorender )
 install( FILES ${SCRIPTAPI_MATHLIB} DESTINATION ${BUILD_DIR}/engine/scripts/mathlib )
 install( FILES ${SCRIPTAPI_PHYSICS} DESTINATION ${BUILD_DIR}/engine/scripts/physics )
+install( DIRECTORY "shaders" DESTINATION ${BUILD_DIR}/engine )
 
 #
 #   --- Ищим и подключаем зависимости ---

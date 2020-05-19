@@ -9,36 +9,50 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <string.h>
-#include <stdexcept>
-#include <exception>
-#include <iostream>
+#include <vector>
 #include <fstream>
 #include <string>
 #include <iostream>
 
-#include "engine/iengineinternal.h"
 #include "engine/icamera.h"
-
+#include "engine/iengineinternal.h"
+#include "engine/ishaderparameter.h"
 #include "studiorender/itexture.h"
+#include "studiorender/igpuprogram.h"
 
 #include "global.h"
-#include "lightmappedgeneric.h"
-#include "gpuprogram.h"
+#include "unlitgeneric.h"
 
 // ------------------------------------------------------------------------------------ //
 // Инициализировать экземпляр шейдера
 // ------------------------------------------------------------------------------------ //
-bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
+bool le::UnlitGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
 	std::vector< const char* >			defines;
-	UInt32_t							flags = 0;
+	UInt32_t							flags = SF_NONE;
 
-	if ( !LoadShader( "LightmappedGeneric", "shaders/lightmappedgeneric.shader", defines, flags ) )
+	for ( UInt32_t index = 0; index < CountParams; ++index )
+	{
+		IShaderParameter*			shaderParameter = ShaderParameters[ index ];
+		if ( !( flags & SF_NORMAL_MAP ) && strcmp( shaderParameter->GetName(), "normalmap" ) == 0 )
+		{
+			flags |= SF_NORMAL_MAP;
+			defines.push_back( "NORMAL_MAP" );
+		}
+		else if ( !( flags & SF_SPECULAR_MAP ) && strcmp( shaderParameter->GetName(), "specularmap" ) == 0 )
+		{
+			flags |= SF_SPECULAR_MAP;
+			defines.push_back( "SPECULAR_MAP" );			
+		}
+	}
+
+	if ( !LoadShader( "UnlitGeneric", "shaders/unlitgeneric.shader", defines, flags ) )
 		return false;
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "basetexture", 0 );
-	gpuProgram->SetUniform( "lightmap", 1 );
+	if ( flags & SF_NORMAL_MAP ) 		gpuProgram->SetUniform( "normalmap", 1 );
+	if ( flags & SF_SPECULAR_MAP ) 		gpuProgram->SetUniform( "specularmap", 2 );
 	gpuProgram->Unbind();
 
 	return true;
@@ -47,12 +61,30 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParamete
 // ------------------------------------------------------------------------------------ //
 // Подготовка к отрисовке элементов
 // ------------------------------------------------------------------------------------ //
-void le::LightmappedGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+void le::UnlitGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
-	if ( !gpuProgram ) return;
+	UInt32_t			flags = 0;
+	
+	for ( UInt32_t index = 0; index < CountParams; ++index )
+    {
+        IShaderParameter*           shaderParameter = ShaderParameters[ index ];
+        if ( !shaderParameter->IsDefined() ) continue;
 
-	if ( ShaderParameters[ 0 ]->IsDefined() )		ShaderParameters[ 0 ]->GetValueTexture()->Bind( 0 );
-	if ( Lightmap )			Lightmap->Bind( 1 );
+        if ( strcmp( shaderParameter->GetName(), "basetexture" ) == 0 )  
+		{         
+			shaderParameter->GetValueTexture()->Bind( 0 );
+		}
+        else if ( strcmp( shaderParameter->GetName(), "normalmap" ) == 0  )  
+		{   
+			flags |= SF_NORMAL_MAP;	
+			shaderParameter->GetValueTexture()->Bind( 1 );
+		}
+		else if ( strcmp( shaderParameter->GetName(), "specularmap" ) == 0  )  
+		{   
+			flags |= SF_SPECULAR_MAP;	
+			shaderParameter->GetValueTexture()->Bind( 2 );
+		}
+	}
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
@@ -62,15 +94,15 @@ void le::LightmappedGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter*
 // ------------------------------------------------------------------------------------ //
 // Получить название шейдера
 // ------------------------------------------------------------------------------------ //
-const char* le::LightmappedGeneric::GetName() const
+const char* le::UnlitGeneric::GetName() const
 {
-	return "LightmappedGeneric";
+	return "UnlitGeneric";
 }
 
 // ------------------------------------------------------------------------------------ //
 // Получить запасной шейдер
 // ------------------------------------------------------------------------------------ //
-const char* le::LightmappedGeneric::GetFallbackShader() const
+const char* le::UnlitGeneric::GetFallbackShader() const
 {
 	return nullptr;
 }
@@ -78,7 +110,7 @@ const char* le::LightmappedGeneric::GetFallbackShader() const
 // ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
-le::LightmappedGeneric::LightmappedGeneric()
+le::UnlitGeneric::UnlitGeneric()
 {
 	shaderParams =
 	{

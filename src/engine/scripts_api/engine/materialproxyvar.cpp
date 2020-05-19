@@ -11,7 +11,6 @@
 #include "engine/global.h"
 #include "engine/ifactory.h"
 #include "engine/materialproxyvar.h"
-#include "studiorender/ishaderparameter.h"
 
 namespace scripts_api
 {

@@ -16,25 +16,43 @@
 #include "engine/icamera.h"
 #include "engine/iengineinternal.h"
 #include "engine/iconsolesystem.h"
+#include "engine/ishaderparameter.h"
 #include "studiorender/itexture.h"
+#include "studiorender/igpuprogram.h"
 
 #include "global.h"
-#include "textgeneric.h"
-#include "gpuprogram.h"
+#include "spritegeneric.h"
 
 // ------------------------------------------------------------------------------------ //
 // Инициализировать экземпляр шейдера
 // ------------------------------------------------------------------------------------ //
-bool le::TextGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
+bool le::SpriteGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
 	std::vector< const char* >			defines;
-	UInt32_t							flags = 0;
+	UInt32_t							flags = SF_NONE;
 
-	if ( !LoadShader( "TextGeneric", "shaders/textgeneric.shader", defines, flags ) )
+	for ( UInt32_t index = 0; index < CountParams; ++index )
+	{
+		IShaderParameter*			shaderParameter = ShaderParameters[ index ];
+		if ( !( flags & SF_NORMAL_MAP ) && strcmp( shaderParameter->GetName(), "normalmap" ) == 0 )
+		{
+			flags |= SF_NORMAL_MAP;
+			defines.push_back( "NORMAL_MAP" );
+		}
+		else if ( !( flags & SF_SPECULAR_MAP ) && strcmp( shaderParameter->GetName(), "specularmap" ) == 0 )
+		{
+			flags |= SF_SPECULAR_MAP;
+			defines.push_back( "SPECULAR_MAP" );			
+		}
+	}
+
+	if ( !LoadShader( "SpriteGeneric", "shaders/spritegeneric.shader", defines, flags ) )
 		return false;
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "basetexture", 0 );
+	if ( flags & SF_NORMAL_MAP ) 		gpuProgram->SetUniform( "normalmap", 1 );
+	if ( flags & SF_SPECULAR_MAP ) 		gpuProgram->SetUniform( "specularmap", 2 );
 	gpuProgram->Unbind();
 
 	return true;
@@ -43,10 +61,10 @@ bool le::TextGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** Sha
 // ------------------------------------------------------------------------------------ //
 // Подготовка к отрисовке элементов
 // ------------------------------------------------------------------------------------ //
-void le::TextGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+void le::SpriteGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
 	UInt32_t			flags = 0;
-	IShaderParameter*   textColor = nullptr;
+	IShaderParameter*   textureRect = nullptr;
 
 	for ( UInt32_t index = 0; index < CountParams; ++index )
     {
@@ -57,16 +75,26 @@ void le::TextGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** Shade
 		{         
 			shaderParameter->GetValueTexture()->Bind( 0 );
 		}
-		else if ( strcmp( shaderParameter->GetName(), "color" ) == 0  )  
-			textColor = shaderParameter;   
+        else if ( strcmp( shaderParameter->GetName(), "normalmap" ) == 0  )  
+		{   
+			flags |= SF_NORMAL_MAP;	
+			shaderParameter->GetValueTexture()->Bind( 1 );
+		}
+		else if ( strcmp( shaderParameter->GetName(), "specularmap" ) == 0  )  
+		{   
+			flags |= SF_SPECULAR_MAP;	
+			shaderParameter->GetValueTexture()->Bind( 2 );
+		}
+        else if ( strcmp( shaderParameter->GetName(), "textureRect" ) == 0  )
+			textureRect = shaderParameter;   
 	}
 
 	gpuProgram->Bind();
 
-	if ( !textColor )
-		gpuProgram->SetUniform( "color", textColor->GetValueVector3D() );
+    if ( textureRect )
+		gpuProgram->SetUniform( "textureRect", textureRect->GetValueVector4D() );
 	else
-		gpuProgram->SetUniform( "color", Vector3D_t( 1.f ) );
+		gpuProgram->SetUniform( "textureRect", Vector4D_t( 0.f, 0.f, 1.f, 1.f ) );
 	
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
 	gpuProgram->SetUniform( "matrix_Projection", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
@@ -75,15 +103,15 @@ void le::TextGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** Shade
 // ------------------------------------------------------------------------------------ //
 // Получить название шейдера
 // ------------------------------------------------------------------------------------ //
-const char* le::TextGeneric::GetName() const
+const char* le::SpriteGeneric::GetName() const
 {
-	return "TextGeneric";
+	return "SpriteGeneric";
 }
 
 // ------------------------------------------------------------------------------------ //
 // Получить запасной шейдер
 // ------------------------------------------------------------------------------------ //
-const char* le::TextGeneric::GetFallbackShader() const
+const char* le::SpriteGeneric::GetFallbackShader() const
 {
 	return nullptr;
 }
@@ -91,7 +119,7 @@ const char* le::TextGeneric::GetFallbackShader() const
 // ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
-le::TextGeneric::TextGeneric()
+le::SpriteGeneric::SpriteGeneric()
 {
 	shaderParams =
 	{

@@ -13,7 +13,7 @@
 
 #include <string>
 
-#include "studiorender/ishaderparameter.h"
+#include "engine/ishaderparameter.h"
 
 //---------------------------------------------------------------------//
 

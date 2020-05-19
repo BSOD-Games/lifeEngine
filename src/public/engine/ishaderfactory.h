@@ -8,10 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef SHADERPARAMINFO_H
-#define SHADERPARAMINFO_H
+#ifndef ISHADERFACTORY_H
+#define ISHADERFACTORY_H
 
-#include "engine/ishaderparameter.h"
+#include "common/types.h"
 
 //---------------------------------------------------------------------//
 
@@ -19,10 +19,22 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	struct ShaderParamInfo
+	class IShader;
+	typedef IShader*					( *CreateShaderFn_t )( );
+
+	//---------------------------------------------------------------------//
+
+	class IShaderFactory
 	{
-		const char*					name;
-		SHADER_PARAMETER_TYPE		type;
+	public:
+        virtual ~IShaderFactory() {}
+		virtual void					Register( const char* Name, CreateShaderFn_t CreateShader ) = 0;
+		virtual void					Unregister( const char* Name ) = 0;
+		virtual IShader*				Create( const char* Name ) = 0;
+
+		virtual UInt32_t				GetCountShaders() const = 0;
+		virtual const char*				GetShader( UInt32_t Index ) const = 0;
+		virtual const char**			GetShaders() const = 0;
 	};
 
 	//---------------------------------------------------------------------//
@@ -30,4 +42,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !SHADERPARAMINFO_H
+#endif // !ISHADERFACTORY_H
+

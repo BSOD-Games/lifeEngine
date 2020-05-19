@@ -10,16 +10,15 @@
 
 #include "engine/lifeengine.h"
 #include "engine/ifactory.h"
-#include "engine/iconsolesystem.h"
 #include "engine/imaterialproxy.h"
-#include "studiorender/ishader.h"
+#include "engine/ishader.h"
 #include "studiorender/istudiorender.h"
 
 #include "global.h"
-#include "studiorender.h"
-#include "shadermanager.h"
+#include "consolesystem.h"
+#include "shaderfactory.h"
+#include "materialsystem.h"
 #include "material.h"
-#include "openglstate.h"
 
 // ------------------------------------------------------------------------------------ //
 // Clear material
@@ -91,26 +90,55 @@ le::IShaderParameter* le::Material::FindParameter( const char* Name ) const
 }
 
 // ------------------------------------------------------------------------------------ //
+// Event: bind material on render
+// ------------------------------------------------------------------------------------ //
+void le::Material::OnBind( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+{
+	if ( shader && ( !isNeadUpdateShader || UpdateShader() ) )
+	{
+		if ( !isNeadUpdateMaterialProxy )
+		{
+			g_materialSystem->SubmitUpdate( this );
+			isNeadUpdateMaterialProxy = true;
+		}
+
+		shader->OnDrawMesh( parameters.size(), ( IShaderParameter** ) parameters.data(), Transformation, Camera, Lightmap );
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Update material proxy
+// ------------------------------------------------------------------------------------ //
+void le::Material::UpdateMaterialProxy()
+{
+	for ( UInt32_t index = 0, count = materialProxes.size(); index < count; ++index )
+		materialProxes[ index ]->Update();
+
+	isNeadUpdateMaterialProxy = false;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Set shader
 // ------------------------------------------------------------------------------------ //
-void le::Material::SetShader( const char* NameShader )
+void le::Material::SetShader( const char* Name )
 {
-	if ( !NameShader || NameShader == "" )
+	if ( !Name || Name == "" )
 	{
 		shader = nullptr;
+		isNeadUpdateShader = false;
 		return;
 	}
 
-	ShaderManager*			shaderManager = ( ShaderManager* ) g_studioRender->GetShaderManager();
-	IShader*				tempShader = shaderManager->FindShader( NameShader );
+	ShaderFactory*			shaderFactory = static_cast< ShaderFactory* >( g_materialSystem->GetShaderFactory() );
+	IShader*				tempShader = shaderFactory->Create( Name );
 
 	if ( tempShader )
 	{
 		shader = tempShader;
-		isNeadRefrash = true;
+		isNeadUpdateShader = true;
 	}
 	else
-		g_consoleSystem->PrintError( "Shader [%s] not found in system", NameShader );
+		g_consoleSystem->PrintError( "Shader [%s] not found in system", Name );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -172,9 +200,9 @@ le::CULLFACE_TYPE le::Material::GetCullFaceType() const
 // ------------------------------------------------------------------------------------ //
 // Get shader
 // ------------------------------------------------------------------------------------ //
-le::IShader* le::Material::GetShader() const
+const char* le::Material::GetShader() const
 {
-	return shader;
+	return shader->GetName();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -240,7 +268,8 @@ const char* le::Material::GetSurfaceName() const
 // ------------------------------------------------------------------------------------ //
 le::Material::Material() :
     surface( "unknow" ),
-	isNeadRefrash( true ),
+	isNeadUpdateShader( true ),
+	isNeadUpdateMaterialProxy( false ),
 	isDepthTest( true ),
 	isDepthWrite( true ),
 	isBlend( false ),
@@ -259,39 +288,11 @@ le::Material::~Material()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Apply material
+// Update shader
 // ------------------------------------------------------------------------------------ //
-void le::Material::Apply( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+bool le::Material::UpdateShader()
 {
-	InitStates();
-
-	if ( shader && ( !isNeadRefrash || Refrash() ) )
-	{
-		for ( UInt32_t index = 0, count = materialProxes.size(); index < count; ++index )
-			materialProxes[ index ]->NeadUpdate();
-
-		shader->OnDrawMesh( parameters.size(), ( IShaderParameter** ) parameters.data(), Transformation, Camera, Lightmap );
-	}
-}
-
-// ------------------------------------------------------------------------------------ //
-// Initialize states
-// ------------------------------------------------------------------------------------ //
-void le::Material::InitStates()
-{
-	OpenGLState::EnableDepthTest( isDepthTest );
-	OpenGLState::EnableDepthWrite( isDepthWrite );
-	OpenGLState::EnableBlend( isBlend );
-	OpenGLState::EnableCullFace( isCullFace );
-	OpenGLState::SetCullFaceType( cullFaceType );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Refrash material
-// ------------------------------------------------------------------------------------ //
-bool le::Material::Refrash()
-{
-	if ( !isNeadRefrash )		return true;
+	if ( !isNeadUpdateShader )		return true;
 
 	try
 	{
@@ -311,7 +312,7 @@ bool le::Material::Refrash()
 		return false;
 	}
 
-	isNeadRefrash = false;
+	isNeadUpdateShader = false;
 	return true;
 }
 
@@ -357,7 +358,7 @@ void le::Material::AddParameter( IShaderParameter* Parameter )
 	Parameter->IncrementReference();
 	parameters.push_back( ( ShaderParameter* ) Parameter );
 	parameters.back()->SetMaterial( this );
-	isNeadRefrash = true;
+	isNeadUpdateShader = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -374,7 +375,7 @@ void le::Material::RemoveParameter( UInt32_t Index )
 		parameter->DecrementReference();
 
 	parameters.erase( parameters.begin() + Index );
-	isNeadRefrash = true;
+	isNeadUpdateShader = true;
 }
 
 // ------------------------------------------------------------------------------------ //

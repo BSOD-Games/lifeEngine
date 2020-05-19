@@ -31,8 +31,6 @@
 #include "studiorender/imesh.h"
 #include "studiorender/studiovertexelement.h"
 #include "studiorender/studiorendersampler.h"
-#include "studiorender/imaterial.h"
-#include "studiorender/ishaderparameter.h"
 #include "studiorender/igpuprogram.h"
 
 #include "global.h"
@@ -40,6 +38,10 @@
 #include "resourcesystem.h"
 #include "level.h"
 #include "fontfreetype.h"
+#include "material.h"
+#include "shaderparameter.h"
+#include "materialproxyfactory.h"
+#include "materialsystem.h"
 
 #define MDL_ID			"LMDL"
 #define PHY_ID			"LPHY"
@@ -310,7 +312,7 @@ le::ITexture* LE_LoadTexture( const char* Path, le::IFactory* StudioRenderFactor
 // ------------------------------------------------------------------------------------ //
 // Загрузить материал
 // ------------------------------------------------------------------------------------ //
-le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceSystem, le::IMaterialManager* MaterialManager, le::IFactory* StudioRenderFactory )
+le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceSystem, le::IMaterialSystem* MaterialSystem, le::IFactory* EngineFactory )
 {
 	std::ifstream		file( Path );
 	if ( !file.is_open() )						return nullptr;
@@ -383,7 +385,7 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 			}
 	}
 
-	le::IMaterial*				lmtMatterial = ( le::IMaterial* ) StudioRenderFactory->Create( MATERIAL_INTERFACE_VERSION );
+	le::Material*				lmtMatterial = new le::Material();
 	if ( !surface.empty() )		lmtMatterial->SetSurfaceName( surface.c_str() );
 
 	lmtMatterial->SetShader( material.shader.c_str() );
@@ -396,7 +398,7 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 	for ( auto itParameters = material.parameters.begin(), itParametersEnd = material.parameters.end(); itParameters != itParametersEnd; ++itParameters )
 	{
 		auto& value = itParameters->second;
-		le::IShaderParameter* parameter = ( le::IShaderParameter* ) StudioRenderFactory->Create( SHADERPARAMETER_INTERFACE_VERSION );
+		le::ShaderParameter*		parameter = new le::ShaderParameter();
 		if ( !parameter )		return nullptr;
 
 		parameter->SetName( itParameters->first.c_str() );
@@ -433,7 +435,7 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 	for ( auto itProxies = material.proxes.begin(), itProxiesEnd = material.proxes.end(); itProxies != itProxiesEnd; ++itProxies )
 	{
 		bool                        isProxyValid = true;
-		le::IMaterialProxy*         proxy = MaterialManager->CreateProxy( itProxies->name.c_str() );
+		le::IMaterialProxy*         proxy = static_cast< le::MaterialProxyFactory* >( le::g_materialSystem->GetMaterialProxyFactory() )->Create( itProxies->name.c_str() );
 		if ( !proxy ) continue;
 
 		for ( auto itProxiesVar = itProxies->values.begin(), itProxiesVarEnd = itProxies->values.end(); itProxiesVar != itProxiesVarEnd; ++itProxiesVar )
@@ -1126,7 +1128,7 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
 		IMaterial*			material = nullptr;
 		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
 		{
-			material = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), this, materialManager, studioRenderFactory );
+			material = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), this, g_materialSystem, engineFactory );
 			if ( material )
 			{
 				g_consoleSystem->PrintInfo( "Material founded in [%s]", paths[ index ].c_str() );
@@ -1578,7 +1580,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 
 		studioRenderFactory = studioRender->GetFactory();
 		scriptSystemFactory = g_scriptSystem->GetFactory();
-		materialManager = Engine->GetMaterialManager();
+		engineFactory = Engine->GetFactory();
 
 		RegisterLoader_Image( "png", LE_LoadImage );
 		RegisterLoader_Image( "jpg", LE_LoadImage );
@@ -1641,7 +1643,7 @@ void le::ResourceSystem::ClearPaths()
 // ------------------------------------------------------------------------------------ //
 le::ResourceSystem::ResourceSystem() :
 	studioRenderFactory( nullptr ),
-	materialManager( nullptr ),
+	engineFactory( nullptr ),
 	scriptSystemFactory( nullptr )
 {}
 

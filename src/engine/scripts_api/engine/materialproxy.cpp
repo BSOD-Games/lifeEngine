@@ -8,10 +8,11 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#include "engine/materialmanager.h"
 #include "engine/global.h"
 #include "engine/ifactory.h"
 #include "engine/imaterialproxy.h"
+#include "engine/materialproxyfactory.h"
+#include "engine/materialsystem.h"
 #include "engine/materialproxyvar.h"
 
 namespace scripts_api
@@ -99,7 +100,6 @@ void scripts_api::MaterialProxy_Delete( materialProxy_t Object )
 	if ( !Object ) return;
 
 	le::IMaterialProxy*		object = static_cast< le::IMaterialProxy* >( Object );
-	le::g_materialManager->RemoveProxy( object );
 
 	if ( object->GetCountReferences() <= 1 )
 		object->Release();
@@ -114,5 +114,5 @@ void scripts_api::MaterialProxy_Delete( materialProxy_t Object )
 // ------------------------------------------------------------------------------------ //
 scripts_api::materialProxy_t scripts_api::MaterialProxy_Create( const char* Name )
 {
-	return le::g_materialManager->CreateProxy( Name );
+	return static_cast< le::MaterialProxyFactory* >( le::g_materialSystem->GetMaterialProxyFactory() )->Create( Name );
 }

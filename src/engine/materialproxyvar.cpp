@@ -10,7 +10,8 @@
 
 #include "engine/lifeengine.h"
 #include "materialproxyvar.h"
-#include "studiorender/ishaderparameter.h"
+
+#include "shaderparameter.h"
 
 // ------------------------------------------------------------------------------------ //
 // Очистить переменную
@@ -34,7 +35,7 @@ void le::MaterialProxyVar::Clear()
     case MPVT_ARRAY_VECTOR_4D:      delete static_cast< std::vector< Vector4D_t >* >( value );  break;
     case MPVT_SHADER_PARAMETER:
     {
-        IShaderParameter*           value = static_cast< IShaderParameter* >( this->value );
+        ShaderParameter*           value = static_cast< ShaderParameter* >( this->value );
 
         if ( value->GetCountReferences() <= 1 )     value->Release();
         else                                        value->DecrementReference();
@@ -143,7 +144,7 @@ void le::MaterialProxyVar::SetValueShaderParameter( IShaderParameter* Value )
     if ( isDefined && type != MPVT_SHADER_PARAMETER )          Clear();
 
     Value->IncrementReference();
-    value = Value;
+    value = static_cast< ShaderParameter* >( Value );
     type = MPVT_SHADER_PARAMETER;
     isDefined = true;
 }

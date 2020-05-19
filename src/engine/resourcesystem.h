@@ -25,6 +25,7 @@ namespace le
 
 	struct GameInfo;
 	class IFactory;
+	class MaterialSystem;
 
 	//---------------------------------------------------------------------//
 
@@ -122,7 +123,7 @@ namespace le
 
 		IFactory*					studioRenderFactory;
 		IFactory*					scriptSystemFactory;
-        IMaterialManager*           materialManager;
+		IFactory*					engineFactory;
 
 		std::vector< std::string >	paths;
 		LoaderImageMap_t			loaderImages;
