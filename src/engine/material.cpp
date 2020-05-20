@@ -37,6 +37,8 @@ void le::Material::Clear()
 		else
 			( *it )->DecrementReference();
 
+	// TODO: Add delete shader
+
 	parameters.clear();
 	materialProxes.clear();
 	shader = nullptr;

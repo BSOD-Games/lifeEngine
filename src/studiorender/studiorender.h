@@ -26,9 +26,10 @@
 #include "studiorender/cone.h"
 #include "studiorender/studiorenderdeviceconfigurations.h"
 
-#include "shader_lighting.h"
-#include "shader_depth.h"
-#include "shader_postprocess.h"
+#include "shaders/shader_lighting.h"
+#include "shaders/shader_depth.h"
+#include "shaders/shader_postprocess.h"
+#include "shaders/shader_debugprimitives.h"
 
 //---------------------------------------------------------------------//
 
@@ -87,8 +88,8 @@ namespace le
 		ShaderDepth							shaderDepth;
 		ShaderLighting						shaderLighting;
 		ShaderPostprocess					shaderPostrocess;
+		ShaderDebugPrimitives				shaderDebugPrimitives;
 
-		GPUProgram							debugPrimitivesShader;
 		VertexArrayObject					vao_DebugPrimitive;
 		VertexBufferObject					vbo_DebugPrimitive;
 

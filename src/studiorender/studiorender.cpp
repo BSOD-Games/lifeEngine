@@ -257,7 +257,7 @@ bool le::StudioRender::CreateContext( le::WindowHandle_t WindowHandle, UInt32_t 
 	sphere.Create();
 	cone.Create();
 
-	if ( !shaderDepth.Create() || !shaderLighting.Create() || !shaderPostrocess.Create() )
+	if ( !shaderDepth.Create() || !shaderLighting.Create() || !shaderPostrocess.Create() || !shaderDebugPrimitives.Create() )
 		return false;
 
 	shaderLighting.SetType( ShaderLighting::LT_POINT );
@@ -271,58 +271,29 @@ bool le::StudioRender::CreateContext( le::WindowHandle_t WindowHandle, UInt32_t 
 
 	shaderPostrocess.SetSizeViewport( Vector2D_t( viewport.width, viewport.height ) );
 
-	ShaderDescriptor			shaderDescriptor;
-	shaderDescriptor.vertexShaderSource =
-		"#version 330 core\n"
-		"struct Primitive \n"
-
-		"{\n"
-		"vec3		verteces[ 2 ];\n"
-		"vec3		color;\n"
-		"};\n"
-
-		"out vec3				colorPrimitive;\n"
-		"uniform mat4			matrixProjection;\n"
-		"uniform Primitive		primitives[ 255 ];\n"
-
-		"void main()\n"
-		"{\n"
-		"colorPrimitive = primitives[ gl_InstanceID ].color;\n"
-		"gl_Position = matrixProjection * vec4( primitives[ gl_InstanceID ].verteces[ gl_VertexID ], 1.f ); \n"
-		"}";
-
-	shaderDescriptor.fragmentShaderSource =
-		"#version 330 core\n"
-		"in vec3		colorPrimitive;\n"
-		"out vec4		color;\n"
-		"void main() { color = vec4( colorPrimitive, 1.f ); }";
-
-	if ( debugPrimitivesShader.Compile( shaderDescriptor ) )
+	// Array verteces line
+	float		lineVerteces[] =
 	{
-		// Array verteces line
-		float		lineVerteces[] =
-		{
-			// X	Y		Z
-			0.f,	0.f,	0.f,
-			0.f,	0.f,	0.f
-		};
+		// X	Y		Z
+		0.f,	0.f,	0.f,
+		0.f,	0.f,	0.f
+	};
 
-		// Initialize info by format vertex line
-		VertexBufferLayout		vertexFormat;
-		vertexFormat.PushFloat( 3 );
+	// Initialize info by format vertex line
+	VertexBufferLayout		vertexFormat;
+	vertexFormat.PushFloat( 3 );
 
-		// Create verex buffer for render lines
-		vao_DebugPrimitive.Create();
-		vbo_DebugPrimitive.Create();
+	// Create verex buffer for render lines
+	vao_DebugPrimitive.Create();
+	vbo_DebugPrimitive.Create();
 
-		// Pull data in VBO
-		vbo_DebugPrimitive.Bind();
-		vbo_DebugPrimitive.Allocate( lineVerteces, sizeof( float ) * 6 );
+	// Pull data in VBO
+	vbo_DebugPrimitive.Bind();
+	vbo_DebugPrimitive.Allocate( lineVerteces, sizeof( float ) * 6 );
 
-		// Add VBO to VAO
-		vao_DebugPrimitive.AddBuffer( vbo_DebugPrimitive, vertexFormat );
-		vao_DebugPrimitive.Unbind();
-	}
+	// Add VBO to VAO
+	vao_DebugPrimitive.AddBuffer( vbo_DebugPrimitive, vertexFormat );
+	vao_DebugPrimitive.Unbind();
 
 	g_consoleSystem->PrintInfo( "Craeted render context" );
 	return true;
@@ -367,10 +338,10 @@ void le::StudioRender::Present()
 	Render_FinalPass();
 
 	// Render debug lines and points
-	if ( isNeedRenderDebugPrimitives && debugPrimitivesShader.IsCompile() )
+	if ( isNeedRenderDebugPrimitives )
 	{
 		gbuffer.CopyDepthBufferToDefaultBuffer();
-		debugPrimitivesShader.Bind();
+		shaderDebugPrimitives.Bind();
 		vao_DebugPrimitive.Bind();
 
 		for ( UInt32_t indexScene = 0, countScenes = scenes.size(); indexScene < countScenes; ++indexScene )
@@ -380,16 +351,14 @@ void le::StudioRender::Present()
 			if ( sceneDescriptor.debugLines.empty() && sceneDescriptor.debugPoints.empty() )
 				continue;
 
-			debugPrimitivesShader.SetUniform( "matrixProjection", sceneDescriptor.camera->GetProjectionMatrix() * sceneDescriptor.camera->GetViewMatrix() );
+			shaderDebugPrimitives.SetProjectionMatrix( sceneDescriptor.camera->GetProjectionMatrix() * sceneDescriptor.camera->GetViewMatrix() );
 
 			// Render lines with help instanced
 			for ( UInt32_t indexLine = 0, countLinesInGPU = 0, countLines = sceneDescriptor.debugLines.size(); indexLine < countLines; ++indexLine )
 			{
 				if ( countLinesInGPU < 255 )
 				{
-					debugPrimitivesShader.SetUniform( ( "primitives[" + std::to_string( countLinesInGPU ) + "].verteces[0]" ).c_str(), sceneDescriptor.debugLines[ indexLine ].from );
-					debugPrimitivesShader.SetUniform( ( "primitives[" + std::to_string( countLinesInGPU ) + "].verteces[1]" ).c_str(), sceneDescriptor.debugLines[ indexLine ].to );
-					debugPrimitivesShader.SetUniform( ( "primitives[" + std::to_string( countLinesInGPU ) + "].color" ).c_str(), sceneDescriptor.debugLines[ indexLine ].color );
+					shaderDebugPrimitives.SetPrimitive( countLinesInGPU, sceneDescriptor.debugLines[ indexLine ] );
 					++countLinesInGPU;
 				}
 
@@ -405,8 +374,7 @@ void le::StudioRender::Present()
 			{
 				if ( countPointsInGPU < 255 )
 				{
-					debugPrimitivesShader.SetUniform( ( "primitives[" + std::to_string( countPointsInGPU ) + "].verteces[0]" ).c_str(), sceneDescriptor.debugPoints[ indexPoint ].position );
-					debugPrimitivesShader.SetUniform( ( "primitives[" + std::to_string( countPointsInGPU ) + "].color" ).c_str(), sceneDescriptor.debugPoints[ indexPoint ].color );
+					shaderDebugPrimitives.SetPrimitive( countPointsInGPU, sceneDescriptor.debugPoints[ indexPoint ] );
 					++countPointsInGPU;
 				}
 
@@ -418,7 +386,7 @@ void le::StudioRender::Present()
 			}
 		}
 
-		debugPrimitivesShader.Unbind();
+		shaderDebugPrimitives.Unbind();
 		vao_DebugPrimitive.Unbind();
 		isNeedRenderDebugPrimitives = false;
 	}
@@ -635,7 +603,6 @@ le::StudioRender::StudioRender() :
 // ------------------------------------------------------------------------------------ //
 le::StudioRender::~StudioRender()
 {
-	if ( debugPrimitivesShader.IsCompile() )	debugPrimitivesShader.Clear();
 	if ( renderContext.IsCreated() )			renderContext.Destroy();
 }
 

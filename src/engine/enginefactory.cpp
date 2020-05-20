@@ -16,7 +16,8 @@
 #include "sprite.h"
 #include "text.h"
 #include "materialproxyvar.h"
-#include "animatedtextureproxy.h"
+#include "material.h"
+#include "shaderparameter.h"
 
 // ------------------------------------------------------------------------------------ //
 // Создать объект
@@ -28,7 +29,8 @@ void* le::EngineFactory::Create( const char* NameInterface )
     else if ( strcmp( NameInterface, SPRITE_INTERFACE_VERSION ) == 0 )                      return new Sprite();
     else if ( strcmp( NameInterface, TEXT_INTERFACE_VERSION ) == 0 )                        return new Text();
     else if ( strcmp( NameInterface, MATERIALPROXYVAR_INTERFACE_VERSION ) == 0 )            return new MaterialProxyVar();
-    else if ( strcmp( NameInterface, "AnimatedTexture" ) == 0 )                             return new AnimatedTextureProxy();
+	else if ( strcmp( NameInterface, MATERIAL_INTERFACE_VERSION ) == 0 )					return new Material();
+	else if ( strcmp( NameInterface, SHADERPARAMETER_INTERFACE_VERSION ) == 0 )				return new ShaderParameter();
 
 	return nullptr;
 }

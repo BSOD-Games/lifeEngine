@@ -56,9 +56,7 @@ le::BaseShader::~BaseShader()
 	if ( gpuProgram )
 	{
 		gpuProgram->DecrementReference();
-		
-		if ( gpuProgram->GetCountReferences() <= 1 )
-			g_resourceSystem->UnloadGPUProgram( nameShader.c_str(), flagShader );
+		g_resourceSystem->UnloadGPUProgram( nameShader.c_str(), flagShader );
 	}
 }
 
@@ -68,7 +66,12 @@ le::BaseShader::~BaseShader()
 bool le::BaseShader::LoadShader( const std::string& Name, const std::string& Path, const std::vector< const char* >& Defines, UInt32_t Flags )
 {
 	gpuProgram = g_resourceSystem->LoadGPUProgram( Name.c_str(), Path.c_str(), Flags, Defines.size(), ( const char** ) Defines.data() );
-	if ( gpuProgram )		gpuProgram->IncrementReference();
+	
+	if ( gpuProgram )
+	{
+		gpuProgram->IncrementReference();
+		flagShader = Flags;
+	}
 
 	return gpuProgram;
 }

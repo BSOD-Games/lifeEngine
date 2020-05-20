@@ -9,8 +9,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <string.h>
+
+#include "proxes/animatedtextureproxy.h"
 #include "materialproxyfactory.h"
-#include "animatedtextureproxy.h"
 
 // ------------------------------------------------------------------------------------ //
 // Register material proxy

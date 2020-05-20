@@ -8,11 +8,12 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include "shaders/lightmappedgeneric.h"
+#include "shaders/textgeneric.h"
+#include "shaders/spritegeneric.h"
+#include "shaders/unlitgeneric.h"
+
 #include "shaderfactory.h"
-#include "lightmappedgeneric.h"
-#include "textgeneric.h"
-#include "spritegeneric.h"
-#include "unlitgeneric.h"
 
 // ------------------------------------------------------------------------------------ //
 // Register shader

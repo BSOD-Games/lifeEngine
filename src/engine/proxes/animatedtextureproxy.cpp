@@ -10,11 +10,12 @@
 
 #include <string.h>
 
-#include "global.h"
 #include "engine/imaterialproxyvar.h"
-#include "engine/animatedtextureproxy.h"
 #include "engine/consolesystem.h"
 #include "engine/ishaderparameter.h"
+
+#include "global.h"
+#include "animatedtextureproxy.h"
 
 // ------------------------------------------------------------------------------------ //
 // Set variable

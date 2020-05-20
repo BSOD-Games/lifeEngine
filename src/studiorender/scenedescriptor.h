@@ -31,31 +31,31 @@ namespace le
 
 	struct Line
 	{
-                Vector3D_t	from;
-                Vector3D_t	to;
-                Vector3D_t      color;
+		Vector3D_t		from;
+		Vector3D_t		to;
+		Vector3D_t      color;
 	};
 
 	//---------------------------------------------------------------------//
 
-        struct Point
-        {
-            Vector3D_t      position;
-            Vector3D_t      color;
-        };
+	struct Point
+	{
+		Vector3D_t      position;
+		Vector3D_t      color;
+	};
 
-        //---------------------------------------------------------------------//
+	//---------------------------------------------------------------------//
 
 	struct SceneDescriptor
 	{
-                ICamera*					camera;
+		ICamera*							camera;
 		std::vector< RenderObject >			renderObjects;
 		std::vector< PointLight* >			pointLights;
 		std::vector< SpotLight* >			spotLights;
-                std::vector< DirectionalLight* >                directionalLights;
+		std::vector< DirectionalLight* >	directionalLights;
 
-                std::vector< Line >				debugLines;
-                std::vector< Point >                            debugPoints;
+		std::vector< Line >					debugLines;
+		std::vector< Point >                debugPoints;
 	};
 
 	//---------------------------------------------------------------------//

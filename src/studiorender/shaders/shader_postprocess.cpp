@@ -12,9 +12,10 @@
 #include <string>
 
 #include "common/shaderdescriptor.h"
-#include "studiorender/gpuprogram.h"
-#include "global.h"
+#include "engine/iresourcesystem.h"
 
+#include "global.h"
+#include "gpuprogram.h"
 #include "shader_postprocess.h"
 
 // ------------------------------------------------------------------------------------ //
@@ -37,48 +38,10 @@ le::ShaderPostprocess::~ShaderPostprocess()
 // ------------------------------------------------------------------------------------ //
 bool le::ShaderPostprocess::Create()
 {
-	ShaderDescriptor		shaderDescriptor = {};
-	shaderDescriptor.vertexShaderSource = " \
-	#version 330 core\n \
-	\n \
-	layout( location = 0 ) 			in vec3 vertex_position; \n \
-	\n \
-	void main() \n \
-	{\n \
-		gl_Position = vec4( vertex_position, 1.f ); \n \
-	}";
+	gpuProgram = ( GPUProgram* ) g_resourceSystem->LoadGPUProgram( "ShaderPostprocess", "shaders/studiorender/postprocess.shader" );
+	if ( !gpuProgram )			return false;
 
-	shaderDescriptor.fragmentShaderSource = "\
-	#version 330 core\n\
-	\n\
-		out vec4				color;\n\
-	\n\
-		uniform vec2			screenSize;\n\
-		uniform sampler2D		albedoSpecular;\n\
-		uniform sampler2D		emission;\n\
-		uniform sampler2D		finalFrame;\n\
-	\n \
-	void main()\n\
-	{\n\
-		vec2	fragCoord = gl_FragCoord.xy / screenSize;\n\
-		\n\
-		vec3	albedoColor = texture( albedoSpecular, fragCoord ).rgb; \n\
-        vec4	emissonColor = texture( emission, fragCoord ); \n\
-        vec4	lightColor = texture( finalFrame, fragCoord ); \n\
-        \n\
-        color = emissonColor * vec4( albedoColor, 1.f ) + lightColor;\n\
-	}\n";
-
-	// Компилируем шейдер для точечного освещения
-
-	gpuProgram = new GPUProgram();
-    gpuProgram->IncrementReference();
-
-	if ( !gpuProgram->Compile( shaderDescriptor ) )
-    {
-        delete gpuProgram;
-        return false;
-    }
+	gpuProgram->IncrementReference();
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "albedoSpecular", 0 );
@@ -101,5 +64,6 @@ void le::ShaderPostprocess::Delete()
     else
         gpuProgram->DecrementReference();
 
+	g_resourceSystem->UnloadGPUProgram( "ShaderPostprocess" );
     gpuProgram = nullptr;
 }

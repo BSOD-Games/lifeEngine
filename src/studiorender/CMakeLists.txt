@@ -4,7 +4,8 @@ cmake_minimum_required( VERSION 3.7 )
 #   --- Задаем переменные ---
 #
 
-file( GLOB SOURCE_FILES "*.h" "*.cpp" "../public/studiorender/*.h" )
+file( GLOB SOURCE_FILES "*.h" "*.cpp" "../public/studiorender/*.h"
+						"shaders/*.h" "shaders/*.cpp" ) 
 set( MODULE_NAME studiorender )
 
 set( GLEW_PATH ${EXTLIBS_DIR}/GLEW CACHE PATH "Path to GLEW" )
@@ -50,7 +51,10 @@ add_definitions( -DLIFEENGINE_EXPORT )
 
 configure_file( ${PATHS_H}.in ${PATHS_H} )
 add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${ICON} )
+
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
+install( DIRECTORY "shaders/shaders" DESTINATION ${BUILD_DIR}/engine )
+
 set_target_properties( ${MODULE_NAME} PROPERTIES PREFIX "" )
 include_directories( ../public )
 include_directories( ../ )

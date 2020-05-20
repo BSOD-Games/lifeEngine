@@ -750,6 +750,8 @@ bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile )
 		consoleSystem.PrintInfo( "  Has SSE42: %s", ( SDL_HasSSE42() == SDL_TRUE ? "true" : "false" ) );
 		consoleSystem.PrintInfo( "*** System info end ****" );
 
+		resourceSystem.AddPath( EngineDirectory );
+
 		// Р—Р°РіСЂСѓР¶Р°РµРј Рё РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РїРѕРґСЃРёСЃС‚РµРјС‹
 		if ( !LoadModule_StudioRender( ( engineDirectory + "/" + LIFEENGINE_STUDIORENDER_DLL ).c_str() ) )        throw std::runtime_error( "Failed loading studiorender" );
 		if ( !LoadModule_PhysicsSystem( ( engineDirectory + "/" + LIFEENGINE_PHYSICSSYSTEM_DLL ).c_str() ) )      throw std::runtime_error( "Failed loading physics system" );
@@ -808,7 +810,11 @@ bool le::Engine::LoadGame( const char* DirGame, UInt32_t CountArguments, const c
 
 	// Р—Р°РіСЂСѓР¶Р°РµРј РёРіСЂРѕРІСѓСЋ Р»РѕРіРёРєСѓ
 	if ( !LoadModule_Game( ( std::string( DirGame ) + "/" + gameInfo.gameDLL ).c_str(), CountArguments, Arguments ) )
+	{
+		resourceSystem.ClearPaths();
+		resourceSystem.AddPath( engineDirectory.c_str() );
 		return false;
+	}
 
 	// Р•СЃР»Рё РµСЃС‚СЊ РёРєРѕРЅРєР° Сѓ РёРіСЂС‹ - РіСЂСѓР·РёРј РµРµ
 	if ( gameInfo.icon )
@@ -836,6 +842,8 @@ void le::Engine::UnloadGame()
 
 	gameInfo.Clear();
 	resourceSystem.ClearPaths();
+	resourceSystem.AddPath( engineDirectory.c_str() );
+
 	if ( game ) UnloadModule_Game();
 }
 

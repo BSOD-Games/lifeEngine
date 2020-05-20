@@ -16,25 +16,25 @@
 
 namespace scripts_api
 {
-#include "scripts_api/engine/consolesystem.h"
-#include "scripts_api/engine/inputsystem.h"
-#include "scripts_api/engine/resourcesystem.h"
-#include "scripts_api/engine/model.h"
-#include "scripts_api/engine/camera.h"
-#include "scripts_api/engine/materialproxy.h"
-#include "scripts_api/engine/materialproxyvar.h"
-#include "scripts_api/engine/level.h"
-#include "scripts_api/engine/sprite.h"
-#include "scripts_api/engine/text.h"
+#include "scripts/engine/consolesystem.h"
+#include "scripts/engine/inputsystem.h"
+#include "scripts/engine/resourcesystem.h"
+#include "scripts/engine/model.h"
+#include "scripts/engine/camera.h"
+#include "scripts/engine/materialproxy.h"
+#include "scripts/engine/materialproxyvar.h"
+#include "scripts/engine/level.h"
+#include "scripts/engine/sprite.h"
+#include "scripts/engine/text.h"
 
-#include "scripts_api/studiorender/shaderparameter.h"
-#include "scripts_api/studiorender/material.h"
+#include "scripts/studiorender/shaderparameter.h"
+#include "scripts/studiorender/material.h"
 
-#include "scripts_api/physics/collider.h"
-#include "scripts_api/physics/body.h"
-#include "scripts_api/physics/charctercontroller.h"
-#include "scripts_api/physics/physicssystem.h"
-#include "scripts_api/physics/physicsmodel.h"
+#include "scripts/physics/collider.h"
+#include "scripts/physics/body.h"
+#include "scripts/physics/charctercontroller.h"
+#include "scripts/physics/physicssystem.h"
+#include "scripts/physics/physicsmodel.h"
 }
 
 #define REGISTER_FUNCTION( Function )		( functions[ #Function ] = ( void* ) &Function )
