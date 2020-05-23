@@ -43,7 +43,7 @@ void scripts_api::Material_SetSurfaceName( material_t Object, const char* Name )
 const char* scripts_api::Material_GetSurfaceName( material_t Object )
 {
 	if ( !Object ) return nullptr;
-	MATERIAL( Object )->GetSurfaceName();
+	return MATERIAL( Object )->GetSurfaceName();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -67,7 +67,7 @@ void scripts_api::Material_Delete( material_t Object )
 // ------------------------------------------------------------------------------------ //
 scripts_api::material_t scripts_api::Material_Create()
 {
-	return le::g_studioRenderFactory->Create( MATERIAL_INTERFACE_VERSION );
+	return le::g_engineFactory->Create( MATERIAL_INTERFACE_VERSION );
 }
 
 // ------------------------------------------------------------------------------------ //

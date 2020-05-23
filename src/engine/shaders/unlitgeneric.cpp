@@ -24,9 +24,9 @@
 #include "unlitgeneric.h"
 
 // ------------------------------------------------------------------------------------ //
-// Инициализировать экземпляр шейдера
+// Initialize parameters
 // ------------------------------------------------------------------------------------ //
-bool le::UnlitGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
+bool le::UnlitGeneric::Initialize( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
 	std::vector< const char* >			defines;
 	UInt32_t							flags = SF_NONE;
@@ -34,65 +34,69 @@ bool le::UnlitGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** Sh
 	for ( UInt32_t index = 0; index < CountParams; ++index )
 	{
 		IShaderParameter*			shaderParameter = ShaderParameters[ index ];
-		if ( !( flags & SF_NORMAL_MAP ) && strcmp( shaderParameter->GetName(), "normalmap" ) == 0 )
+		if ( !shaderParameter->IsDefined() )		continue;
+
+		switch ( shaderParameter->GetType() )
 		{
-			flags |= SF_NORMAL_MAP;
-			defines.push_back( "NORMAL_MAP" );
-		}
-		else if ( !( flags & SF_SPECULAR_MAP ) && strcmp( shaderParameter->GetName(), "specularmap" ) == 0 )
-		{
-			flags |= SF_SPECULAR_MAP;
-			defines.push_back( "SPECULAR_MAP" );			
+		case SPT_TEXTURE:
+			if ( strcmp( shaderParameter->GetName(), "basetexture" ) == 0 )
+			{
+				baseTexture = shaderParameter->GetValueTexture();
+				baseTexture->IncrementReference();
+			}
+			else if ( !( flags & SF_NORMAL_MAP ) && strcmp( shaderParameter->GetName(), "normalmap" ) == 0 )
+			{
+				flags |= SF_NORMAL_MAP;
+				defines.push_back( "NORMAL_MAP" );
+
+				normalMap = shaderParameter->GetValueTexture();
+				normalMap->IncrementReference();
+			}
+			else if ( !( flags & SF_SPECULAR_MAP ) && strcmp( shaderParameter->GetName(), "specularmap" ) == 0 )
+			{
+				flags |= SF_SPECULAR_MAP;
+				defines.push_back( "SPECULAR_MAP" );
+
+				specularMap = shaderParameter->GetValueTexture();
+				specularMap->IncrementReference();
+			}
+			break;
+
+		default: continue;
 		}
 	}
 
 	if ( !LoadShader( "UnlitGeneric", "shaders/unlitgeneric.shader", defines, flags ) )
+	{
+		ClearParameters();
 		return false;
+	}
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "basetexture", 0 );
-	if ( flags & SF_NORMAL_MAP ) 		gpuProgram->SetUniform( "normalmap", 1 );
-	if ( flags & SF_SPECULAR_MAP ) 		gpuProgram->SetUniform( "specularmap", 2 );
+	if ( normalMap ) 		gpuProgram->SetUniform( "normalmap", 1 );
+	if ( specularMap ) 		gpuProgram->SetUniform( "specularmap", 2 );
 	gpuProgram->Unbind();
 
 	return true;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Подготовка к отрисовке элементов
+// Event: draw mesh
 // ------------------------------------------------------------------------------------ //
-void le::UnlitGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+void le::UnlitGeneric::OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
-	UInt32_t			flags = 0;
-	
-	for ( UInt32_t index = 0; index < CountParams; ++index )
-    {
-        IShaderParameter*           shaderParameter = ShaderParameters[ index ];
-        if ( !shaderParameter->IsDefined() ) continue;
-
-        if ( strcmp( shaderParameter->GetName(), "basetexture" ) == 0 )  
-		{         
-			shaderParameter->GetValueTexture()->Bind( 0 );
-		}
-        else if ( strcmp( shaderParameter->GetName(), "normalmap" ) == 0  )  
-		{   
-			flags |= SF_NORMAL_MAP;	
-			shaderParameter->GetValueTexture()->Bind( 1 );
-		}
-		else if ( strcmp( shaderParameter->GetName(), "specularmap" ) == 0  )  
-		{   
-			flags |= SF_SPECULAR_MAP;	
-			shaderParameter->GetValueTexture()->Bind( 2 );
-		}
-	}
+	if ( baseTexture )			baseTexture->Bind( 0 );
+	if ( normalMap )			normalMap->Bind( 1 );
+	if ( specularMap )			specularMap->Bind( 2 );
 
 	gpuProgram->Bind();
-	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
 	gpuProgram->SetUniform( "matrix_Projection", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
+	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить название шейдера
+// Get name
 // ------------------------------------------------------------------------------------ //
 const char* le::UnlitGeneric::GetName() const
 {
@@ -100,7 +104,7 @@ const char* le::UnlitGeneric::GetName() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить запасной шейдер
+// Get fallback shader
 // ------------------------------------------------------------------------------------ //
 const char* le::UnlitGeneric::GetFallbackShader() const
 {
@@ -108,12 +112,54 @@ const char* le::UnlitGeneric::GetFallbackShader() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Конструктор
+// Constructor
 // ------------------------------------------------------------------------------------ //
-le::UnlitGeneric::UnlitGeneric()
+le::UnlitGeneric::UnlitGeneric() :
+	baseTexture( nullptr ),
+	normalMap( nullptr ),
+	specularMap( nullptr )
+{}
+
+// ------------------------------------------------------------------------------------ //
+// Destructor
+// ------------------------------------------------------------------------------------ //
+le::UnlitGeneric::~UnlitGeneric()
 {
-	shaderParams =
+	ClearParameters();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Clear parameters
+// ------------------------------------------------------------------------------------ //
+void le::UnlitGeneric::ClearParameters()
+{
+	if ( baseTexture )
 	{
-		{ "basetexture",	SPT_TEXTURE		}
-	};
+		if ( baseTexture->GetCountReferences() <= 1 )
+			baseTexture->Release();
+		else
+			baseTexture->DecrementReference();
+
+		baseTexture = nullptr;
+	}
+
+	if ( normalMap )
+	{
+		if ( normalMap->GetCountReferences() <= 1 )
+			normalMap->Release();
+		else
+			normalMap->DecrementReference();
+
+		normalMap = nullptr;
+	}
+
+	if ( specularMap )
+	{
+		if ( specularMap->GetCountReferences() <= 1 )
+			specularMap->Release();
+		else
+			specularMap->DecrementReference();
+
+		specularMap = nullptr;
+	}
 }

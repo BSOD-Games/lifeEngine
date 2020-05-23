@@ -58,7 +58,7 @@ le::Text::Text() :
 	characterSize( 45 ),
 	lineSpacingFactor( 1.f ),
 	letterSpacingFactor( 1.f ),
-	color( 1.f ),
+	color( 255.f, 255.f, 255.f ),
     textureSize( 0.f ),
     countReferences( 0 )
 {}

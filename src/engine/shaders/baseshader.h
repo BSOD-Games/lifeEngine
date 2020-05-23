@@ -31,11 +31,6 @@ namespace le
 	class BaseShader : public IShader
 	{
 	public:
-		// IShader
-		virtual UInt32_t				GetCountParams() const;
-		virtual ShaderParamInfo*		GetParam( UInt32_t Index ) const;
-		virtual ShaderParamInfo*		GetParams() const;
-
 		// BaseShader
 		BaseShader();
 		virtual ~BaseShader();
@@ -44,7 +39,6 @@ namespace le
 		bool								LoadShader( const std::string& Name, const std::string& Path, const std::vector< const char* >& Defines, UInt32_t Flags = 0 );
 
 		IGPUProgram*						gpuProgram;
-		std::vector< ShaderParamInfo >		shaderParams;
 
 	private:
 		std::string				nameShader;

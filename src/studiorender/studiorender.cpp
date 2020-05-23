@@ -17,6 +17,7 @@
 #include "engine/iconsolesystem.h"
 #include "engine/iconvar.h"
 #include "engine/imaterial.h"
+#include "engine/ishader.h"
 #include "settingscontext.h"
 #include "common/shaderdescriptor.h"
 #include "common/meshsurface.h"

@@ -104,7 +104,7 @@ void le::Material::OnBind( const Matrix4x4_t& Transformation, ICamera* Camera, I
 			isNeadUpdateMaterialProxy = true;
 		}
 
-		shader->OnDrawMesh( parameters.size(), ( IShaderParameter** ) parameters.data(), Transformation, Camera, Lightmap );
+		shader->OnDrawMesh( Transformation, Camera, Lightmap );
 	}
 }
 
@@ -200,9 +200,9 @@ le::CULLFACE_TYPE le::Material::GetCullFaceType() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get shader
+// Get name shader
 // ------------------------------------------------------------------------------------ //
-const char* le::Material::GetShader() const
+const char* le::Material::GetNameShader() const
 {
 	return shader->GetName();
 }
@@ -300,7 +300,7 @@ bool le::Material::UpdateShader()
 	{
 		if ( !shader )			throw;
 
-		while ( !shader->InitInstance( parameters.size(), ( IShaderParameter** ) parameters.data() ) )
+		while ( !shader->Initialize( parameters.size(), ( IShaderParameter** ) parameters.data() ) )
 		{
 			const char* fallbackShader = shader->GetFallbackShader();
 			if ( !fallbackShader || strcmp( fallbackShader, "" ) == 0 )		throw;

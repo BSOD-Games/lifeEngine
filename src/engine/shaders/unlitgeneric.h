@@ -35,14 +35,22 @@ namespace le
 		//---------------------------------------------------------------------//
 
 		// IShader
-		virtual bool					InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters );
-		virtual void					OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr );
+		virtual bool				Initialize( UInt32_t CountParams, IShaderParameter** ShaderParameters );
+		virtual void				OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr );
 
-		virtual const char*				GetName() const;
-		virtual const char*				GetFallbackShader() const;
+		virtual const char*			GetName() const;
+		virtual const char*			GetFallbackShader() const;
 
 		// UnlitGeneric
 		UnlitGeneric();
+		~UnlitGeneric();
+
+		void						ClearParameters();
+
+	private:
+		ITexture*			baseTexture;
+		ITexture*			normalMap;
+		ITexture*			specularMap;
 	};
 
 	//---------------------------------------------------------------------//

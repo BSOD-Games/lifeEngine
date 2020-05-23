@@ -55,7 +55,7 @@ namespace le
 		virtual bool                        IsBlend() const;
 		virtual bool                        IsCullFace() const;
 		virtual CULLFACE_TYPE               GetCullFaceType() const;
-		virtual const char*					GetShader() const;
+		virtual const char*					GetNameShader() const;
 		virtual UInt32_t                    GetCountParameters() const;
 		virtual IShaderParameter**          GetParameters() const;
 		virtual IShaderParameter*           GetParameter( UInt32_t Index ) const;

@@ -24,15 +24,39 @@
 #include "textgeneric.h"
 
 // ------------------------------------------------------------------------------------ //
-// Инициализировать экземпляр шейдера
+// Initialize parameters
 // ------------------------------------------------------------------------------------ //
-bool le::TextGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
+bool le::TextGeneric::Initialize( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
 	std::vector< const char* >			defines;
 	UInt32_t							flags = 0;
 
 	if ( !LoadShader( "TextGeneric", "shaders/textgeneric.shader", defines, flags ) )
 		return false;
+
+	for ( UInt32_t index = 0; index < CountParams; ++index )
+	{
+		IShaderParameter*			shaderParameter = ShaderParameters[ index ];
+		if ( !shaderParameter->IsDefined() )		continue;
+
+		switch ( shaderParameter->GetType() )
+		{
+		case SPT_TEXTURE:
+			if ( strcmp( shaderParameter->GetName(), "basetexture" ) == 0 )
+			{
+				baseTexture = shaderParameter->GetValueTexture();
+				baseTexture->IncrementReference();
+			}
+			break;
+
+		case SPT_VECTOR_3D:
+			if ( strcmp( shaderParameter->GetName(), "color" ) == 0 )
+				color = shaderParameter->GetValueVector3D();
+			break;
+
+		default: continue;
+		}
+	}
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "basetexture", 0 );
@@ -42,39 +66,22 @@ bool le::TextGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** Sha
 }
 
 // ------------------------------------------------------------------------------------ //
-// Подготовка к отрисовке элементов
+// Event: draw mesh
 // ------------------------------------------------------------------------------------ //
-void le::TextGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+void le::TextGeneric::OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
-	UInt32_t			flags = 0;
-	IShaderParameter*   textColor = nullptr;
+	if ( !gpuProgram ) return;
 
-	for ( UInt32_t index = 0; index < CountParams; ++index )
-    {
-        IShaderParameter*           shaderParameter = ShaderParameters[ index ];
-        if ( !shaderParameter->IsDefined() ) continue;
-
-        if ( strcmp( shaderParameter->GetName(), "basetexture" ) == 0 )  
-		{         
-			shaderParameter->GetValueTexture()->Bind( 0 );
-		}
-		else if ( strcmp( shaderParameter->GetName(), "color" ) == 0  )  
-			textColor = shaderParameter;   
-	}
+	if ( baseTexture )			baseTexture->Bind( 0 );
 
 	gpuProgram->Bind();
-
-	if ( !textColor )
-		gpuProgram->SetUniform( "color", textColor->GetValueVector3D() );
-	else
-		gpuProgram->SetUniform( "color", Vector3D_t( 1.f ) );
-	
-	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
+	gpuProgram->SetUniform( "color", color );
 	gpuProgram->SetUniform( "matrix_Projection", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
+	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить название шейдера
+// Get name
 // ------------------------------------------------------------------------------------ //
 const char* le::TextGeneric::GetName() const
 {
@@ -82,7 +89,7 @@ const char* le::TextGeneric::GetName() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить запасной шейдер
+// Get fallback shader
 // ------------------------------------------------------------------------------------ //
 const char* le::TextGeneric::GetFallbackShader() const
 {
@@ -90,12 +97,35 @@ const char* le::TextGeneric::GetFallbackShader() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Конструктор
+// Constructor
 // ------------------------------------------------------------------------------------ //
-le::TextGeneric::TextGeneric()
+le::TextGeneric::TextGeneric() :
+	baseTexture( nullptr ),
+	color( 1.f, 1.f, 1.f )
+{}
+
+// ------------------------------------------------------------------------------------ //
+// Destructor
+// ------------------------------------------------------------------------------------ //
+le::TextGeneric::~TextGeneric()
 {
-	shaderParams =
+	ClearParameters();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Clear parameters
+// ------------------------------------------------------------------------------------ //
+void le::TextGeneric::ClearParameters()
+{
+	if ( baseTexture )
 	{
-		{ "basetexture",	SPT_TEXTURE		}
-	};
+		if ( baseTexture->GetCountReferences() <= 1 )
+			baseTexture->Release();
+		else
+			baseTexture->DecrementReference();
+
+		baseTexture = nullptr;
+	}
+
+	color = Vector3D_t( 1.f, 1.f, 1.f );
 }

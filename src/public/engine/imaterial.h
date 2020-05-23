@@ -53,7 +53,7 @@ namespace le
 		virtual bool                        IsDepthWrite() const = 0;
 		virtual bool                        IsBlend() const = 0;
 		virtual bool                        IsCullFace() const = 0;
-		virtual const char*					GetShader() const = 0;
+		virtual const char*					GetNameShader() const = 0;
 		virtual CULLFACE_TYPE               GetCullFaceType() const = 0;
 		virtual UInt32_t                    GetCountParameters() const = 0;
 		virtual IShaderParameter**          GetParameters() const = 0;

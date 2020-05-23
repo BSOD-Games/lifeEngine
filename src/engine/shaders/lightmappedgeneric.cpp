@@ -26,15 +26,27 @@
 #include "lightmappedgeneric.h"
 
 // ------------------------------------------------------------------------------------ //
-// Инициализировать экземпляр шейдера
+// Initialize shader and parameters
 // ------------------------------------------------------------------------------------ //
-bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters )
+bool le::LightmappedGeneric::Initialize( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
-	std::vector< const char* >			defines;
-	UInt32_t							flags = 0;
+	ClearParameters();
 
-	if ( !LoadShader( "LightmappedGeneric", "shaders/lightmappedgeneric.shader", defines, flags ) )
+	std::vector< const char* >			defines;
+	if ( !LoadShader( "LightmappedGeneric", "shaders/lightmappedgeneric.shader", defines, 0 ) )
 		return false;
+
+	for ( UInt32_t index = 0; index < CountParams; ++index )
+	{
+		IShaderParameter*			shaderParameter = ShaderParameters[ index ];
+		if ( !shaderParameter->IsDefined() ) continue;
+
+		if ( shaderParameter->GetType() == SPT_TEXTURE && strcmp( "basetexture", shaderParameter->GetName() ) == 0 )
+		{
+			baseTexture = shaderParameter->GetValueTexture();
+			baseTexture->IncrementReference();
+		}
+	}
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "basetexture", 0 );
@@ -45,22 +57,22 @@ bool le::LightmappedGeneric::InitInstance( UInt32_t CountParams, IShaderParamete
 }
 
 // ------------------------------------------------------------------------------------ //
-// Подготовка к отрисовке элементов
+// Event: draw mesh
 // ------------------------------------------------------------------------------------ //
-void le::LightmappedGeneric::OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+void le::LightmappedGeneric::OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
 	if ( !gpuProgram ) return;
 
-	if ( ShaderParameters[ 0 ]->IsDefined() )		ShaderParameters[ 0 ]->GetValueTexture()->Bind( 0 );
+	if ( baseTexture )		baseTexture->Bind( 0 );
 	if ( Lightmap )			Lightmap->Bind( 1 );
 
 	gpuProgram->Bind();
-	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
 	gpuProgram->SetUniform( "matrix_Projection", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
+	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить название шейдера
+// Get shader name
 // ------------------------------------------------------------------------------------ //
 const char* le::LightmappedGeneric::GetName() const
 {
@@ -68,7 +80,7 @@ const char* le::LightmappedGeneric::GetName() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Получить запасной шейдер
+// Get fallback shader
 // ------------------------------------------------------------------------------------ //
 const char* le::LightmappedGeneric::GetFallbackShader() const
 {
@@ -76,12 +88,32 @@ const char* le::LightmappedGeneric::GetFallbackShader() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Конструктор
+// Constructor
 // ------------------------------------------------------------------------------------ //
-le::LightmappedGeneric::LightmappedGeneric()
+le::LightmappedGeneric::LightmappedGeneric() :
+	baseTexture( nullptr )
+{}
+
+// ------------------------------------------------------------------------------------ //
+// Destructor
+// ------------------------------------------------------------------------------------ //
+le::LightmappedGeneric::~LightmappedGeneric()
 {
-	shaderParams =
+	ClearParameters();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Clear parameters
+// ------------------------------------------------------------------------------------ //
+void le::LightmappedGeneric::ClearParameters()
+{
+	if ( baseTexture )
 	{
-		{ "basetexture",	SPT_TEXTURE		}
-	};
+		if ( baseTexture->GetCountReferences() <= 1 )
+			baseTexture->Release();
+		else
+			baseTexture->DecrementReference();
+
+		baseTexture = nullptr;
+	}
 }

@@ -29,14 +29,11 @@ namespace le
 	class IShader
 	{
 	public:
-		virtual bool					InitInstance( UInt32_t CountParams, IShaderParameter** ShaderParameters ) = 0;
-		virtual void					OnDrawMesh( UInt32_t CountParams, IShaderParameter** ShaderParameters, const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr ) = 0;
+		virtual bool				Initialize( UInt32_t CountParams, IShaderParameter** ShaderParameters ) = 0;
+		virtual void				OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr ) = 0;
 
-		virtual const char*				GetName() const = 0;
-		virtual const char*				GetFallbackShader() const = 0;
-		virtual UInt32_t				GetCountParams() const = 0;
-		virtual ShaderParamInfo*		GetParam( UInt32_t Index ) const = 0;
-		virtual ShaderParamInfo*		GetParams() const = 0;
+		virtual const char*			GetName() const = 0;
+		virtual const char*			GetFallbackShader() const = 0;
 	};
 
 	//---------------------------------------------------------------------//
