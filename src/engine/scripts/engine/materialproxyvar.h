@@ -13,7 +13,7 @@
 
 #include "../common/types.h"
 #include "../mathlib/mathlib.h"
-#include "../studiorender/shaderparameter.h"
+#include "shaderparameter.h"
 
 //---------------------------------------------------------------------//
 
@@ -33,8 +33,6 @@ typedef enum
 	MPVT_ARRAY_VECTOR_4D,
 	MPVT_SHADER_PARAMETER
 } materialProxyVarType_t;
-
-typedef void*			materialProxyVar_t;
 
 //---------------------------------------------------------------------//
 

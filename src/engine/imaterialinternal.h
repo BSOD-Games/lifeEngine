@@ -8,10 +8,14 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef ISHADER_H
-#define ISHADER_H
+#ifndef MATERIAL_INTERNAL_H
+#define MATERIAL_INTERNAL_H
 
-#include "common/types.h"
+#include <string>
+#include <vector>
+#include <unordered_map>
+
+#include "engine/imaterial.h"
 
 //---------------------------------------------------------------------//
 
@@ -19,30 +23,24 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	struct ShaderParamInfo;
-	class ICamera;
-	class IShaderParameter;
-	class ITexture;
+	class IShader;
 
 	//---------------------------------------------------------------------//
 
-	class IShader
+	class IMaterialInternal : public IMaterial
 	{
 	public:
-		virtual bool				Initialize( UInt32_t CountParams, IShaderParameter** ShaderParameters ) = 0;
-		virtual void				OnDrawText( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Glyph = nullptr ) = 0;
-		virtual void				OnDrawSprite( const Matrix4x4_t& Transformation, ICamera* Camera ) = 0;
-		virtual void				OnDrawStaticModel( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr ) = 0;
+        // IMaterialInternal
+		virtual ~IMaterialInternal() {}
+		virtual void				Refresh() = 0;
 
-		virtual bool				IsEuqal( IShader* Shader ) const = 0;
-		virtual const char*			GetName() const = 0;
-		virtual const char*			GetFallbackShader() const = 0;
-	};
+		virtual IShader*			GetShader() const = 0;
+    };
 
 	//---------------------------------------------------------------------//
 }
 
 //---------------------------------------------------------------------//
 
-#endif // !ISHADER_H
+#endif // !MATERIAL_INTERNAL_H
 

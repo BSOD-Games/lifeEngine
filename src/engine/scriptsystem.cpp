@@ -26,9 +26,8 @@ namespace scripts_api
 #include "scripts/engine/level.h"
 #include "scripts/engine/sprite.h"
 #include "scripts/engine/text.h"
-
-#include "scripts/studiorender/shaderparameter.h"
-#include "scripts/studiorender/material.h"
+#include "scripts/engine/shaderparameter.h"
+#include "scripts/engine/material.h"
 
 #include "scripts/physics/collider.h"
 #include "scripts/physics/body.h"
@@ -333,9 +332,9 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	REGISTER_FUNCTION( Text_GetText );
 	REGISTER_FUNCTION( Text_SetFont );
 	REGISTER_FUNCTION( Text_SetText );
-	REGISTER_FUNCTION( Text_GetColor );
+	REGISTER_FUNCTION( Text_GetMaterial );
 	REGISTER_FUNCTION( Text_GetScale );
-	REGISTER_FUNCTION( Text_SetColor );
+	REGISTER_FUNCTION( Text_SetMaterial );
 	REGISTER_FUNCTION( Text_SetScale );
 	REGISTER_FUNCTION( Text_QuatRotate );
 	REGISTER_FUNCTION( Text_EulerRotate );

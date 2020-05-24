@@ -17,10 +17,6 @@
 
 //---------------------------------------------------------------------//
 
-typedef void*			charcterController_t;
-
-//---------------------------------------------------------------------//
-
 /* Create charcter controller */
 extern charcterController_t					CharcterController_Create();
 

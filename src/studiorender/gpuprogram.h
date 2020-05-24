@@ -52,6 +52,11 @@ namespace le
 		GPUProgram();
 		~GPUProgram();
 
+		inline UInt32_t				GetHandle() const
+		{
+			return programID;
+		}
+
 	private:
 		// GPUProgram
 		bool						Compile_VertexShader( const char* Code );

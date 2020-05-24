@@ -13,7 +13,6 @@
 
 #include "../common/types.h"
 #include "../mathlib/mathlib.h"
-#include "../studiorender/material.h"
 
 //---------------------------------------------------------------------//
 
@@ -23,8 +22,6 @@ typedef enum
 	ST_SPRITE_ROTATING,
 	ST_SPRITE_ROTATING_ONLY_VERTICAL
 } spriteType_t;
-
-typedef void*			sprite_t;
 
 //---------------------------------------------------------------------//
 

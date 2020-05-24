@@ -12,10 +12,6 @@
 #define API_RESOURCESYSTEM_H
 
 #include "../common/types.h"
-#include "../physics/physicsmodel.h"
-#include "../studiorender/material.h"
-#include "model.h"
-#include "text.h"
 
 //---------------------------------------------------------------------//
 

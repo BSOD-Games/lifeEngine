@@ -82,10 +82,28 @@ bool le::UnlitGeneric::Initialize( UInt32_t CountParams, IShaderParameter** Shad
 }
 
 // ------------------------------------------------------------------------------------ //
-// Event: draw mesh
+// Event: draw text
 // ------------------------------------------------------------------------------------ //
-void le::UnlitGeneric::OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+void le::UnlitGeneric::OnDrawText( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Glyph )
 {
+	OnDrawStaticModel( Transformation, Camera, nullptr );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: draw sprite
+// ------------------------------------------------------------------------------------ //
+void le::UnlitGeneric::OnDrawSprite( const Matrix4x4_t& Transformation, ICamera* Camera )
+{
+	OnDrawStaticModel( Transformation, Camera, nullptr );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: draw static model
+// ------------------------------------------------------------------------------------ //
+void le::UnlitGeneric::OnDrawStaticModel( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+{
+	if ( !gpuProgram ) return;
+
 	if ( baseTexture )			baseTexture->Bind( 0 );
 	if ( normalMap )			normalMap->Bind( 1 );
 	if ( specularMap )			specularMap->Bind( 2 );

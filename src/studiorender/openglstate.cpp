@@ -11,25 +11,30 @@
 #include <GL/glew.h>
 #include <functional>
 
-#include "studiorender/studiorender.h"
+#include "studiorender.h"
+#include "texture.h"
+#include "gpuprogram.h"
 #include "openglstate.h"
  
 //---------------------------------------------------------------------//
 
-bool					le::OpenGLState::isDepthTest = true;
-bool					le::OpenGLState::isDepthWrite = true;
-bool					le::OpenGLState::isBlend = true;
-bool					le::OpenGLState::isCullFace = true;
-bool					le::OpenGLState::isStencilTest = false;
+bool														le::OpenGLState::isDepthTest = true;
+bool														le::OpenGLState::isDepthWrite = true;
+bool														le::OpenGLState::isBlend = true;
+bool														le::OpenGLState::isCullFace = true;
+bool														le::OpenGLState::isStencilTest = false;
 
-bool					le::OpenGLState::colorMask[ 4 ] = { true, true, true, true };
-le::CULLFACE_TYPE		le::OpenGLState::cullFaceType = le::CT_BACK;
-le::UInt32_t			le::OpenGLState::stencilFuncType = GL_ALWAYS;
-le::UInt32_t			le::OpenGLState::stencilFunc_ref = 0;
-le::UInt32_t			le::OpenGLState::stencilFunc_mask = 0;
-le::UInt32_t			le::OpenGLState::blendFunc_sFactor = GL_ONE;
-le::UInt32_t			le::OpenGLState::blendFunc_dFactor = GL_ONE;
-le::UInt32_t			le::OpenGLState::blendEquation_mode = GL_FUNC_ADD;
+bool														le::OpenGLState::colorMask[ 4 ] = { true, true, true, true };
+le::CULLFACE_TYPE											le::OpenGLState::cullFaceType = le::CT_BACK;
+le::UInt32_t												le::OpenGLState::stencilFuncType = GL_ALWAYS;
+le::UInt32_t												le::OpenGLState::stencilFunc_ref = 0;
+le::UInt32_t												le::OpenGLState::stencilFunc_mask = 0;
+le::UInt32_t												le::OpenGLState::blendFunc_sFactor = GL_ONE;
+le::UInt32_t												le::OpenGLState::blendFunc_dFactor = GL_ONE;
+le::UInt32_t												le::OpenGLState::blendEquation_mode = GL_FUNC_ADD;
+le::GPUProgram*												le::OpenGLState::bindedGPUProgram = nullptr;
+
+std::unordered_map< le::UInt32_t, le::Texture* >			le::OpenGLState::bindedTextures = std::unordered_map< le::UInt32_t, le::Texture* >();
 
 //---------------------------------------------------------------------//
 
@@ -86,6 +91,36 @@ void le::OpenGLState::EnableStencilTest( bool Enable )
 	isStencilTest = Enable;
 	
 	isStencilTest ? glEnable( GL_STENCIL_TEST ) : glDisable( GL_STENCIL_TEST );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set gpu program
+// ------------------------------------------------------------------------------------ //
+void le::OpenGLState::SetGPUProgram( GPUProgram* GPUProgram )
+{
+	if ( bindedGPUProgram == GPUProgram )		return;
+
+	if ( !GPUProgram )		glUseProgram( 0 );
+	else					glUseProgram( GPUProgram->GetHandle() );
+
+	bindedGPUProgram = GPUProgram;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Задать тип отсекаемых полигонов
+// ------------------------------------------------------------------------------------ //
+void le::OpenGLState::SetTexture( Texture* Texture, UInt32_t Layer )
+{
+	auto			it = bindedTextures.find( Layer );
+	if ( it == bindedTextures.end() || Texture != it->second )
+	{
+		glActiveTexture( GL_TEXTURE0 + Layer );
+		
+		if ( !Texture )		glBindTexture( GL_TEXTURE_2D, 0 );
+		else				glBindTexture( GL_TEXTURE_2D, Texture->GetHandle() );
+		
+		bindedTextures[ Layer ] = Texture;
+	}
 }
 
 // ------------------------------------------------------------------------------------ //

@@ -41,20 +41,12 @@ bool le::TextGeneric::Initialize( UInt32_t CountParams, IShaderParameter** Shade
 
 		switch ( shaderParameter->GetType() )
 		{
-		case SPT_TEXTURE:
-			if ( strcmp( shaderParameter->GetName(), "basetexture" ) == 0 )
-			{
-				baseTexture = shaderParameter->GetValueTexture();
-				baseTexture->IncrementReference();
-			}
-			break;
-
 		case SPT_VECTOR_3D:
 			if ( strcmp( shaderParameter->GetName(), "color" ) == 0 )
 				color = shaderParameter->GetValueVector3D();
 			break;
 
-		default: continue;
+		default:		continue;
 		}
 	}
 
@@ -66,13 +58,13 @@ bool le::TextGeneric::Initialize( UInt32_t CountParams, IShaderParameter** Shade
 }
 
 // ------------------------------------------------------------------------------------ //
-// Event: draw mesh
+// Event: draw text
 // ------------------------------------------------------------------------------------ //
-void le::TextGeneric::OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+void le::TextGeneric::OnDrawText( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Glyph )
 {
 	if ( !gpuProgram ) return;
 
-	if ( baseTexture )			baseTexture->Bind( 0 );
+	if ( Glyph )			Glyph->Bind( 0 );
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "color", color );
@@ -100,7 +92,6 @@ const char* le::TextGeneric::GetFallbackShader() const
 // Constructor
 // ------------------------------------------------------------------------------------ //
 le::TextGeneric::TextGeneric() :
-	baseTexture( nullptr ),
 	color( 1.f, 1.f, 1.f )
 {}
 
@@ -117,16 +108,6 @@ le::TextGeneric::~TextGeneric()
 // ------------------------------------------------------------------------------------ //
 void le::TextGeneric::ClearParameters()
 {
-	if ( baseTexture )
-	{
-		if ( baseTexture->GetCountReferences() <= 1 )
-			baseTexture->Release();
-		else
-			baseTexture->DecrementReference();
-
-		baseTexture = nullptr;
-	}
-
 	color = Vector3D_t( 1.f, 1.f, 1.f );
 }
 
@@ -136,8 +117,5 @@ void le::TextGeneric::ClearParameters()
 bool le::TextGeneric::IsEuqal( IShader* Shader ) const
 {
 	TextGeneric*			shader = ( TextGeneric* ) Shader;
-
-	return
-		strcmp( GetName(), Shader->GetName() ) == 0 &&
-		baseTexture == shader->baseTexture;
+	return strcmp( GetName(), Shader->GetName() ) == 0;
 }

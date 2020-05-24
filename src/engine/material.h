@@ -15,7 +15,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "engine/imaterial.h"
+#include "engine/imaterialinternal.h"
 #include "engine/shaderparameter.h"
 
 //---------------------------------------------------------------------//
@@ -24,7 +24,7 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class Material : public IMaterial
+	class Material : public IMaterialInternal
 	{
 	public:
         // IReferenceObject
@@ -44,7 +44,6 @@ namespace le
 		virtual void                        EnableBlend( bool Enable = true );
 		virtual void                        EnableCullFace( bool Enable = true );
 		virtual IShaderParameter*           FindParameter( const char* Name ) const;
-		virtual void						OnBind( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr );
 
 		virtual void                        SetShader( const char* Name );
 		virtual void                        SetCullFaceType( CULLFACE_TYPE CullFaceType );
@@ -64,6 +63,10 @@ namespace le
 		virtual IMaterialProxy**            GetProxes() const;
 		virtual IMaterialProxy*             GetProxy( UInt32_t Index ) const;
 		virtual const char*					GetSurfaceName() const;
+
+		// IMaterialInternal
+		virtual void						Refresh();
+		virtual IShader*					GetShader() const;
 
 		// Material
 		Material();

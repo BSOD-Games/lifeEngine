@@ -43,7 +43,7 @@ namespace le
         virtual void                    SetFont( IFont* Font );
         virtual void                    SetCharacterSize( UInt32_t CharacterSize );
         virtual void                    SetText( const char* Text );
-        virtual void                    SetColor( const Vector3D_t& Color );
+		virtual void                    SetMaterial( IMaterial* Material );
         virtual void                    SetLetterSpacingFactor( float LetterSpacingFactor );
         virtual void                    SetLineSpacingFactor( float LineSpacingFactor );
 
@@ -54,6 +54,7 @@ namespace le
         virtual float                   GetLetterSpacingFactor() const;
         virtual float                   GetLineSpacingFactor() const;
         virtual IMesh*                  GetMesh();
+		virtual IMaterial*				GetMaterial() const;
 
         // ITransformable
         virtual void					Move( const Vector3D_t& FactorMove );
@@ -95,7 +96,6 @@ namespace le
 
         IMaterial*                  material;
         IShaderParameter*           materialParam_color;
-        IShaderParameter*           materialParam_basetexture;
 
 		Vector3D_t			        position;
 		Quaternion_t		        rotation;

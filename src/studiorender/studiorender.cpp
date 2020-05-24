@@ -12,17 +12,26 @@
 #include <algorithm>
 
 #include "common/configurations.h"
+#include "common/shaderdescriptor.h"
+#include "common/meshsurface.h"
+#include "common/shaderdescriptor.h"
+#include "common/meshdescriptor.h"
 #include "engine/lifeengine.h"
 #include "engine/iengineinternal.h"
 #include "engine/iwindow.h"
 #include "engine/iconsolesystem.h"
 #include "engine/iconvar.h"
-#include "engine/imaterial.h"
+#include "engine/imaterialinternal.h"
 #include "engine/ishader.h"
-#include "settingscontext.h"
-#include "common/shaderdescriptor.h"
-#include "common/meshsurface.h"
 #include "engine/iresourcesystem.h"
+#include "engine/iconcmd.h"
+#include "engine/icamera.h"
+#include "engine/isprite.h"
+#include "engine/itext.h"
+#include "engine/ifont.h"
+#include "engine/imodel.h"
+#include "studiorender/studiovertexelement.h"
+
 #include "global.h"
 #include "studiorender.h"
 #include "gpuprogram.h"
@@ -32,13 +41,7 @@
 #include "pointlight.h"
 #include "spotlight.h"
 #include "directionallight.h"
-#include "common/meshdescriptor.h"
-#include "studiorender/studiovertexelement.h"
-#include "common/shaderdescriptor.h"
-#include "engine/iconcmd.h"
-#include "engine/icamera.h"
-#include "engine/isprite.h"
-#include "studiorender/paths.h"
+#include "settingscontext.h"
 
 LIFEENGINE_STUDIORENDER_API( le::StudioRender );
 
@@ -55,70 +58,6 @@ void le::StudioRender::BeginScene( ICamera* Camera )
 	currentScene = scenes.size();
 	scenes.push_back( SceneDescriptor() );
 	scenes[ currentScene ].camera = Camera;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Добавить меш в очередь на отрисовку
-// ------------------------------------------------------------------------------------ //
-void le::StudioRender::SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation )
-{
-	LIFEENGINE_ASSERT( Mesh );
-	if ( !Mesh->IsCreated() ) return;
-
-	SubmitMesh( Mesh, Transformation, 0, Mesh->GetCountSurfaces() );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Добавить меш в очередь на отрисовку
-// ------------------------------------------------------------------------------------ //
-void le::StudioRender::SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation, UInt32_t StartSurface, UInt32_t CountSurface )
-{
-	LIFEENGINE_ASSERT( Mesh );
-	if ( !Mesh->IsCreated() )
-		return;
-
-	le::Mesh*			mesh = ( le::Mesh* ) Mesh;
-	MeshSurface*		surfaces = mesh->GetSurfaces();
-	MeshSurface*		surface;
-
-	if ( StartSurface + CountSurface > Mesh->GetCountSurfaces() )
-	{
-		return;
-		//	CountSurface = Mesh->GetCountSurfaces() - StartSurface;
-	}
-
-	RenderObject		renderObject;
-	renderObject.vertexArrayObject = ( VertexArrayObject* ) &mesh->GetVertexArrayObject();
-	renderObject.transformation = Transformation;
-
-	switch ( mesh->GetPrimitiveType() )
-	{
-	case PT_LINES:
-		renderObject.primitiveType = GL_LINE;
-		break;
-
-	case PT_TRIANGLES:
-		renderObject.primitiveType = GL_TRIANGLES;
-		break;
-
-	case PT_TRIANGLE_FAN:
-		renderObject.primitiveType = GL_TRIANGLE_FAN;
-		break;
-	}
-
-	for ( UInt32_t index = StartSurface, countSurfaces = StartSurface + CountSurface, maxCountSurfaces = mesh->GetCountSurfaces(); index < countSurfaces && index < maxCountSurfaces; ++index )
-	{
-		surface = &surfaces[ index ];
-
-		renderObject.startVertexIndex = surface->startVertexIndex;
-		renderObject.startIndex = surface->startIndex;
-		renderObject.countIndeces = surface->countIndeces;
-		renderObject.lightmap = ( Texture* ) mesh->GetLightmap( surface->lightmapID );
-		renderObject.material = mesh->GetMaterial( surface->materialID );
-
-		if ( !renderObject.material ) continue;
-		scenes[ currentScene ].renderObjects.push_back( renderObject );
-	}
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -254,6 +193,10 @@ bool le::StudioRender::CreateContext( le::WindowHandle_t WindowHandle, UInt32_t 
 		return false;
 	}
 
+	// Initialize renderers
+	if ( !textRenderer.Initialize() || !spriteRenderer.Initialize() || !staticModelRenderer.Initialize() )
+		return false;
+
 	// Initialize primitives
 	quad.Create();
 	sphere.Create();
@@ -321,8 +264,10 @@ void le::StudioRender::End()
 	for ( UInt32_t indexScene = 0, countScenes = scenes.size(); indexScene < countScenes; ++indexScene )
 	{
 		SceneDescriptor&				sceneDescriptor = scenes[ indexScene ];
-		std::sort( sceneDescriptor.renderObjects.begin(), sceneDescriptor.renderObjects.end(),
-				   []( const RenderObject& Left, const RenderObject& Right ) -> bool
+
+		// Sort static models
+		std::sort( sceneDescriptor.staticModels.begin(), sceneDescriptor.staticModels.end(),
+				   []( const StaticModelRenderer::RenderObject& Left, const StaticModelRenderer::RenderObject& Right ) -> bool
 				   {
 					   if ( Left.material->IsEuqal( Right.material ) )
 					   {
@@ -332,7 +277,31 @@ void le::StudioRender::End()
 						   return Left.lightmap < Right.lightmap;
 					   }
 					   
-					   // WARNING: This is mayby not working when material is created in code
+					   return Left.material < Right.material;
+				   } );
+
+		// Sort sprites
+		std::sort( sceneDescriptor.sprites.begin(), sceneDescriptor.sprites.end(),
+				   []( const SpriteRenderer::RenderObject& Left, const SpriteRenderer::RenderObject& Right ) -> bool
+				   {
+					   if ( Left.material->IsEuqal( Right.material ) )
+							   return Left.vertexArrayObject < Right.vertexArrayObject;
+
+					   return Left.material < Right.material;
+				   } );
+
+		// Sort texts
+		std::sort( sceneDescriptor.texts.begin(), sceneDescriptor.texts.end(),
+				   []( const TextRenderer::RenderObject& Left, const TextRenderer::RenderObject& Right ) -> bool
+				   {
+					   if ( Left.material->IsEuqal( Right.material ) )
+					   {
+						   if ( Left.glyph == Right.glyph )
+							   return Left.vertexArrayObject < Right.vertexArrayObject;
+
+						   return Left.glyph < Right.glyph;
+					   }
+
 					   return Left.material < Right.material;
 				   } );
 	}
@@ -426,19 +395,14 @@ void le::StudioRender::Render_GeometryPass()
 	{
 		SceneDescriptor&				sceneDescriptor = scenes[ indexScene ];
 
-		for ( UInt32_t indexObject = 0, countObjects = sceneDescriptor.renderObjects.size(); indexObject < countObjects; ++indexObject )
-		{
-			const RenderObject&		renderObject = sceneDescriptor.renderObjects[ indexObject ];
-			OpenGLState::EnableDepthTest( renderObject.material->IsDepthTest() );
-			OpenGLState::EnableDepthWrite( renderObject.material->IsDepthWrite() );
-			OpenGLState::EnableBlend( renderObject.material->IsBlend() );
-			OpenGLState::EnableCullFace( renderObject.material->IsCullFace() );
-			OpenGLState::SetCullFaceType( renderObject.material->GetCullFaceType() );
+		// Rendering static modeles
+		staticModelRenderer.Render( sceneDescriptor.staticModels, sceneDescriptor.camera );
 
-			renderObject.material->OnBind( renderObject.transformation, sceneDescriptor.camera, renderObject.lightmap );
-			renderObject.vertexArrayObject->Bind();
-			glDrawRangeElementsBaseVertex( renderObject.primitiveType, 0, renderObject.countIndeces, renderObject.countIndeces, GL_UNSIGNED_INT, ( void* ) ( renderObject.startIndex * sizeof( UInt32_t ) ), renderObject.startVertexIndex );
-		}
+		// Rendering sprites
+		spriteRenderer.Render( sceneDescriptor.sprites, sceneDescriptor.camera );
+
+		// Rendering texts
+		textRenderer.Render( sceneDescriptor.texts, sceneDescriptor.camera );
 	}
 }
 
@@ -641,4 +605,193 @@ void le::StudioRender::SubmitDebugPoint( const Vector3D_t& Position, const Vecto
 {
 	scenes[ currentScene ].debugPoints.push_back( { Position, Color } );
 	isNeedRenderDebugPrimitives = true;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Add text in queue render
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::SubmitText( IText* Text )
+{
+	if ( !Text )	return;
+
+	Mesh*			mesh = ( Mesh* ) Text->GetMesh();
+	if ( !mesh->IsCreated() )		return;
+
+	MeshSurface*					surfaces = mesh->GetSurfaces();
+	TextRenderer::RenderObject		renderObject;
+	SceneDescriptor&				scene = scenes[ currentScene ];
+	renderObject.vertexArrayObject = ( VertexArrayObject* ) &mesh->GetVertexArrayObject();
+	renderObject.glyph = ( Texture* ) Text->GetFont()->GetTexture( Text->GetCharacterSize() );
+	renderObject.transformation = Text->GetTransformation();
+
+	switch ( mesh->GetPrimitiveType() )
+	{
+	case PT_LINES:
+		renderObject.primitiveType = GL_LINE;
+		break;
+
+	case PT_TRIANGLES:
+		renderObject.primitiveType = GL_TRIANGLES;
+		break;
+
+	case PT_TRIANGLE_FAN:
+		renderObject.primitiveType = GL_TRIANGLE_FAN;
+		break;
+	}
+
+	for ( UInt32_t index = 0, countSurfaces = mesh->GetCountSurfaces(); index < countSurfaces; ++index )
+	{
+		MeshSurface&			surface = surfaces[ index ];
+
+		renderObject.startVertexIndex = surface.startVertexIndex;
+		renderObject.startIndex = surface.startIndex;
+		renderObject.countIndeces = surface.countIndeces;
+		renderObject.material = ( IMaterialInternal* ) mesh->GetMaterial( surface.materialID );
+
+		if ( !renderObject.material ) continue;
+		scene.texts.push_back( renderObject );
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Add sprite in queue render
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::SubmitSprite( ISprite* Sprite )
+{
+	if ( !Sprite )	return;
+
+	Mesh*			mesh = ( Mesh* ) Sprite->GetMesh();
+	if ( !mesh->IsCreated() )		return;
+
+	MeshSurface*						surfaces = mesh->GetSurfaces();
+	SpriteRenderer::RenderObject		renderObject;
+	SceneDescriptor&					scene = scenes[ currentScene ];
+	renderObject.vertexArrayObject = ( VertexArrayObject* ) &mesh->GetVertexArrayObject();
+	renderObject.transformation = Sprite->GetTransformation( scene.camera );
+
+	switch ( mesh->GetPrimitiveType() )
+	{
+	case PT_LINES:
+		renderObject.primitiveType = GL_LINE;
+		break;
+
+	case PT_TRIANGLES:
+		renderObject.primitiveType = GL_TRIANGLES;
+		break;
+
+	case PT_TRIANGLE_FAN:
+		renderObject.primitiveType = GL_TRIANGLE_FAN;
+		break;
+	}
+
+	for ( UInt32_t index = 0, countSurfaces = mesh->GetCountSurfaces(); index < countSurfaces; ++index )
+	{
+		MeshSurface&			surface = surfaces[ index ];
+
+		renderObject.startVertexIndex = surface.startVertexIndex;
+		renderObject.startIndex = surface.startIndex;
+		renderObject.countIndeces = surface.countIndeces;
+		renderObject.material = ( IMaterialInternal* ) mesh->GetMaterial( surface.materialID );
+
+		if ( !renderObject.material ) continue;
+		scene.sprites.push_back( renderObject );
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Add model in queue render
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::SubmitModel( IModel* Model )
+{
+	if ( !Model )	return;
+
+	Mesh*			mesh = ( Mesh* ) Model->GetMesh();
+	if ( !mesh->IsCreated() )		return;
+
+	MeshSurface*							surfaces = mesh->GetSurfaces();
+	StaticModelRenderer::RenderObject		renderObject;
+	SceneDescriptor&						scene = scenes[ currentScene ];
+	renderObject.vertexArrayObject = ( VertexArrayObject* ) &mesh->GetVertexArrayObject();
+	renderObject.transformation = Model->GetTransformation();
+
+	switch ( mesh->GetPrimitiveType() )
+	{
+	case PT_LINES:
+		renderObject.primitiveType = GL_LINE;
+		break;
+
+	case PT_TRIANGLES:
+		renderObject.primitiveType = GL_TRIANGLES;
+		break;
+
+	case PT_TRIANGLE_FAN:
+		renderObject.primitiveType = GL_TRIANGLE_FAN;
+		break;
+	}
+
+	for ( UInt32_t index = 0, countSurfaces = mesh->GetCountSurfaces(); index < countSurfaces; ++index )
+	{
+		MeshSurface&			surface = surfaces[ index ];
+
+		renderObject.startVertexIndex = surface.startVertexIndex;
+		renderObject.startIndex = surface.startIndex;
+		renderObject.countIndeces = surface.countIndeces;
+		renderObject.material = ( IMaterialInternal* ) mesh->GetMaterial( surface.materialID );
+		renderObject.lightmap = ( Texture* ) mesh->GetLightmap( surface.lightmapID );
+
+		if ( !renderObject.material ) continue;
+		scene.staticModels.push_back( renderObject );
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Add lump model in queue render
+// ------------------------------------------------------------------------------------ //
+void le::StudioRender::SubmitModel( IModel* Model, UInt32_t StartSurface, UInt32_t CountSurface )
+{
+	if ( !Model )			return;
+
+	Mesh*			mesh = ( Mesh* ) Model->GetMesh();
+	if ( !mesh->IsCreated() )		return;
+
+	MeshSurface*							surfaces = mesh->GetSurfaces();
+	StaticModelRenderer::RenderObject		renderObject;
+	SceneDescriptor&						scene = scenes[ currentScene ];
+	renderObject.vertexArrayObject = ( VertexArrayObject* ) &mesh->GetVertexArrayObject();
+	renderObject.transformation = Model->GetTransformation();
+
+	if ( StartSurface + CountSurface > mesh->GetCountSurfaces() )
+	{
+		CountSurface = mesh->GetCountSurfaces() - StartSurface;
+		return;
+	}
+
+	switch ( mesh->GetPrimitiveType() )
+	{
+	case PT_LINES:
+		renderObject.primitiveType = GL_LINE;
+		break;
+
+	case PT_TRIANGLES:
+		renderObject.primitiveType = GL_TRIANGLES;
+		break;
+
+	case PT_TRIANGLE_FAN:
+		renderObject.primitiveType = GL_TRIANGLE_FAN;
+		break;
+	}
+
+	for ( UInt32_t index = StartSurface, countSurfaces = StartSurface + CountSurface, maxCountSurfaces = mesh->GetCountSurfaces(); index < countSurfaces && index < maxCountSurfaces; ++index )
+	{
+		MeshSurface&			surface = surfaces[ index ];
+
+		renderObject.startVertexIndex = surface.startVertexIndex;
+		renderObject.startIndex = surface.startIndex;
+		renderObject.countIndeces = surface.countIndeces;
+		renderObject.material = ( IMaterialInternal* ) mesh->GetMaterial( surface.materialID );
+		renderObject.lightmap = ( Texture* ) mesh->GetLightmap( surface.lightmapID );
+
+		if ( !renderObject.material ) continue;
+		scene.staticModels.push_back( renderObject );
+	}
 }

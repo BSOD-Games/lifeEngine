@@ -12,6 +12,7 @@
 #define OPENGL_STATE_H
 
 #include <cstddef>
+#include <unordered_map>
 
 //---------------------------------------------------------------------//
 
@@ -20,6 +21,8 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	enum CULLFACE_TYPE;
+	class Texture; 
+	class GPUProgram;
 
 	//---------------------------------------------------------------------//
 
@@ -34,6 +37,8 @@ namespace le
 		static void				EnableCullFace( bool Enable = true );
 		static void				EnableStencilTest( bool Enable = true );
 
+		static void				SetGPUProgram( GPUProgram* GPUProgram );
+		static void				SetTexture( Texture* Texture, UInt32_t Layer );
 		static void				SetCullFaceType( CULLFACE_TYPE CullFaceType );
 		static void				SetColorMask( bool R, bool G, bool B, bool A );
 		static void				SetStencilFunc( UInt32_t StencilFuncType, UInt32_t Ref, UInt32_t Mask );
@@ -44,20 +49,23 @@ namespace le
 	private:
 		static void				Initialize();
 
-		static bool					isDepthTest;
-		static bool					isDepthWrite;
-		static bool					isStencilTest;
-		static bool					isBlend;
-		static bool					isCullFace;
+		static bool												isDepthTest;
+		static bool												isDepthWrite;
+		static bool												isStencilTest;
+		static bool												isBlend;
+		static bool												isCullFace;
 
-		static bool					colorMask[ 4 ];
-		static CULLFACE_TYPE		cullFaceType;
-		static UInt32_t 			stencilFuncType;
-		static UInt32_t				stencilFunc_ref;
-		static UInt32_t				stencilFunc_mask;
-		static UInt32_t				blendFunc_sFactor;
-		static UInt32_t				blendFunc_dFactor;
-		static UInt32_t				blendEquation_mode;
+		static bool												colorMask[ 4 ];
+		static CULLFACE_TYPE									cullFaceType;
+		static UInt32_t 										stencilFuncType;
+		static UInt32_t											stencilFunc_ref;
+		static UInt32_t											stencilFunc_mask;
+		static UInt32_t											blendFunc_sFactor;
+		static UInt32_t											blendFunc_dFactor;
+		static UInt32_t											blendEquation_mode;
+		static GPUProgram*										bindedGPUProgram;
+
+		static std::unordered_map< UInt32_t, Texture* >			bindedTextures;
 	};	
 
 	//---------------------------------------------------------------------//

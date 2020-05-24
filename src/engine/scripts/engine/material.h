@@ -12,7 +12,7 @@
 #define API_MATERIAL_H
 
 #include "../common/types.h"
-#include "../engine/materialproxy.h"
+#include "materialproxy.h"
 #include "shaderparameter.h"
 
 //---------------------------------------------------------------------//
@@ -22,8 +22,6 @@ typedef enum
 	CT_FRONT,
 	CT_BACK
 } cullFaceType_t;
-
-typedef void*			material_t;
 
 //---------------------------------------------------------------------//
 

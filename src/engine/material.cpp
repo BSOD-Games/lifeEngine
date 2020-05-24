@@ -92,23 +92,6 @@ le::IShaderParameter* le::Material::FindParameter( const char* Name ) const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Event: bind material on render
-// ------------------------------------------------------------------------------------ //
-void le::Material::OnBind( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
-{
-	if ( shader && ( !isNeadUpdateShader || UpdateShader() ) )
-	{
-		if ( !isNeadUpdateMaterialProxy )
-		{
-			g_materialSystem->SubmitUpdate( this );
-			isNeadUpdateMaterialProxy = true;
-		}
-
-		shader->OnDrawMesh( Transformation, Camera, Lightmap );
-	}
-}
-
-// ------------------------------------------------------------------------------------ //
 // Update material proxy
 // ------------------------------------------------------------------------------------ //
 void le::Material::UpdateMaterialProxy()
@@ -263,6 +246,27 @@ le::IMaterialProxy* le::Material::GetProxy( UInt32_t Index ) const
 const char* le::Material::GetSurfaceName() const
 {
 	return surface.c_str();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Refrash material
+// ------------------------------------------------------------------------------------ //
+void le::Material::Refresh()
+{
+	if ( isNeadUpdateShader )				UpdateShader();
+	if ( !isNeadUpdateMaterialProxy )
+	{
+		g_materialSystem->SubmitUpdate( this );
+		isNeadUpdateMaterialProxy = true;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get shader
+// ------------------------------------------------------------------------------------ //
+le::IShader* le::Material::GetShader() const
+{
+	return shader;
 }
 
 // ------------------------------------------------------------------------------------ //

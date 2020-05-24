@@ -22,12 +22,12 @@ namespace le
 
     class IFactory;
     class ICamera;
-    class IMesh;
-    class IShaderManager;
+    class IText;
+	class ISprite;
+	class IModel;
     class IPointLight;
     class ISpotLight;
     class IDirectionalLight;
-    class IMaterial;
     struct StudioRenderViewport;
     struct StudioRenderDeviceConfigurations;
 
@@ -48,8 +48,10 @@ namespace le
         virtual void										BeginScene( ICamera* Camera ) = 0;
         virtual void										SubmitDebugLine( const Vector3D_t& From, const Vector3D_t& To, const Vector3D_t& Color ) = 0;
         virtual void										SubmitDebugPoint( const Vector3D_t& Position, const Vector3D_t& Color ) = 0;
-        virtual void										SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation ) = 0;
-        virtual void										SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation, UInt32_t StartSurface, UInt32_t CountSurface ) = 0;
+		virtual void										SubmitText( IText* Text ) = 0;
+		virtual void										SubmitSprite( ISprite* Sprite ) = 0;
+		virtual void										SubmitModel( IModel* Model ) = 0;
+		virtual void										SubmitModel( IModel* Model, UInt32_t StartSurface, UInt32_t CountSurface ) = 0;
         virtual void										SubmitLight( IPointLight* PointLight ) = 0;
         virtual void										SubmitLight( ISpotLight* SpotLight ) = 0;
         virtual void										SubmitLight( IDirectionalLight* DirectionalLight ) = 0;

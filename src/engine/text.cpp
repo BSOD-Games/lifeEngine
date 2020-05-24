@@ -54,7 +54,6 @@ le::Text::Text() :
 	material( nullptr ),
 	mesh( nullptr ),
 	materialParam_color( nullptr ),
-	materialParam_basetexture( nullptr ),
 	characterSize( 45 ),
 	lineSpacingFactor( 1.f ),
 	letterSpacingFactor( 1.f ),
@@ -108,14 +107,13 @@ void le::Text::Delete()
         if ( material->GetCountReferences() <= 1 )      material->Release();
         else                                            material->DecrementReference();
 
-        if ( materialParam_basetexture->GetCountReferences() <= 1 )     materialParam_basetexture->Release();
-        else                                                            materialParam_basetexture->DecrementReference();
+		if ( materialParam_color )
+		{
+			if ( materialParam_color->GetCountReferences() <= 1 )       materialParam_color->Release();
+			else                                                        materialParam_color->DecrementReference();
 
-        if ( materialParam_color->GetCountReferences() <= 1 )       materialParam_color->Release();
-        else                                                        materialParam_color->DecrementReference();
-
-		materialParam_basetexture = nullptr;
-		materialParam_color = nullptr;
+			materialParam_color = nullptr;
+		}
 	}
 }
 
@@ -136,9 +134,6 @@ void le::Text::UpdateGeometry()
 	Vector2D_t			font_textureSize;
 	if ( font_texture )
 	{
-        if ( materialParam_basetexture && materialParam_basetexture->GetValueTexture() != font_texture )
-            materialParam_basetexture->SetValueTexture( font_texture );
-
 		font_textureSize = Vector2D_t( font_texture->GetWidth(), font_texture->GetHeight() );
 		if( !isNeedUpdateGeometry && textureSize == font_textureSize )
 			return;
@@ -232,19 +227,13 @@ void le::Text::UpdateGeometry()
 		if ( !material )
 		{
 			material = new Material();
-			materialParam_basetexture = new ShaderParameter();
 			materialParam_color = new ShaderParameter();
-
-            materialParam_basetexture->IncrementReference();
-			materialParam_basetexture->SetName( "basetexture" );
-			materialParam_basetexture->SetValueTexture( font_texture );
 
             materialParam_color->IncrementReference();
 			materialParam_color->SetName( "color" );
 			materialParam_color->SetValueVector3D( color / 255.f );		
 
 			material->SetShader( "TextGeneric" );
-			material->AddParameter( materialParam_basetexture );
 			material->AddParameter( materialParam_color );
             material->IncrementReference();
 		}
@@ -286,6 +275,28 @@ void le::Text::UpdateGeometry()
 	}
 
 	isNeedUpdateGeometry = false;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set material
+// ------------------------------------------------------------------------------------ //
+void le::Text::SetMaterial( IMaterial* Material )
+{
+	if ( material )
+	{
+		if ( material->GetCountReferences() <= 1 )      material->Release();
+		else                                            material->DecrementReference();
+
+		if ( materialParam_color )
+		{
+			if ( materialParam_color->GetCountReferences() <= 1 )       materialParam_color->Release();
+			else                                                        materialParam_color->DecrementReference();
+		}
+
+		materialParam_color = nullptr;
+	}
+
+	material = Material;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -444,17 +455,6 @@ void le::Text::SetText( const char* Text )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set color
-// ------------------------------------------------------------------------------------ //
-void le::Text::SetColor( const Vector3D_t& Color )
-{
-	color = Color;
-
-	if ( materialParam_color )		
-		materialParam_color->SetValueVector3D( Color / 255.f );
-}
-
-// ------------------------------------------------------------------------------------ //
 // Set letter spacing factor
 // ------------------------------------------------------------------------------------ //
 void le::Text::SetLetterSpacingFactor( float LetterSpacingFactor )
@@ -478,6 +478,14 @@ void le::Text::SetLineSpacingFactor( float LineSpacingFactor )
 le::IFont* le::Text::GetFont() const
 {
     return font;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get material
+// ------------------------------------------------------------------------------------ //
+le::IMaterial* le::Text::GetMaterial() const
+{
+	return material;
 }
 
 // ------------------------------------------------------------------------------------ //

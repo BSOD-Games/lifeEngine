@@ -16,10 +16,6 @@
 
 //---------------------------------------------------------------------//
 
-typedef void*		physicsModel_t;
-
-//---------------------------------------------------------------------//
-
 /* Physics model create */
 extern physicsModel_t				PhysicsModel_Create();
 

@@ -14,7 +14,9 @@
 #include <vector>
 #include <unordered_map>
 
-#include "renderobject.h"
+#include "textrenderer.h"
+#include "spriterenderer.h"
+#include "staticmodelrenderer.h"
 #include "pointlight.h"
 #include "spotlight.h"
 #include "directionallight.h"
@@ -48,14 +50,17 @@ namespace le
 
 	struct SceneDescriptor
 	{
-		ICamera*							camera;
-		std::vector< RenderObject >			renderObjects;
-		std::vector< PointLight* >			pointLights;
-		std::vector< SpotLight* >			spotLights;
-		std::vector< DirectionalLight* >	directionalLights;
+		ICamera*											camera;
 
-		std::vector< Line >					debugLines;
-		std::vector< Point >                debugPoints;
+		std::vector< TextRenderer::RenderObject >			texts;
+		std::vector< SpriteRenderer::RenderObject >			sprites;
+		std::vector< StaticModelRenderer::RenderObject >	staticModels;
+		std::vector< PointLight* >							pointLights;
+		std::vector< SpotLight* >							spotLights;
+		std::vector< DirectionalLight* >					directionalLights;
+
+		std::vector< Line >									debugLines;
+		std::vector< Point >								debugPoints;
 	};
 
 	//---------------------------------------------------------------------//

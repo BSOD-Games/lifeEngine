@@ -28,8 +28,6 @@ typedef enum
 	SPT_MATRIX
 } shaderParameterType_t;
 
-typedef void*			shaderParameter_t;
-
 //---------------------------------------------------------------------//
 
 /* Create */

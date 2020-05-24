@@ -12,8 +12,10 @@
 
 #include "engine/lifeengine.h"
 #include "engine/iconsolesystem.h"
-#include "gpuprogram.h"
+
 #include "global.h"
+#include "gpuprogram.h"
+#include "openglstate.h"
 
 // ------------------------------------------------------------------------------------ //
 // Вставить дефайны в код шейдера
@@ -95,7 +97,7 @@ bool le::GPUProgram::Compile( const ShaderDescriptor& ShaderDescriptor, UInt32_t
 void le::GPUProgram::Bind()
 {
 	if ( programID == 0 ) return;
-	glUseProgram( programID );
+	OpenGLState::SetGPUProgram( this );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -104,7 +106,7 @@ void le::GPUProgram::Bind()
 void le::GPUProgram::Unbind()
 {
 	if ( programID == 0 ) return;
-	glUseProgram( 0 );
+	OpenGLState::SetGPUProgram( nullptr );
 }
 
 // ------------------------------------------------------------------------------------ //

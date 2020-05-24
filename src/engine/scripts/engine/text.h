@@ -16,11 +16,6 @@
 
 //---------------------------------------------------------------------//
 
-typedef void*			text_t;
-typedef void*			font_t;
-
-//---------------------------------------------------------------------//
-
 /* Create text */
 extern text_t					Text_Create();
 
@@ -36,8 +31,8 @@ extern void						Text_SetCharacterSize( text_t Object, uint32_t CharacterSize );
 /* Set text */
 extern void						Text_SetText( text_t Object, const char* Text );
 
-/* Set color */
-extern void						Text_SetColor( text_t Object, vec3f_t Color );
+/* Set material */
+extern void						Text_SetMaterial( text_t Object, material_t Material );
 
 /* Set letter spacing factor */
 extern void						Text_SetLetterSpacingFactor( text_t Object, float LetterSpacingFactor );
@@ -54,8 +49,8 @@ extern uint32_t					Text_GetCharacterSize( text_t Object );
 /* Get text */
 extern const char*				Text_GetText( text_t Object );
 
-/* Get color */
-extern vec3f_t					Text_GetColor( text_t Object );
+/* Get material */
+extern material_t				Text_GetMaterial( text_t Object );
 
 /* Get letter spacing factor */
 extern float					Text_GetLetterSpacingFactor( text_t Object );

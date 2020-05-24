@@ -59,7 +59,7 @@ bool le::LightmappedGeneric::Initialize( UInt32_t CountParams, IShaderParameter*
 // ------------------------------------------------------------------------------------ //
 // Event: draw mesh
 // ------------------------------------------------------------------------------------ //
-void le::LightmappedGeneric::OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+void le::LightmappedGeneric::OnDrawStaticModel( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
 {
 	if ( !gpuProgram ) return;
 

@@ -24,6 +24,9 @@
 #include "studiorender/quad.h"
 #include "studiorender/sphere.h"
 #include "studiorender/cone.h"
+#include "studiorender/textrenderer.h"
+#include "studiorender/spriterenderer.h"
+#include "studiorender/staticmodelrenderer.h"
 #include "studiorender/studiorenderdeviceconfigurations.h"
 
 #include "shaders/shader_lighting.h"
@@ -51,8 +54,10 @@ namespace le
 		virtual void											BeginScene( ICamera* Camera );
 		virtual void											SubmitDebugLine( const Vector3D_t& From, const Vector3D_t& To, const Vector3D_t& Color );
 		virtual void											SubmitDebugPoint( const Vector3D_t& Position, const Vector3D_t& Color );
-		virtual void											SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation );
-		virtual void											SubmitMesh( IMesh* Mesh, const Matrix4x4_t& Transformation, UInt32_t StartSurface, UInt32_t CountSurface );
+		virtual void											SubmitText( IText* Text );
+		virtual void											SubmitSprite( ISprite* Sprite );
+		virtual void											SubmitModel( IModel* Model );
+		virtual void											SubmitModel( IModel* Model, UInt32_t StartSurface, UInt32_t CountSurface );
 		virtual void											SubmitLight( IPointLight* PointLight );
 		virtual void											SubmitLight( ISpotLight* SpotLight );
 		virtual void											SubmitLight( IDirectionalLight* DirectionalLight );
@@ -89,6 +94,9 @@ namespace le
 		ShaderLighting						shaderLighting;
 		ShaderPostprocess					shaderPostrocess;
 		ShaderDebugPrimitives				shaderDebugPrimitives;
+		TextRenderer						textRenderer;
+		SpriteRenderer						spriteRenderer;
+		StaticModelRenderer					staticModelRenderer;
 
 		VertexArrayObject					vao_DebugPrimitive;
 		VertexBufferObject					vbo_DebugPrimitive;

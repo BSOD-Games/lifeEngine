@@ -603,7 +603,7 @@ void le::Level::Render()
 				if ( !facesDraw.On( faceIndex ) )
 				{
 					facesDraw.Set( faceIndex );
-					g_studioRender->SubmitMesh( mesh, Matrix4x4_t( 1.f ), faceIndex, 1 );
+					g_studioRender->SubmitModel( ( IModel* ) arrayModels[ 0 ], faceIndex, 1 );
 				}
 			}
 		}

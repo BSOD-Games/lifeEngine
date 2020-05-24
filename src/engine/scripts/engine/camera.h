@@ -25,8 +25,6 @@ typedef enum
 	CSM_RIGHT			= 1 << 3
 } cameraSideMove_t;
 
-typedef void*				camera_t;
-
 //---------------------------------------------------------------------//
 
 /* Create */

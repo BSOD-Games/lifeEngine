@@ -68,12 +68,21 @@ void scripts_api::Text_SetText( text_t Object, const char* Text )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set color
+// Set material
 // ------------------------------------------------------------------------------------ //
-void scripts_api::Text_SetColor( text_t Object, vec3f_t Color )
+void scripts_api::Text_SetMaterial( text_t Object, material_t Material )
 {
 	if ( !Object ) return;
-	TEXT( Object )->SetColor( { Color.x, Color.y, Color.z } );
+	TEXT( Object )->SetMaterial( ( le::IMaterial* ) Material );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get material
+// ------------------------------------------------------------------------------------ //
+scripts_api::material_t scripts_api::Text_GetMaterial( text_t Object )
+{
+	if ( !Object ) return nullptr;
+	return TEXT( Object )->GetMaterial();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -119,17 +128,6 @@ const char* scripts_api::Text_GetText( text_t Object )
 {
 	if ( !Object ) return "";
 	return TEXT( Object )->GetText();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Gett color
-// ------------------------------------------------------------------------------------ //
-scripts_api::vec3f_t scripts_api::Text_GetColor( text_t Object )
-{
-	if ( !Object ) return { 0.f, 0.f, 0.f };
-
-	const le::Vector3D_t&		vec3 = TEXT( Object )->GetColor();
-	return { vec3.x, vec3.y, vec3.z };
 }
 
 // ------------------------------------------------------------------------------------ //

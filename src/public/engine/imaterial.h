@@ -43,7 +43,6 @@ namespace le
 		virtual void                        EnableBlend( bool Enable = true ) = 0;
 		virtual void                        EnableCullFace( bool Enable = true ) = 0;
 		virtual IShaderParameter*           FindParameter( const char* Name ) const = 0;
-		virtual void						OnBind( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr ) = 0;
 
 		virtual void                        SetShader( const char* Name ) = 0;
 		virtual void                        SetCullFaceType( CULLFACE_TYPE CullFaceType ) = 0;

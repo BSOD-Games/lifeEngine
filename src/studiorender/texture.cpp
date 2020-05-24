@@ -16,6 +16,7 @@
 
 #include "global.h"
 #include "texture.h"
+#include "openglstate.h"
 
 struct OpenGLImageFormat
 {
@@ -110,10 +111,9 @@ void le::Texture::Delete()
 // ------------------------------------------------------------------------------------ //
 void le::Texture::Bind( UInt32_t Layer )
 {
-	LIFEENGINE_ASSERT( handle );
-	
-	glActiveTexture( GL_TEXTURE0 + Layer );
-	glBindTexture( GL_TEXTURE_2D, handle );	
+	if ( handle == 0 ) return;
+
+	OpenGLState::SetTexture( this, Layer );
 	layer = Layer;
 }
 
@@ -122,10 +122,9 @@ void le::Texture::Bind( UInt32_t Layer )
 // ------------------------------------------------------------------------------------ //
 void le::Texture::Unbind()
 {
-	LIFEENGINE_ASSERT( handle );
+	if ( handle == 0 ) return;
 
-	glActiveTexture( GL_TEXTURE0 + layer );
-	glBindTexture( GL_TEXTURE_2D, 0 );
+	OpenGLState::SetTexture( nullptr, layer );
 	layer = 0;
 }
 

@@ -10,10 +10,50 @@
 
 #include "engine/ifactory.h"
 #include "engine/resourcesystem.h"
+#include "engine/consolesystem.h"
 #include "studiorender/igpuprogram.h"
 
 #include "global.h"
 #include "baseshader.h"
+
+// ------------------------------------------------------------------------------------ //
+// Event: draw text
+// ------------------------------------------------------------------------------------ //
+void le::BaseShader::OnDrawText( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Glyph )
+{
+	static bool			isPrintedWarning = false;
+	if ( !isPrintedWarning )
+	{
+		g_consoleSystem->PrintWarning( "BaseShader::OnDrawText not implemented for shader [%s]", GetName() );
+		isPrintedWarning = true;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: draw sprite
+// ------------------------------------------------------------------------------------ //
+void le::BaseShader::OnDrawSprite( const Matrix4x4_t& Transformation, ICamera* Camera )
+{
+	static bool			isPrintedWarning = false;
+	if ( !isPrintedWarning )
+	{
+		g_consoleSystem->PrintWarning( "BaseShader::OnDrawSprite not implemented for shader [%s]", GetName() );
+		isPrintedWarning = true;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: draw static model
+// ------------------------------------------------------------------------------------ //
+void le::BaseShader::OnDrawStaticModel( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+{
+	static bool			isPrintedWarning = false;
+	if ( !isPrintedWarning )
+	{
+		g_consoleSystem->PrintWarning( "BaseShader::OnDrawStaticModel not implemented for shader [%s]", GetName() );
+		isPrintedWarning = true;
+	}
+}
 
 // ------------------------------------------------------------------------------------ //
 // Конструктор

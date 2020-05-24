@@ -31,6 +31,11 @@ namespace le
 	class BaseShader : public IShader
 	{
 	public:
+		// IShader
+		virtual void				OnDrawText( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Glyph = nullptr );
+		virtual void				OnDrawSprite( const Matrix4x4_t& Transformation, ICamera* Camera );
+		virtual void				OnDrawStaticModel( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr );
+
 		// BaseShader
 		BaseShader();
 		virtual ~BaseShader();

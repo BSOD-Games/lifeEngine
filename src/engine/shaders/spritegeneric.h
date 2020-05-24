@@ -36,7 +36,8 @@ namespace le
 
 		// IShader
 		virtual bool				Initialize( UInt32_t CountParams, IShaderParameter** ShaderParameters );
-		virtual void				OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr );
+		virtual void				OnDrawSprite( const Matrix4x4_t& Transformation, ICamera* Camera );
+		virtual void				OnDrawStaticModel( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr );
 
 		virtual bool				IsEuqal( IShader* Shader ) const;
 		virtual const char*			GetName() const;

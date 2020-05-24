@@ -24,7 +24,7 @@ namespace le
 	public:
 		// IShader
 		virtual bool				Initialize( UInt32_t CountParams, IShaderParameter** ShaderParameters );
-		virtual void				OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr );
+		virtual void				OnDrawText( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Glyph = nullptr );
 
 		virtual bool				IsEuqal( IShader* Shader ) const;
 		virtual const char*			GetName() const;
@@ -37,7 +37,6 @@ namespace le
 		void						ClearParameters();
 
 	private:
-		ITexture*			baseTexture;
 		Vector3D_t			color;
 	};
 

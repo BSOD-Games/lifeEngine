@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "engine/sprite.h"
-#include "material.h"
+#include "engine/material.h"
 
 namespace scripts_api
 {

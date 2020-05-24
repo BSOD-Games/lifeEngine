@@ -87,9 +87,9 @@ bool le::SpriteGeneric::Initialize( UInt32_t CountParams, IShaderParameter** Sha
 }
 
 // ------------------------------------------------------------------------------------ //
-// Event: draw mesh
+// Event: draw sprite
 // ------------------------------------------------------------------------------------ //
-void le::SpriteGeneric::OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+void le::SpriteGeneric::OnDrawSprite( const Matrix4x4_t& Transformation, ICamera* Camera )
 {
 	if ( !gpuProgram ) return;
 
@@ -101,6 +101,13 @@ void le::SpriteGeneric::OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* 
 	gpuProgram->SetUniform( "textureRect", textureRect );
 	gpuProgram->SetUniform( "matrix_Projection", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
+}
+// ------------------------------------------------------------------------------------ //
+// Event: draw static model
+// ------------------------------------------------------------------------------------ //
+void le::SpriteGeneric::OnDrawStaticModel( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap )
+{
+	OnDrawSprite( Transformation, Camera );
 }
 
 // ------------------------------------------------------------------------------------ //
