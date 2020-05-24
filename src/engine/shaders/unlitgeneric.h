@@ -38,6 +38,7 @@ namespace le
 		virtual bool				Initialize( UInt32_t CountParams, IShaderParameter** ShaderParameters );
 		virtual void				OnDrawMesh( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr );
 
+		virtual bool				IsEuqal( IShader* Shader ) const;
 		virtual const char*			GetName() const;
 		virtual const char*			GetFallbackShader() const;
 
@@ -48,6 +49,7 @@ namespace le
 		void						ClearParameters();
 
 	private:
+		UInt32_t			flags;
 		ITexture*			baseTexture;
 		ITexture*			normalMap;
 		ITexture*			specularMap;

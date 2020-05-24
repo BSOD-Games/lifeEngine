@@ -29,7 +29,7 @@
 bool le::SpriteGeneric::Initialize( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
 	std::vector< const char* >			defines;
-	UInt32_t							flags = SF_NONE;
+	flags = SF_NONE;
 
 	for ( UInt32_t index = 0; index < CountParams; ++index )
 	{
@@ -123,6 +123,7 @@ const char* le::SpriteGeneric::GetFallbackShader() const
 // Constructor
 // ------------------------------------------------------------------------------------ //
 le::SpriteGeneric::SpriteGeneric() :
+	flags( SF_NONE ),
 	baseTexture( nullptr ),
 	normalMap( nullptr ),
 	specularMap( nullptr ),
@@ -171,4 +172,19 @@ void le::SpriteGeneric::ClearParameters()
 
 		specularMap = nullptr;
 	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Is equal
+// ------------------------------------------------------------------------------------ //
+bool le::SpriteGeneric::IsEuqal( IShader* Shader ) const
+{
+	SpriteGeneric*			shader = ( SpriteGeneric* ) Shader;
+
+	return
+		strcmp( GetName(), Shader->GetName() ) == 0 &&
+		flags == shader->flags &&
+		baseTexture == shader->baseTexture &&
+		normalMap == shader->normalMap &&
+		specularMap == shader->specularMap;
 }

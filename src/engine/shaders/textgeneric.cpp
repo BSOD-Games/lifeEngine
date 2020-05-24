@@ -129,3 +129,15 @@ void le::TextGeneric::ClearParameters()
 
 	color = Vector3D_t( 1.f, 1.f, 1.f );
 }
+
+// ------------------------------------------------------------------------------------ //
+// Is equal
+// ------------------------------------------------------------------------------------ //
+bool le::TextGeneric::IsEuqal( IShader* Shader ) const
+{
+	TextGeneric*			shader = ( TextGeneric* ) Shader;
+
+	return
+		strcmp( GetName(), Shader->GetName() ) == 0 &&
+		baseTexture == shader->baseTexture;
+}

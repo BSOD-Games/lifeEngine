@@ -117,3 +117,15 @@ void le::LightmappedGeneric::ClearParameters()
 		baseTexture = nullptr;
 	}
 }
+
+// ------------------------------------------------------------------------------------ //
+// Is equal
+// ------------------------------------------------------------------------------------ //
+bool le::LightmappedGeneric::IsEuqal( IShader* Shader ) const
+{
+	LightmappedGeneric*			shader = ( LightmappedGeneric* ) Shader;
+
+	return
+		strcmp( GetName(), Shader->GetName() ) == 0 &&
+		baseTexture == shader->baseTexture;
+}

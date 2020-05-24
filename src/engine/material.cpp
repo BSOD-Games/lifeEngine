@@ -269,7 +269,7 @@ const char* le::Material::GetSurfaceName() const
 // Constructor
 // ------------------------------------------------------------------------------------ //
 le::Material::Material() :
-    surface( "unknow" ),
+	surface( "unknow" ),
 	isNeadUpdateShader( true ),
 	isNeadUpdateMaterialProxy( false ),
 	isDepthTest( true ),
@@ -278,7 +278,7 @@ le::Material::Material() :
 	isCullFace( true ),
 	cullFaceType( CT_BACK ),
 	shader( nullptr ),
-    countReferences( 0 )
+	countReferences( 0 )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -323,7 +323,7 @@ bool le::Material::UpdateShader()
 // ------------------------------------------------------------------------------------ //
 void le::Material::IncrementReference()
 {
-    ++countReferences;
+	++countReferences;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -331,7 +331,7 @@ void le::Material::IncrementReference()
 // ------------------------------------------------------------------------------------ //
 void le::Material::DecrementReference()
 {
-    --countReferences;
+	--countReferences;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -339,7 +339,7 @@ void le::Material::DecrementReference()
 // ------------------------------------------------------------------------------------ //
 void le::Material::Release()
 {
-    delete this;
+	delete this;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -347,7 +347,7 @@ void le::Material::Release()
 // ------------------------------------------------------------------------------------ //
 le::UInt32_t le::Material::GetCountReferences() const
 {
-    return countReferences;
+	return countReferences;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -405,4 +405,19 @@ void le::Material::RemoveProxy( UInt32_t Index )
 		proxy->DecrementReference();
 
 	materialProxes.erase( materialProxes.begin() + Index );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Is equal
+// ------------------------------------------------------------------------------------ //
+bool le::Material::IsEuqal( IMaterial* Material ) const
+{
+	le::Material*			material = ( le::Material* ) Material;
+
+	return ( ( !shader && !material->shader ) || ( shader && material->shader && shader->IsEuqal( material->shader ) ) ) &&
+		isDepthTest == material->isDepthTest &&
+		isDepthWrite == material->isDepthWrite &&
+		isBlend == material->isBlend &&
+		isCullFace == material->isCullFace &&
+		cullFaceType == material->cullFaceType;
 }

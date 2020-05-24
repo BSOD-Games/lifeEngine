@@ -9,6 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <GL/glew.h>
+#include <algorithm>
 
 #include "common/configurations.h"
 #include "engine/lifeengine.h"
@@ -317,7 +318,24 @@ void le::StudioRender::Begin()
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::End()
 {
-	// TODO: Добавить сортировку по материалам
+	for ( UInt32_t indexScene = 0, countScenes = scenes.size(); indexScene < countScenes; ++indexScene )
+	{
+		SceneDescriptor&				sceneDescriptor = scenes[ indexScene ];
+		std::sort( sceneDescriptor.renderObjects.begin(), sceneDescriptor.renderObjects.end(),
+				   []( const RenderObject& Left, const RenderObject& Right ) -> bool
+				   {
+					   if ( Left.material->IsEuqal( Right.material ) )
+					   {
+						   if ( Left.lightmap == Right.lightmap )
+							   return Left.vertexArrayObject < Right.vertexArrayObject;
+
+						   return Left.lightmap < Right.lightmap;
+					   }
+					   
+					   // WARNING: This is mayby not working when material is created in code
+					   return Left.material < Right.material;
+				   } );
+	}
 }
 
 // ------------------------------------------------------------------------------------ //

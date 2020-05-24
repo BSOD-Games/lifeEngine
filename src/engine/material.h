@@ -54,6 +54,7 @@ namespace le
 		virtual bool                        IsDepthWrite() const;
 		virtual bool                        IsBlend() const;
 		virtual bool                        IsCullFace() const;
+		virtual bool						IsEuqal( IMaterial* Material ) const;
 		virtual CULLFACE_TYPE               GetCullFaceType() const;
 		virtual const char*					GetNameShader() const;
 		virtual UInt32_t                    GetCountParameters() const;
