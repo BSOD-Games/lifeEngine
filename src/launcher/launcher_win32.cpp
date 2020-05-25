@@ -17,6 +17,8 @@
 #include "engine/lifeengine.h"
 #include "engine/iengineinternal.h"
 #include "engine/iwindowinternal.h"
+#include "engine/iconsolesystem.h"
+#include "engine/iconvar.h"
 #include "studiorender/istudiorenderinternal.h"
 
 #define DEFAULT_GAME		"episodic"
@@ -63,12 +65,7 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
         le::IEngineInternal*		engine = ( le::IEngineInternal* ) LE_CreateEngine();
 
         {
-            // Загружаем конфигурации движка, если нет - сохраняем
-            if ( !engine->LoadConfig( "config.cfg" ) )
-                engine->SaveConfig( "config.cfg" );
-
             std::string                 gameDir = DEFAULT_GAME;
-            le::Configurations          configurations = engine->GetConfigurations();
 
             // Cчитываем аргументы запуска лаунчера
             int				argc;
@@ -83,38 +80,26 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
                 wcstombs( argv[ index ], argList[ index ], size );
             }
 
-            // Парсим аргументы запуска и меняем конфигурации
-            for ( int index = 0; index < argc; ++index )
-            {
-                if ( ( strstr( argv[ index ], "-game" ) || strstr( argv[ index ], "-g" ) ) && index + 1 < argc )
-                {
-                    gameDir = argv[ index + 1 ];
-                    ++index;
-                }
-                else if ( ( strstr( argv[ index ], "-width" ) || strstr( argv[ index ], "-w" ) ) && index + 1 < argc )
-                {
-                    configurations.windowWidth = atoi( argv[ index + 1 ] );
-                    ++index;
-                }
-                else if ( ( strstr( argv[ index ], "-height" ) || strstr( argv[ index ], "-h" ) ) && index + 1 < argc )
-                {
-                    configurations.windowHeight = atoi( argv[ index + 1 ] );
-                    ++index;
-                }
-            }
-
-            engine->SetConfig( configurations );
-
             // Инициализируем движок для запуска игры
             if ( !engine->Initialize( "engine", "console.log" ) )
                 throw std::runtime_error( "The engine is not initialized. See the logs for details" );
 
+			le::Configurations			configurations = engine->GetConfigurations();
+
+			// Parsing arguments start
+			for ( int index = 0; index < argc; ++index )
+				if ( ( strstr( argv[ index ], "-game" ) || strstr( argv[ index ], "-g" ) ) && index + 1 < argc )
+				{
+					gameDir = argv[ index + 1 ];
+					break;
+				}
+
             // Create window and context render
             le::IWindowInternal*			window = ( le::IWindowInternal* ) engine->GetWindow();
-            if ( !window->Create( "lifeEngine " LIFEENGINE_VERSION, configurations.windowWidth, configurations.windowHeight, configurations.isFullscreen ? le::SW_FULLSCREEN : le::SW_DEFAULT ) )
+            if ( !window->Create( "lifeEngine " LIFEENGINE_VERSION, configurations.windowWidth->GetValueInt(), configurations.windowHeight->GetValueInt(), configurations.windowFullscreen->GetValueBool() ? le::SW_FULLSCREEN : le::SW_DEFAULT ) )
                 throw std::runtime_error( "Fail creating window" );
 
-            if ( !static_cast<le::IStudioRenderInternal*>( engine->GetStudioRender() )->CreateContext( window->GetHandle(), configurations.windowWidth, configurations.windowHeight ) )
+            if ( !static_cast<le::IStudioRenderInternal*>( engine->GetStudioRender() )->CreateContext( window->GetHandle(), configurations.windowWidth->GetValueInt(), configurations.windowHeight->GetValueInt() ) )
                 throw std::runtime_error( "Fail creating context render" );
 
             // Загружаем игру

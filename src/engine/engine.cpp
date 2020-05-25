@@ -36,6 +36,41 @@
 
 LIFEENGINE_ENGINE_API( le::Engine );
 
+namespace le
+{
+	// ------------------------------------------------------------------------------------ //
+	// Callback: window resize
+	// ------------------------------------------------------------------------------------ //
+	void ChangeCallback_WindowResize( IConVar* ConVar )
+	{
+		if ( !g_engine->studioRender ) return;
+
+		g_engine->window.SetSize( g_engine->cvar_windowWidth->GetValueInt(), g_engine->cvar_windowHeight->GetValueInt() );
+		
+		StudioRenderViewport		viewport = g_engine->studioRender->GetViewport();
+		viewport.width = ( UInt32_t ) g_engine->cvar_windowWidth->GetValueInt();
+		viewport.height = ( UInt32_t ) g_engine->cvar_windowHeight->GetValueInt();
+		g_engine->studioRender->SetViewport( viewport );
+	}
+
+	// ------------------------------------------------------------------------------------ //
+	// Callback: window fullscreen
+	// ------------------------------------------------------------------------------------ //
+	void ChangeCallback_WindowFullscreen( IConVar* ConVar )
+	{
+		g_engine->window.SetFullscreen( ConVar->GetValueBool() );
+	}
+
+	// ------------------------------------------------------------------------------------ //
+	// Callback: enable vsinc
+	// ------------------------------------------------------------------------------------ //
+	void ChangeCallback_EnableVSinc( IConVar* ConVar )
+	{
+		if ( !g_engine->studioRender ) return;
+		g_engine->studioRender->SetVerticalSyncEnabled( ConVar->GetValueBool() );
+	}
+}
+
 // ------------------------------------------------------------------------------------ //
 // РљРѕРЅСЃРѕР»СЊРЅР°СЏ РєРѕРјР°РЅРґР° РІС‹С…РѕРґР°
 // ------------------------------------------------------------------------------------ //
@@ -70,6 +105,11 @@ le::Engine::Engine() :
 	cmd_Exit( new ConCmd() ),
 	cmd_Version( new ConCmd() ),
 	cvar_phyDebug( new ConVar() ),
+	cvar_windowWidth( new ConVar() ),
+	cvar_windowHeight( new ConVar() ),
+	cvar_windowFullscreen( new ConVar() ),
+	cvar_mouseSensitivity( new ConVar() ),
+	cvar_rvsinc( new ConVar() ),
 	deltaTime( 0.f )
 {
 	LIFEENGINE_ASSERT( !g_engine );
@@ -82,13 +122,6 @@ le::Engine::Engine() :
 	g_engine = this;
 	g_engineFactory = &engineFactory;
 	g_materialSystem = &materialSystem;
-
-	configurations.fov = 75.f;
-	configurations.isFullscreen = false;
-	configurations.isVerticalSinc = false;
-	configurations.sensitivityMouse = 0.15f;
-	configurations.windowWidth = 800;
-	configurations.windowHeight = 600;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -392,107 +425,6 @@ void le::Engine::UnloadModule_Game()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Р—Р°РіСЂСѓР·РёС‚СЊ РєРѕРЅС„РёРі
-// ------------------------------------------------------------------------------------ //
-bool le::Engine::LoadConfig( const char* FilePath )
-{
-	consoleSystem.PrintInfo( "Loading file configurations [%s]", FilePath );
-
-	std::ifstream		file( FilePath );
-	if ( !file.is_open() )
-	{
-		consoleSystem.PrintError( "File configurations [%s] not found", FilePath );
-		return false;
-	}
-
-	std::string					stringBuffer;
-	std::getline( file, stringBuffer, '\0' );
-
-	rapidjson::Document			document;
-	document.Parse( stringBuffer.c_str() );
-	if ( document.HasParseError() )
-	{
-		consoleSystem.PrintError( "Fail parse file configurations [%s]", FilePath );
-		return false;
-	}
-
-	for ( auto it = document.MemberBegin(), itEnd = document.MemberEnd(); it != itEnd; ++it )
-	{
-		if ( !it->value.IsObject() ) continue;
-
-		for ( auto itObject = it->value.MemberBegin(), itObjectEnd = it->value.MemberEnd(); itObject != itObjectEnd; ++itObject )
-		{
-			// РћР±С‰РёРё РїР°СЂР°РјРµС‚СЂС‹
-			if ( strcmp( it->name.GetString(), "general" ) == 0 )
-			{
-				// РЁРёСЂРёРЅР° РѕРєРЅР°
-				if ( strcmp( itObject->name.GetString(), "width" ) == 0 && itObject->value.IsNumber() )
-					configurations.windowWidth = itObject->value.GetInt();
-
-				// Р’С‹СЃРѕС‚Р° РѕРєРЅР°
-				else if ( strcmp( itObject->name.GetString(), "height" ) == 0 && itObject->value.IsNumber() )
-					configurations.windowHeight = itObject->value.GetInt();
-
-				// РџРѕР»РЅРѕСЌРєСЂР°РЅС‹Р№ Р»Рё СЂРµР¶РёРј
-				else if ( strcmp( itObject->name.GetString(), "fullscreen" ) == 0 && itObject->value.IsBool() )
-					configurations.isFullscreen = itObject->value.GetBool();
-
-				// Р§СѓРІСЃС‚РІРёС‚РµР»СЊРЅРѕСЃС‚СЊ РјС‹С€РєРё
-				else if ( strcmp( itObject->name.GetString(), "sensitivityMouse" ) == 0 && itObject->value.IsNumber() )
-					configurations.sensitivityMouse = itObject->value.GetFloat();
-			}
-
-			// РџР°СЂР°РјРµС‚СЂС‹ СЂРµРЅРґРµСЂР°
-			else if ( strcmp( it->name.GetString(), "studiorender" ) == 0 )
-			{
-				// Р’РєР»СЋС‡РµРЅР° Р»Рё РІРµСЂС‚РёРєР°Р»СЊРЅР°СЏ СЃРёРЅС…СЂРѕРЅРёР·Р°С†РёСЏ
-				if ( strcmp( itObject->name.GetString(), "vsinc" ) == 0 && itObject->value.IsBool() )
-					configurations.isVerticalSinc = itObject->value.GetBool();
-
-				// Р’РєР»СЋС‡РµРЅР° Р»Рё РІРµСЂС‚РёРєР°Р»СЊРЅР°СЏ СЃРёРЅС…СЂРѕРЅРёР·Р°С†РёСЏ
-				else if ( strcmp( itObject->name.GetString(), "fov" ) == 0 && itObject->value.IsNumber() )
-					configurations.fov = itObject->value.GetFloat();
-			}
-		}
-	}
-
-	consoleSystem.PrintInfo( "Loaded file configurations [%s]", FilePath );
-	return true;
-}
-
-// ------------------------------------------------------------------------------------ //
-// РЎРѕС…СЂР°РЅРёС‚СЊ РєРѕРЅС„РёРі
-// ------------------------------------------------------------------------------------ //
-bool le::Engine::SaveConfig( const char* FilePath )
-{
-	consoleSystem.PrintInfo( "Saving file configurations [%s]", FilePath );
-	std::ofstream		file( FilePath );
-	if ( !file.is_open() )
-	{
-		consoleSystem.PrintError( "Fail saving file configurations [%s]. File not open" );
-		return false;
-	}
-
-	file <<
-			"{\n\
-			\"general\": {\n\
-			\"width\": " << configurations.windowWidth << ",\n\
-														  \"height\" : " << configurations.windowHeight << ",\n\
-																										   \"fullscreen\" : " << ( configurations.isFullscreen ? "true" : "false" ) << ",\n\
-																																													   \"sensitivityMouse\" : " << configurations.sensitivityMouse << "\n\
-},\n\
-			\n\
-			\"studiorender\": {\n\
-			 \"vsinc\" : " << ( configurations.isVerticalSinc ? "true" : "false" ) << ",\n\
-																					  \"fov\" : " << configurations.fov << "\n\
-}\n\
-}";
-
-							  consoleSystem.PrintInfo( "Saved file configurations [%s]", FilePath );
-	return true;
-}
-
-// ------------------------------------------------------------------------------------ //
 // Р—Р°РїСѓСЃС‚РёС‚СЊ СЃРёРјСѓР»СЏС†РёСЋ
 // ------------------------------------------------------------------------------------ //
 void le::Engine::RunSimulation()
@@ -599,14 +531,6 @@ void le::Engine::StopSimulation()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Р—Р°РґР°С‚СЊ РєРѕРЅС„РёРіСѓСЂР°С†РёРё РґРІРёР¶РєР°
-// ------------------------------------------------------------------------------------ //
-void le::Engine::SetConfig( const Configurations& Configurations )
-{
-	configurations = Configurations;
-}
-
-// ------------------------------------------------------------------------------------ //
 // Р—Р°РїСѓС‰РµРЅР° Р»Рё СЃРёРјСѓР»СЏС†РёСЏ
 // ------------------------------------------------------------------------------------ //
 bool le::Engine::IsRunSimulation() const
@@ -684,14 +608,6 @@ le::IWindow* le::Engine::GetWindow() const
 le::IFactory* le::Engine::GetFactory() const
 {
 	return ( IFactory* ) &engineFactory;
-}
-
-// ------------------------------------------------------------------------------------ //
-// РџРѕР»СѓС‡РёС‚СЊ РєРѕРЅС„РёРіСѓСЂР°С†РёРё РґРІРёР¶РєР°
-// ------------------------------------------------------------------------------------ //
-const le::Configurations& le::Engine::GetConfigurations() const
-{
-	return configurations;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -783,10 +699,21 @@ bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile )
 		cmd_Exit->Initialize( "exit", "close game", CMD_Exit );
 		cmd_Version->Initialize( "version", "show version engine", CMD_Version );
 		cvar_phyDebug->Initialize( "phy_debug", "0", CVT_BOOL, "bool value for showing physics debug info", true, 0.f, true, 1.f, nullptr );
+		cvar_windowWidth->Initialize( "window_width", "800", CVT_INT, "window width", ChangeCallback_WindowResize );
+		cvar_windowHeight->Initialize( "window_height", "600", CVT_INT, "window height", ChangeCallback_WindowResize );
+		cvar_windowFullscreen->Initialize( "window_fullscreen", "0", CVT_BOOL, "is fullscreen window", true, 0.f, true, 1.f, ChangeCallback_WindowFullscreen );
+		cvar_mouseSensitivity->Initialize( "mouse_sensitivity", "0.15", CVT_FLOAT, "mouse sensitivity", nullptr );
+		cvar_rvsinc->Initialize( "r_vsinc", "0", CVT_BOOL, "virtical sinchronize", true, 0.f, true, 1.f, ChangeCallback_EnableVSinc );
 
 		consoleSystem.RegisterCommand( cmd_Exit );
 		consoleSystem.RegisterCommand( cmd_Version );
+
 		consoleSystem.RegisterVar( cvar_phyDebug );
+		consoleSystem.RegisterVar( cvar_windowWidth );
+		consoleSystem.RegisterVar( cvar_windowHeight );
+		consoleSystem.RegisterVar( cvar_windowFullscreen );
+		consoleSystem.RegisterVar( cvar_mouseSensitivity );
+		consoleSystem.RegisterVar( cvar_rvsinc );
 	}
 	catch ( const std::exception& Exception )
 	{
@@ -869,4 +796,12 @@ float le::Engine::GetDeltaTime() const
 float le::Engine::GetFixedTimeStep() const
 {
 	return FIXED_TIME_UPDATE;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get configurations
+// ------------------------------------------------------------------------------------ //
+le::Configurations le::Engine::GetConfigurations() const
+{
+	return Configurations{ cvar_windowWidth, cvar_windowHeight, cvar_windowFullscreen, cvar_mouseSensitivity, cvar_rvsinc };
 }

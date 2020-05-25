@@ -48,15 +48,20 @@ namespace le
 		GBuffer();
 		~GBuffer();
 
-		bool			Initialize( const Vector2DInt_t& WindowSize );
-		void			Delete();
-		void			Bind( BIND_TYPE BindType );
-		void			Unbind();
-		void			ShowBuffers();
-		void			ShowFinalFrame();
-		void			CopyDepthBufferToDefaultBuffer();
+		bool							Initialize( const Vector2DInt_t& WindowSize );
+		void							Delete();
+		void							Bind( BIND_TYPE BindType );
+		void							Unbind();
+		void							ShowBuffers();
+		void							ShowFinalFrame();
+		void							CopyDepthBufferToDefaultBuffer();
+		void							Resize( const Vector2DInt_t& WindowSize );
 
-		bool			IsInitialize() const;
+		bool							IsInitialize() const;
+		inline const Vector2DInt_t&		GetSize() const
+		{
+			return windowSize;
+		}
 
 	private:
 		bool			isInitialize;

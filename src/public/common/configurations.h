@@ -19,16 +19,17 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
+	class IConVar;
+
+	//---------------------------------------------------------------------//
+
 	struct Configurations
 	{
-		bool		isFullscreen;
-		bool		isVerticalSinc;
-
-		float		fov;
-		float		sensitivityMouse;
-
-		UInt32_t	windowWidth;
-		UInt32_t	windowHeight;
+		IConVar*	windowWidth;
+		IConVar*	windowHeight;
+		IConVar*	windowFullscreen;
+		IConVar*	mouseSensitivity;
+		IConVar*	rvsinc;
 	};
 
 	//---------------------------------------------------------------------//

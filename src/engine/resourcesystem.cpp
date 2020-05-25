@@ -2092,3 +2092,20 @@ le::IGPUProgram* le::ResourceSystem::GetGPUProgram( const char* Name, UInt32_t F
 
 	return itShader->second;
 }
+
+// ------------------------------------------------------------------------------------ //
+// Get count paths
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::ResourceSystem::GetCountPaths() const
+{
+	return paths.size();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get path
+// ------------------------------------------------------------------------------------ //
+const char* le::ResourceSystem::GetPath( UInt32_t Index ) const
+{
+	if ( Index >= paths.size() )		return "";
+	return paths[ Index ].c_str();
+}

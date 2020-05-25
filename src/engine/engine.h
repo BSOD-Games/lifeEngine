@@ -70,13 +70,14 @@ namespace le
 	class Engine : public IEngineInternal
 	{
 	public:
-		// IEngine
-		virtual bool					LoadConfig( const char* FilePath );
-		virtual bool					SaveConfig( const char* FilePath );		
+
+		friend void					ChangeCallback_WindowResize( IConVar* ConVar );
+		friend void					ChangeCallback_WindowFullscreen( IConVar* ConVar );
+		friend void					ChangeCallback_EnableVSinc( IConVar* ConVar );
+
+		// IEngine	
 		virtual void					RunSimulation();
 		virtual void					StopSimulation();		
-
-		virtual void					SetConfig( const Configurations& Configurations );
 
 		virtual bool					IsRunSimulation() const;
 		virtual IConsoleSystem*			GetConsoleSystem() const;
@@ -90,9 +91,9 @@ namespace le
 		virtual IFactory*				GetFactory() const;
 		virtual float					GetDeltaTime() const;
 		virtual float					GetFixedTimeStep() const;
-		virtual const Configurations&	GetConfigurations() const;
         virtual const GameInfo&         GetGameInfo() const;
 		virtual const Version&			GetVersion() const;
+		virtual Configurations			GetConfigurations() const;
 
 		// IEngineInternal
 		virtual bool					Initialize( const char* EngineDirectory, const char* LogFile = "console.log" );
@@ -120,6 +121,11 @@ namespace le
 
 		IConCmd*						cmd_Exit;
 		IConCmd*						cmd_Version;
+		IConVar*						cvar_windowWidth;
+		IConVar*						cvar_windowHeight;
+		IConVar*						cvar_windowFullscreen;
+		IConVar*						cvar_mouseSensitivity;
+		IConVar*						cvar_rvsinc;
 		IConVar*						cvar_phyDebug;
 
 		IStudioRenderInternal*			studioRender;
@@ -140,7 +146,6 @@ namespace le
 		Window							window;
 		EngineFactory					engineFactory;
 		GameInfo						gameInfo;
-		Configurations					configurations;
 		std::string						engineDirectory;
 	};
 

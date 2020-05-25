@@ -234,7 +234,7 @@ bool le::Window::Create( const char* Title, int Width, int Heigt, STYLE_WINDOW S
 	if ( window ) Close();
 
 	UInt32_t			flags = SDL_WINDOW_SHOWN;
-	if ( Style & SW_FULLSCREEN )
+	if ( isFullscreen || Style & SW_FULLSCREEN )
 		flags |= SDL_WINDOW_FULLSCREEN;
 	else
 	{
@@ -271,6 +271,17 @@ bool le::Window::Create( const char* Title, int Width, int Heigt, STYLE_WINDOW S
 }
 
 // ------------------------------------------------------------------------------------ //
+// Set fullscreen
+// ------------------------------------------------------------------------------------ //
+void le::Window::SetFullscreen( bool IsFullscreen )
+{
+	if ( window ) 
+		SDL_SetWindowFullscreen( window, IsFullscreen ? SDL_WINDOW_FULLSCREEN : 0 );
+
+	isFullscreen = IsFullscreen;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Закрыть окно
 // ------------------------------------------------------------------------------------ //
 void le::Window::Close()
@@ -302,10 +313,19 @@ void le::Window::SetHandle( WindowHandle_t WindowHandle )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Is fullscreen
+// ------------------------------------------------------------------------------------ //
+bool le::Window::IsFullscreen() const
+{
+	return isFullscreen;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Конструктор
 // ------------------------------------------------------------------------------------ //
 le::Window::Window() :
 	isShowCursor( true ),
+	isFullscreen( false ),
 	windowID( 0 ),
 	window( nullptr ),
 	cursor( nullptr ),

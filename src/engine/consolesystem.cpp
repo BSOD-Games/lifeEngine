@@ -13,22 +13,25 @@
 #include <string.h>
 #include <sstream>
 #include <vector>
+#include <fstream>
 
 #include "engine/lifeengine.h"
 #include "engine.h"
+#include "resourcesystem.h"
 #include "convar.h"
 #include "concmd.h"
 #include "consolesystem.h"
 #include "global.h"
 
 le::ConCmd*     con_help = nullptr;
+le::ConCmd*		con_exec = nullptr;
 
 namespace le
 {
 	// ------------------------------------------------------------------------------------ //
 	// Консольная комманда помощи
 	// ------------------------------------------------------------------------------------ //
-	void CMD_Help( le::UInt32_t CountArguments, const char** Arguments )
+	void CMD_Help( UInt32_t CountArguments, const char** Arguments )
 	{
 		g_consoleSystem->PrintInfo( "** Console variables **" );
 
@@ -47,6 +50,37 @@ namespace le
 			g_consoleSystem->PrintInfo( "%s : %s", conCmd->GetName(), conCmd->GetHelpText() );
 		}
 	}
+
+	// ------------------------------------------------------------------------------------ //
+	// Консольная комманда выполнения списка команд из файла
+	// ------------------------------------------------------------------------------------ //
+	void CMD_Exec( UInt32_t CountArguments, const char** Arguments  )
+	{
+		if ( CountArguments < 1 )
+		{
+			g_consoleSystem->PrintError( "Usage: exec <path_to_file>" );
+			return;
+		}
+
+		UInt32_t		countPaths = g_resourceSystem->GetCountPaths();
+		std::string		pathFile = Arguments[ 0 ];
+		
+		for ( UInt32_t index = 0; index < countPaths; ++index )
+		{
+			std::string			pathDir = g_resourceSystem->GetPath( index );
+			std::ifstream		file( pathDir + "/" + pathFile );
+			if ( !file.is_open() )		continue;
+
+			std::string			lineFile;
+			while ( std::getline( file, lineFile ) )
+				g_consoleSystem->Exec( lineFile.c_str() );
+
+			g_consoleSystem->PrintInfo( "File execuded [%s], founded in [%s]", pathFile.c_str(), pathDir.c_str() );
+			return;
+		}
+
+		g_consoleSystem->PrintError( "File [%s] not founded", pathFile.c_str() );
+	}
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -58,7 +92,12 @@ void le::ConsoleSystem::Initialize( const char* LogFile )
 
 	con_help = new ConCmd();
 	con_help->Initialize( "help", "Show help variables and comands", CMD_Help );
+	
+	con_exec = new ConCmd();
+	con_exec->Initialize( "exec", "Execute file with commands", CMD_Exec );
+
 	RegisterCommand( con_help );
+	RegisterCommand( con_exec );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -340,4 +379,5 @@ le::ConsoleSystem::~ConsoleSystem()
 	}
 
 	con_help = nullptr;
+	con_exec = nullptr;
 }

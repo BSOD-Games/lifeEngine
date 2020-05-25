@@ -37,9 +37,11 @@ namespace le
 		virtual void				SetCursor( const Image& Image );
 		virtual void				SetSize( int Width, int Height );
 		virtual void				SetShowCursor( bool IsShow = true );
+		virtual void				SetFullscreen( bool IsFullscreen );
 
 		virtual bool				IsOpen() const;
 		virtual bool				IsShowingCursor() const;
+		virtual bool				IsFullscreen() const;
 		virtual void				GetSize( UInt32_t& Width, UInt32_t& Height ) const;
 		virtual WindowHandle_t		GetHandle() const;
 
@@ -58,6 +60,7 @@ namespace le
 
 	private:
 		bool				isShowCursor;
+		bool				isFullscreen;
 
 		UInt32_t			windowID;
 

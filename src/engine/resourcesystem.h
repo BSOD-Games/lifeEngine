@@ -96,6 +96,9 @@ namespace le
 		virtual void					RemovePath( UInt32_t Index );
 		virtual void					ClearPaths();
 
+		virtual UInt32_t				GetCountPaths() const;
+		virtual const char*				GetPath( UInt32_t Index ) const;
+
 		// ResourceSystem
 		ResourceSystem();
 		~ResourceSystem();

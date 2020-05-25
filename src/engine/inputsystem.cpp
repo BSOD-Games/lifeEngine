@@ -11,7 +11,9 @@
 #include "common/configurations.h"
 #include "engine/consolesystem.h"
 #include "engine/concmd.h"
+#include "engine/convar.h"
 #include "engine/window.h"
+
 #include "global.h"
 #include "engine.h"
 #include "inputsystem.h"
@@ -90,35 +92,6 @@ void le::InputSystem::ApplyEvent( const Event& Event )
 // ------------------------------------------------------------------------------------ //
 void le::InputSystem::Update()
 {
-	// Geting states all keys on keyboard
-	/*SDL_PumpEvents();
-
-	const UInt8_t*		keyboardState = SDL_GetKeyboardState( NULL );
-	for ( UInt32_t index = BC_KEY_FIRST, count = BC_KEY_FIRST+BC_KEY_COUNT; index < count; ++index )
-	{
-		SDL_Scancode		scancode = ButtonCode_ButtonCodeToScanCode( ( BUTTON_CODE ) index );
-		if ( keyboardState[ scancode ] )
-			buttonEvents[ index ] = BE_PRESSED;
-		else if ( buttonEvents[ index ] == BE_PRESSED )
-			buttonEvents[ index ] = BE_RELEASED;
-		else
-			buttonEvents[ index ] = BE_NONE;
-	}
-
-	// Geting states all buttons on mouse and her position
-	UInt32_t				buttonsMouseState = SDL_GetMouseState( &mousePosition.x, &mousePosition.y );
-	SDL_GetRelativeMouseState( &mouseOffset.x, &mouseOffset.y );
-
-	for ( UInt32_t index = BC_MOUSE_FIRST, count = BC_MOUSE_FIRST+BC_MOUSE_COUNT; index < count; ++index )
-	if ( buttonsMouseState & SDL_BUTTON( 1 + index - BC_MOUSE_FIRST ) )
-		buttonEvents[ index ] = BE_PRESSED;
-	else if ( buttonEvents[ index ] == BE_PRESSED )
-		buttonEvents[ index ] = BE_RELEASED;
-	else
-		buttonEvents[ index ] = BE_NONE;*/
-
-	// TODO: Get wheel state and entered text
-
 	for ( UInt32_t index = 0, count = binds.size(); index < count; ++index )
 	{
 		BindDescriptor&			bindDescriptor = binds[ index ];	
@@ -217,7 +190,7 @@ const le::Vector2DInt_t& le::InputSystem::GetMouseOffset() const
 // ------------------------------------------------------------------------------------ //
 float le::InputSystem::GetMouseSensitivity() const
 {
-	return g_engine->GetConfigurations().sensitivityMouse;
+	return g_engine->GetConfigurations().mouseSensitivity->GetValueFloat();
 }
 
 // ------------------------------------------------------------------------------------ //

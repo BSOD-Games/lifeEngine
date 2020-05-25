@@ -53,7 +53,7 @@ static le::IConVar*		r_showgbuffer = nullptr;
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::BeginScene( ICamera* Camera )
 {
-	LIFEENGINE_ASSERT( Camera );
+	if ( !Camera ) return;
 
 	currentScene = scenes.size();
 	scenes.push_back( SceneDescriptor() );
@@ -65,7 +65,7 @@ void le::StudioRender::BeginScene( ICamera* Camera )
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::SubmitLight( IPointLight* PointLight )
 {
-	LIFEENGINE_ASSERT( PointLight );
+	if ( !PointLight ) return;
 	scenes[ currentScene ].pointLights.push_back( ( le::PointLight* ) PointLight );
 }
 
@@ -74,7 +74,7 @@ void le::StudioRender::SubmitLight( IPointLight* PointLight )
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::SubmitLight( ISpotLight* SpotLight )
 {
-	LIFEENGINE_ASSERT( SpotLight );
+	if ( !SpotLight ) return;
 	scenes[ currentScene ].spotLights.push_back( ( le::SpotLight* ) SpotLight );
 }
 
@@ -83,7 +83,7 @@ void le::StudioRender::SubmitLight( ISpotLight* SpotLight )
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::SubmitLight( IDirectionalLight* DirectionalLight )
 {
-	LIFEENGINE_ASSERT( DirectionalLight );
+	if ( !DirectionalLight ) return;
 	scenes[ currentScene ].directionalLights.push_back( ( le::DirectionalLight* ) DirectionalLight );
 }
 
@@ -169,7 +169,7 @@ bool le::StudioRender::CreateContext( le::WindowHandle_t WindowHandle, UInt32_t 
 		return false;
 	}
 
-	renderContext.SetVerticalSync( configurations.isVerticalSinc );
+	renderContext.SetVerticalSync( configurations.rvsinc->GetValueBool() );
 
 	// Initialize OpenGL
 	glEnable( GL_TEXTURE_2D );
@@ -249,7 +249,7 @@ bool le::StudioRender::CreateContext( le::WindowHandle_t WindowHandle, UInt32_t 
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::Begin()
 {
-	LIFEENGINE_ASSERT( renderContext.IsCreated() );
+	if ( !renderContext.IsCreated() ) return;
 	glViewport( viewport.x, viewport.y, viewport.width, viewport.height );
 
 	currentScene = 0;
@@ -312,7 +312,7 @@ void le::StudioRender::End()
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::Present()
 {
-	LIFEENGINE_ASSERT( renderContext.IsCreated() );
+	if ( !renderContext.IsCreated() ) return;
 
 	// Геометрический проход Deffered Shading'a
 	glEnable( GL_POLYGON_OFFSET_FILL );
@@ -534,7 +534,7 @@ void le::StudioRender::Render_FinalPass()
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::SetVerticalSyncEnabled( bool IsEnabled )
 {
-	LIFEENGINE_ASSERT( renderContext.IsCreated() );
+	if ( !renderContext.IsCreated() ) return;
 	renderContext.SetVerticalSync( IsEnabled );
 }
 
@@ -543,7 +543,20 @@ void le::StudioRender::SetVerticalSyncEnabled( bool IsEnabled )
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::SetViewport( const StudioRenderViewport& Viewport )
 {
-	viewport = Viewport;
+	if ( gbuffer.IsInitialize() )		
+		gbuffer.Resize( Vector2DInt_t( Viewport.width, Viewport.height ) );
+	
+	viewport = Viewport;	
+	shaderLighting.SetType( ShaderLighting::LT_POINT );
+	shaderLighting.SetSizeViewport( Vector2D_t( viewport.width, viewport.height ) );
+
+	shaderLighting.SetType( ShaderLighting::LT_SPOT );
+	shaderLighting.SetSizeViewport( Vector2D_t( viewport.width, viewport.height ) );
+
+	shaderLighting.SetType( ShaderLighting::LT_DIRECTIONAL );
+	shaderLighting.SetSizeViewport( Vector2D_t( viewport.width, viewport.height ) );
+
+	shaderPostrocess.SetSizeViewport( Vector2D_t( viewport.width, viewport.height ) );
 }
 
 // ------------------------------------------------------------------------------------ //

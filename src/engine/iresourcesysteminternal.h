@@ -31,6 +31,9 @@ namespace le
 		virtual void			AddPath( const char* Path ) = 0;
 		virtual void			RemovePath( UInt32_t Index ) = 0;
 		virtual void			ClearPaths() = 0;
+
+		virtual UInt32_t		GetCountPaths() const = 0;
+		virtual const char*		GetPath( UInt32_t Index ) const = 0;
 	};
 
 	//---------------------------------------------------------------------//

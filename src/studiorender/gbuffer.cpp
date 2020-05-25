@@ -108,6 +108,32 @@ bool le::GBuffer::Initialize( const Vector2DInt_t& WindowSize )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Resize GBuffer
+// ------------------------------------------------------------------------------------ //
+void le::GBuffer::Resize( const Vector2DInt_t& WindowSize )
+{
+	if ( !isInitialize ) return;
+
+	albedoSpecular.Bind();
+	albedoSpecular.Resize( WindowSize.x, WindowSize.y );
+
+	normalShininess.Bind();
+	normalShininess.Resize( WindowSize.x, WindowSize.y );
+
+	emission.Bind();
+	emission.Resize( WindowSize.x, WindowSize.y );
+
+	finalFrame.Bind();
+	finalFrame.Resize( WindowSize.x, WindowSize.y );
+	
+	depth.Bind();
+	depth.Resize( WindowSize.x, WindowSize.y );
+	depth.Unbind();
+
+	windowSize = WindowSize;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Удалить графический буфер
 // ------------------------------------------------------------------------------------ //
 void le::GBuffer::Delete()
