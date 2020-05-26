@@ -25,5 +25,5 @@ void main()
     vec4	emissonColor = texture( emission, fragCoord );
     vec4	lightColor = texture( finalFrame, fragCoord );
 
-    color = emissonColor * vec4( albedoColor, 1.f ) + lightColor;
+    color = vec4( albedoColor, 1.f ) * ( emissonColor + lightColor );
 }

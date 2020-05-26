@@ -8,32 +8,35 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include <nodes/NodeData>
+#include <nodes/FlowScene>
+#include <nodes/FlowView>
+#include <nodes/ConnectionStyle>
+#include <nodes/TypeConverter>
+#include <qdebug.h>
+
 #include "engine/ifactory.h"
+#include "engine/iengine.h"
 #include "engine/icamera.h"
 #include "studiorender/imesh.h"
 
 #include "engineapi.h"
 #include "window_editor.h"
 #include "ui_window_editor.h"
-#include <nodes/NodeData>
-#include <nodes/FlowScene>
-#include <nodes/FlowView>
-#include <nodes/ConnectionStyle>
-#include <nodes/TypeConverter>
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
-using QtNodes::FlowScene;
-
-Window_Editor::Window_Editor( QWidget* Parent ) :
+Window_Editor::Window_Editor( const GameDescriptor& GameDescriptor, QWidget* Parent ) :
 	QMainWindow( Parent ),
 	ui( new Ui::Window_Editor() ),
 	camera( nullptr )
 {
-	
 	ui->setupUi( this );
 	ui->widget_preview->Initialize();
+
+	if ( !EngineAPI::GetInstance()->GetEngine()->LoadGame( GameDescriptor.path.toStdString().c_str() ) )
+		qCritical() << "Failed loading game";
 
 	camera = ( le::ICamera* ) EngineAPI::GetInstance()->GetEngine()->GetFactory()->Create( CAMERA_INTERFACE_VERSION );
 	LIFEENGINE_ASSERT( camera );
@@ -44,9 +47,7 @@ Window_Editor::Window_Editor( QWidget* Parent ) :
 
     // TODO:
 	// 1. Add loading sphere mesh and render
-	// 2. Add filling comboboxes: Techniques and Passes
 }
-
 // ------------------------------------------------------------------------------------ //
 // Destructor
 // ------------------------------------------------------------------------------------ //

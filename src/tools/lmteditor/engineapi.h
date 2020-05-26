@@ -16,8 +16,8 @@
 #include "engine/lifeengine.h"
 #include "engine/iengineinternal.h"
 #include "engine/iresourcesysteminternal.h"
+#include "engine/imaterialsysteminternal.h"
 #include "studiorender/istudiorenderinternal.h"
-#include "studiorender/istudiorenderinfo.h"
 #include "tsingleton.h"
 
 //---------------------------------------------------------------------//
@@ -38,7 +38,7 @@ public:
     inline le::IResourceSystemInternal* GetResourceSystem() const		{ return resourceSystem; }
     inline le::IConsoleSystem*			GetConsoleSystem() const		{ return consoleSystem; }
 	inline le::IStudioRenderInternal*	GetStudioRender() const			{ return studioRender; }
-	inline le::IStudioRenderInfo*		GetStudioRenderInfo() const		{ return studioRenderInfo; }
+	inline le::IMaterialSystemInternal*	GetMaterialSystem() const		{ return materialSystem; }
 	inline QString						GetErrorString() const			{ return errorString; }
 
 private:
@@ -49,7 +49,7 @@ private:
     le::IResourceSystemInternal*        resourceSystem;
     le::IConsoleSystem*                 consoleSystem;
 	le::IStudioRenderInternal*			studioRender;
-	le::IStudioRenderInfo*				studioRenderInfo;
+	le::IMaterialSystemInternal*		materialSystem;
 
 	le::LE_CreateEngineFn_t				LE_CreateEngine;
 	le::LE_SetCriticalErrorFn_t			LE_SetCriticalError;

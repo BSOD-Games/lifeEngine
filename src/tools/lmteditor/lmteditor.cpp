@@ -126,6 +126,7 @@ int main( int argc, char** argv )
 	}
 
     qInstallMessageHandler( Application_MessageOutput  );
+	GameDescriptor		gameDescriptor;
 	{
 		std::stringstream				strStream;
 		strStream << "LMTEditor " << LMTEDITOR_VERSION_MAJOR << "." << LMTEDITOR_VERSION_MINOR << "." << LMTEDITOR_VERSION_PATCH << " (build " << Application_ComputeBuildNumber( GOLD_DATE ) << ")";
@@ -153,10 +154,13 @@ int main( int argc, char** argv )
 		Window_SelectGame::RESULT_TYPE			result = ( Window_SelectGame::RESULT_TYPE ) window_SelectGame.exec();
 		if ( result == Window_SelectGame::RT_CANCEL )
 			return 0;
+
+		gameDescriptor = window_SelectGame.GetGame();
+		if ( gameDescriptor.path.isEmpty() )		Application_CriticalError( "Game not selected or path to game directory is empty" );
 	}
 
 	// Start editor
-	Window_Editor				window_Editor;
+	Window_Editor				window_Editor( gameDescriptor );
 	window_Editor.showMaximized();	
 	return application.exec();
 }

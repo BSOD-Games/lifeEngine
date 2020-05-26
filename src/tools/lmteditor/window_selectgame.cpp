@@ -40,6 +40,17 @@ Window_SelectGame::~Window_SelectGame()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Get game
+// ------------------------------------------------------------------------------------ //
+GameDescriptor Window_SelectGame::GetGame() const
+{
+	if ( ui->comboBox_games->count() == 0 )
+		return GameDescriptor();
+
+	return games[ ui->comboBox_games->currentIndex() ];
+}
+
+// ------------------------------------------------------------------------------------ //
 // Clicked on "Edit"
 // ------------------------------------------------------------------------------------ //
 void Window_SelectGame::on_pushButton_editGames_clicked()

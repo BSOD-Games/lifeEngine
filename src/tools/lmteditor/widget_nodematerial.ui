@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>126</width>
-    <height>70</height>
+    <width>180</width>
+    <height>154</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,18 +27,82 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QPushButton" name="pushButton_preview">
+    <widget class="QCheckBox" name="checkBox_depthTest">
      <property name="text">
-      <string>Preview</string>
+      <string>Depth test</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="pushButton_export">
+    <widget class="QCheckBox" name="checkBox_depthWrite">
      <property name="text">
-      <string>Export to LMT</string>
+      <string>Depth write</string>
      </property>
     </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="checkBox_blend">
+     <property name="text">
+      <string>Blend</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="checkBox_cullface">
+     <property name="text">
+      <string>Cullface</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label_cullfaceType">
+       <property name="text">
+        <string>Cullface type:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="comboBox_cullfaceType">
+       <item>
+        <property name="text">
+         <string>Back</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Front</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QPushButton" name="pushButton_preview">
+       <property name="text">
+        <string>Preview</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_export">
+       <property name="text">
+        <string>Export</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

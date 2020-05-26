@@ -48,7 +48,7 @@ unsigned int Node_Material::nPorts( QtNodes::PortType PortType ) const
 	switch ( PortType )
 	{
 	case QtNodes::PortType::In:
-		return 2;
+		return 3;
 
 	case QtNodes::PortType::Out:
 	default:	
@@ -67,7 +67,9 @@ QtNodes::NodeDataType Node_Material::dataType( QtNodes::PortType PortType, QtNod
 		if ( PortIndex == 0  )
 			return QtNodes::NodeDataType{ "surface", "Surface" };
 		else if ( PortIndex == 1 )
-			return QtNodes::NodeDataType{ "techiques", "Techiques" };
+			return QtNodes::NodeDataType{ "shader", "Shader" };
+		else if ( PortIndex == 2 )
+			return QtNodes::NodeDataType{ "proxies", "Proxies" };
 	
 	case QtNodes::PortType::Out:
 	default:

@@ -40,6 +40,8 @@ public:
 	Window_SelectGame( QWidget* Parent = nullptr );
 	~Window_SelectGame();
 
+	GameDescriptor			GetGame() const;
+
 private slots:
 	void				on_pushButton_editGames_clicked();
 	void				on_pushButton_ok_clicked();

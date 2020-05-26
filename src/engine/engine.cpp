@@ -481,8 +481,14 @@ void le::Engine::RunSimulation()
 				break;
 
 			case Event::ET_WINDOW_RESIZE:
-				studioRender->SetViewport( { 0, 0, ( UInt32_t ) event.events.windowResize.width, ( UInt32_t ) event.events.windowResize.height } );
+			{
+				StudioRenderViewport		viewport = studioRender->GetViewport();
+				viewport.width = ( UInt32_t ) event.events.windowResize.width;
+				viewport.height = ( UInt32_t ) event.events.windowResize.height;
+
+				studioRender->SetViewport( viewport );
 				break;
+			}
 
 			default: break;
 			}

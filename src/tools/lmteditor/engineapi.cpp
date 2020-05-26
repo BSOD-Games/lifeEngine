@@ -35,7 +35,6 @@ EngineAPI::EngineAPI() :
     resourceSystem( nullptr ),
     consoleSystem( nullptr ),
 	studioRender( nullptr ),
-	studioRenderInfo( nullptr ),
 	LE_CreateEngine( nullptr ),
 	LE_SetCriticalError( nullptr ),
 	LE_DeleteEngine( nullptr )
@@ -75,7 +74,7 @@ bool EngineAPI::Load()
         resourceSystem = ( le::IResourceSystemInternal* ) engine->GetResourceSystem();
         consoleSystem = engine->GetConsoleSystem();
 		studioRender = ( le::IStudioRenderInternal* ) engine->GetStudioRender();
-		studioRenderInfo = studioRender->GetStudioRenderInfo();
+		materialSystem = ( le::IMaterialSystemInternal* ) engine->GetMaterialSystem();
 	}
 	catch ( const std::exception& Exception)
 	{
@@ -101,7 +100,6 @@ void EngineAPI::Unload()
     resourceSystem = nullptr;
     consoleSystem = nullptr;
 	studioRender = nullptr;
-	studioRenderInfo = nullptr;
 	LE_CreateEngine = nullptr;
 	LE_SetCriticalError = nullptr;
     LE_DeleteEngine = nullptr;

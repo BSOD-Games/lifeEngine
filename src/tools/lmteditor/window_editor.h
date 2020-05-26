@@ -14,7 +14,9 @@
 #include <QMainWindow>
 
 #include "engine/icamera.h"
+
 #include "scene.h"
+#include "gamedescriptor.h"
 
 //---------------------------------------------------------------------//
 
@@ -31,7 +33,7 @@ class Window_Editor : public QMainWindow
 
 public:
 	// Window_Editor
-	Window_Editor( QWidget* Parent = nullptr );
+	Window_Editor( const GameDescriptor& GameDescriptor, QWidget* Parent = nullptr );
 	~Window_Editor();
 
 private:

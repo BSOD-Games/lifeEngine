@@ -17,9 +17,6 @@
 #include "node_base.h"
 #include "node_material.h"
 #include "node_surface.h"
-#include "node_techniques.h"
-#include "node_technique.h"
-#include "node_pass.h"
 #include "node_shader.h"
 #include "node_shaderparameter.h"
 #include "node_proxies.h"
@@ -34,9 +31,6 @@ std::shared_ptr<QtNodes::DataModelRegistry> Widget_GraphEditor::RegisterDataMode
 	auto			dataModels = std::make_shared< QtNodes::DataModelRegistry >();
 	dataModels->registerModel< Node_Material >( "General" );
 	dataModels->registerModel< Node_Surface >( "General" );
-	dataModels->registerModel< Node_Techniques >( "Render" );
-	dataModels->registerModel< Node_Technique >( "Render" );
-	dataModels->registerModel< Node_Pass >( "Render" );
 	dataModels->registerModel< Node_Shader >( "Render" );
 	dataModels->registerModel< Node_ShaderParameter >( "Values" );
 	dataModels->registerModel< Node_Proxies >( "Animations" );

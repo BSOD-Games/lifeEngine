@@ -89,10 +89,10 @@ void main()
 #endif 
 		
 #ifdef POINT_LIGHT 
-	color = ( vec4( fragColor.rgb, 1.f ) * light.color * light.intensivity + light.color * specularFactor * light.intensivity ) * attenuation * NdotL ; 
+	color = ( light.color * light.intensivity + light.color * specularFactor * light.intensivity ) * attenuation * NdotL ; 
 #elif defined( SPOT_LIGHT ) 
-	color = ( vec4( fragColor.rgb, 1.f ) * light.color * light.intensivity + light.color * specularFactor * light.intensivity ) * attenuation * spotFactor * NdotL ; 
+	color = ( light.color * light.intensivity + light.color * specularFactor * light.intensivity ) * attenuation * spotFactor * NdotL ; 
 #elif defined( DIRECTIONAL_LIGHT ) 
-	color = ( vec4( fragColor.rgb, 1.f ) * light.color * light.intensivity + light.color * specularFactor ) * NdotL; 
+	color = ( light.color * light.intensivity + light.color * specularFactor ) * NdotL; 
 #endif 
 }

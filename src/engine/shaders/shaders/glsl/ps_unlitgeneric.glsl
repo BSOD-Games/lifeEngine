@@ -45,5 +45,5 @@ void main()
     out_normalShininess = vec4( normalize( normal ), 32.f );
 #endif
 
-    out_emission = vec4( 1.f );
+    out_emission = vec4( 0.f );
 }
