@@ -12,7 +12,7 @@
 #define IGPUPROGRAM_H
 
 #include "common/types.h"
-#include "common/shaderdescriptor.h"
+#include "studiorender/gpuprogramdescriptor.h"
 #include "engine/ireferenceobject.h"
 
 //---------------------------------------------------------------------//
@@ -25,7 +25,7 @@ namespace le
 	{
 	public:
         virtual ~IGPUProgram() {}
-		virtual bool				Compile( const ShaderDescriptor& ShaderDescriptor, UInt32_t CountDefines = 0, const char** Defines = nullptr ) = 0;
+		virtual bool				Compile( const GPUProgramDescriptor& GPUProgramDescriptor, UInt32_t CountDefines = 0, const char** Defines = nullptr ) = 0;
 		virtual void				Bind() = 0;
 		virtual void				Unbind() = 0;
 		virtual void				Clear() = 0;

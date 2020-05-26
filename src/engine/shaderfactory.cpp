@@ -8,6 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include "engine/shaderdescriptor.h"
+
 #include "shaders/lightmappedgeneric.h"
 #include "shaders/textgeneric.h"
 #include "shaders/spritegeneric.h"
@@ -18,13 +20,18 @@
 // ------------------------------------------------------------------------------------ //
 // Register shader
 // ------------------------------------------------------------------------------------ //
-void le::ShaderFactory::Register( const char* Name, CreateShaderFn_t CreateShader )
+void le::ShaderFactory::Register( const ShaderDescriptor& ShaderDescriptor )
 {
-	char*			name = new char[ strlen( Name ) ];
-	strcpy( name, Name );
+	le::ShaderDescriptor		shaderDescriptor;
+	shaderDescriptor.countParameters = ShaderDescriptor.countParameters;
+	shaderDescriptor.parametersInfo = ShaderDescriptor.parametersInfo;
+	shaderDescriptor.CreateShaderFn = ShaderDescriptor.CreateShaderFn;
 
-	nameShaders.push_back( name );
-	shaders[ Name ] = CreateShader;
+	shaderDescriptor.name = new char[ strlen( ShaderDescriptor.name ) ];
+	strcpy( shaderDescriptor.name, ShaderDescriptor.name );
+
+	shaders.push_back( shaderDescriptor );
+	shadersFind[ shaderDescriptor.name ] = shaderDescriptor;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -32,18 +39,18 @@ void le::ShaderFactory::Register( const char* Name, CreateShaderFn_t CreateShade
 // ------------------------------------------------------------------------------------ //
 void le::ShaderFactory::Unregister( const char* Name )
 {
-	auto		it = shaders.find( Name );
-	if ( it == shaders.end() )		return;
+	auto		it = shadersFind.find( Name );
+	if ( it == shadersFind.end() )		return;
 
-	for ( UInt32_t index = 0, count = nameShaders.size(); index < count; ++index )
-		if ( strcmp( nameShaders[ index ], Name ) == 0 )
+	for ( UInt32_t index = 0, count = shaders.size(); index < count; ++index )
+		if ( strcmp( shaders[ index ].name, Name ) == 0 )
 		{
-			delete[] nameShaders[ index ];
-			nameShaders.erase( nameShaders.begin() + index );
+			delete[] shaders[ index ].name;
+			shaders.erase( shaders.begin() + index );
 			break;
 		}
 
-	shaders.erase( it );
+	shadersFind.erase( it );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -51,9 +58,9 @@ void le::ShaderFactory::Unregister( const char* Name )
 // ------------------------------------------------------------------------------------ //
 le::IShader* le::ShaderFactory::Create( const char* Name )
 {
-	auto		it = shaders.find( Name );
-	if ( it == shaders.end() )		return nullptr;
-	return it->second();
+	auto		it = shadersFind.find( Name );
+	if ( it == shadersFind.end() )		return nullptr;
+	return it->second.CreateShaderFn();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -61,24 +68,24 @@ le::IShader* le::ShaderFactory::Create( const char* Name )
 // ------------------------------------------------------------------------------------ //
 le::UInt32_t le::ShaderFactory::GetCountShaders() const
 {
-	return nameShaders.size();
+	return shaders.size();
 }
 
 // ------------------------------------------------------------------------------------ //
 // GetShader
 // ------------------------------------------------------------------------------------ //
-const char* le::ShaderFactory::GetShader( UInt32_t Index ) const
+le::ShaderDescriptor le::ShaderFactory::GetShader( UInt32_t Index ) const
 {
-	if ( Index >= nameShaders.size() )		return "unknown";
-	return nameShaders[ Index ];
+	if ( Index >= shaders.size() )		return ShaderDescriptor();
+	return shaders[ Index ];
 }
 
 // ------------------------------------------------------------------------------------ //
 // Register material proxy
 // ------------------------------------------------------------------------------------ //
-const char** le::ShaderFactory::GetShaders() const
+le::ShaderDescriptor* le::ShaderFactory::GetShaders() const
 {
-	return ( const char** ) nameShaders.data();
+	return ( ShaderDescriptor* ) shaders.data();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -86,10 +93,10 @@ const char** le::ShaderFactory::GetShaders() const
 // ------------------------------------------------------------------------------------ //
 le::ShaderFactory::ShaderFactory()
 {
-	Register( "LightmappedGeneric", []() -> IShader* { return new LightmappedGeneric(); } );
-	Register( "TextGeneric", []() -> IShader* { return new TextGeneric(); } );
-	Register( "SpriteGeneric", []() -> IShader* { return new SpriteGeneric(); } );
-	Register( "UnlitGeneric", []() -> IShader* { return new UnlitGeneric(); } );
+	Register( LightmappedGeneric::GetDescriptor() );
+	Register( TextGeneric::GetDescriptor() );
+	Register( SpriteGeneric::GetDescriptor() );
+	Register( UnlitGeneric::GetDescriptor() );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -97,6 +104,6 @@ le::ShaderFactory::ShaderFactory()
 // ------------------------------------------------------------------------------------ //
 le::ShaderFactory::~ShaderFactory()
 {
-	for ( UInt32_t index = 0, count = nameShaders.size(); index < count; ++index )
-		delete[] nameShaders[ index ];
+	for ( UInt32_t index = 0, count = shaders.size(); index < count; ++index )
+		delete[] shaders[ index ].name;
 }

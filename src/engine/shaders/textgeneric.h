@@ -11,6 +11,7 @@
 #ifndef TEXT_GENERIC_H
 #define TEXT_GENERIC_H
 
+#include "engine/shaderdescriptor.h"
 #include "baseshader.h"
 
 //---------------------------------------------------------------------//
@@ -35,6 +36,7 @@ namespace le
 		~TextGeneric();
 
 		void						ClearParameters();
+		static ShaderDescriptor		GetDescriptor();
 
 	private:
 		Vector3D_t			color;

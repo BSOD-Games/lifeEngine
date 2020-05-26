@@ -11,6 +11,7 @@
 #ifndef LIGHTMAPPED_GENERIC_H
 #define LIGHTMAPPED_GENERIC_H
 
+#include "engine/shaderdescriptor.h"
 #include "baseshader.h"
 
 //---------------------------------------------------------------------//
@@ -35,6 +36,7 @@ namespace le
 		~LightmappedGeneric();
 
 		void						ClearParameters();
+		static ShaderDescriptor		GetDescriptor();
 
 	private:
 		ITexture*			baseTexture;

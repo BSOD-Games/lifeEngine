@@ -11,6 +11,7 @@
 #ifndef SPRITE_GENERIC_H
 #define SPRITE_GENERIC_H
 
+#include "engine/shaderdescriptor.h"
 #include "baseshader.h"
 
 //---------------------------------------------------------------------//
@@ -48,6 +49,7 @@ namespace le
 		~SpriteGeneric();
 
 		void						ClearParameters();
+		static ShaderDescriptor		GetDescriptor();
 
 	private:
 		UInt32_t			flags;

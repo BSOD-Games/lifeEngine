@@ -15,7 +15,9 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <vector>
 
+#include "common/shaderparaminfo.h"
 #include "engine/iengineinternal.h"
 #include "engine/icamera.h"
 #include "engine/ishaderparameter.h"
@@ -116,6 +118,24 @@ void le::LightmappedGeneric::ClearParameters()
 
 		baseTexture = nullptr;
 	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get descriptor shader
+// ------------------------------------------------------------------------------------ //
+le::ShaderDescriptor le::LightmappedGeneric::GetDescriptor()
+{
+	static std::vector< ShaderParamInfo >			parametersInfo =
+	{
+		{ "basetexture", SPT_TEXTURE }
+	};
+
+	ShaderDescriptor			shaderDescriptor;
+	shaderDescriptor.name = "LightmappedGeneric";
+	shaderDescriptor.CreateShaderFn = []() -> IShader* { return new LightmappedGeneric(); };
+	shaderDescriptor.countParameters = parametersInfo.size();
+	shaderDescriptor.parametersInfo = parametersInfo.data();
+	return shaderDescriptor;
 }
 
 // ------------------------------------------------------------------------------------ //

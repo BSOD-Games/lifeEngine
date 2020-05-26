@@ -14,6 +14,7 @@
 #include <string>
 #include <iostream>
 
+#include "common/shaderparaminfo.h"
 #include "engine/icamera.h"
 #include "engine/iengineinternal.h"
 #include "engine/ishaderparameter.h"
@@ -181,6 +182,26 @@ void le::UnlitGeneric::ClearParameters()
 
 		specularMap = nullptr;
 	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get descriptor
+// ------------------------------------------------------------------------------------ //
+le::ShaderDescriptor le::UnlitGeneric::GetDescriptor()
+{
+	static std::vector< ShaderParamInfo >			parametersInfo =
+	{
+		{ "basetexture", SPT_TEXTURE },
+		{ "normalmap", SPT_TEXTURE },
+		{ "specularmap", SPT_TEXTURE }
+	};
+
+	ShaderDescriptor			shaderDescriptor;
+	shaderDescriptor.name = "UnlitGeneric";
+	shaderDescriptor.CreateShaderFn = []() -> IShader* { return new UnlitGeneric(); };
+	shaderDescriptor.countParameters = parametersInfo.size();
+	shaderDescriptor.parametersInfo = parametersInfo.data();
+	return shaderDescriptor;
 }
 
 // ------------------------------------------------------------------------------------ //

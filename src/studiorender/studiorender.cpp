@@ -12,9 +12,7 @@
 #include <algorithm>
 
 #include "common/configurations.h"
-#include "common/shaderdescriptor.h"
 #include "common/meshsurface.h"
-#include "common/shaderdescriptor.h"
 #include "common/meshdescriptor.h"
 #include "engine/lifeengine.h"
 #include "engine/iengineinternal.h"

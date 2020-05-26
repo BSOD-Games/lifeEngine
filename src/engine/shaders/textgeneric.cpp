@@ -112,6 +112,24 @@ void le::TextGeneric::ClearParameters()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Get descriptor
+// ------------------------------------------------------------------------------------ //
+le::ShaderDescriptor le::TextGeneric::GetDescriptor()
+{
+	static std::vector< ShaderParamInfo >			parametersInfo =
+	{
+		{ "color", SPT_VECTOR_4D }
+	};
+
+	ShaderDescriptor			shaderDescriptor;
+	shaderDescriptor.name = "TextGeneric";
+	shaderDescriptor.CreateShaderFn = []() -> IShader* { return new TextGeneric(); };
+	shaderDescriptor.countParameters = parametersInfo.size();
+	shaderDescriptor.parametersInfo = parametersInfo.data();
+	return shaderDescriptor;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Is equal
 // ------------------------------------------------------------------------------------ //
 bool le::TextGeneric::IsEuqal( IShader* Shader ) const

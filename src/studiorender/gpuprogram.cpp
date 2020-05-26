@@ -38,7 +38,7 @@ inline void InstertDefinesToShaderCode( std::string& CodeShader, const std::stri
 // ------------------------------------------------------------------------------------ //
 // Скомпилировать шейдер
 // ------------------------------------------------------------------------------------ //
-bool le::GPUProgram::Compile( const ShaderDescriptor& ShaderDescriptor, UInt32_t CountDefines, const char** Defines )
+bool le::GPUProgram::Compile( const GPUProgramDescriptor& GPUProgramDescriptor, UInt32_t CountDefines, const char** Defines )
 {
 	std::string				defineCode;
 	std::string				codeShader;
@@ -53,27 +53,27 @@ bool le::GPUProgram::Compile( const ShaderDescriptor& ShaderDescriptor, UInt32_t
 	try
 	{
 		// Компилируем вершиный шейдер
-		if ( ShaderDescriptor.vertexShaderSource && ShaderDescriptor.vertexShaderSource != "" )
+		if ( GPUProgramDescriptor.vertexShaderSource && GPUProgramDescriptor.vertexShaderSource != "" )
 		{
-			codeShader = ShaderDescriptor.vertexShaderSource;
+			codeShader = GPUProgramDescriptor.vertexShaderSource;
 			InstertDefinesToShaderCode( codeShader, defineCode );
 
 			if ( !Compile_VertexShader( codeShader.c_str() ) )	throw;
 		}
 
 		// Компилируем геометрический шейдер
-		if ( ShaderDescriptor.geometryShaderSource && ShaderDescriptor.geometryShaderSource != "" )
+		if ( GPUProgramDescriptor.geometryShaderSource && GPUProgramDescriptor.geometryShaderSource != "" )
 		{
-			codeShader = ShaderDescriptor.geometryShaderSource;
+			codeShader = GPUProgramDescriptor.geometryShaderSource;
 			InstertDefinesToShaderCode( codeShader, defineCode );
 
 			if ( !Compile_GeometryShader( codeShader.c_str() ) )		throw;
 		}
 
 		// Компилируем фрагментный шейдер
-		if ( ShaderDescriptor.fragmentShaderSource && ShaderDescriptor.fragmentShaderSource != "" )
+		if ( GPUProgramDescriptor.fragmentShaderSource && GPUProgramDescriptor.fragmentShaderSource != "" )
 		{
-			codeShader = ShaderDescriptor.fragmentShaderSource;
+			codeShader = GPUProgramDescriptor.fragmentShaderSource;
 			InstertDefinesToShaderCode( codeShader, defineCode );
 
 			if ( !Compile_FragmentShader( codeShader.c_str() ) )		throw;

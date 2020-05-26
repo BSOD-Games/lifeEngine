@@ -8,8 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef SHADER_DESCRIPTOR_H
-#define SHADER_DESCRIPTOR_H
+#ifndef GPUPROGRAM_DESCRIPTOR_H
+#define GPUPROGRAM_DESCRIPTOR_H
 
 #include "common/types.h"
 
@@ -19,9 +19,9 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	struct ShaderDescriptor
+	struct GPUProgramDescriptor
 	{
-		ShaderDescriptor() :
+		GPUProgramDescriptor() :
 			vertexShaderSource( nullptr ),
 			geometryShaderSource( nullptr ),
 			fragmentShaderSource( nullptr )
@@ -37,5 +37,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !SHADER_DESCRIPTOR_H
+#endif // !GPUPROGRAM_DESCRIPTOR_H
 

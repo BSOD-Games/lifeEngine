@@ -848,12 +848,12 @@ le::IGPUProgram* LE_LoadGPUProgram( const char* Directory, const char* Path, le:
 	le::IGPUProgram*			gpuProgram = ( le::IGPUProgram* ) StudioRenderFactory->Create( GPUPROGRAM_INTERFACE_VERSION );
 	if ( !gpuProgram )			return nullptr;
 
-	le::ShaderDescriptor		shaderDescriptor;
-	shaderDescriptor.vertexShaderSource = vertexShader.c_str();
-	shaderDescriptor.fragmentShaderSource = pixelShader.c_str();
-	shaderDescriptor.geometryShaderSource = nullptr;
+	le::GPUProgramDescriptor		gpuProgramDescriptor;
+	gpuProgramDescriptor.vertexShaderSource = vertexShader.c_str();
+	gpuProgramDescriptor.fragmentShaderSource = pixelShader.c_str();
+	gpuProgramDescriptor.geometryShaderSource = nullptr;
 
-	if ( !gpuProgram->Compile( shaderDescriptor, CountDefines, Defines ) )
+	if ( !gpuProgram->Compile( gpuProgramDescriptor, CountDefines, Defines ) )
 		return nullptr;
 
 	return gpuProgram;

@@ -11,6 +11,7 @@
 #ifndef UNLIT_GENERIC_H
 #define UNLIT_GENERIC_H
 
+#include "engine/shaderdescriptor.h"
 #include "baseshader.h"
 
 //---------------------------------------------------------------------//
@@ -49,6 +50,7 @@ namespace le
 		~UnlitGeneric();
 
 		void						ClearParameters();
+		static ShaderDescriptor		GetDescriptor();
 
 	private:
 		UInt32_t			flags;

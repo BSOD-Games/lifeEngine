@@ -11,7 +11,6 @@
 #include <vector>
 #include <string>
 
-#include "common/shaderdescriptor.h"
 #include "engine/iresourcesystem.h"
 
 #include "global.h"

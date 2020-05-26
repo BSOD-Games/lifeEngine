@@ -12,7 +12,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
 
+#include "common/shaderparaminfo.h"
 #include "engine/icamera.h"
 #include "engine/iengineinternal.h"
 #include "engine/iconsolesystem.h"
@@ -179,6 +181,27 @@ void le::SpriteGeneric::ClearParameters()
 
 		specularMap = nullptr;
 	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get descriptor
+// ------------------------------------------------------------------------------------ //
+le::ShaderDescriptor le::SpriteGeneric::GetDescriptor()
+{
+	static std::vector< ShaderParamInfo >			parametersInfo =
+	{
+		{ "basetexture", SPT_TEXTURE },
+		{ "normalmap", SPT_TEXTURE },
+		{ "specularmap", SPT_TEXTURE },
+		{ "textureRect", SPT_VECTOR_4D }
+	};
+
+	ShaderDescriptor			shaderDescriptor;
+	shaderDescriptor.name = "SpriteGeneric";
+	shaderDescriptor.CreateShaderFn = []() -> IShader* { return new SpriteGeneric(); };
+	shaderDescriptor.countParameters = parametersInfo.size();
+	shaderDescriptor.parametersInfo = parametersInfo.data();
+	return shaderDescriptor;
 }
 
 // ------------------------------------------------------------------------------------ //

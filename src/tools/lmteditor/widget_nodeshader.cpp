@@ -8,6 +8,7 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include "engine/shaderdescriptor.h"
 #include "engine/ishaderfactory.h"
 
 #include "engineapi.h"
@@ -25,10 +26,10 @@ Widget_NodeShader::Widget_NodeShader( QWidget* Parent ) :
 
 	le::IShaderFactory*			shaderFactory = EngineAPI::GetInstance()->GetMaterialSystem()->GetShaderFactory();
 	le::UInt32_t				countShaders = shaderFactory->GetCountShaders();
-	const char**				nameShaders = shaderFactory->GetShaders();
+	le::ShaderDescriptor*		shaders = shaderFactory->GetShaders();
 
 	for ( le::UInt32_t index = 0; index < countShaders; ++index )
-		ui->comboBox_name->addItem( nameShaders[ index ] );
+		ui->comboBox_name->addItem( shaders[ index ].name );
 }
 
 // ------------------------------------------------------------------------------------ //

@@ -33,7 +33,7 @@ namespace le
         virtual UInt32_t            GetCountReferences() const;
 
 		// IGPUProgram
-		virtual bool				Compile( const ShaderDescriptor& ShaderDescriptor, UInt32_t CountDefines = 0, const char** Defines = nullptr );
+		virtual bool				Compile( const GPUProgramDescriptor& GPUProgramDescriptor, UInt32_t CountDefines = 0, const char** Defines = nullptr );
 		virtual void				Bind();
 		virtual void				Unbind();
 		virtual void				Clear();

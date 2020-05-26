@@ -28,21 +28,21 @@ namespace le
 	{
 	public:
 		// IShaderFactory
-		virtual void			Register( const char* Name, CreateShaderFn_t CreateShader );
-		virtual void			Unregister( const char* Name );
-		virtual IShader*		Create( const char* Name );
+		virtual void						Register( const ShaderDescriptor& ShaderDescriptor );
+		virtual void						Unregister( const char* Name );
+		virtual IShader*					Create( const char* Name );
 
-		virtual UInt32_t		GetCountShaders() const;
-		virtual const char*		GetShader( UInt32_t Index ) const;
-		virtual const char**	GetShaders() const;
+		virtual UInt32_t					GetCountShaders() const;
+		virtual ShaderDescriptor			GetShader( UInt32_t Index ) const;
+		virtual ShaderDescriptor*			GetShaders() const;
 
 		// ShaderFactory
 		ShaderFactory();
 		~ShaderFactory();
 
 	private:
-		std::vector< const char* >									nameShaders;
-		std::unordered_map< std::string, CreateShaderFn_t >			shaders;
+		std::vector< ShaderDescriptor >								shaders;
+		std::unordered_map< std::string, ShaderDescriptor >			shadersFind;
 	};
 
 	//---------------------------------------------------------------------//
