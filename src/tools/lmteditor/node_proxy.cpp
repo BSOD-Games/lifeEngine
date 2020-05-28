@@ -19,9 +19,13 @@
 // Constructor
 // ------------------------------------------------------------------------------------ //
 Node_Proxy::Node_Proxy() :
-	widget_nodeProxy( new Widget_NodeProxy() )
+	widget_nodeProxy( new Widget_NodeProxy() ),
+	data( new ProxyData() )
 {
 	connect( widget_nodeProxy, &Widget_NodeProxy::CountValuesChanged, this, &Node_Proxy::OnCountValueChanged );
+	connect( widget_nodeProxy, &Widget_NodeProxy::ProxyChanged, this, &Node_Proxy::OnProxyChanged );
+
+	data->proxyName = widget_nodeProxy->GetProxyName();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -30,6 +34,16 @@ Node_Proxy::Node_Proxy() :
 Node_Proxy::~Node_Proxy()
 {
 	disconnect( widget_nodeProxy, &Widget_NodeProxy::CountValuesChanged, this, &Node_Proxy::OnCountValueChanged );
+	disconnect( widget_nodeProxy, &Widget_NodeProxy::ProxyChanged, this, &Node_Proxy::OnProxyChanged );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Proxy changed
+// ------------------------------------------------------------------------------------ //
+void Node_Proxy::OnProxyChanged( QString ProxyName )
+{
+	data->proxyName = ProxyName;
+	emit UpdateProxy( ProxyName );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -68,7 +82,7 @@ QtNodes::NodeDataType Node_Proxy::dataType( QtNodes::PortType PortType, QtNodes:
 {
 	switch ( PortType )
 	{
-	case QtNodes::PortType::Out:	return QtNodes::NodeDataType{ "proxy", "Proxy" };
+	case QtNodes::PortType::Out:	return data->type();
 	case QtNodes::PortType::In:		return QtNodes::NodeDataType{ "proxyValue", "Value" };
 	default:						return QtNodes::NodeDataType();
 	}

@@ -15,7 +15,6 @@
 #include <vector>
 #include <unordered_map>
 
-
 #include "engine/ishaderfactory.h"
 
 //---------------------------------------------------------------------//

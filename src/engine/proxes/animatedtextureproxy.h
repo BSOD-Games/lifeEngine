@@ -11,6 +11,7 @@
 #ifndef MATERIAL_PROXY_H
 #define MATERIAL_PROXY_H
 
+#include "engine/materialproxydescriptor.h"
 #include "engine/imaterialproxy.h"
 
 //---------------------------------------------------------------------//
@@ -43,6 +44,8 @@ namespace le
         // AnimatedTextureProxy
         AnimatedTextureProxy();
         ~AnimatedTextureProxy();
+
+		static MaterialProxyDescriptor		GetDescriptor();
 
     private:
         bool                            isInitialized;

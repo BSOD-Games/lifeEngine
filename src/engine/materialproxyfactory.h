@@ -16,6 +16,7 @@
 #include <unordered_map>
 
 #include "engine/imaterialproxyfactory.h"
+#include "engine/materialproxydescriptor.h"
 
 //---------------------------------------------------------------------//
 
@@ -27,21 +28,21 @@ namespace le
 	{
 	public:
 		// IMaterialProxyFactory
-		virtual void						Register( const char* Name, CreateMaterialProxyFn_t CreateMaterialProxy );
-		virtual void						Unregister( const char* Name );
-		virtual IMaterialProxy*				Create( const char* Name );
+		virtual void								Register( const MaterialProxyDescriptor& MaterialProxyDescriptor );
+		virtual void								Unregister( const char* Name );
+		virtual IMaterialProxy*						Create( const char* Name );
 
-		virtual UInt32_t					GetCountMaterialProxes() const;
-		virtual const char*					GetMaterialProxy( UInt32_t Index ) const;
-		virtual const char**				GetMaterialProxes() const;
+		virtual UInt32_t							GetCountMaterialProxes() const;
+		virtual MaterialProxyDescriptor				GetMaterialProxy( UInt32_t Index ) const;
+		virtual MaterialProxyDescriptor*			GetMaterialProxes() const;
 
 		// MaterialProxyFactory
 		MaterialProxyFactory();
 		~MaterialProxyFactory();
 
 	private:
-		std::vector< const char* >											nameMaterialProxes;
-		std::unordered_map< std::string, CreateMaterialProxyFn_t >			materialProxes;
+		std::vector< MaterialProxyDescriptor >								materialProxes;
+		std::unordered_map< std::string, MaterialProxyDescriptor >			materialProxesFind;
 	};
 
 	//---------------------------------------------------------------------//

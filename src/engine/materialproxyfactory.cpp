@@ -11,18 +11,24 @@
 #include <string.h>
 
 #include "proxes/animatedtextureproxy.h"
+
 #include "materialproxyfactory.h"
 
 // ------------------------------------------------------------------------------------ //
 // Register material proxy
 // ------------------------------------------------------------------------------------ //
-void le::MaterialProxyFactory::Register( const char* Name, CreateMaterialProxyFn_t CreateMaterialProxy )
+void le::MaterialProxyFactory::Register( const MaterialProxyDescriptor& MaterialProxyDescriptor )
 {
-	char*			name = new char[ strlen( Name ) ];
-	strcpy( name, Name );
+	le::MaterialProxyDescriptor			materialProxyDescriptor;
+	materialProxyDescriptor.CreateMaterialProxyFn = MaterialProxyDescriptor.CreateMaterialProxyFn;
+	materialProxyDescriptor.countParameters = MaterialProxyDescriptor.countParameters;
+	materialProxyDescriptor.parametersInfo = MaterialProxyDescriptor.parametersInfo;
 
-	nameMaterialProxes.push_back( name );
-	materialProxes[ Name ] = CreateMaterialProxy;
+	materialProxyDescriptor.name = new char[ strlen( MaterialProxyDescriptor.name ) ];
+	strcpy( materialProxyDescriptor.name, MaterialProxyDescriptor.name );
+
+	materialProxes.push_back( materialProxyDescriptor );
+	materialProxesFind[ materialProxyDescriptor.name ] = materialProxyDescriptor;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -30,18 +36,18 @@ void le::MaterialProxyFactory::Register( const char* Name, CreateMaterialProxyFn
 // ------------------------------------------------------------------------------------ //
 void le::MaterialProxyFactory::Unregister( const char* Name )
 {
-	auto		it = materialProxes.find( Name );
-	if ( it == materialProxes.end() )		return;
+	auto		it = materialProxesFind.find( Name );
+	if ( it == materialProxesFind.end() )		return;
 
-	for ( UInt32_t index = 0, count = nameMaterialProxes.size(); index < count; ++index )
-		if ( strcmp( nameMaterialProxes[ index ], Name ) == 0 )
+	for ( UInt32_t index = 0, count = materialProxes.size(); index < count; ++index )
+		if ( strcmp( materialProxes[ index ].name, Name ) == 0 )
 		{
-			delete[] nameMaterialProxes[ index ];
-			nameMaterialProxes.erase( nameMaterialProxes.begin() + index );
+			delete[] materialProxes[ index ].name;
+			materialProxes.erase( materialProxes.begin() + index );
 			break;
 		}
 
-	materialProxes.erase( it );
+	materialProxesFind.erase( it );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -49,9 +55,9 @@ void le::MaterialProxyFactory::Unregister( const char* Name )
 // ------------------------------------------------------------------------------------ //
 le::IMaterialProxy* le::MaterialProxyFactory::Create( const char* Name )
 {
-	auto		it = materialProxes.find( Name );
-	if ( it == materialProxes.end() )		return nullptr;
-	return it->second();
+	auto		it = materialProxesFind.find( Name );
+	if ( it == materialProxesFind.end() )		return nullptr;
+	return it->second.CreateMaterialProxyFn();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -59,24 +65,24 @@ le::IMaterialProxy* le::MaterialProxyFactory::Create( const char* Name )
 // ------------------------------------------------------------------------------------ //
 le::UInt32_t le::MaterialProxyFactory::GetCountMaterialProxes() const
 {
-	return nameMaterialProxes.size();
+	return materialProxes.size();
 }
 
 // ------------------------------------------------------------------------------------ //
 // Get material proxy
 // ------------------------------------------------------------------------------------ //
-const char* le::MaterialProxyFactory::GetMaterialProxy( UInt32_t Index ) const
+le::MaterialProxyDescriptor le::MaterialProxyFactory::GetMaterialProxy( UInt32_t Index ) const
 {
-	if ( Index >= nameMaterialProxes.size() )		return "unknown";
-	return nameMaterialProxes[ Index ];
+	if ( Index >= materialProxes.size() )		return MaterialProxyDescriptor();
+	return materialProxes[ Index ];
 }
 
 // ------------------------------------------------------------------------------------ //
 // Get material proxes
 // ------------------------------------------------------------------------------------ //
-const char** le::MaterialProxyFactory::GetMaterialProxes() const
+le::MaterialProxyDescriptor* le::MaterialProxyFactory::GetMaterialProxes() const
 {
-	return ( const char** ) nameMaterialProxes.data();
+	return ( le::MaterialProxyDescriptor* ) materialProxes.data();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -84,7 +90,7 @@ const char** le::MaterialProxyFactory::GetMaterialProxes() const
 // ------------------------------------------------------------------------------------ //
 le::MaterialProxyFactory::MaterialProxyFactory()
 {
-	Register( "AnimatedTexture", []() -> IMaterialProxy* { return new AnimatedTextureProxy(); } );
+	Register( AnimatedTextureProxy::GetDescriptor() );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -92,6 +98,6 @@ le::MaterialProxyFactory::MaterialProxyFactory()
 // ------------------------------------------------------------------------------------ //
 le::MaterialProxyFactory::~MaterialProxyFactory()
 {
-	for ( UInt32_t index = 0, count = nameMaterialProxes.size(); index < count; ++index )
-		delete[] nameMaterialProxes[ index ];
+	for ( UInt32_t index = 0, count = materialProxes.size(); index < count; ++index )
+		delete[] materialProxes[ index ].name;
 }

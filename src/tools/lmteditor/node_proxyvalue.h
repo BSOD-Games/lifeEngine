@@ -16,6 +16,7 @@
 //---------------------------------------------------------------------//
 
 class Widget_NodeProxyValue;
+class Node_Proxy;
 
 //---------------------------------------------------------------------//
 
@@ -33,14 +34,21 @@ public:
 	virtual std::shared_ptr< QtNodes::NodeData >	outData( QtNodes::PortIndex Port );
 	virtual QWidget*								embeddedWidget();
 
+	virtual void									outputConnectionCreated( const QtNodes::Connection& Connection );
+	virtual void									outputConnectionDeleted( const QtNodes::Connection& Connection );
+
 	// Node_ProxyValue
 	Node_ProxyValue();
 	~Node_ProxyValue();
 
 	static QString					NodeName() { return "Proxy value"; }
 
+private slots:
+	void							OnUpdateProxy( QString ProxyName );
+
 private:
 	Widget_NodeProxyValue*			widget_nodeProxyValue;
+	Node_Proxy*						nodeProxy;
 };
 
 //---------------------------------------------------------------------//

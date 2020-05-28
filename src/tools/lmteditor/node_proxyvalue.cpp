@@ -12,6 +12,7 @@
 #include <nodes/FlowScene>
 #include <qgraphicsproxywidget.h>
 
+#include "node_proxy.h"
 #include "node_proxyvalue.h"
 #include "widget_nodeproxyvalue.h"
 
@@ -19,7 +20,8 @@
 // Constructor
 // ------------------------------------------------------------------------------------ //
 Node_ProxyValue::Node_ProxyValue() :
-	widget_nodeProxyValue( new Widget_NodeProxyValue() )
+	widget_nodeProxyValue( new Widget_NodeProxyValue() ),
+	nodeProxy( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -88,4 +90,34 @@ std::shared_ptr< QtNodes::NodeData > Node_ProxyValue::outData( QtNodes::PortInde
 QWidget* Node_ProxyValue::embeddedWidget()
 {
 	return widget_nodeProxyValue;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Output connection created
+// ------------------------------------------------------------------------------------ //
+void Node_ProxyValue::outputConnectionCreated( const QtNodes::Connection& Connection )
+{
+	nodeProxy = static_cast< Node_Proxy* >( Connection.getNode( QtNodes::PortType::In )->nodeDataModel() );
+	connect( nodeProxy, &Node_Proxy::UpdateProxy, this, &Node_ProxyValue::OnUpdateProxy );
+
+	widget_nodeProxyValue->SetProxy( nodeProxy->Data()->GetProxyName() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Output connection deleted
+// ------------------------------------------------------------------------------------ //
+void Node_ProxyValue::outputConnectionDeleted( const QtNodes::Connection& Connection )
+{
+	disconnect( nodeProxy, &Node_Proxy::UpdateProxy, this, &Node_ProxyValue::OnUpdateProxy );
+	nodeProxy = nullptr;
+
+	widget_nodeProxyValue->Clear();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: update shader
+// ------------------------------------------------------------------------------------ //
+void Node_ProxyValue::OnUpdateProxy( QString ProxyName )
+{
+	widget_nodeProxyValue->SetProxy( ProxyName );
 }

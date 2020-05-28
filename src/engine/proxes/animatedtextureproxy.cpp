@@ -9,7 +9,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <string.h>
+#include <vector>
 
+#include "engine/materialproxyvarinfo.h"
 #include "engine/imaterialproxyvar.h"
 #include "engine/consolesystem.h"
 #include "engine/ishaderparameter.h"
@@ -210,6 +212,26 @@ le::AnimatedTextureProxy::AnimatedTextureProxy() :
 le::AnimatedTextureProxy::~AnimatedTextureProxy()
 {
     ClearAllVars();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Material proxy descriptor
+// ------------------------------------------------------------------------------------ //
+le::MaterialProxyDescriptor le::AnimatedTextureProxy::GetDescriptor()
+{
+	static std::vector< MaterialProxyVarInfo >			parametersInfo =
+	{
+		{ "frames", MPVT_ARRAY_VECTOR_4D },
+		{ "textureRectVar", MPVT_SHADER_PARAMETER },
+		{ "delay", MPVT_FLOAT }
+	};
+
+	MaterialProxyDescriptor			materialProxyDescriptor;
+	materialProxyDescriptor.name = "AnimatedTexture";
+	materialProxyDescriptor.countParameters = parametersInfo.size();
+	materialProxyDescriptor.parametersInfo = parametersInfo.data();
+	materialProxyDescriptor.CreateMaterialProxyFn = []() -> IMaterialProxy* { return new AnimatedTextureProxy(); };
+	return materialProxyDescriptor;
 }
 
 // ------------------------------------------------------------------------------------ //

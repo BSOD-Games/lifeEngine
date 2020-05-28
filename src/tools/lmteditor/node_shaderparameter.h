@@ -16,6 +16,7 @@
 //---------------------------------------------------------------------//
 
 class Widget_NodeShaderParameter;
+class Node_Shader;
 
 //---------------------------------------------------------------------//
 
@@ -33,14 +34,21 @@ public:
 	virtual std::shared_ptr< QtNodes::NodeData >	outData( QtNodes::PortIndex Port );
 	virtual QWidget*								embeddedWidget();
 
+	virtual void									outputConnectionCreated( const QtNodes::Connection& Connection );
+	virtual void									outputConnectionDeleted( const QtNodes::Connection& Connection );
+
 	// Node_ShaderParameter
 	Node_ShaderParameter();
 	~Node_ShaderParameter();
 
 	static QString					NodeName() { return "Shader parameter"; }
 
+private slots:
+	void							OnUpdateShader( QString ShaderName );
+
 private:
 	Widget_NodeShaderParameter*		widget_nodeShaderParameter;
+	Node_Shader*					nodeShader;
 };
 
 //---------------------------------------------------------------------//

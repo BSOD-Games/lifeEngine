@@ -31,6 +31,10 @@ public:
 	Widget_NodeProxyValue( QWidget* Parent = nullptr );
 	~Widget_NodeProxyValue();
 
+	void			Clear();
+
+	void			SetProxy( QString ProxyName );
+
 private:
 	Ui::Widget_NodeProxyValue*			ui;
 };

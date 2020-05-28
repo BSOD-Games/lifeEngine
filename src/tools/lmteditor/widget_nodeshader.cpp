@@ -55,3 +55,19 @@ quint32 Widget_NodeShader::GetCountParameters() const
 {
 	return ui->spinBox_countParameters->value();
 }
+
+// ------------------------------------------------------------------------------------ //
+// Get shader name
+// ------------------------------------------------------------------------------------ //
+QString Widget_NodeShader::GetShaderName() const
+{
+	return ui->comboBox_name->currentText();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Shader changed
+// ------------------------------------------------------------------------------------ //
+void Widget_NodeShader::on_comboBox_name_currentIndexChanged( int Index )
+{
+	emit ShaderChanged( ui->comboBox_name->currentText() );
+}

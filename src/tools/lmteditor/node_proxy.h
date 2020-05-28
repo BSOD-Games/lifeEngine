@@ -11,6 +11,7 @@
 #ifndef NODE_PROXY_H
 #define NODE_PROXY_H
 
+#include "proxydata.h"
 #include "node_base.h"
 
 //---------------------------------------------------------------------//
@@ -37,12 +38,18 @@ public:
 	Node_Proxy();
 	~Node_Proxy();
 
-	static QString					NodeName() { return "Proxy"; }
+	static QString									NodeName() { return "Proxy"; }
+	inline std::shared_ptr< ProxyData >				Data() const { return data; }
+
+signals:
+	void							UpdateProxy( QString ProxyName );
 
 private slots:
 	void							OnCountValueChanged( quint32 Value );
+	void							OnProxyChanged( QString ProxyName );
 
 private:
+	std::shared_ptr< ProxyData >	data;
 	Widget_NodeProxy*				widget_nodeProxy;
 };
 

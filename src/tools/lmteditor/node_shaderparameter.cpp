@@ -13,13 +13,16 @@
 #include <qgraphicsproxywidget.h>
 
 #include "node_shaderparameter.h"
+#include "node_shader.h"
 #include "widget_nodeshaderparameter.h"
+#include <qdebug.h>
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
 Node_ShaderParameter::Node_ShaderParameter() :
-	widget_nodeShaderParameter( new Widget_NodeShaderParameter() )
+	widget_nodeShaderParameter( new Widget_NodeShaderParameter() ),
+	nodeShader( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -88,4 +91,34 @@ std::shared_ptr< QtNodes::NodeData > Node_ShaderParameter::outData( QtNodes::Por
 QWidget* Node_ShaderParameter::embeddedWidget()
 {
 	return widget_nodeShaderParameter;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Output connection created
+// ------------------------------------------------------------------------------------ //
+void Node_ShaderParameter::outputConnectionCreated( const QtNodes::Connection& Connection )
+{
+	nodeShader = static_cast< Node_Shader* >( Connection.getNode( QtNodes::PortType::In )->nodeDataModel() );
+	connect( nodeShader, &Node_Shader::UpdateShader, this, &Node_ShaderParameter::OnUpdateShader );
+
+	widget_nodeShaderParameter->SetShader( nodeShader->Data()->GetShaderName() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Output connection deleted
+// ------------------------------------------------------------------------------------ //
+void Node_ShaderParameter::outputConnectionDeleted( const QtNodes::Connection& Connection )
+{
+	disconnect( nodeShader, &Node_Shader::UpdateShader, this, &Node_ShaderParameter::OnUpdateShader );
+	nodeShader = nullptr;
+
+	widget_nodeShaderParameter->Clear();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: update shader
+// ------------------------------------------------------------------------------------ //
+void Node_ShaderParameter::OnUpdateShader( QString ShaderName )
+{
+	widget_nodeShaderParameter->SetShader( ShaderName );
 }

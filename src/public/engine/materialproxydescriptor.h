@@ -8,8 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IMATERIALPROXYFACTORY_H
-#define IMATERIALPROXYFACTORY_H
+#ifndef MATERIALPROXY_DESCRIPTOR_H
+#define MATERIALPROXY_DESCRIPTOR_H
 
 #include "common/types.h"
 
@@ -19,22 +19,23 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	struct MaterialProxyDescriptor;
+	struct MaterialProxyVarInfo;
 	class IMaterialProxy;
+	typedef IMaterialProxy*					( *CreateMaterialProxyFn_t )( );
 
 	//---------------------------------------------------------------------//
 
-	class IMaterialProxyFactory
+	struct MaterialProxyDescriptor
 	{
-	public:
-        virtual ~IMaterialProxyFactory() {}
-		virtual void								Register( const MaterialProxyDescriptor& MaterialProxyDescriptor ) = 0;
-		virtual void								Unregister( const char* Name ) = 0;
-		virtual IMaterialProxy*						Create( const char* Name ) = 0;
+		MaterialProxyDescriptor() :
+			name( nullptr ),
+			CreateMaterialProxyFn( nullptr )
+		{}
 
-		virtual UInt32_t							GetCountMaterialProxes() const = 0;
-		virtual MaterialProxyDescriptor				GetMaterialProxy( UInt32_t Index ) const = 0;
-		virtual MaterialProxyDescriptor*			GetMaterialProxes() const = 0;
+		char*						name;
+		UInt32_t					countParameters;
+		MaterialProxyVarInfo*		parametersInfo;
+		CreateMaterialProxyFn_t		CreateMaterialProxyFn;
 	};
 
 	//---------------------------------------------------------------------//
@@ -42,5 +43,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !IMATERIALPROXYFACTORY_H
+#endif // !SHADER_DESCRIPTOR_H
 

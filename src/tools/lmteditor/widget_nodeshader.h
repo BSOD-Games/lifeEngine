@@ -32,12 +32,15 @@ public:
 	~Widget_NodeShader();
 
 	quint32					GetCountParameters() const;
+	QString					GetShaderName() const;
 
 signals:
 	void					CountParametersChanged( quint32 Value );
+	void					ShaderChanged( QString ShaderName );
 
 private slots:
 	void					on_spinBox_countParameters_valueChanged( int Value );
+	void					on_comboBox_name_currentIndexChanged( int Index );
 
 private:
 	Ui::Widget_NodeShader*			ui;

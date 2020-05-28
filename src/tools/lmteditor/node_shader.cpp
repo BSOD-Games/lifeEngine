@@ -12,14 +12,19 @@
 
 #include "node_shader.h"
 #include "widget_nodeshader.h"
+#include <qdebug.h>
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
 Node_Shader::Node_Shader() :
-	widget_nodeShader( new Widget_NodeShader() )
+	widget_nodeShader( new Widget_NodeShader() ),
+	data( new ShaderData() )
 {
 	connect( widget_nodeShader, &Widget_NodeShader::CountParametersChanged, this, &Node_Shader::OnCountParametersChanged );
+	connect( widget_nodeShader, &Widget_NodeShader::ShaderChanged, this, &Node_Shader::OnShaderChanged );
+
+	data->shaderName = widget_nodeShader->GetShaderName();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -28,6 +33,16 @@ Node_Shader::Node_Shader() :
 Node_Shader::~Node_Shader()
 {
 	disconnect( widget_nodeShader, &Widget_NodeShader::CountParametersChanged, this, &Node_Shader::OnCountParametersChanged );
+	disconnect( widget_nodeShader, &Widget_NodeShader::ShaderChanged, this, &Node_Shader::OnShaderChanged );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Changed shader
+// ------------------------------------------------------------------------------------ //
+void Node_Shader::OnShaderChanged( QString ShaderName )
+{
+	data->shaderName = ShaderName;
+	emit UpdateShader( ShaderName );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -66,7 +81,7 @@ QtNodes::NodeDataType Node_Shader::dataType( QtNodes::PortType PortType, QtNodes
 {
 	switch ( PortType )
 	{
-	case QtNodes::PortType::Out:	return QtNodes::NodeDataType{ "shader", "Shader" };
+	case QtNodes::PortType::Out:	return data->type();
 	case QtNodes::PortType::In:		return QtNodes::NodeDataType{ "shaderParameter", "Parameter" };
 	default:						return QtNodes::NodeDataType();
 	}

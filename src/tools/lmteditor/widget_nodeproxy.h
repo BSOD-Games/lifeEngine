@@ -32,12 +32,15 @@ public:
 	~Widget_NodeProxy();
 
 	quint32			GetCountValues() const;
+	QString			GetProxyName() const;
 
 signals:
 	void			CountValuesChanged( quint32 Value );
+	void			ProxyChanged( QString ProxyName );
 
 private slots:
 	void			on_spinBox_countValues_valueChanged( int Value );
+	void			on_comboBox_type_currentIndexChanged( int Index );
 
 private:
 	Ui::Widget_NodeProxy*			ui;

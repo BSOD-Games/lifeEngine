@@ -12,6 +12,7 @@
 #define NODE_SHADER_H
 
 #include "node_base.h"
+#include "shaderdata.h"
 
 //---------------------------------------------------------------------//
 
@@ -37,12 +38,18 @@ public:
 	Node_Shader();
 	~Node_Shader();
 
-	static QString					NodeName() { return "Shader"; }
+	static QString									NodeName() { return "Shader"; }
+	inline std::shared_ptr< ShaderData >			Data() const { return data; }
+
+signals:
+	void							UpdateShader( QString ShaderName );
 
 private slots:
 	void							OnCountParametersChanged( quint32 Value );
+	void							OnShaderChanged( QString ShaderName );
 
 private:
+	std::shared_ptr< ShaderData >	data;
 	Widget_NodeShader*				widget_nodeShader;
 };
 
