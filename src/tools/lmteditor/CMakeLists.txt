@@ -9,7 +9,6 @@ file( GLOB_RECURSE FORMS_FILES "*.ui" )
 file( GLOB_RECURSE RESOURCES "*.qrc" )
 
 set( MODULE_NAME lmteditor )
-set( NODEEDITOR_PATH ${EXTLIBS_DIR}/nodeeditor CACHE PATH "Path to NodeEditor" )
 
 #
 #   --- Платформозависимые настройки ---
@@ -52,20 +51,3 @@ install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
 
 include_directories( ../../public )
 include_directories( ../../ )
-include_directories( ./ )
-
-#
-#   --- Подключаем зависимости ---
-#
-
-#---------------
-#   NodeEditor
-
-find_package( NodeEditor REQUIRED )
-if( NOT NODEEDITOR_FOUND )
-    message( SEND_ERROR "Failed to find NodeEditor" )
-    return()
-else()
-    include_directories( ${NODEEDITOR_INCLUDE} )
-    target_link_libraries( ${MODULE_NAME} ${NODEEDITOR_LIB} )
-endif()

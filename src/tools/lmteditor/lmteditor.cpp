@@ -138,7 +138,7 @@ int main( int argc, char** argv )
 	}
 
 	// Loading style
-	/*{
+	{
 		QFile			file( "styles/dark/style.css" );
 		if ( file.exists() )
 		{
@@ -146,7 +146,7 @@ int main( int argc, char** argv )
 			QTextStream			textStream( &file );
 			application.setStyleSheet( textStream.readAll() );
 		}
-	}*/
+	}
 
 	// Selecting game for work
 	{
@@ -161,7 +161,7 @@ int main( int argc, char** argv )
 
 	// Start editor
 	Window_Editor				window_Editor( gameDescriptor );
-	window_Editor.showMaximized();	
+	window_Editor.show();	
 	return application.exec();
 }
 

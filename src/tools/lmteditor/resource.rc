@@ -1,5 +1,8 @@
 #include "../../public/engine/lifeengine.h"
 
+AAAAAAAA                ICON                    "icon.ico"
+APPICON                 ICON                    "icon.ico"
+
 1 VERSIONINFO
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG

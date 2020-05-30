@@ -8,11 +8,6 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#include <nodes/NodeData>
-#include <nodes/FlowScene>
-#include <nodes/FlowView>
-#include <nodes/ConnectionStyle>
-#include <nodes/TypeConverter>
 #include <qdebug.h>
 
 #include "engine/ifactory.h"
