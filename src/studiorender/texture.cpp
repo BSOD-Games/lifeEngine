@@ -113,7 +113,8 @@ void le::Texture::Bind( UInt32_t Layer )
 {
 	if ( handle == 0 ) return;
 
-	OpenGLState::SetTexture( this, Layer );
+	OpenGLState::SetTextureLayer( Layer );
+	OpenGLState::SetTexture( this );
 	layer = Layer;
 }
 
@@ -123,8 +124,9 @@ void le::Texture::Bind( UInt32_t Layer )
 void le::Texture::Unbind()
 {
 	if ( handle == 0 ) return;
-
-	OpenGLState::SetTexture( nullptr, layer );
+	
+	OpenGLState::SetTextureLayer( layer );
+	OpenGLState::SetTexture( nullptr );
 	layer = 0;
 }
 

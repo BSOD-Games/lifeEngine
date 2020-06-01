@@ -108,6 +108,7 @@ void Widget_Viewport::resizeEvent( QResizeEvent* Event )
 	if ( studioRender )
 		studioRender->SetViewport( { 0, 0, ( le::UInt32_t ) width(), ( le::UInt32_t ) height() } );
 
+	emit ResizeViewport( width(), height() );
 	QWidget::resizeEvent( Event );
 }
 

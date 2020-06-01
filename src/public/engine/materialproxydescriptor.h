@@ -29,7 +29,9 @@ namespace le
 	{
 		MaterialProxyDescriptor() :
 			name( nullptr ),
-			CreateMaterialProxyFn( nullptr )
+			CreateMaterialProxyFn( nullptr ),
+			parametersInfo( nullptr ),
+			countParameters( 0 )
 		{}
 
 		char*						name;

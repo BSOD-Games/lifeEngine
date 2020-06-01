@@ -113,10 +113,11 @@ bool le::GBuffer::Initialize( const Vector2DInt_t& WindowSize )
 void le::GBuffer::Resize( const Vector2DInt_t& WindowSize )
 {
 	if ( !isInitialize ) return;
+	g_consoleSystem->PrintInfo( "GBuffer resized to %ix%i", WindowSize.x, WindowSize.y );
 
 	albedoSpecular.Bind();
 	albedoSpecular.Resize( WindowSize.x, WindowSize.y );
-
+	
 	normalShininess.Bind();
 	normalShininess.Resize( WindowSize.x, WindowSize.y );
 

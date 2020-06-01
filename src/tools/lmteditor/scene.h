@@ -11,29 +11,45 @@
 #ifndef SCENE_H
 #define SCENE_H
 
+#include <list>
+#include <qtimer.h>
+
 #include "engine/icamera.h"
+#include "engine/imodel.h"
+#include "studiorender/ipointlight.h"
 #include "studiorender/istudiorender.h"
+
 #include "tsingleton.h"
 
 //---------------------------------------------------------------------//
 
-class Scene : public TSingleton<Scene>
+class Scene : public QObject, public TSingleton<Scene>
 {
+	Q_OBJECT
+
 public:
 	// Scene
 	Scene();
 	~Scene();
 
 	void				Render();
+	void				Clear();
+	void				AddModel( le::IModel* Model );
+	void				AddLight( le::IPointLight* Light );
 
 	inline void			SetStudioRender( le::IStudioRender* StudioRender )		{ studioRender = StudioRender; }
 	void				SetCamera( le::ICamera* Camera );
 
-private:
-	void				Clear();
+private slots:
+	void				Update();
 
-	le::ICamera*					camera;
-	le::IStudioRender*				studioRender;
+private:
+	QTimer								timerUpdate;
+
+	le::ICamera*						camera;
+	le::IStudioRender*					studioRender;
+	std::list< le::IModel* >			models;
+	std::list< le::IPointLight* >		lights;
 };
 
 //---------------------------------------------------------------------//

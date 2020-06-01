@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>543</width>
-    <height>487</height>
+    <width>631</width>
+    <height>575</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -48,6 +48,12 @@
     </property>
     <item>
      <widget class="QSplitter" name="splitter">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="autoFillBackground">
        <bool>false</bool>
       </property>
@@ -59,7 +65,7 @@
         <bool>true</bool>
        </property>
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+        <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -130,7 +136,7 @@
             <item row="0" column="1">
              <widget class="QLineEdit" name="lineEdit_surface">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -316,7 +322,17 @@
              <number>6</number>
             </property>
             <item>
-             <widget class="QListWidget" name="listWidget_parameters"/>
+             <widget class="QListWidget" name="listWidget_parameters">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="contextMenuPolicy">
+               <enum>Qt::CustomContextMenu</enum>
+              </property>
+             </widget>
             </item>
             <item>
              <widget class="Line" name="line">
@@ -372,12 +388,15 @@
              <number>6</number>
             </property>
             <item>
-             <widget class="QListWidget" name="listWidget_proxies_2">
+             <widget class="QListWidget" name="listWidget_proxies">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
+              </property>
+              <property name="contextMenuPolicy">
+               <enum>Qt::CustomContextMenu</enum>
               </property>
              </widget>
             </item>
@@ -403,7 +422,11 @@
              <number>6</number>
             </property>
             <item>
-             <widget class="QListWidget" name="listWidget_proxiesParameters"/>
+             <widget class="QListWidget" name="listWidget_proxiesParameters">
+              <property name="contextMenuPolicy">
+               <enum>Qt::CustomContextMenu</enum>
+              </property>
+             </widget>
             </item>
             <item>
              <widget class="Line" name="line_2">
@@ -427,8 +450,8 @@
        </property>
        <property name="minimumSize">
         <size>
-         <width>240</width>
-         <height>0</height>
+         <width>350</width>
+         <height>554</height>
         </size>
        </property>
        <property name="title">
@@ -462,16 +485,13 @@
      </widget>
     </item>
    </layout>
-   <zorder>splitter</zorder>
-   <zorder>tabWidget_material</zorder>
-   <zorder>splitter</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>543</width>
+     <width>631</width>
      <height>21</height>
     </rect>
    </property>

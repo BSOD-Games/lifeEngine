@@ -20,6 +20,7 @@
 #include "engineapi.h"
 #include "window_selectgame.h"
 #include "window_editor.h"
+#include "errors.h"
 
 #define GOLD_DATE					43572			// Apr 18 2020 (start coding lmteditor)
 #define LMTEDITOR_VERSION_MAJOR		0
@@ -62,18 +63,6 @@ int Application_ComputeBuildNumber( int GoldDate )
 
 	buildNumber -= GoldDate;
 	return buildNumber;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Application critical error
-// ------------------------------------------------------------------------------------ //
-void Application_CriticalError( const char* Message )
-{
-	std::ofstream			fileLog( "lmteditor.log", std::ios::app );
-	
-	QMessageBox::critical( nullptr, "Error lmtedit", Message );
-	fileLog << "\nCritical error: " << Message;
-	exit( 1 );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -121,7 +110,7 @@ int main( int argc, char** argv )
 	// Loading engine
 	if ( !engineAPI->Load() )
 	{
-		Application_CriticalError( engineAPI->GetErrorString().toLocal8Bit().data() );
+		Error_Critical( engineAPI->GetErrorString().toLocal8Bit().data() );
 		return 1;
 	}
 
@@ -156,7 +145,8 @@ int main( int argc, char** argv )
 			return 0;
 
 		gameDescriptor = window_SelectGame.GetGame();
-		if ( gameDescriptor.path.isEmpty() )		Application_CriticalError( "Game not selected or path to game directory is empty" );
+		if ( gameDescriptor.path.isEmpty() )		
+			Error_Critical( "Game not selected or path to game directory is empty" );
 	}
 
 	// Start editor

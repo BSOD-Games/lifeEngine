@@ -38,7 +38,8 @@ namespace le
 		static void				EnableStencilTest( bool Enable = true );
 
 		static void				SetGPUProgram( GPUProgram* GPUProgram );
-		static void				SetTexture( Texture* Texture, UInt32_t Layer );
+		static void				SetTextureLayer( UInt32_t Layer );
+		static void				SetTexture( Texture* Texture );
 		static void				SetCullFaceType( CULLFACE_TYPE CullFaceType );
 		static void				SetColorMask( bool R, bool G, bool B, bool A );
 		static void				SetStencilFunc( UInt32_t StencilFuncType, UInt32_t Ref, UInt32_t Mask );
@@ -63,6 +64,7 @@ namespace le
 		static UInt32_t											blendFunc_sFactor;
 		static UInt32_t											blendFunc_dFactor;
 		static UInt32_t											blendEquation_mode;
+		static UInt32_t											textureLayer;
 		static GPUProgram*										bindedGPUProgram;
 
 		static std::unordered_map< UInt32_t, Texture* >			bindedTextures;

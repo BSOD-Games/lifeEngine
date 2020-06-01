@@ -38,6 +38,9 @@ public:
 
 	bool					Initialize();
 
+signals:
+	void					ResizeViewport( quint32 Width, quint32 Height );
+
 private slots:
 	void					Render();
 

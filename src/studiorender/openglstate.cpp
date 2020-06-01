@@ -11,6 +11,9 @@
 #include <GL/glew.h>
 #include <functional>
 
+#include "engine/iconsolesystem.h"
+
+#include "global.h"
 #include "studiorender.h"
 #include "texture.h"
 #include "gpuprogram.h"
@@ -29,6 +32,7 @@ le::CULLFACE_TYPE											le::OpenGLState::cullFaceType = le::CT_BACK;
 le::UInt32_t												le::OpenGLState::stencilFuncType = GL_ALWAYS;
 le::UInt32_t												le::OpenGLState::stencilFunc_ref = 0;
 le::UInt32_t												le::OpenGLState::stencilFunc_mask = 0;
+le::UInt32_t												le::OpenGLState::textureLayer = 0;
 le::UInt32_t												le::OpenGLState::blendFunc_sFactor = GL_ONE;
 le::UInt32_t												le::OpenGLState::blendFunc_dFactor = GL_ONE;
 le::UInt32_t												le::OpenGLState::blendEquation_mode = GL_FUNC_ADD;
@@ -107,19 +111,27 @@ void le::OpenGLState::SetGPUProgram( GPUProgram* GPUProgram )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Set texture layer
+// ------------------------------------------------------------------------------------ //
+void le::OpenGLState::SetTextureLayer( UInt32_t Layer )
+{
+	if ( textureLayer == Layer ) return;
+	glActiveTexture( GL_TEXTURE0 + Layer );
+	textureLayer = Layer;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Задать тип отсекаемых полигонов
 // ------------------------------------------------------------------------------------ //
-void le::OpenGLState::SetTexture( Texture* Texture, UInt32_t Layer )
+void le::OpenGLState::SetTexture( Texture* Texture )
 {
-	auto			it = bindedTextures.find( Layer );
+	auto			it = bindedTextures.find( textureLayer );
 	if ( it == bindedTextures.end() || Texture != it->second )
 	{
-		glActiveTexture( GL_TEXTURE0 + Layer );
-		
 		if ( !Texture )		glBindTexture( GL_TEXTURE_2D, 0 );
 		else				glBindTexture( GL_TEXTURE_2D, Texture->GetHandle() );
 		
-		bindedTextures[ Layer ] = Texture;
+		bindedTextures[ textureLayer ] = Texture;
 	}
 }
 

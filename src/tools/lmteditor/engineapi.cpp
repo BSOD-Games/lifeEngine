@@ -12,20 +12,9 @@
 #include <fstream>
 #include <qmessagebox.h>
 
+#include "errors.h"
 #include "paths.h"
 #include "engineapi.h"
-
-// ------------------------------------------------------------------------------------ //
-// Engine critical error
-// ------------------------------------------------------------------------------------ //
-void Engine_CriticalError( const char* Message )
-{
-	std::ofstream			fileLog( "lmtedit.log", std::ios::app );
-
-	QMessageBox::critical( nullptr, "Error lmtedit", Message );
-	fileLog << "\nCritical error: " << Message;
-	exit( 1 );
-}
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
@@ -65,7 +54,7 @@ bool EngineAPI::Load()
 		LE_SetCriticalError = ( le::LE_SetCriticalErrorFn_t ) engineDLL.resolve( "LE_SetCriticalError" );
 
 		if ( !LE_CreateEngine )				throw std::runtime_error( "Function LE_CreateEngine not found in [./" LIFEENGINE_ENGINE_DLL "]" );
-		if ( LE_SetCriticalError )			LE_SetCriticalError( Engine_CriticalError );
+		if ( LE_SetCriticalError )			LE_SetCriticalError( Error_Critical );
 
 		engine = ( le::IEngineInternal* ) LE_CreateEngine();
 		if ( !engine->Initialize( "./", "lmteditor.log" ) )

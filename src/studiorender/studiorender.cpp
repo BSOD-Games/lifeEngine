@@ -543,7 +543,7 @@ void le::StudioRender::SetViewport( const StudioRenderViewport& Viewport )
 {
 	if ( gbuffer.IsInitialize() )		
 		gbuffer.Resize( Vector2DInt_t( Viewport.width, Viewport.height ) );
-	
+
 	viewport = Viewport;	
 	shaderLighting.SetType( ShaderLighting::LT_POINT );
 	shaderLighting.SetSizeViewport( Vector2D_t( viewport.width, viewport.height ) );

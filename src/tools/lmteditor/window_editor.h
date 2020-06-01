@@ -13,7 +13,11 @@
 
 #include <QMainWindow>
 
+#include "engine/shaderdescriptor.h"
+#include "engine/materialproxydescriptor.h"
 #include "engine/icamera.h"
+#include "engine/imodel.h"
+#include "studiorender/imesh.h"
 
 #include "scene.h"
 #include "gamedescriptor.h"
@@ -24,6 +28,8 @@ namespace Ui
 {
 	class Window_Editor;
 }
+
+class QListWidgetItem;
 
 //---------------------------------------------------------------------//
 
@@ -36,10 +42,30 @@ public:
 	Window_Editor( const GameDescriptor& GameDescriptor, QWidget* Parent = nullptr );
 	~Window_Editor();
 
+private slots:
+	void			on_comboBox_shader_currentIndexChanged( int Value );
+	void			on_listWidget_parameters_customContextMenuRequested( QPoint Point );
+	void			on_listWidget_proxies_customContextMenuRequested( QPoint Point );
+	void			on_listWidget_proxiesParameters_customContextMenuRequested( QPoint Point );
+
+	void			on_listWidget_parameters_itemClicked( QListWidgetItem* Item );
+	void			on_listWidget_proxies_itemClicked( QListWidgetItem* Item );
+	void			on_listWidget_proxiesParameters_itemClicked( QListWidgetItem* Item );
+
+	void			OnResizeViewport( quint32 Width, quint32 Height );
+	void			OnAddShaderParameter();
+	void			OnAddProxy();
+	void			OnAddProxyParameter();
+
 private:
-	Scene						scene;
-	le::ICamera*				camera;
-	Ui::Window_Editor*			ui;
+	Scene								scene;
+	le::ICamera*						camera;
+	le::IModel*							model;
+	le::IPointLight*					pointLight;
+	Ui::Window_Editor*					ui;
+
+	le::ShaderDescriptor				selectedShaderDescriptor;
+	le::MaterialProxyDescriptor			selectedMaterialProxyDescriptor;
 };
 
 //---------------------------------------------------------------------//
