@@ -28,6 +28,7 @@
 // ------------------------------------------------------------------------------------ //
 bool le::TextGeneric::Initialize( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
+	ClearParameters();
 	std::vector< const char* >			defines;
 	UInt32_t							flags = 0;
 

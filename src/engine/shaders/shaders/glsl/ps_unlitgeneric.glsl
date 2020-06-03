@@ -22,7 +22,13 @@ in vec2 				texCoords;
     in vec3				normal;
 #endif
 
-uniform sampler2D		basetexture;
+
+uniform vec3			color;
+
+#ifdef BASETEXTURE
+	uniform sampler2D		basetexture;
+#endif
+
 #ifdef NORMAL_MAP
     uniform sampler2D		normalmap;
 #endif
@@ -32,10 +38,16 @@ uniform sampler2D		basetexture;
 
 void main()
 {
-#ifdef SPECULAR_MAP
-    out_albedoSpecular = vec4( texture2D( basetexture, texCoords ).rgb, texture2D( specularmap, texCoords ).r );
+#ifdef BASETEXTURE
+	vec3		fragColor = texture2D( basetexture, texCoords ).rgb * color.rgb;
 #else
-    out_albedoSpecular = vec4( texture2D( basetexture, texCoords ).rgb, 0.f );
+	vec3		fragColor = color.rgb;
+#endif
+
+#ifdef SPECULAR_MAP
+    out_albedoSpecular = vec4( fragColor, texture2D( specularmap, texCoords ).r );
+#else
+    out_albedoSpecular = vec4( fragColor, 0.f );
 #endif
 
 #ifdef NORMAL_MAP

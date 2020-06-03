@@ -27,6 +27,7 @@
 #include "errors.h"
 #include "engineapi.h"
 #include "window_editor.h"
+#include "widget_shaderparameter_texture.h"
 #include "ui_window_editor.h"
 
 // ------------------------------------------------------------------------------------ //
@@ -37,7 +38,8 @@ Window_Editor::Window_Editor( const GameDescriptor& GameDescriptor, QWidget* Par
 	ui( new Ui::Window_Editor() ),
 	camera( nullptr ),
 	model( nullptr ),
-	pointLight( nullptr )
+	pointLight( nullptr ),
+	widget_shaderParameter( nullptr )
 {
 	ui->setupUi( this );
 	if ( !ui->widget_preview->Initialize() )
@@ -47,6 +49,16 @@ Window_Editor::Window_Editor( const GameDescriptor& GameDescriptor, QWidget* Par
 
 	if ( !EngineAPI::GetInstance()->GetEngine()->LoadGame( GameDescriptor.path.toStdString().c_str() ) )
 		Error_Critical( "Failed loading game" );
+
+	// Getting all shaders list
+	le::IShaderFactory*			shaderFactory = EngineAPI::GetInstance()->GetMaterialSystem()->GetShaderFactory();
+	le::ShaderDescriptor*		shaderDescriptors = shaderFactory->GetShaders();
+	quint32						countShaders = shaderFactory->GetCountShaders();
+	if ( countShaders == 0 ) return;
+
+	selectedShaderDescriptor = shaderDescriptors[ 0 ];
+	for ( quint32 index = 0; index < countShaders; ++index )
+		ui->comboBox_shader->addItem( shaderDescriptors[ index ].name );
 
 	// Creating camera for preview
 	camera = ( le::ICamera* ) EngineAPI::GetInstance()->GetEngine()->GetFactory()->Create( CAMERA_INTERFACE_VERSION );
@@ -59,6 +71,10 @@ Window_Editor::Window_Editor( const GameDescriptor& GameDescriptor, QWidget* Par
 	// Loading sphere for preview
 	le::IMesh*			mesh = EngineAPI::GetInstance()->GetResourceSystem()->LoadMesh( "sphere", "models/sphere.mdl" );
 	if ( !mesh )		Error_Critical( "Mesh [models/sphere.mdl] not found" );
+
+	std::vector< le::IMaterial* >		updateMaterials( mesh->GetCountMaterials() );
+	std::fill( updateMaterials.begin(), updateMaterials.end(), material.GetHandle() );
+	mesh->Update( updateMaterials.data(), updateMaterials.size(), 0 );
 
 	model = ( le::IModel* ) EngineAPI::GetInstance()->GetEngine()->GetFactory()->Create( MODEL_INTERFACE_VERSION );
 	if ( !model )		Error_Critical( "Interface le::IModel version[" MODEL_INTERFACE_VERSION "] not found in core" );
@@ -76,16 +92,6 @@ Window_Editor::Window_Editor( const GameDescriptor& GameDescriptor, QWidget* Par
 	pointLight->SetRadius( 350 );
 	pointLight->SetIntensivity( 8500 );
 	scene.AddLight( pointLight );
-
-	// Getting all shaders list
-	le::IShaderFactory*			shaderFactory = EngineAPI::GetInstance()->GetMaterialSystem()->GetShaderFactory();
-	le::ShaderDescriptor*		shaderDescriptors = shaderFactory->GetShaders();
-	quint32						countShaders = shaderFactory->GetCountShaders();
-	if ( countShaders == 0 ) return;
-
-	selectedShaderDescriptor = shaderDescriptors[ 0 ];
-	for ( quint32 index = 0; index < countShaders; ++index )
-		ui->comboBox_shader->addItem( shaderDescriptors[ index ].name );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -93,7 +99,7 @@ Window_Editor::Window_Editor( const GameDescriptor& GameDescriptor, QWidget* Par
 // ------------------------------------------------------------------------------------ //
 Window_Editor::~Window_Editor()
 {
-	scene.Clear();
+	scene.Clear();	
 
 	if ( camera )
 	{
@@ -119,7 +125,11 @@ Window_Editor::~Window_Editor()
 			pointLight->DecrementReference();
 	}
 
+	if ( widget_shaderParameter )
+		delete widget_shaderParameter;
+
 	delete ui;
+	EngineAPI::GetInstance()->GetResourceSystem()->UnloadAll();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -140,10 +150,15 @@ void Window_Editor::on_listWidget_parameters_customContextMenuRequested( QPoint 
 			action_addShaders.append( shaderParameter );
 			menu_add.addAction( shaderParameter );
 			connect( shaderParameter, SIGNAL( triggered() ), this, SLOT( OnAddShaderParameter() ) );
+
+			if ( material.HasParameter( selectedShaderDescriptor.parametersInfo[ index ].name ) )
+				shaderParameter->setEnabled( false );
 		}
 
 	if ( !ui->listWidget_parameters->itemAt( Point ) )		action_delete.setEnabled( false );
 	
+	connect( &action_delete, SIGNAL( triggered() ), this, SLOT( OnRemoveShaderParameter() ) );
+
 	contextMenu.addMenu( &menu_add );
 	contextMenu.addAction( &action_delete );
 	contextMenu.exec( QCursor::pos() );
@@ -183,14 +198,84 @@ void Window_Editor::on_listWidget_proxiesParameters_customContextMenuRequested( 
 }
 
 // ------------------------------------------------------------------------------------ //
+// Event: depth test enabled/disabled
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::on_checkBox_depthTest_stateChanged( int State )
+{
+	material.EnableDepthTest( ui->checkBox_depthTest->isChecked() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: depth write enabled/disabled
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::on_checkBox_depthWrite_stateChanged( int State )
+{
+	material.EnableDepthWrite( ui->checkBox_depthWrite->isChecked() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: blend enabled/disabled
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::on_checkBox_blend_stateChanged( int State )
+{
+	material.EnableBlend( ui->checkBox_blend->isChecked() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: change cullface type
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::on_comboBox_cullfaceType_currentIndexChanged( int Value )
+{
+	QString					currentText = ui->comboBox_cullfaceType->currentText();	
+	le::CULLFACE_TYPE		cullfaceType = le::CT_BACK;
+	
+	if ( currentText == "Back" )			cullfaceType = le::CT_BACK;
+	else if ( currentText == "Front" )		cullfaceType = le::CT_FRONT;
+
+	material.SetCullFaceType( cullfaceType );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: cullface enabled/disabled
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::on_checkBox_cullface_stateChanged( int State )
+{
+	material.EnableCullFace( ui->checkBox_cullface->isChecked() );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Event: add shader parameter
 // ------------------------------------------------------------------------------------ //
 void Window_Editor::OnAddShaderParameter()
 {
-	if ( !selectedShaderDescriptor.name ) return;
+	QString							selectedShaderParameter = static_cast< QAction* >( sender() )->text();
+	le::SHADER_PARAMETER_TYPE		shaderParameterType;
 
-	QString			selectedShaderParameter = static_cast< QAction* >( sender() )->text();
+	for ( quint32 index = 0; index < selectedShaderDescriptor.countParameters; ++index )
+		if ( selectedShaderParameter == selectedShaderDescriptor.parametersInfo[ index ].name )
+		{
+			shaderParameterType = selectedShaderDescriptor.parametersInfo[ index ].type;
+			break;
+		}
+
+	material.AddParameter( selectedShaderParameter, shaderParameterType );
 	ui->listWidget_parameters->addItem( selectedShaderParameter );
+	ui->listWidget_parameters->setCurrentRow( ui->listWidget_parameters->model()->rowCount() - 1 );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: remove shader parameter
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::OnRemoveShaderParameter()
+{
+	material.RemoveParameter( ui->listWidget_parameters->currentRow() );
+	ui->listWidget_parameters->model()->removeRow( ui->listWidget_parameters->currentRow() );
+
+	if ( widget_shaderParameter )
+	{
+		delete widget_shaderParameter;
+		widget_shaderParameter = nullptr;
+	}
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -263,24 +348,67 @@ void Window_Editor::on_comboBox_shader_currentIndexChanged( int Value )
 	le::ShaderDescriptor		shaderDescriptor = shaderFactory->GetShader( Value );
 	if ( !shaderDescriptor.name ) return;
 
+	material.SetShader( shaderDescriptor.name );
 	selectedShaderDescriptor = shaderDescriptor;
-	ui->listWidget_parameters->clear();
+	ui->listWidget_parameters->setCurrentRow( -1 );
+
+	// Remove parameters if not exist in new shader
+	for ( quint32 index = 0, count = material.GetCountParameters(); index < count; ++index )
+	{
+		bool							isFind = false;
+		ShaderParameterPtr				shaderParameter = material.GetParameter( index );
+
+		for ( quint32 newIndex = 0; newIndex < selectedShaderDescriptor.countParameters; ++newIndex )
+			if ( shaderParameter->GetName() == selectedShaderDescriptor.parametersInfo[ newIndex ].name )
+			{
+				isFind = true;
+				break;
+			}
+
+		if ( isFind ) continue;
+		material.RemoveParameter( index );
+		ui->listWidget_parameters->model()->removeRow( index );
+		count = material.GetCountParameters();
+		--index;
+	}
+
+	// Remove selected editor shader parameter
+	if ( widget_shaderParameter )
+	{
+		delete widget_shaderParameter;
+		widget_shaderParameter = nullptr;
+	}
 }
 
 // ------------------------------------------------------------------------------------ //
 // Event: selected shader parameter
 // ------------------------------------------------------------------------------------ //
-void Window_Editor::on_listWidget_parameters_itemClicked( QListWidgetItem* Item )
-{}
+void Window_Editor::on_listWidget_parameters_currentRowChanged( int Row )
+{
+	ShaderParameterPtr				shaderParameter = material.GetParameter( Row );
+	if ( !shaderParameter ) return;
+	
+	if ( widget_shaderParameter )
+	{
+		delete widget_shaderParameter;
+		widget_shaderParameter = nullptr;
+	}
 
-// ------------------------------------------------------------------------------------ //
-// Event: selected proxy
-// ------------------------------------------------------------------------------------ //
-void Window_Editor::on_listWidget_proxies_itemClicked( QListWidgetItem* Item )
-{}
+	le::SHADER_PARAMETER_TYPE		shaderParameterType;
+	for ( quint32 index = 0; index < selectedShaderDescriptor.countParameters; ++index )
+		if ( shaderParameter->GetName() == selectedShaderDescriptor.parametersInfo[ index ].name )
+		{
+			shaderParameterType = selectedShaderDescriptor.parametersInfo[ index ].type;
+			break;
+		}
 
-// ------------------------------------------------------------------------------------ //
-// Event: selected proxy parameter
-// ------------------------------------------------------------------------------------ //
-void Window_Editor::on_listWidget_proxiesParameters_itemClicked( QListWidgetItem* Item )
-{}
+	switch ( shaderParameterType )
+	{
+	case le::SPT_TEXTURE:
+		widget_shaderParameter = new Widget_ShaderParameter_Texture( shaderParameter );
+		break;
+	}
+
+	if ( widget_shaderParameter )
+		ui->verticalLayout_2->addWidget( widget_shaderParameter );
+}

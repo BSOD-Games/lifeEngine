@@ -33,22 +33,37 @@
 bool le::LightmappedGeneric::Initialize( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
 	ClearParameters();
-
 	std::vector< const char* >			defines;
-	if ( !LoadShader( "LightmappedGeneric", "shaders/lightmappedgeneric.shader", defines, 0 ) )
-		return false;
 
 	for ( UInt32_t index = 0; index < CountParams; ++index )
 	{
 		IShaderParameter*			shaderParameter = ShaderParameters[ index ];
 		if ( !shaderParameter->IsDefined() ) continue;
 
-		if ( shaderParameter->GetType() == SPT_TEXTURE && strcmp( "basetexture", shaderParameter->GetName() ) == 0 )
+		switch ( shaderParameter->GetType() )
 		{
-			baseTexture = shaderParameter->GetValueTexture();
-			baseTexture->IncrementReference();
+		case SPT_TEXTURE:
+			if ( !( flags & SF_BASETEXTURE ) && strcmp( "basetexture", shaderParameter->GetName() ) == 0 )
+			{
+				flags |= SF_BASETEXTURE;
+				defines.push_back( "BASETEXTURE" );
+
+				baseTexture = shaderParameter->GetValueTexture();
+				baseTexture->IncrementReference();
+			}
+			break;
+
+		case SPT_VECTOR_3D:
+			if ( strcmp( "color", shaderParameter->GetName() ) == 0 )
+				color = shaderParameter->GetValueVector3D();
+			break;
+
+		default: continue;
 		}
 	}
+
+	if ( !LoadShader( "LightmappedGeneric", "shaders/lightmappedgeneric.shader", defines, flags ) )
+		return false;
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "basetexture", 0 );
@@ -69,6 +84,7 @@ void le::LightmappedGeneric::OnDrawStaticModel( const Matrix4x4_t& Transformatio
 	if ( Lightmap )			Lightmap->Bind( 1 );
 
 	gpuProgram->Bind();
+	gpuProgram->SetUniform( "color", color );
 	gpuProgram->SetUniform( "matrix_Projection", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
 }
@@ -93,6 +109,8 @@ const char* le::LightmappedGeneric::GetFallbackShader() const
 // Constructor
 // ------------------------------------------------------------------------------------ //
 le::LightmappedGeneric::LightmappedGeneric() :
+	flags( SF_NONE ),
+	color( 1.f, 1.f, 1.f ),
 	baseTexture( nullptr )
 {}
 
@@ -127,7 +145,8 @@ le::ShaderDescriptor le::LightmappedGeneric::GetDescriptor()
 {
 	static std::vector< ShaderParamInfo >			parametersInfo =
 	{
-		{ "basetexture", SPT_TEXTURE }
+		{ "basetexture", SPT_TEXTURE },
+		{ "color", SPT_VECTOR_3D }
 	};
 
 	ShaderDescriptor			shaderDescriptor;
@@ -147,5 +166,6 @@ bool le::LightmappedGeneric::IsEuqal( IShader* Shader ) const
 
 	return
 		strcmp( GetName(), Shader->GetName() ) == 0 &&
+		color == shader->color &&
 		baseTexture == shader->baseTexture;
 }

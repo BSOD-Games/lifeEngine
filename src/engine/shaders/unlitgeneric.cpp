@@ -29,6 +29,7 @@
 // ------------------------------------------------------------------------------------ //
 bool le::UnlitGeneric::Initialize( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
+	ClearParameters();
 	std::vector< const char* >			defines;
 	flags = SF_NONE;
 
@@ -40,8 +41,11 @@ bool le::UnlitGeneric::Initialize( UInt32_t CountParams, IShaderParameter** Shad
 		switch ( shaderParameter->GetType() )
 		{
 		case SPT_TEXTURE:
-			if ( strcmp( shaderParameter->GetName(), "basetexture" ) == 0 )
+			if ( !( flags & SF_BASETEXTURE ) && strcmp( shaderParameter->GetName(), "basetexture" ) == 0 )
 			{
+				flags |= SF_BASETEXTURE;
+				defines.push_back( "BASETEXTURE" );
+
 				baseTexture = shaderParameter->GetValueTexture();
 				baseTexture->IncrementReference();
 			}
@@ -61,6 +65,11 @@ bool le::UnlitGeneric::Initialize( UInt32_t CountParams, IShaderParameter** Shad
 				specularMap = shaderParameter->GetValueTexture();
 				specularMap->IncrementReference();
 			}
+			break;
+
+		case SPT_VECTOR_3D:
+			if ( strcmp( shaderParameter->GetName(), "color" ) == 0 )
+				color = shaderParameter->GetValueVector3D();
 			break;
 
 		default: continue;
@@ -110,6 +119,7 @@ void le::UnlitGeneric::OnDrawStaticModel( const Matrix4x4_t& Transformation, ICa
 	if ( specularMap )			specularMap->Bind( 2 );
 
 	gpuProgram->Bind();
+	gpuProgram->SetUniform( "color", color );
 	gpuProgram->SetUniform( "matrix_Projection", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
 }
@@ -137,7 +147,8 @@ le::UnlitGeneric::UnlitGeneric() :
 	flags( SF_NONE ),
 	baseTexture( nullptr ),
 	normalMap( nullptr ),
-	specularMap( nullptr )
+	specularMap( nullptr ),
+	color( 1.f, 1.f, 1.f )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -193,7 +204,8 @@ le::ShaderDescriptor le::UnlitGeneric::GetDescriptor()
 	{
 		{ "basetexture", SPT_TEXTURE },
 		{ "normalmap", SPT_TEXTURE },
-		{ "specularmap", SPT_TEXTURE }
+		{ "specularmap", SPT_TEXTURE },
+		{ "color", SPT_VECTOR_3D }
 	};
 
 	ShaderDescriptor			shaderDescriptor;

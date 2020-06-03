@@ -29,8 +29,9 @@ namespace le
 		enum SHADER_FLAG
 		{
 			SF_NONE = 0,
-			SF_NORMAL_MAP = 1 << 0,
-			SF_SPECULAR_MAP = 1 << 1
+			SF_BASETEXTURE = 1 << 0,
+			SF_NORMAL_MAP = 1 << 1,
+			SF_SPECULAR_MAP = 1 << 2
 		};
 
 		//---------------------------------------------------------------------//
@@ -57,6 +58,7 @@ namespace le
 		ITexture*			baseTexture;
 		ITexture*			normalMap;
 		ITexture*			specularMap;
+		Vector3D_t			color;
 	};
 
 	//---------------------------------------------------------------------//

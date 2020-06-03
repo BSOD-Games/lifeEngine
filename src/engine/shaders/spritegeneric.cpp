@@ -30,6 +30,7 @@
 // ------------------------------------------------------------------------------------ //
 bool le::SpriteGeneric::Initialize( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
+	ClearParameters();
 	std::vector< const char* >			defines;
 	flags = SF_NONE;
 
@@ -41,8 +42,11 @@ bool le::SpriteGeneric::Initialize( UInt32_t CountParams, IShaderParameter** Sha
 		switch ( shaderParameter->GetType() )
 		{
 		case SPT_TEXTURE:
-			if ( strcmp( shaderParameter->GetName(), "basetexture" ) == 0 )
+			if ( !( flags & SF_BASETEXTURE ) && strcmp( shaderParameter->GetName(), "basetexture" ) == 0 )
 			{
+				flags |= SF_BASETEXTURE;
+				defines.push_back( "BASETEXTURE" );
+
 				baseTexture = shaderParameter->GetValueTexture();
 				baseTexture->IncrementReference();
 			}
@@ -67,6 +71,8 @@ bool le::SpriteGeneric::Initialize( UInt32_t CountParams, IShaderParameter** Sha
 		case SPT_VECTOR_4D:
 			if ( strcmp( shaderParameter->GetName(), "textureRect" ) == 0 )
 				textureRect = shaderParameter->GetValueVector4D();
+			else if ( strcmp( shaderParameter->GetName(), "color" ) == 0 )
+				color = shaderParameter->GetValueVector3D();
 			break;
 
 		default: continue;
@@ -100,6 +106,7 @@ void le::SpriteGeneric::OnDrawSprite( const Matrix4x4_t& Transformation, ICamera
 	if ( specularMap )			specularMap->Bind( 2 );
 
 	gpuProgram->Bind();
+	gpuProgram->SetUniform( "color", color );
 	gpuProgram->SetUniform( "textureRect", textureRect );
 	gpuProgram->SetUniform( "matrix_Projection", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
@@ -136,7 +143,8 @@ le::SpriteGeneric::SpriteGeneric() :
 	baseTexture( nullptr ),
 	normalMap( nullptr ),
 	specularMap( nullptr ),
-	textureRect( 0.f, 0.f, 1.f, 1.f )
+	textureRect( 0.f, 0.f, 1.f, 1.f ),
+	color( 1.f, 1.f, 1.f )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -193,6 +201,7 @@ le::ShaderDescriptor le::SpriteGeneric::GetDescriptor()
 		{ "basetexture", SPT_TEXTURE },
 		{ "normalmap", SPT_TEXTURE },
 		{ "specularmap", SPT_TEXTURE },
+		{ "color", SPT_VECTOR_3D },
 		{ "textureRect", SPT_VECTOR_4D }
 	};
 

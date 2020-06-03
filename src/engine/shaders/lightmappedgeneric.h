@@ -23,6 +23,17 @@ namespace le
 	class LightmappedGeneric : public BaseShader
 	{
 	public:
+
+		//---------------------------------------------------------------------//
+
+		enum SHADER_FLAG
+		{
+			SF_NONE = 0,
+			SF_BASETEXTURE = 1 << 0
+		};
+
+		//---------------------------------------------------------------------//
+
 		// IShader
 		virtual bool				Initialize( UInt32_t CountParams, IShaderParameter** ShaderParameters );
 		virtual void				OnDrawStaticModel( const Matrix4x4_t& Transformation, ICamera* Camera, ITexture* Lightmap = nullptr );
@@ -39,6 +50,8 @@ namespace le
 		static ShaderDescriptor		GetDescriptor();
 
 	private:
+		UInt32_t			flags;
+		Vector3D_t			color;
 		ITexture*			baseTexture;
 	};
 

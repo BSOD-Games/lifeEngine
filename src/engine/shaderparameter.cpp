@@ -42,8 +42,10 @@ void le::ShaderParameter::Clear()
     }
     }
 
+	if ( material )			material->NeadUpdateShader();
+
     value = nullptr;
-    isDefined = false;
+    isDefined = false;	
 }
 
 // ------------------------------------------------------------------------------------ //

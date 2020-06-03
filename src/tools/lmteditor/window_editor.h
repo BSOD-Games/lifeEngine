@@ -17,9 +17,11 @@
 #include "engine/materialproxydescriptor.h"
 #include "engine/icamera.h"
 #include "engine/imodel.h"
+#include "engine/imaterial.h"
 #include "studiorender/imesh.h"
 
 #include "scene.h"
+#include "material.h"
 #include "gamedescriptor.h"
 
 //---------------------------------------------------------------------//
@@ -47,18 +49,25 @@ private slots:
 	void			on_listWidget_parameters_customContextMenuRequested( QPoint Point );
 	void			on_listWidget_proxies_customContextMenuRequested( QPoint Point );
 	void			on_listWidget_proxiesParameters_customContextMenuRequested( QPoint Point );
+	void			on_checkBox_depthTest_stateChanged( int State );
+	void			on_checkBox_depthWrite_stateChanged( int State );
+	void			on_checkBox_blend_stateChanged( int State );
+	void			on_checkBox_cullface_stateChanged( int State );
+	void			on_comboBox_cullfaceType_currentIndexChanged( int Value );
 
-	void			on_listWidget_parameters_itemClicked( QListWidgetItem* Item );
-	void			on_listWidget_proxies_itemClicked( QListWidgetItem* Item );
-	void			on_listWidget_proxiesParameters_itemClicked( QListWidgetItem* Item );
+	void			on_listWidget_parameters_currentRowChanged( int Row );
 
 	void			OnResizeViewport( quint32 Width, quint32 Height );
 	void			OnAddShaderParameter();
+	void			OnRemoveShaderParameter();
 	void			OnAddProxy();
 	void			OnAddProxyParameter();
 
 private:
 	Scene								scene;
+	Material							material;
+	QWidget*							widget_shaderParameter;
+
 	le::ICamera*						camera;
 	le::IModel*							model;
 	le::IPointLight*					pointLight;

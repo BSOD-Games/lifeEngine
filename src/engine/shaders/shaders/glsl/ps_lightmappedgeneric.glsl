@@ -19,12 +19,21 @@ in vec2 		lightmapCoords;
 in vec4 		vertexColor;
 in vec3			normal;
 
-uniform sampler2D	basetexture;
+uniform vec3		color;
 uniform sampler2D	lightmap;
+
+#ifdef BASETEXTURE
+	uniform sampler2D	basetexture;
+#endif
 
 void main()
 {
-    out_albedoSpecular = vec4( texture2D( basetexture, texCoords ).rgb, 0.f );
+#ifdef BASETEXTURE
+    out_albedoSpecular = vec4( texture2D( basetexture, texCoords ).rgb * color.rgb, 0.f );
+#else
+	out_albedoSpecular = vec4( color.rgb, 0.f );
+#endif
+
     out_normalShininess = vec4( normalize( normal ), 1 );
     out_emission = texture2D( lightmap, lightmapCoords ) * vertexColor;
 }

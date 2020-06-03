@@ -10,6 +10,7 @@
 
 #include <fstream>
 #include <qmessagebox.h>
+#include <qdebug.h>
 
 #include "errors.h"
 
@@ -23,4 +24,13 @@ void Error_Critical( const char* Message )
 	QMessageBox::critical( nullptr, "Error LMTEditor", Message );
 	fileLog << "\nCritical error: " << Message;
 	exit( 1 );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Error: info
+// ------------------------------------------------------------------------------------ //
+void Error_Info( const char* Message )
+{
+	qCritical() << Message;
+	QMessageBox::critical( nullptr, "Error LMTEditor", Message );
 }
