@@ -33,6 +33,7 @@ namespace le
 		SPT_VECTOR_2D,
 		SPT_VECTOR_3D,
 		SPT_VECTOR_4D,
+		SPT_COLOR,
 		SPT_MATRIX
 	};
 
@@ -51,6 +52,7 @@ namespace le
 		virtual void					SetValueVector2D( const Vector2D_t& Value ) = 0;
 		virtual void					SetValueVector3D( const Vector3D_t& Value ) = 0;
 		virtual void					SetValueVector4D( const Vector4D_t& Value ) = 0;
+		virtual void					SetValueColor( const Color_t& Value ) = 0;
 		virtual void					SetValueMatrix( const Matrix4x4_t& Value ) = 0;
 		virtual void					SetValueTexture( ITexture* Texture ) = 0;
 
@@ -63,6 +65,7 @@ namespace le
 		virtual const Vector2D_t&		GetValueVector2D() const = 0;
 		virtual const Vector3D_t&		GetValueVector3D() const = 0;
 		virtual const Vector4D_t&		GetValueVector4D() const = 0;
+		virtual const Color_t&			GetValueColor() const = 0;
 		virtual const Matrix4x4_t&		GetValueMatrix() const = 0;
 		virtual ITexture*				GetValueTexture() const = 0;
 	};
@@ -72,7 +75,7 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#define SHADERPARAMETER_INTERFACE_VERSION "LE_ShaderParameter001"
+#define SHADERPARAMETER_INTERFACE_VERSION "LE_ShaderParameter002"
 
 //---------------------------------------------------------------------//
 

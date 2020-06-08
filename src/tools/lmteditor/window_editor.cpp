@@ -28,6 +28,7 @@
 #include "engineapi.h"
 #include "window_editor.h"
 #include "widget_shaderparameter_texture.h"
+#include "widget_shaderparameter_color.h"
 #include "ui_window_editor.h"
 
 // ------------------------------------------------------------------------------------ //
@@ -406,6 +407,10 @@ void Window_Editor::on_listWidget_parameters_currentRowChanged( int Row )
 	{
 	case le::SPT_TEXTURE:
 		widget_shaderParameter = new Widget_ShaderParameter_Texture( shaderParameter );
+		break;
+
+	case le::SPT_COLOR:
+		widget_shaderParameter = new Widget_ShaderParameter_Color( shaderParameter );
 		break;
 	}
 

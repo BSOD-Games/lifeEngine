@@ -414,14 +414,28 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 		else if ( itParameters->second->IsObject() )
 		{
 			rapidjson::Value::Object            object = itParameters->second->GetObject();
-			bool                                hasX = object.HasMember( "x" );
-			bool                                hasY = object.HasMember( "y" );
-			bool                                hasZ = object.HasMember( "z" );
-			bool                                hasW = object.HasMember( "w" );
+			if ( !object.HasMember( "type" ) )	continue;
 
-			if ( hasX && hasY && !hasZ && !hasW )       parameter->SetValueVector2D( le::Vector2D_t( object.FindMember( "x" )->value.GetFloat(), object.FindMember( "y" )->value.GetFloat() ) );
-			else if ( hasX && hasY && hasZ && !hasW )   parameter->SetValueVector3D( le::Vector3D_t( object.FindMember( "x" )->value.GetFloat(), object.FindMember( "y" )->value.GetFloat(), object.FindMember( "z" )->value.GetFloat() ) );
-			else if ( hasX && hasY && hasZ && hasW )    parameter->SetValueVector4D( le::Vector4D_t( object.FindMember( "x" )->value.GetFloat(), object.FindMember( "y" )->value.GetFloat(), object.FindMember( "z" )->value.GetFloat(), object.FindMember( "w" )->value.GetFloat() ) );
+			std::string			type = object[ "type" ].GetString();
+			if ( type.empty() )		continue;
+
+			if ( type == "vector2d" && object.HasMember( "x" ) && object.HasMember( "y" ) )
+			{
+				parameter->SetValueVector2D( le::Vector2D_t( object[ "x" ].GetFloat(), object[ "y" ].GetFloat() ) );
+			}
+			else if ( type == "vector3d" && object.HasMember( "x" ) && object.HasMember( "y" ) && object.HasMember( "z" ) )
+			{
+				parameter->SetValueVector3D( le::Vector3D_t( object[ "x" ].GetFloat(), object[ "y" ].GetFloat(), object[ "z" ].GetFloat() ) );
+			}
+			else if ( type == "vector4d" && object.HasMember( "x" ) && object.HasMember( "y" ) && object.HasMember( "z" ) && object.HasMember( "w" ) )
+			{
+				parameter->SetValueVector4D( le::Vector4D_t( object[ "x" ].GetFloat(), object[ "y" ].GetFloat(), object[ "z" ].GetFloat(), object[ "w" ].GetFloat() ) );
+			}
+			else if ( type == "color" && object.HasMember( "r" ) && object.HasMember( "g" ) && object.HasMember( "b" ) && object.HasMember( "a" ) )
+			{
+				parameter->SetValueColor( le::Color_t( object[ "r" ].GetFloat(), object[ "g" ].GetFloat(), object[ "b" ].GetFloat(), object[ "a" ].GetFloat() ) );
+			}
+			else continue;
 		}
 
 		else if ( itParameters->second->IsBool() )		parameter->SetValueShaderFlag( itParameters->second->GetBool() );

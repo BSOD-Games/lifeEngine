@@ -67,9 +67,9 @@ bool le::UnlitGeneric::Initialize( UInt32_t CountParams, IShaderParameter** Shad
 			}
 			break;
 
-		case SPT_VECTOR_3D:
+		case SPT_COLOR:
 			if ( strcmp( shaderParameter->GetName(), "color" ) == 0 )
-				color = shaderParameter->GetValueVector3D();
+				color = shaderParameter->GetValueColor();
 			break;
 
 		default: continue;
@@ -193,6 +193,8 @@ void le::UnlitGeneric::ClearParameters()
 
 		specularMap = nullptr;
 	}
+
+	color = Vector3D_t( 1.f, 1.f, 1.f );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -205,7 +207,7 @@ le::ShaderDescriptor le::UnlitGeneric::GetDescriptor()
 		{ "basetexture", SPT_TEXTURE },
 		{ "normalmap", SPT_TEXTURE },
 		{ "specularmap", SPT_TEXTURE },
-		{ "color", SPT_VECTOR_3D }
+		{ "color", SPT_COLOR }
 	};
 
 	ShaderDescriptor			shaderDescriptor;

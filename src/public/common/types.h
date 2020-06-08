@@ -35,6 +35,7 @@ namespace le
 	typedef		glm::vec2			Vector2D_t;
 	typedef		glm::vec3			Vector3D_t;
 	typedef		glm::vec4			Vector4D_t;
+	typedef		Vector4D_t			Color_t;
 	typedef		glm::ivec2			Vector2DInt_t;
 	typedef		glm::ivec3			Vector3DInt_t;
 	typedef		glm::ivec4			Vector4DInt_t;

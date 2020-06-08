@@ -42,9 +42,9 @@ bool le::TextGeneric::Initialize( UInt32_t CountParams, IShaderParameter** Shade
 
 		switch ( shaderParameter->GetType() )
 		{
-		case SPT_VECTOR_3D:
+		case SPT_COLOR:
 			if ( strcmp( shaderParameter->GetName(), "color" ) == 0 )
-				color = shaderParameter->GetValueVector3D();
+				color = shaderParameter->GetValueColor();
 			break;
 
 		default:		continue;
@@ -119,7 +119,7 @@ le::ShaderDescriptor le::TextGeneric::GetDescriptor()
 {
 	static std::vector< ShaderParamInfo >			parametersInfo =
 	{
-		{ "color", SPT_VECTOR_4D }
+		{ "color", SPT_COLOR }
 	};
 
 	ShaderDescriptor			shaderDescriptor;

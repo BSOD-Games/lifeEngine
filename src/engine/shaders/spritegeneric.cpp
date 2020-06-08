@@ -36,7 +36,7 @@ bool le::SpriteGeneric::Initialize( UInt32_t CountParams, IShaderParameter** Sha
 
 	for ( UInt32_t index = 0; index < CountParams; ++index )
 	{
-		IShaderParameter*			shaderParameter = ShaderParameters[ index ];
+		IShaderParameter* shaderParameter = ShaderParameters[ index ];
 		if ( !shaderParameter->IsDefined() )		continue;
 
 		switch ( shaderParameter->GetType() )
@@ -71,8 +71,11 @@ bool le::SpriteGeneric::Initialize( UInt32_t CountParams, IShaderParameter** Sha
 		case SPT_VECTOR_4D:
 			if ( strcmp( shaderParameter->GetName(), "textureRect" ) == 0 )
 				textureRect = shaderParameter->GetValueVector4D();
-			else if ( strcmp( shaderParameter->GetName(), "color" ) == 0 )
-				color = shaderParameter->GetValueVector3D();
+			break;
+
+		case SPT_COLOR:
+			if ( strcmp( shaderParameter->GetName(), "color" ) == 0 )
+				color = shaderParameter->GetValueColor();
 			break;
 
 		default: continue;
@@ -189,6 +192,8 @@ void le::SpriteGeneric::ClearParameters()
 
 		specularMap = nullptr;
 	}
+
+	color = Vector3D_t( 1.f, 1.f, 1.f );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -201,7 +206,7 @@ le::ShaderDescriptor le::SpriteGeneric::GetDescriptor()
 		{ "basetexture", SPT_TEXTURE },
 		{ "normalmap", SPT_TEXTURE },
 		{ "specularmap", SPT_TEXTURE },
-		{ "color", SPT_VECTOR_3D },
+		{ "color", SPT_COLOR },
 		{ "textureRect", SPT_VECTOR_4D }
 	};
 
@@ -218,7 +223,7 @@ le::ShaderDescriptor le::SpriteGeneric::GetDescriptor()
 // ------------------------------------------------------------------------------------ //
 bool le::SpriteGeneric::IsEuqal( IShader* Shader ) const
 {
-	SpriteGeneric*			shader = ( SpriteGeneric* ) Shader;
+	SpriteGeneric* shader = ( SpriteGeneric* ) Shader;
 
 	return
 		strcmp( GetName(), Shader->GetName() ) == 0 &&

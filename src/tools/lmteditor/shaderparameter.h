@@ -42,8 +42,17 @@ public:
 
 	void									SetName( const QString& Name, le::SHADER_PARAMETER_TYPE Type );
 	void									SetValueTexture( const Texture& Value );
+	void									SetValueColor( const QColor& Value );
 
 	Texture									GetValueTexture() const;
+	QColor									GetValueColor() const;
+	
+	inline bool								IsDefined() const
+	{
+		if ( !shaderParameter ) return false;
+		return shaderParameter->IsDefined();
+	}
+
 	inline QString							GetName() const
 	{
 		return shaderParameter->GetName();

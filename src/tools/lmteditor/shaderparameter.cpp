@@ -8,6 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include <qcolor.h>
+
 #include "engine/ifactory.h"
 #include "engine/iengine.h"
 #include "engine/iresourcesystem.h"
@@ -80,6 +82,10 @@ void ShaderParameter::ResetValue()
 		delete static_cast< Texture* >( value );
 		EngineAPI::GetInstance()->GetResourceSystem()->UnloadTexture( shaderParameter->GetName() );
 		break;
+
+	case le::SPT_COLOR:
+		delete static_cast< QColor* >( value );
+		break;
 	}
 
 	value = nullptr;	
@@ -107,6 +113,21 @@ void ShaderParameter::SetValueTexture( const Texture& Texture )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Set value color
+// ------------------------------------------------------------------------------------ //
+void ShaderParameter::SetValueColor( const QColor& Value )
+{
+	if ( !shaderParameter || type != le::SPT_COLOR ) return;
+
+	QColor*			color = new QColor( Value );
+	value = color;
+
+	qreal		color_r, color_g, color_b, color_a;
+	color->getRgbF( &color_r, &color_g, &color_b, &color_a );
+	shaderParameter->SetValueColor( le::Color_t( color_r, color_g, color_b, color_a ) );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Get value texture
 // ------------------------------------------------------------------------------------ //
 ShaderParameter::Texture ShaderParameter::GetValueTexture() const
@@ -116,4 +137,15 @@ ShaderParameter::Texture ShaderParameter::GetValueTexture() const
 
 	Texture*			texture = static_cast< Texture* >( value );
 	return Texture( texture->texture, texture->path );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get value color
+// ------------------------------------------------------------------------------------ //
+QColor ShaderParameter::GetValueColor() const
+{
+	if ( !value || type != le::SPT_COLOR )
+		return QColor();
+
+	return *static_cast< QColor* >( value );
 }

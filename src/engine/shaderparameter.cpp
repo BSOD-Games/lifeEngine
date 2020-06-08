@@ -30,6 +30,7 @@ void le::ShaderParameter::Clear()
     case SPT_VECTOR_2D:       delete static_cast< Vector2D_t* >( value );        break;
     case SPT_VECTOR_3D:       delete static_cast< Vector3D_t* >( value );        break;
     case SPT_VECTOR_4D:       delete static_cast< Vector4D_t* >( value );        break;
+    case SPT_COLOR:           delete static_cast< Color_t* >( value );           break;
     case SPT_MATRIX:          delete static_cast< Matrix4x4_t* >( value );       break;
     case SPT_TEXTURE:
     {
@@ -147,6 +148,21 @@ void le::ShaderParameter::SetValueVector4D( const Vector4D_t& Value )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Set value
+// ------------------------------------------------------------------------------------ //
+void le::ShaderParameter::SetValueColor( const Color_t& Value )
+{
+    if ( isDefined && type != SPT_COLOR )       Clear();
+    if ( !isDefined )                           value = new Color_t();
+
+    *static_cast< Color_t* >( value ) = Value;
+    if ( material )		material->NeadUpdateShader();
+
+    type = SPT_COLOR;
+    isDefined = true;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Задать значение переменной
 // ------------------------------------------------------------------------------------ //
 void le::ShaderParameter::SetValueMatrix( const Matrix4x4_t& Value )
@@ -249,6 +265,14 @@ const le::Vector3D_t& le::ShaderParameter::GetValueVector3D() const
 const le::Vector4D_t& le::ShaderParameter::GetValueVector4D() const
 {
     return *static_cast< Vector4D_t* >( value );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get value
+// ------------------------------------------------------------------------------------ //
+const le::Color_t& le::ShaderParameter::GetValueColor() const
+{
+    return *static_cast< Color_t* >( value );
 }
 
 // ------------------------------------------------------------------------------------ //

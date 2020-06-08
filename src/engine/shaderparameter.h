@@ -44,6 +44,7 @@ namespace le
 		virtual void					SetValueVector2D( const Vector2D_t& Value );
 		virtual void					SetValueVector3D( const Vector3D_t& Value );
 		virtual void					SetValueVector4D( const Vector4D_t& Value );
+		virtual void					SetValueColor( const Color_t& Value );
 		virtual void					SetValueMatrix( const Matrix4x4_t& Value );
 		virtual void					SetValueTexture( ITexture* Texture );
 
@@ -56,6 +57,7 @@ namespace le
 		virtual const Vector2D_t&		GetValueVector2D() const;
 		virtual const Vector3D_t&		GetValueVector3D() const;
 		virtual const Vector4D_t&		GetValueVector4D() const;
+		virtual const Color_t&			GetValueColor() const;
 		virtual const Matrix4x4_t&		GetValueMatrix() const;
 		virtual ITexture*				GetValueTexture() const;
 
