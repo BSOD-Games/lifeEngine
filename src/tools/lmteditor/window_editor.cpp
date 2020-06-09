@@ -10,6 +10,7 @@
 
 #include <qdebug.h>
 #include <qlistwidget.h>
+#include <qmessagebox.h>
 
 #include "engine/shaderdescriptor.h"
 #include "common/shaderparaminfo.h"
@@ -24,11 +25,18 @@
 #include "studiorender/imesh.h"
 #include "studiorender/studiorenderviewport.h"
 
+#include "lmteditor.h"
 #include "errors.h"
 #include "engineapi.h"
 #include "window_editor.h"
 #include "widget_shaderparameter_texture.h"
 #include "widget_shaderparameter_color.h"
+#include "widget_shaderparameter_vector4d.h"
+#include "widget_shaderparameter_vector3d.h"
+#include "widget_shaderparameter_vector2d.h"
+#include "widget_shaderparameter_int.h"
+#include "widget_shaderparameter_float.h"
+#include "widget_shaderparameter_bool.h"
 #include "ui_window_editor.h"
 
 // ------------------------------------------------------------------------------------ //
@@ -405,15 +413,70 @@ void Window_Editor::on_listWidget_parameters_currentRowChanged( int Row )
 
 	switch ( shaderParameterType )
 	{
-	case le::SPT_TEXTURE:
-		widget_shaderParameter = new Widget_ShaderParameter_Texture( shaderParameter );
-		break;
-
-	case le::SPT_COLOR:
-		widget_shaderParameter = new Widget_ShaderParameter_Color( shaderParameter );
-		break;
+	case le::SPT_TEXTURE:		widget_shaderParameter = new Widget_ShaderParameter_Texture( shaderParameter );		break;
+	case le::SPT_INT:			widget_shaderParameter = new Widget_ShaderParameter_Int( shaderParameter );			break;
+	case le::SPT_FLOAT:			widget_shaderParameter = new Widget_ShaderParameter_Float( shaderParameter );		break;
+	case le::SPT_SHADER_FLAG:	widget_shaderParameter = new Widget_ShaderParameter_Bool( shaderParameter );		break;
+	case le::SPT_VECTOR_4D:		widget_shaderParameter = new Widget_ShaderParameter_Vector4D( shaderParameter );	break;
+	case le::SPT_VECTOR_3D:		widget_shaderParameter = new Widget_ShaderParameter_Vector3D( shaderParameter );	break;
+	case le::SPT_VECTOR_2D:		widget_shaderParameter = new Widget_ShaderParameter_Vector2D( shaderParameter );	break;
+	case le::SPT_COLOR:			widget_shaderParameter = new Widget_ShaderParameter_Color( shaderParameter );		break;
 	}
 
 	if ( widget_shaderParameter )
 		ui->verticalLayout_2->addWidget( widget_shaderParameter );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: clicked on "New file"
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::on_actionNew_file_triggered()
+{}
+
+// ------------------------------------------------------------------------------------ //
+// Event: clicked on "Open file"
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::on_actionOpen_file_triggered()
+{}
+
+// ------------------------------------------------------------------------------------ //
+// Event: clicked on "Save file"
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::on_actionSave_file_triggered()
+{}
+
+// ------------------------------------------------------------------------------------ //
+// Event: clicked on "Save file as"
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::on_actionSave_file_as_triggered()
+{}
+
+// ------------------------------------------------------------------------------------ //
+// Event: clicked on "Close file"
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::on_actionClose_file_triggered()
+{
+	close();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: clicked on "About Qt"
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::on_actionAbout_Qt_triggered()
+{
+	QMessageBox::aboutQt( this, "About Qt" );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: clicked on "About"
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::on_actionAbout_triggered()
+{
+	QString				content;
+	content = "LMTEditor " + QString::number( LMTEDITOR_VERSION_MAJOR ) + "." + QString::number( LMTEDITOR_VERSION_MINOR ) + "." + QString::number( LMTEDITOR_VERSION_PATCH ) + " (build " + QString::number( Application_ComputeBuildNumber( GOLD_DATE ) ) + ")<br>" +
+		"lifeEngine " + LIFEENGINE_VERSION + "<br>" +
+		"<br>" +
+		"<b>Author:</b> Egor Pogulyaka [zombiHello]<br>" +	
+		"<b>Description:</b> This editor is designed to create materials for lifeEngine";
+	QMessageBox::about( this, "About LMTEditor", content );
 }

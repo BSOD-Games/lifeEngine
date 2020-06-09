@@ -17,15 +17,12 @@
 #include <qdebug.h>
 
 #include "engine/iconsolesystem.h"
+
+#include "lmteditor.h"
 #include "engineapi.h"
 #include "window_selectgame.h"
 #include "window_editor.h"
 #include "errors.h"
-
-#define GOLD_DATE					43572			// Apr 18 2020 (start coding lmteditor)
-#define LMTEDITOR_VERSION_MAJOR		0
-#define LMTEDITOR_VERSION_MINOR		1
-#define LMTEDITOR_VERSION_PATCH		0
 
 // ------------------------------------------------------------------------------------ //
 // Compute build number

@@ -31,7 +31,6 @@ void le::ShaderParameter::Clear()
     case SPT_VECTOR_3D:       delete static_cast< Vector3D_t* >( value );        break;
     case SPT_VECTOR_4D:       delete static_cast< Vector4D_t* >( value );        break;
     case SPT_COLOR:           delete static_cast< Color_t* >( value );           break;
-    case SPT_MATRIX:          delete static_cast< Matrix4x4_t* >( value );       break;
     case SPT_TEXTURE:
     {
         ITexture*           texture = static_cast< ITexture* >( value );
@@ -165,21 +164,6 @@ void le::ShaderParameter::SetValueColor( const Color_t& Value )
 // ------------------------------------------------------------------------------------ //
 // Задать значение переменной
 // ------------------------------------------------------------------------------------ //
-void le::ShaderParameter::SetValueMatrix( const Matrix4x4_t& Value )
-{
-    if ( isDefined && type != SPT_VECTOR_4D )       Clear();
-    if ( !isDefined )                               value = new Matrix4x4_t();
-
-    *static_cast< Matrix4x4_t* >( value ) = Value;
-    if ( material )		material->NeadUpdateShader();
-
-    type = SPT_MATRIX;
-    isDefined = true;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Задать значение переменной
-// ------------------------------------------------------------------------------------ //
 void le::ShaderParameter::SetValueTexture( ITexture* Value )
 {
     if ( isDefined && type != SPT_VECTOR_4D )       Clear();
@@ -273,14 +257,6 @@ const le::Vector4D_t& le::ShaderParameter::GetValueVector4D() const
 const le::Color_t& le::ShaderParameter::GetValueColor() const
 {
     return *static_cast< Color_t* >( value );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Получить значение переменной
-// ------------------------------------------------------------------------------------ //
-const le::Matrix4x4_t& le::ShaderParameter::GetValueMatrix() const
-{
-    return *static_cast< Matrix4x4_t* >( value );
 }
 
 // ------------------------------------------------------------------------------------ //

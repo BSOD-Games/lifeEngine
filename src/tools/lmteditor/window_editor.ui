@@ -160,6 +160,9 @@
              <layout class="QHBoxLayout" name="horizontalLayout_editor">
               <item>
                <widget class="QLineEdit" name="lineEdit_editor">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
                 <property name="readOnly">
                  <bool>true</bool>
                 </property>
@@ -167,6 +170,9 @@
               </item>
               <item>
                <widget class="QToolButton" name="toolButton_editor">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
                 <property name="text">
                  <string>...</string>
                 </property>

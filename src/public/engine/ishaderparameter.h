@@ -33,8 +33,7 @@ namespace le
 		SPT_VECTOR_2D,
 		SPT_VECTOR_3D,
 		SPT_VECTOR_4D,
-		SPT_COLOR,
-		SPT_MATRIX
+		SPT_COLOR
 	};
 
 	//---------------------------------------------------------------------//
@@ -53,7 +52,6 @@ namespace le
 		virtual void					SetValueVector3D( const Vector3D_t& Value ) = 0;
 		virtual void					SetValueVector4D( const Vector4D_t& Value ) = 0;
 		virtual void					SetValueColor( const Color_t& Value ) = 0;
-		virtual void					SetValueMatrix( const Matrix4x4_t& Value ) = 0;
 		virtual void					SetValueTexture( ITexture* Texture ) = 0;
 
 		virtual bool					IsDefined() const = 0;
@@ -66,7 +64,6 @@ namespace le
 		virtual const Vector3D_t&		GetValueVector3D() const = 0;
 		virtual const Vector4D_t&		GetValueVector4D() const = 0;
 		virtual const Color_t&			GetValueColor() const = 0;
-		virtual const Matrix4x4_t&		GetValueMatrix() const = 0;
 		virtual ITexture*				GetValueTexture() const = 0;
 	};
 

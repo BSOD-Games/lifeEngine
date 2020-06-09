@@ -120,6 +120,7 @@ void le::UnlitGeneric::OnDrawStaticModel( const Matrix4x4_t& Transformation, ICa
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "color", color );
+	gpuProgram->SetUniform( "pos", Camera->GetPosition() );
 	gpuProgram->SetUniform( "matrix_Projection", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
 }

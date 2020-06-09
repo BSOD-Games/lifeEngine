@@ -95,8 +95,8 @@ void scripts_api::ShaderParameter_SetValueVec4( shaderParameter_t Object, vec4f_
 // ------------------------------------------------------------------------------------ //
 void scripts_api::ShaderParameter_SetValueMat4( shaderParameter_t Object, mat4_t Value )
 {
-	if ( !Object ) return;
-	static_cast< le::ShaderParameter* >( Object )->SetValueMatrix( glm::make_mat4( Value.matrix ) );
+	//if ( !Object ) return;
+	//static_cast< le::ShaderParameter* >( Object )->SetValueMatrix( glm::make_mat4( Value.matrix ) );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -200,11 +200,11 @@ scripts_api::vec4f_t scripts_api::ShaderParameter_GetValueVec4( shaderParameter_
 // ------------------------------------------------------------------------------------ //
 scripts_api::mat4_t scripts_api::ShaderParameter_GetValueMat4( shaderParameter_t Object )
 {
-	if ( !Object ) return { 0.f };
+	//if ( !Object ) return { 0.f };
 
 	mat4_t				mat4;
-	const float*		array = glm::value_ptr( static_cast< le::ShaderParameter* >( Object )->GetValueMatrix() );
-	memcpy( mat4.matrix, array, sizeof( le::Matrix4x4_t ) );
+	//const float*		array = glm::value_ptr( static_cast< le::ShaderParameter* >( Object )->GetValueMatrix() );
+	//memcpy( mat4.matrix, array, sizeof( le::Matrix4x4_t ) );
 
 	return mat4;
 }

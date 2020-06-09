@@ -57,6 +57,14 @@ private slots:
 
 	void			on_listWidget_parameters_currentRowChanged( int Row );
 
+	void			on_actionNew_file_triggered();
+	void			on_actionOpen_file_triggered();
+	void			on_actionSave_file_triggered();
+	void			on_actionSave_file_as_triggered();
+	void			on_actionClose_file_triggered();
+	void			on_actionAbout_Qt_triggered();
+	void			on_actionAbout_triggered();
+
 	void			OnResizeViewport( quint32 Width, quint32 Height );
 	void			OnAddShaderParameter();
 	void			OnRemoveShaderParameter();

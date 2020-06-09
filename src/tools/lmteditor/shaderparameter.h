@@ -41,12 +41,24 @@ public:
 	void									ResetValue();
 
 	void									SetName( const QString& Name, le::SHADER_PARAMETER_TYPE Type );
+	void									SetValueInt( int Value );
+	void									SetValueFloat( float Value );
+	void									SetValueBool( bool Value );
 	void									SetValueTexture( const Texture& Value );
 	void									SetValueColor( const QColor& Value );
+	void									SetValueVector4D( const le::Vector4D_t& Value );
+	void									SetValueVector3D( const le::Vector3D_t& Value );
+	void									SetValueVector2D( const le::Vector2D_t& Value );
 
 	Texture									GetValueTexture() const;
+	int										GetValueInt() const;
+	float									GetValueFloat() const;
+	bool									GetValueBool() const;
 	QColor									GetValueColor() const;
-	
+	le::Vector4D_t							GetValueVector4D() const;
+	le::Vector3D_t							GetValueVector3D() const;
+	le::Vector2D_t							GetValueVector2D() const;
+
 	inline bool								IsDefined() const
 	{
 		if ( !shaderParameter ) return false;
