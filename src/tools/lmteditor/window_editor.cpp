@@ -11,9 +11,11 @@
 #include <qdebug.h>
 #include <qlistwidget.h>
 #include <qmessagebox.h>
+#include <qfiledialog.h>
 
 #include "engine/shaderdescriptor.h"
 #include "common/shaderparaminfo.h"
+#include "common/gameinfo.h"
 #include "engine/ifactory.h"
 #include "engine/iengine.h"
 #include "engine/icamera.h"
@@ -437,19 +439,46 @@ void Window_Editor::on_actionNew_file_triggered()
 // Event: clicked on "Open file"
 // ------------------------------------------------------------------------------------ //
 void Window_Editor::on_actionOpen_file_triggered()
-{}
+{
+	QString			path = QFileDialog::getOpenFileName( this, "Open material", EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "lifeEngine material (*.lmt)" );
+	if ( path.isEmpty() ) return;
+
+	if ( !material.Load( path ) )
+	{
+		QString			message = "Failed open material [" + path + "]";
+		Error_Info( message.toLocal8Bit().data() );
+	}
+}
 
 // ------------------------------------------------------------------------------------ //
 // Event: clicked on "Save file"
 // ------------------------------------------------------------------------------------ //
 void Window_Editor::on_actionSave_file_triggered()
-{}
+{
+	QString			path = QFileDialog::getSaveFileName( this, "Save material", EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "lifeEngine material (*.lmt)" );
+	if ( path.isEmpty() ) return;
+
+	if ( !material.Save( path ) )
+	{
+		QString			message = "Failed save material [" + path + "]";
+		Error_Info( message.toLocal8Bit().data() );
+	}
+}
 
 // ------------------------------------------------------------------------------------ //
 // Event: clicked on "Save file as"
 // ------------------------------------------------------------------------------------ //
 void Window_Editor::on_actionSave_file_as_triggered()
-{}
+{
+	QString			path = QFileDialog::getSaveFileName( this, "Save as material", EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "lifeEngine material (*.lmt)" );
+	if ( path.isEmpty() ) return;
+
+	if ( !material.Save( path ) )
+	{
+		QString			message = "Failed save as material [" + path + "]";
+		Error_Info( message.toLocal8Bit().data() );
+	}
+}
 
 // ------------------------------------------------------------------------------------ //
 // Event: clicked on "Close file"

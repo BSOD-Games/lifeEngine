@@ -25,6 +25,9 @@ class Material
 public:
 	Material();
 	~Material();
+
+	bool							Load( const QString& Path );
+	bool							Save( const QString& Path );
 	void							EnableDepthTest( bool Enable = true );
 	void							EnableDepthWrite( bool Enable = true );
 	void							EnableBlend( bool Enable = true );

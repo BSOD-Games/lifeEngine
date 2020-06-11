@@ -14,6 +14,7 @@ set( PROJECT_STUDIORENDER studiorender )
 set( PROJECT_PHYSICS physics )
 set( PROJECT_LMDL tools/lmdl )
 set( PROJECT_MATERIALS_EDITOR tools/lmteditor ) 
+set( PROJECT_LMT tools/lmt )
 
 #
 #   --- Настройки сборки и пути к каталогам ---
@@ -106,3 +107,5 @@ endif()
 if ( BUILD_MATERIALS_EDITOR )
 	add_subdirectory( ${PROJECT_MATERIALS_EDITOR} )
 endif()
+
+add_subdirectory( ${PROJECT_LMT} )
