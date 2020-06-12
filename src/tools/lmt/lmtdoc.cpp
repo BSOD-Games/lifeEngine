@@ -9,8 +9,25 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <fstream>
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
 #include "lmtdoc.h"
+
+#define LMT_VERSION		2
+
+// ------------------------------------------------------------------------------------ //
+// Cullface type: string to enum
+// ------------------------------------------------------------------------------------ //
+inline LMTDoc::CULLFACE_TYPE CullFaceType_StringToEnum( const char* Type )
+{
+	if ( !Type || Type == "" )				return LMTDoc::CT_BACK;
+
+	if ( strcmp( Type, "front" ) == 0 )		return LMTDoc::CT_FRONT;
+	else									return LMTDoc::CT_BACK;
+}
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
@@ -36,7 +53,208 @@ LMTDoc::~LMTDoc()
 // ------------------------------------------------------------------------------------ //
 bool LMTDoc::Load( const std::string& Path )
 {
-	return false;
+	// TODO: Refact this fucking shit code!
+
+	std::ifstream		file( Path );
+	if ( !file.is_open() )						return false;
+
+	std::string					stringBuffer;
+	std::getline( file, stringBuffer, '\0' );
+
+	rapidjson::Document			document;
+	document.Parse( stringBuffer.c_str() );
+	if ( document.HasParseError() )				return false;
+
+	if ( document.FindMember( "version" ) == document.MemberEnd() ||
+		 !document[ "version" ].IsNumber() || document[ "version" ].GetInt() != LMT_VERSION )
+		return false;
+
+	// Reading all parameters material
+	for ( auto itRoot = document.MemberBegin(), itRootEnd = document.MemberEnd(); itRoot != itRootEnd; ++itRoot )
+	{
+		// Surface name
+		if ( strcmp( itRoot->name.GetString(), "surface" ) == 0 && itRoot->value.IsString() )
+			surface = itRoot->value.GetString();
+
+		// Is enabled depth test
+		else if ( strcmp( itRoot->name.GetString(), "depthTest" ) == 0 && itRoot->value.IsBool() )
+			isEnabledDepthTest = itRoot->value.GetBool();
+
+		// Is enabled depth write
+		else if ( strcmp( itRoot->name.GetString(), "depthWrite" ) == 0 && itRoot->value.IsBool() )
+			isEnabledDepthWrite = itRoot->value.GetBool();
+
+		// Is enabled blend
+		else if ( strcmp( itRoot->name.GetString(), "blend" ) == 0 && itRoot->value.IsBool() )
+			isEnabledBlend = itRoot->value.GetBool();
+
+		// Is enabled cullface
+		else if ( strcmp( itRoot->name.GetString(), "cullface" ) == 0 && itRoot->value.IsBool() )
+			isEnabledCullFace = itRoot->value.GetBool();
+
+		// Cullface type
+		else if ( strcmp( itRoot->name.GetString(), "cullface_type" ) == 0 )
+		{
+			if ( itRoot->value.IsString() )
+				cullfaceType = CullFaceType_StringToEnum( itRoot->value.GetString() );
+			else if ( itRoot->value.IsNumber() )
+				cullfaceType = ( CULLFACE_TYPE ) itRoot->value.GetInt();
+		}
+
+		// Shader
+		else if ( strcmp( itRoot->name.GetString(), "shader" ) == 0 && itRoot->value.IsString() )
+			shader = itRoot->value.GetString();
+
+		// Shader parameters
+		else if ( strcmp( itRoot->name.GetString(), "parameters" ) == 0 && itRoot->value.IsObject() )
+			for ( auto itParameter = itRoot->value.GetObject().MemberBegin(), itParameterEnd = itRoot->value.GetObject().MemberEnd(); itParameter != itParameterEnd; ++itParameter )
+			{
+				if ( !itParameter->name.IsString() )		continue;
+
+				LMTParameter			parameter;
+				parameter.SetName( itParameter->name.GetString() );
+
+				if ( itParameter->value.IsString() )
+					parameter.SetValueTexture( itParameter->value.GetString() );
+				else if ( itParameter->value.IsObject() )
+				{
+					rapidjson::Value::Object            object = itParameter->value.GetObject();
+					if ( !object.HasMember( "type" ) )	continue;
+
+					std::string			type = object[ "type" ].GetString();
+					if ( type.empty() )		continue;
+
+					if ( type == "vector2d" && object.HasMember( "x" ) && object.HasMember( "y" ) )
+					{
+						parameter.SetValueVector2D( LMTVector2D( object[ "x" ].GetFloat(), object[ "y" ].GetFloat() ) );
+					}
+					else if ( type == "vector3d" && object.HasMember( "x" ) && object.HasMember( "y" ) && object.HasMember( "z" ) )
+					{
+						parameter.SetValueVector3D( LMTVector3D( object[ "x" ].GetFloat(), object[ "y" ].GetFloat(), object[ "z" ].GetFloat() ) );
+					}
+					else if ( type == "vector4d" && object.HasMember( "x" ) && object.HasMember( "y" ) && object.HasMember( "z" ) && object.HasMember( "w" ) )
+					{
+						parameter.SetValueVector4D( LMTVector4D( object[ "x" ].GetFloat(), object[ "y" ].GetFloat(), object[ "z" ].GetFloat(), object[ "w" ].GetFloat() ) );
+					}
+					else if ( type == "color" && object.HasMember( "r" ) && object.HasMember( "g" ) && object.HasMember( "b" ) && object.HasMember( "a" ) )
+					{
+						parameter.SetValueColor( LMTColor( object[ "r" ].GetFloat(), object[ "g" ].GetFloat(), object[ "b" ].GetFloat(), object[ "a" ].GetFloat() ) );
+					}
+					else continue;
+				}
+				else if ( itParameter->value.IsBool() )		parameter.SetValueBool( itParameter->value.GetBool() );
+				else if ( itParameter->value.IsDouble() )	parameter.SetValueFloat( itParameter->value.GetDouble() );
+				else if ( itParameter->value.IsFloat() )	parameter.SetValueFloat( itParameter->value.GetFloat() );
+				else if ( itParameter->value.IsInt() )		parameter.SetValueInt( itParameter->value.GetInt() );
+
+				parameters.push_back( parameter );
+			}
+
+		// Proxies
+		else if ( strcmp( itRoot->name.GetString(), "proxies" ) == 0 && itRoot->value.IsObject() )
+			for ( auto itProxy = itRoot->value.GetObject().MemberBegin(), itProxyEnd = itRoot->value.GetObject().MemberEnd(); itProxy != itProxyEnd; ++itProxy )
+			{
+				if ( !itProxy->name.IsString() || !itProxy->value.IsObject() ) continue;
+				LMTProxy           proxy;
+
+				proxy.SetName( itProxy->name.GetString() );
+				for ( auto itProxyValue = itProxy->value.GetObject().MemberBegin(), itProxyValueEnd = itProxy->value.GetObject().MemberEnd(); itProxyValue != itProxyValueEnd; ++itProxyValue )
+				{
+					if ( !itProxyValue->name.IsString() )		continue;
+
+					LMTProxyParameter			proxyParameter;
+					proxyParameter.SetName( itProxyValue->name.GetString() );
+
+					if ( itProxyValue->value.IsArray() )
+					{
+						rapidjson::Value::Array         array = itProxyValue->value.GetArray();
+
+						if ( array.Begin()->IsInt() )
+						{
+							std::vector< int >          stdArray;
+							for ( std::uint32_t index = 0, count = array.Size(); index < count; ++index )
+								stdArray.push_back( array[ index ].GetInt() );
+
+							proxyParameter.SetValueArrayInt( stdArray );
+						}
+						else if ( array.Begin()->IsFloat() )
+						{
+							std::vector< float >          stdArray;
+							for ( std::uint32_t index = 0, count = array.Size(); index < count; ++index )
+								stdArray.push_back( array[ index ].GetInt() );
+
+							proxyParameter.SetValueArrayFloat( stdArray );
+						}
+						else if ( array.Begin()->IsObject() )
+						{
+							rapidjson::Value::Object            object = array.Begin()->GetObject();
+							bool                                hasX = object.HasMember( "x" );
+							bool                                hasY = object.HasMember( "y" );
+							bool                                hasZ = object.HasMember( "z" );
+							bool                                hasW = object.HasMember( "w" );
+
+							if ( hasX && hasY && !hasZ && !hasW )
+							{
+								std::vector< LMTVector2D >          stdArray;
+								for ( std::uint32_t index = 0, count = array.Size(); index < count; ++index )
+								{
+									object = array[ index ].GetObject();
+									stdArray.push_back( LMTVector2D( object.FindMember( "x" )->value.GetFloat(), object.FindMember( "y" )->value.GetFloat() ) );
+								}
+
+								proxyParameter.SetValueArrayVector2D( stdArray );
+							}
+							else if ( hasX && hasY && hasZ && !hasW )
+							{
+								std::vector< LMTVector3D >          stdArray;
+								for ( std::uint32_t index = 0, count = array.Size(); index < count; ++index )
+								{
+									object = array[ index ].GetObject();
+									stdArray.push_back( LMTVector3D( object.FindMember( "x" )->value.GetFloat(), object.FindMember( "y" )->value.GetFloat(), object.FindMember( "z" )->value.GetFloat() ) );
+								}
+
+								proxyParameter.SetValueArrayVector3D( stdArray );
+							}
+							else if ( hasX && hasY && hasZ && hasW )
+							{
+								std::vector< LMTVector4D >          stdArray;
+								for ( std::uint32_t index = 0, count = array.Size(); index < count; ++index )
+								{
+									object = array[ index ].GetObject();
+									stdArray.push_back( LMTVector4D( object.FindMember( "x" )->value.GetFloat(), object.FindMember( "y" )->value.GetFloat(), object.FindMember( "z" )->value.GetFloat(), object.FindMember( "w" )->value.GetFloat() ) );
+								}
+
+								proxyParameter.SetValueArrayVector4D( stdArray );
+							}
+						}
+					}
+					else if ( itProxyValue->value.IsString() )
+						proxyParameter.SetValueShaderParameter( itProxyValue->value.GetString() );
+					else if ( itProxyValue->value.IsObject() )
+					{
+						rapidjson::Value::Object            object = itProxyValue->value.GetObject();
+						bool                                hasX = object.HasMember( "x" );
+						bool                                hasY = object.HasMember( "y" );
+						bool                                hasZ = object.HasMember( "z" );
+						bool                                hasW = object.HasMember( "w" );
+
+						if ( hasX && hasY && !hasZ && !hasW )       proxyParameter.SetValueVector2D( LMTVector2D( object.FindMember( "x" )->value.GetFloat(), object.FindMember( "y" )->value.GetFloat() ) );
+						else if ( hasX && hasY && hasZ && !hasW )   proxyParameter.SetValueVector3D( LMTVector3D( object.FindMember( "x" )->value.GetFloat(), object.FindMember( "y" )->value.GetFloat(), object.FindMember( "z" )->value.GetFloat() ) );
+						else if ( hasX && hasY && hasZ && hasW )    proxyParameter.SetValueVector4D( LMTVector4D( object.FindMember( "x" )->value.GetFloat(), object.FindMember( "y" )->value.GetFloat(), object.FindMember( "z" )->value.GetFloat(), object.FindMember( "w" )->value.GetFloat() ) );
+					}
+					else if ( itProxyValue->value.IsBool() )          proxyParameter.SetValueBool( itProxyValue->value.GetBool() );
+					else if ( itProxyValue->value.IsDouble() )        proxyParameter.SetValueFloat( itProxyValue->value.GetFloat() );
+					else if ( itProxyValue->value.IsFloat() )         proxyParameter.SetValueFloat( itProxyValue->value.GetFloat() );
+					else if ( itProxyValue->value.IsInt() )           proxyParameter.SetValueInt( itProxyValue->value.GetInt() );
+
+					proxy.AddParameter( proxyParameter );
+				}
+
+				proxes.push_back( proxy );
+			}
+	}
+
+	return true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -50,7 +268,7 @@ bool LMTDoc::Save( const std::string& Path )
 	file << "{\n";
 
 	// Write general settings
-	file << "\t\"version\": 2,\n";
+	file << "\t\"version\": " << LMT_VERSION << ",\n";
 	file << "\t\"surface\": " << "\"" << surface << "\",\n\n";
 	file << "\t\"shader\": " << "\"" << shader << "\",\n";
 	file << "\t\"depthTest\": " << ( isEnabledDepthTest ? "true" : "false" ) << ",\n";
@@ -96,26 +314,47 @@ bool LMTDoc::Save( const std::string& Path )
 			}
 			case LMTParameter::PT_COLOR:
 			{
-				const LMTColor& color = parameter.GetValueColor();
-				file << "{ \"r\": " << color.r << ", \"g\": " << color.g << ", \"b\": " << color.b << ", \"a\": " << color.a << " }";
+				const LMTColor&			color = parameter.GetValueColor();
+				file << "\n\t\t{\n";
+				file << "\t\t\t\"type\": \"color\",\n";
+				file << "\t\t\t\"r\": " << color.r << ",\n";
+				file << "\t\t\t\"g\": " << color.g << ",\n";
+				file << "\t\t\t\"b\": " << color.b << ",\n";
+				file << "\t\t\t\"a\": " << color.a << "\n";
+				file << "\t\t}";
 				break;
 			}
 			case LMTParameter::PT_VECTOR_2D:
 			{
-				const LMTVector2D& value = parameter.GetValueVector2D();
-				file << "{ \"x\": " << value.x << ", \"y\": " << value.y << " }";
+				const LMTVector2D&		value = parameter.GetValueVector2D();
+				file << "\n\t\t{\n";
+				file << "\t\t\t\"type\": \"vector2d\",\n";
+				file << "\t\t\t\"x\": " << value.x << ",\n";
+				file << "\t\t\t\"y\": " << value.y << "\n";
+				file << "\t\t}";
 				break;
 			}
 			case LMTParameter::PT_VECTOR_3D:
 			{
-				const LMTVector3D& value = parameter.GetValueVector3D();
-				file << "{ \"x\": " << value.x << ", \"y\": " << value.y << ", \"z\": " << value.z << " }";
+				const LMTVector4D&		value = parameter.GetValueVector4D();
+				file << "\n\t\t{\n";
+				file << "\t\t\t\"type\": \"vector3d\",\n";
+				file << "\t\t\t\"x\": " << value.x << ",\n";
+				file << "\t\t\t\"y\": " << value.y << ",\n";
+				file << "\t\t\t\"z\": " << value.z << "\n";
+				file << "\t\t}";
 				break;
 			}
 			case LMTParameter::PT_VECTOR_4D:
 			{
-				const LMTVector4D& value = parameter.GetValueVector4D();
-				file << "{ \"x\": " << value.x << ", \"y\": " << value.y << ", \"z\": " << value.z << ", \"w\": " << value.w << " }";
+				const LMTVector4D&		value = parameter.GetValueVector4D();
+				file << "\n\t\t{\n";
+				file << "\t\t\t\"type\": \"vector4d\",\n";
+				file << "\t\t\t\"x\": " << value.x << ",\n";
+				file << "\t\t\t\"y\": " << value.y << ",\n";
+				file << "\t\t\t\"z\": " << value.z << "\n";
+				file << "\t\t\t\"w\": " << value.w << "\n";
+				file << "\t\t}";
 				break;
 			}
 			}
@@ -130,6 +369,160 @@ bool LMTDoc::Save( const std::string& Path )
 	}
 	else
 		file << "\n";
+
+	// Write proxes
+	if ( !proxes.empty() )
+	{
+		file << ",\n\n";
+		file << "\t\"proxies\":\n";
+		file << "\t{\n";
+
+		for ( std::uint32_t index = 0, count = proxes.size(); index < count; ++index )
+		{
+			LMTProxy&		proxy = proxes[ index ];
+			file << "\t\t\"" << proxy.GetName() << "\":\n";
+			file << "\t\t{";
+
+			auto&			parameters = proxy.GetParameters();
+			for ( std::uint32_t indexParameter = 0, countParameters = parameters.size(); indexParameter < countParameters; ++indexParameter )
+			{
+				const LMTProxyParameter&		proxyParameter = parameters[ indexParameter ];
+				file << "\t\t\t\"" << proxyParameter.GetName() << "\": ";
+
+				switch ( proxyParameter.GetType() )
+				{
+				case LMTProxyParameter::PT_ARRAY_FLOAT:
+				{
+					auto&		arrayFloat = proxyParameter.GetValueArrayFloat();
+					file << "\t\t\t[\n";
+					
+					for ( std::uint32_t arrayIndex = 0, countArray = arrayFloat.size(); arrayIndex < countArray; ++arrayIndex )
+					{
+						file << arrayFloat[ arrayIndex ];
+
+						if ( arrayIndex + 1 == countArray )
+							file << "\n";
+						else
+							file << ",\n";
+					}
+
+					file << "\t\t\t]";
+					break;
+				}
+				case LMTProxyParameter::PT_ARRAY_INT:
+				{
+					auto&		arrayInt = proxyParameter.GetValueArrayInt();
+					file << "\t\t\t[\n";
+
+					for ( std::uint32_t arrayIndex = 0, countArray = arrayInt.size(); arrayIndex < countArray; ++arrayIndex )
+					{
+						file << arrayInt[ arrayIndex ];
+
+						if ( arrayIndex + 1 == countArray )
+							file << "\n";
+						else
+							file << ",\n";
+					}
+
+					file << "\t\t\t]";
+					break;
+				}
+				case LMTProxyParameter::PT_ARRAY_VECTOR_2D: 
+				{
+					auto&		arrayVector2D = proxyParameter.GetValueArrayVector2D();
+					file << "\t\t\t[\n";
+
+					for ( std::uint32_t arrayIndex = 0, countArray = arrayVector2D.size(); arrayIndex < countArray; ++arrayIndex )
+					{
+						LMTVector2D&		value = arrayVector2D[ arrayIndex ];
+						file << "{ \"x\": " << value.x << ", \"y\": " << value.y << " }";
+
+						if ( arrayIndex + 1 == countArray )
+							file << "\n";
+						else
+							file << ",\n";
+					}
+
+					file << "\t\t\t]";
+					break;
+				}
+				case LMTProxyParameter::PT_ARRAY_VECTOR_3D: 
+				{
+					auto&		arrayVector3D = proxyParameter.GetValueArrayVector3D();
+					file << "\t\t\t[\n";
+
+					for ( std::uint32_t arrayIndex = 0, countArray = arrayVector3D.size(); arrayIndex < countArray; ++arrayIndex )
+					{
+						LMTVector3D&		value = arrayVector3D[ arrayIndex ];
+						file << "{ \"x\": " << value.x << ", \"y\": " << value.y << ", \"z\": " << value.z << " }";
+
+						if ( arrayIndex + 1 == countArray )
+							file << "\n";
+						else
+							file << ",\n";
+					}
+
+					file << "\t\t\t]";
+					break;
+				}
+				case LMTProxyParameter::PT_ARRAY_VECTOR_4D:
+				{
+					auto&		arrayVector4D = proxyParameter.GetValueArrayVector4D();
+					file << "\t\t\t[\n";
+
+					for ( std::uint32_t arrayIndex = 0, countArray = arrayVector4D.size(); arrayIndex < countArray; ++arrayIndex )
+					{
+						LMTVector4D&		value = arrayVector4D[ arrayIndex ];
+						file << "{ \"x\": " << value.x << ", \"y\": " << value.y << ", \"z\": " << value.z << ", \"w\": " << value.w << " }";
+
+						if ( arrayIndex + 1 == countArray )
+							file << "\n";
+						else
+							file << ",\n";
+					}
+
+					file << "\t\t\t]";
+					break;
+				}
+				case LMTProxyParameter::PT_BOOL:				file << ( proxyParameter.GetValueBool() ? "true" : "false" );	break;
+				case LMTProxyParameter::PT_FLOAT:				file << proxyParameter.GetValueFloat();							break;
+				case LMTProxyParameter::PT_INT:					file << proxyParameter.GetValueInt();							break;
+				case LMTProxyParameter::PT_SHADER_PARAMETER:	file << proxyParameter.GetValueShaderParameter();				break;
+				case LMTProxyParameter::PT_VECTOR_2D: 
+				{
+					LMTVector2D&		value = proxyParameter.GetValueVector2D();
+					file << "{ \"x\": " << value.x << ", \"y\": " << value.y << " }";
+					break;
+				}
+				case LMTProxyParameter::PT_VECTOR_3D:
+				{
+					LMTVector3D&		value = proxyParameter.GetValueVector3D();
+					file << "{ \"x\": " << value.x << ", \"y\": " << value.y << ", \"z\": " << value.z << " }";
+					break;
+				}
+				case LMTProxyParameter::PT_VECTOR_4D:
+				{
+					LMTVector4D&		value = proxyParameter.GetValueVector4D();
+					file << "{ \"x\": " << value.x << ", \"y\": " << value.y << ", \"z\": " << value.z << ", \"w\": " << value.w << " }";
+					break;
+				}
+				}
+
+				if ( indexParameter + 1 == countParameters )
+					file << "\n";
+				else
+					file << ",\n";
+			}
+
+			file << "\t\t}";
+			if ( index + 1 == count )
+				file << "\n";
+			else
+				file << ",\n\n";
+		}
+
+		file << "\t}\n";
+	}
 
 	file << "}";
 	file.close();

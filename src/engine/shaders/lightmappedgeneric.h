@@ -51,7 +51,7 @@ namespace le
 
 	private:
 		UInt32_t			flags;
-		Vector3D_t			color;
+		Color_t				color;
 		ITexture*			baseTexture;
 	};
 

@@ -46,7 +46,92 @@ Material::~Material()
 // ------------------------------------------------------------------------------------ //
 bool Material::Load( const QString& Path )
 {
-	return false;
+	LMTDoc			lmtDoc;
+	if ( !lmtDoc.Load( Path.toStdString() ) )
+		return false;
+
+	material->Clear();
+	material->SetSurfaceName( lmtDoc.GetSurface().c_str() );
+	material->SetShader( lmtDoc.GetShader().c_str() );
+	
+	switch ( lmtDoc.GetCullfaceType() )
+	{
+	case LMTDoc::CT_BACK:		material->SetCullFaceType( le::CT_BACK );	break;
+	case LMTDoc::CT_FRONT:		material->SetCullFaceType( le::CT_FRONT );	break;
+	}
+
+	material->EnableBlend( lmtDoc.IsEnabledBlend() );
+	material->EnableCullFace( lmtDoc.IsEnabledCullFace() );
+	material->EnableDepthTest( lmtDoc.IsEnabledDepthTest() );
+	material->EnableDepthWrite( lmtDoc.IsEnabledDepthWrite() );
+
+	const std::vector< LMTParameter >&		shaderParameters = lmtDoc.GetParameters();
+	if ( !shaderParameters.empty() )
+		for ( quint32 index = 0, count = shaderParameters.size(); index < count; ++index )
+		{
+			const LMTParameter&					parameter = shaderParameters[ index ];
+			ShaderParameterPtr					shaderParameter = std::make_shared< ShaderParameter >();
+			
+			le::SHADER_PARAMETER_TYPE			shaderParameterType;
+			switch ( parameter.GetType() )
+			{
+			case LMTParameter::PT_INT:			shaderParameterType = le::SPT_INT;			break;
+			case LMTParameter::PT_FLOAT:		shaderParameterType = le::SPT_FLOAT;		break;
+			case LMTParameter::PT_BOOL:			shaderParameterType = le::SPT_SHADER_FLAG;	break;
+			case LMTParameter::PT_TEXTURE:		shaderParameterType = le::SPT_TEXTURE;		break;
+			case LMTParameter::PT_COLOR:		shaderParameterType = le::SPT_COLOR;		break;
+			case LMTParameter::PT_VECTOR_2D:	shaderParameterType = le::SPT_VECTOR_2D;	break;
+			case LMTParameter::PT_VECTOR_3D:	shaderParameterType = le::SPT_VECTOR_3D;	break;
+			case LMTParameter::PT_VECTOR_4D:	shaderParameterType = le::SPT_VECTOR_4D;	break;
+			}
+
+			shaderParameter->SetName( parameter.GetName().c_str(), shaderParameterType );
+
+			switch ( shaderParameterType )
+			{
+			case le::SPT_INT:			shaderParameter->SetValueInt( parameter.GetValueInt() );		break;
+			case le::SPT_FLOAT:			shaderParameter->SetValueFloat( parameter.GetValueFloat() );	break;
+			case le::SPT_SHADER_FLAG:	shaderParameter->SetValueBool( parameter.GetValueBool() );		break;
+			case le::SPT_TEXTURE:
+			{
+				const std::string&		path = parameter.GetValueTexture();
+				le::ITexture*			texture = EngineAPI::GetInstance()->GetResourceSystem()->LoadTexture( path.c_str(), path.c_str() );
+				if ( !texture )			continue;
+
+				shaderParameter->SetValueTexture( ShaderParameter::Texture( texture, path.c_str() ) );
+				break;
+			}
+			case le::SPT_COLOR:
+			{
+				const LMTColor&			color = parameter.GetValueColor();
+				shaderParameter->SetValueColor( QColor::fromRgbF( color.r, color.g, color.b, color.a ) );
+				break;
+			}
+			case le::SPT_VECTOR_2D:
+			{
+				const LMTVector2D&		vec2d = parameter.GetValueVector2D();
+				shaderParameter->SetValueVector2D( le::Vector2D_t( vec2d.x, vec2d.y ) );
+				break;
+			}
+			case le::SPT_VECTOR_3D:
+			{
+				const LMTVector3D&		vec3d = parameter.GetValueVector3D();
+				shaderParameter->SetValueVector3D( le::Vector3D_t( vec3d.x, vec3d.y, vec3d.z ) );
+				break;
+			}
+			case le::SPT_VECTOR_4D:
+			{
+				const LMTVector4D&		vec4d = parameter.GetValueVector4D();
+				shaderParameter->SetValueVector4D( le::Vector4D_t( vec4d.x, vec4d.y, vec4d.z, vec4d.w ) );
+				break;
+			}
+			}
+
+			material->AddParameter( shaderParameter->GetHandle() );
+			parameters.push_back( shaderParameter );
+		}
+
+	return true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -122,6 +207,15 @@ bool Material::Save( const QString& Path )
 	}
 
 	return lmtDoc.Save( Path.toStdString() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set surface
+// ------------------------------------------------------------------------------------ //
+void Material::SetSurface( const QString& Name )
+{
+	if ( !material ) return;
+	material->SetSurfaceName( Name.toLocal8Bit().data() );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -213,4 +307,15 @@ bool Material::HasParameter( const QString& Name ) const
 			return true;
 
 	return false;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Clear material
+// ------------------------------------------------------------------------------------ //
+void Material::Clear()
+{
+	if ( !material ) return;
+
+	material->Clear();
+	parameters.clear();
 }

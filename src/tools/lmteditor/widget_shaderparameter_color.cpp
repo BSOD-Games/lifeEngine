@@ -28,7 +28,7 @@ Widget_ShaderParameter_Color::Widget_ShaderParameter_Color( ShaderParameterPtr S
 	QWidget( Parent ),
 	ui( new Ui::Widget_ShaderParameter_Color() ),
 	shaderParameter( ShaderParameter ),
-	color( QColor( 255, 255, 255 ) )
+	color( QColor( 255, 255, 255, 255 ) )
 {
 	ui->setupUi( this );
 
@@ -54,6 +54,8 @@ void Widget_ShaderParameter_Color::SetShowColor( const QColor& Value )
 	ui->label_color->setStyleSheet( QString( "background-color: rgba(" ) + QString::number( color_r ) + ", " +
 							  QString::number( color_g ) + ", " + QString::number( color_b ) + ", " +
 							  QString::number( color_a ) + ")" );
+	
+	shaderParameter->SetValueColor( Value );
 	color = Value;
 }
 
@@ -77,5 +79,4 @@ void Widget_ShaderParameter_Color::on_toolButton_color_clicked()
 	if ( !color.isValid() ) return;
 
 	SetShowColor( color );
-	shaderParameter->SetValueColor( color );
 }

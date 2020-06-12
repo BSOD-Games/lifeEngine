@@ -12,6 +12,7 @@
 #define WINDOW_EDITOR_H
 
 #include <QMainWindow>
+#include <qstring.h>
 
 #include "engine/shaderdescriptor.h"
 #include "engine/materialproxydescriptor.h"
@@ -32,6 +33,7 @@ namespace Ui
 }
 
 class QListWidgetItem;
+class QFileInfo;
 
 //---------------------------------------------------------------------//
 
@@ -56,6 +58,7 @@ private slots:
 	void			on_comboBox_cullfaceType_currentIndexChanged( int Value );
 
 	void			on_listWidget_parameters_currentRowChanged( int Row );
+	void			on_lineEdit_surface_textChanged( QString Value );
 
 	void			on_actionNew_file_triggered();
 	void			on_actionOpen_file_triggered();
@@ -72,8 +75,33 @@ private slots:
 	void			OnAddProxyParameter();
 
 private:
+
+	//---------------------------------------------------------------------//
+
+	struct FileInfo
+	{
+		FileInfo();
+		void		Clear();
+
+		bool		isSavedFile;
+		QString		path;
+		QString		name;
+
+		FileInfo&	operator=( const QFileInfo& FileInfo );
+	};
+
+	//---------------------------------------------------------------------//
+
+	void			Clear();
+	void			UpdateWindowTitle();	
+	void			AddShaderParameter( const QString& Name, le::SHADER_PARAMETER_TYPE Type );
+	void			RemoveShaderParameter( quint32 Index );
+	void			ShowWidgetShaderParameter( ShaderParameterPtr ShaderParameter, le::SHADER_PARAMETER_TYPE Type );
+	void			HideWidgetShaderParameter();
+
 	Scene								scene;
 	Material							material;
+	FileInfo							fileInfo;
 	QWidget*							widget_shaderParameter;
 
 	le::ICamera*						camera;

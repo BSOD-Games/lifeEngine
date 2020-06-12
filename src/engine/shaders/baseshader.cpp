@@ -80,6 +80,15 @@ le::BaseShader::~BaseShader()
 // ------------------------------------------------------------------------------------ //
 bool le::BaseShader::LoadShader( const std::string& Name, const std::string& Path, const std::vector< const char* >& Defines, UInt32_t Flags )
 {
+	if ( gpuProgram )
+	{
+		gpuProgram->DecrementReference();
+		g_resourceSystem->UnloadGPUProgram( nameShader.c_str(), flagShader );
+
+		flagShader = 0;
+		gpuProgram = nullptr;
+	}
+
 	gpuProgram = g_resourceSystem->LoadGPUProgram( Name.c_str(), Path.c_str(), Flags, Defines.size(), ( const char** ) Defines.data() );
 	
 	if ( gpuProgram )

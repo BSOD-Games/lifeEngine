@@ -19,7 +19,7 @@ in vec2 		lightmapCoords;
 in vec4 		vertexColor;
 in vec3			normal;
 
-uniform vec3		color;
+uniform vec4		color;
 uniform sampler2D	lightmap;
 
 #ifdef BASETEXTURE

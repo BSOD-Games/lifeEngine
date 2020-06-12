@@ -32,7 +32,6 @@ bool le::SpriteGeneric::Initialize( UInt32_t CountParams, IShaderParameter** Sha
 {
 	ClearParameters();
 	std::vector< const char* >			defines;
-	flags = SF_NONE;
 
 	for ( UInt32_t index = 0; index < CountParams; ++index )
 	{
@@ -193,6 +192,7 @@ void le::SpriteGeneric::ClearParameters()
 		specularMap = nullptr;
 	}
 
+	flags = SF_NONE;
 	color = Vector3D_t( 1.f, 1.f, 1.f );
 }
 

@@ -63,7 +63,10 @@ bool le::LightmappedGeneric::Initialize( UInt32_t CountParams, IShaderParameter*
 	}
 
 	if ( !LoadShader( "LightmappedGeneric", "shaders/lightmappedgeneric.shader", defines, flags ) )
+	{
+		ClearParameters();
 		return false;
+	}
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "basetexture", 0 );
@@ -110,7 +113,7 @@ const char* le::LightmappedGeneric::GetFallbackShader() const
 // ------------------------------------------------------------------------------------ //
 le::LightmappedGeneric::LightmappedGeneric() :
 	flags( SF_NONE ),
-	color( 1.f, 1.f, 1.f ),
+	color( 1.f, 1.f, 1.f, 1.f ),
 	baseTexture( nullptr )
 {}
 
@@ -137,7 +140,8 @@ void le::LightmappedGeneric::ClearParameters()
 		baseTexture = nullptr;
 	}
 
-	color = Vector3D_t( 1.f, 1.f, 1.f );
+	flags = SF_NONE;
+	color = Color_t( 1.f, 1.f, 1.f, 1.f );
 }
 
 // ------------------------------------------------------------------------------------ //

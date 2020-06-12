@@ -112,20 +112,22 @@ Window_Editor::~Window_Editor()
 {
 	scene.Clear();	
 
-	if ( camera )
-	{
-		if ( camera->GetCountReferences() <= 1 )
-			camera->Release();
-		else
-			camera->DecrementReference();
-	}
-
 	if ( model )
 	{
 		if ( model->GetCountReferences() <= 1 )
 			model->Release();
 		else
 			model->DecrementReference();
+	}
+
+	EngineAPI::GetInstance()->GetResourceSystem()->UnloadAll();
+
+	if ( camera )
+	{
+		if ( camera->GetCountReferences() <= 1 )
+			camera->Release();
+		else
+			camera->DecrementReference();
 	}
 
 	if ( pointLight )
@@ -136,11 +138,8 @@ Window_Editor::~Window_Editor()
 			pointLight->DecrementReference();
 	}
 
-	if ( widget_shaderParameter )
-		delete widget_shaderParameter;
-
+	HideWidgetShaderParameter();
 	delete ui;
-	EngineAPI::GetInstance()->GetResourceSystem()->UnloadAll();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -214,6 +213,7 @@ void Window_Editor::on_listWidget_proxiesParameters_customContextMenuRequested( 
 void Window_Editor::on_checkBox_depthTest_stateChanged( int State )
 {
 	material.EnableDepthTest( ui->checkBox_depthTest->isChecked() );
+	fileInfo.isSavedFile = false;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -222,6 +222,7 @@ void Window_Editor::on_checkBox_depthTest_stateChanged( int State )
 void Window_Editor::on_checkBox_depthWrite_stateChanged( int State )
 {
 	material.EnableDepthWrite( ui->checkBox_depthWrite->isChecked() );
+	fileInfo.isSavedFile = false;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -230,6 +231,7 @@ void Window_Editor::on_checkBox_depthWrite_stateChanged( int State )
 void Window_Editor::on_checkBox_blend_stateChanged( int State )
 {
 	material.EnableBlend( ui->checkBox_blend->isChecked() );
+	fileInfo.isSavedFile = false;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -244,6 +246,7 @@ void Window_Editor::on_comboBox_cullfaceType_currentIndexChanged( int Value )
 	else if ( currentText == "Front" )		cullfaceType = le::CT_FRONT;
 
 	material.SetCullFaceType( cullfaceType );
+	fileInfo.isSavedFile = false;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -252,6 +255,7 @@ void Window_Editor::on_comboBox_cullfaceType_currentIndexChanged( int Value )
 void Window_Editor::on_checkBox_cullface_stateChanged( int State )
 {
 	material.EnableCullFace( ui->checkBox_cullface->isChecked() );
+	fileInfo.isSavedFile = false;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -269,9 +273,7 @@ void Window_Editor::OnAddShaderParameter()
 			break;
 		}
 
-	material.AddParameter( selectedShaderParameter, shaderParameterType );
-	ui->listWidget_parameters->addItem( selectedShaderParameter );
-	ui->listWidget_parameters->setCurrentRow( ui->listWidget_parameters->model()->rowCount() - 1 );
+	AddShaderParameter( selectedShaderParameter, shaderParameterType );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -279,14 +281,8 @@ void Window_Editor::OnAddShaderParameter()
 // ------------------------------------------------------------------------------------ //
 void Window_Editor::OnRemoveShaderParameter()
 {
-	material.RemoveParameter( ui->listWidget_parameters->currentRow() );
-	ui->listWidget_parameters->model()->removeRow( ui->listWidget_parameters->currentRow() );
-
-	if ( widget_shaderParameter )
-	{
-		delete widget_shaderParameter;
-		widget_shaderParameter = nullptr;
-	}
+	RemoveShaderParameter( ui->listWidget_parameters->currentRow() );
+	HideWidgetShaderParameter();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -298,6 +294,7 @@ void Window_Editor::OnAddProxyParameter()
 
 	QString			selectedProxyParameter = static_cast< QAction* >( sender() )->text();
 	ui->listWidget_proxiesParameters->addItem( selectedProxyParameter );
+	fileInfo.isSavedFile = false;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -307,6 +304,7 @@ void Window_Editor::OnAddProxy()
 {
 	QString			selectedProxy = static_cast< QAction* >( sender() )->text();
 	ui->listWidget_proxies->addItem( selectedProxy );
+	fileInfo.isSavedFile = false;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -383,12 +381,8 @@ void Window_Editor::on_comboBox_shader_currentIndexChanged( int Value )
 		--index;
 	}
 
-	// Remove selected editor shader parameter
-	if ( widget_shaderParameter )
-	{
-		delete widget_shaderParameter;
-		widget_shaderParameter = nullptr;
-	}
+	fileInfo.isSavedFile = false;
+	HideWidgetShaderParameter();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -399,11 +393,7 @@ void Window_Editor::on_listWidget_parameters_currentRowChanged( int Row )
 	ShaderParameterPtr				shaderParameter = material.GetParameter( Row );
 	if ( !shaderParameter ) return;
 	
-	if ( widget_shaderParameter )
-	{
-		delete widget_shaderParameter;
-		widget_shaderParameter = nullptr;
-	}
+	HideWidgetShaderParameter();
 
 	le::SHADER_PARAMETER_TYPE		shaderParameterType;
 	for ( quint32 index = 0; index < selectedShaderDescriptor.countParameters; ++index )
@@ -413,41 +403,167 @@ void Window_Editor::on_listWidget_parameters_currentRowChanged( int Row )
 			break;
 		}
 
-	switch ( shaderParameterType )
+	ShowWidgetShaderParameter( shaderParameter, shaderParameterType );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: change surface name
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::on_lineEdit_surface_textChanged( QString Value )
+{
+	material.SetSurface( Value );
+	fileInfo.isSavedFile = false;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Clear
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::Clear()
+{
+	material.Clear();
+	EngineAPI::GetInstance()->GetResourceSystem()->UnloadAll();
+
+	ui->comboBox_shader->setCurrentIndex( 0 );
+	material.SetShader( ui->comboBox_shader->currentText() );
+	fileInfo.Clear();
+
+	ui->lineEdit_surface->setText( "" );
+	ui->checkBox_blend->setChecked( false );
+	ui->checkBox_cullface->setChecked( true );
+	ui->checkBox_depthTest->setChecked( true );
+	ui->checkBox_depthWrite->setChecked( true );
+	ui->comboBox_cullfaceType->setCurrentIndex( 0 );
+
+	ui->listWidget_parameters->clear();
+	ui->listWidget_proxies->clear();
+	ui->listWidget_proxiesParameters->clear();
+
+	HideWidgetShaderParameter();
+	UpdateWindowTitle();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Add shader parameter
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::AddShaderParameter( const QString& Name, le::SHADER_PARAMETER_TYPE Type )
+{
+	material.AddParameter( Name, Type );
+	ui->listWidget_parameters->addItem( Name );
+	ui->listWidget_parameters->setCurrentRow( ui->listWidget_parameters->model()->rowCount() - 1 );
+	fileInfo.isSavedFile = false;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Remove shader parameter
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::RemoveShaderParameter( quint32 Index )
+{
+	material.RemoveParameter( Index );
+	ui->listWidget_parameters->model()->removeRow( Index );
+	ui->listWidget_parameters->clearSelection();
+	ui->listWidget_parameters->setCurrentRow( -1 );
+	fileInfo.isSavedFile = false;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Show widget shader parameter
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::ShowWidgetShaderParameter( ShaderParameterPtr ShaderParameter, le::SHADER_PARAMETER_TYPE Type )
+{
+	switch ( Type )
 	{
-	case le::SPT_TEXTURE:		widget_shaderParameter = new Widget_ShaderParameter_Texture( shaderParameter );		break;
-	case le::SPT_INT:			widget_shaderParameter = new Widget_ShaderParameter_Int( shaderParameter );			break;
-	case le::SPT_FLOAT:			widget_shaderParameter = new Widget_ShaderParameter_Float( shaderParameter );		break;
-	case le::SPT_SHADER_FLAG:	widget_shaderParameter = new Widget_ShaderParameter_Bool( shaderParameter );		break;
-	case le::SPT_VECTOR_4D:		widget_shaderParameter = new Widget_ShaderParameter_Vector4D( shaderParameter );	break;
-	case le::SPT_VECTOR_3D:		widget_shaderParameter = new Widget_ShaderParameter_Vector3D( shaderParameter );	break;
-	case le::SPT_VECTOR_2D:		widget_shaderParameter = new Widget_ShaderParameter_Vector2D( shaderParameter );	break;
-	case le::SPT_COLOR:			widget_shaderParameter = new Widget_ShaderParameter_Color( shaderParameter );		break;
+	case le::SPT_TEXTURE:		widget_shaderParameter = new Widget_ShaderParameter_Texture( ShaderParameter );		break;
+	case le::SPT_INT:			widget_shaderParameter = new Widget_ShaderParameter_Int( ShaderParameter );			break;
+	case le::SPT_FLOAT:			widget_shaderParameter = new Widget_ShaderParameter_Float( ShaderParameter );		break;
+	case le::SPT_SHADER_FLAG:	widget_shaderParameter = new Widget_ShaderParameter_Bool( ShaderParameter );		break;
+	case le::SPT_VECTOR_4D:		widget_shaderParameter = new Widget_ShaderParameter_Vector4D( ShaderParameter );	break;
+	case le::SPT_VECTOR_3D:		widget_shaderParameter = new Widget_ShaderParameter_Vector3D( ShaderParameter );	break;
+	case le::SPT_VECTOR_2D:		widget_shaderParameter = new Widget_ShaderParameter_Vector2D( ShaderParameter );	break;
+	case le::SPT_COLOR:			widget_shaderParameter = new Widget_ShaderParameter_Color( ShaderParameter );		break;
 	}
 
-	if ( widget_shaderParameter )
-		ui->verticalLayout_2->addWidget( widget_shaderParameter );
+	if ( widget_shaderParameter )		ui->verticalLayout_2->addWidget( widget_shaderParameter );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Hide widget shader parameter
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::HideWidgetShaderParameter()
+{
+	if ( !widget_shaderParameter ) return;
+
+	delete widget_shaderParameter;
+	widget_shaderParameter = nullptr;
 }
 
 // ------------------------------------------------------------------------------------ //
 // Event: clicked on "New file"
 // ------------------------------------------------------------------------------------ //
 void Window_Editor::on_actionNew_file_triggered()
-{}
+{
+	Clear();
+}
 
 // ------------------------------------------------------------------------------------ //
 // Event: clicked on "Open file"
 // ------------------------------------------------------------------------------------ //
 void Window_Editor::on_actionOpen_file_triggered()
 {
+	// Select file for load
 	QString			path = QFileDialog::getOpenFileName( this, "Open material", EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "lifeEngine material (*.lmt)" );
 	if ( path.isEmpty() ) return;
 
+	// If we selecting file for load -> clear current material
+	Clear();
+
+	// Load material
 	if ( !material.Load( path ) )
 	{
 		QString			message = "Failed open material [" + path + "]";
 		Error_Info( message.toLocal8Bit().data() );
+		return;
 	}
+
+	// Getting shader in material
+	std::string			nameShader = material.GetShader();
+	bool				isFindShader = false;
+
+	for ( quint32 index = 0, count = ui->comboBox_shader->count(); index < count; ++index )
+		if ( ui->comboBox_shader->itemText( index ) == nameShader.c_str() )
+		{
+			isFindShader = true;
+			ui->comboBox_shader->setCurrentIndex( index );
+			break;
+		}
+
+	// If shader not found in combobox for shaders -> error
+	if ( !isFindShader )
+	{
+		QString			message = ( "Shader [" + nameShader + "] not found in material system" ).c_str();
+		Error_Info( message.toLocal8Bit().data() );
+		return;
+	}
+
+	// Setting general parameters material
+	ui->lineEdit_surface->setText( material.GetSurface() );
+	ui->checkBox_blend->setChecked( material.IsEnabledBlend() );
+	ui->checkBox_cullface->setChecked( material.IsEnabledCullFace() );
+	ui->checkBox_depthTest->setChecked( material.IsEnabledDepthTest() );
+	ui->checkBox_depthWrite->setChecked( material.IsEnabledDepthWrite() );
+
+	switch ( material.GetCullFaceType() )
+	{
+	case le::CT_BACK:			ui->comboBox_cullfaceType->setCurrentIndex( 0 );	break;
+	case le::CT_FRONT:			ui->comboBox_cullfaceType->setCurrentIndex( 1 );	break;
+	}
+
+	// Show name parameters in material
+	auto&		parameters = material.GetParameters();
+	for ( quint32 index = 0, count = parameters.size(); index < count; ++index )
+		ui->listWidget_parameters->addItem( parameters[ index ]->GetName() );
+
+	fileInfo = QFileInfo( path );
+	UpdateWindowTitle();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -455,14 +571,21 @@ void Window_Editor::on_actionOpen_file_triggered()
 // ------------------------------------------------------------------------------------ //
 void Window_Editor::on_actionSave_file_triggered()
 {
-	QString			path = QFileDialog::getSaveFileName( this, "Save material", EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "lifeEngine material (*.lmt)" );
-	if ( path.isEmpty() ) return;
-
-	if ( !material.Save( path ) )
+	if ( fileInfo.path.isEmpty() )
 	{
-		QString			message = "Failed save material [" + path + "]";
-		Error_Info( message.toLocal8Bit().data() );
+		on_actionSave_file_as_triggered();
+		return;
 	}
+
+	if ( !material.Save( fileInfo.path ) )
+	{
+		QString			message = "Failed save material [" + fileInfo.path + "]";
+		Error_Info( message.toLocal8Bit().data() );
+		return;
+	}
+
+	fileInfo.isSavedFile = true;
+	UpdateWindowTitle();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -477,7 +600,11 @@ void Window_Editor::on_actionSave_file_as_triggered()
 	{
 		QString			message = "Failed save as material [" + path + "]";
 		Error_Info( message.toLocal8Bit().data() );
+		return;
 	}
+
+	fileInfo = QFileInfo( path );
+	UpdateWindowTitle();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -485,6 +612,7 @@ void Window_Editor::on_actionSave_file_as_triggered()
 // ------------------------------------------------------------------------------------ //
 void Window_Editor::on_actionClose_file_triggered()
 {
+	Clear();
 	close();
 }
 
@@ -508,4 +636,47 @@ void Window_Editor::on_actionAbout_triggered()
 		"<b>Author:</b> Egor Pogulyaka [zombiHello]<br>" +	
 		"<b>Description:</b> This editor is designed to create materials for lifeEngine";
 	QMessageBox::about( this, "About LMTEditor", content );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Update title window
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::UpdateWindowTitle()
+{
+	if ( fileInfo.name.isEmpty() )
+	{
+		setWindowTitle( "LMTEditor" );
+		return;
+	}
+
+	setWindowTitle( "LMTEditor [" + fileInfo.name  + "]" );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Constructor FileInfo
+// ------------------------------------------------------------------------------------ //
+Window_Editor::FileInfo::FileInfo() :
+	isSavedFile( false )
+{}
+
+// ------------------------------------------------------------------------------------ //
+// Clear file info
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::FileInfo::Clear()
+{
+	name = "";
+	path = "";
+	isSavedFile = false;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Operator = for FileInfo
+// ------------------------------------------------------------------------------------ //
+Window_Editor::FileInfo& Window_Editor::FileInfo::operator=( const QFileInfo& FileInfo )
+{
+	name = FileInfo.fileName();
+	path = FileInfo.absoluteFilePath();
+	isSavedFile = true;
+	
+	return *this;
 }

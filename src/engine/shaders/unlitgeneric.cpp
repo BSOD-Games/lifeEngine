@@ -30,8 +30,7 @@
 bool le::UnlitGeneric::Initialize( UInt32_t CountParams, IShaderParameter** ShaderParameters )
 {
 	ClearParameters();
-	std::vector< const char* >			defines;
-	flags = SF_NONE;
+	std::vector< const char* >			defines;	
 
 	for ( UInt32_t index = 0; index < CountParams; ++index )
 	{
@@ -120,7 +119,6 @@ void le::UnlitGeneric::OnDrawStaticModel( const Matrix4x4_t& Transformation, ICa
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "color", color );
-	gpuProgram->SetUniform( "pos", Camera->GetPosition() );
 	gpuProgram->SetUniform( "matrix_Projection", Camera->GetProjectionMatrix() * Camera->GetViewMatrix() );
 	gpuProgram->SetUniform( "matrix_Transformation", Transformation );
 }
@@ -195,6 +193,7 @@ void le::UnlitGeneric::ClearParameters()
 		specularMap = nullptr;
 	}
 
+	flags = SF_NONE;
 	color = Vector3D_t( 1.f, 1.f, 1.f );
 }
 
@@ -229,6 +228,7 @@ bool le::UnlitGeneric::IsEuqal( IShader* Shader ) const
 	return
 		strcmp( GetName(), Shader->GetName() ) == 0 &&
 		flags == shader->flags &&
+		color == shader->color &&
 		baseTexture == shader->baseTexture &&
 		normalMap == shader->normalMap &&
 		specularMap == shader->specularMap;
