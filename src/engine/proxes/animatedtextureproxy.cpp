@@ -79,27 +79,27 @@ bool le::AnimatedTextureProxy::IsNeadUpdate() const
 // ------------------------------------------------------------------------------------ //
 void le::AnimatedTextureProxy::ClearVar( const char* NameVar )
 {
-    if ( strcmp( NameVar, "frames" ) )
+    if ( strcmp( NameVar, "frames" ) == 0 && frames )
     {
-        if ( frames->GetCountReferences() <= 1 )
+        if ( frames->GetCountReferences() <= 0 )
             frames->Release();
         else
             frames->DecrementReference();
 
         frames = nullptr;
     }
-    else if ( strcmp( NameVar, "textureRectVar" ) )
+    else if ( strcmp( NameVar, "textureRectVar" ) == 0 && textureRectVar )
     {
-        if ( textureRectVar->GetCountReferences() <= 1 )
+        if ( textureRectVar->GetCountReferences() <= 0 )
             textureRectVar->Release();
         else
             textureRectVar->DecrementReference();
 
         textureRectVar = nullptr;
     }
-    else if ( strcmp( NameVar, "delay" ) )
+    else if ( strcmp( NameVar, "delay" ) == 0 && delay )
     {
-        if ( delay->GetCountReferences() <= 1 )
+        if ( delay->GetCountReferences() <= 0 )
             delay->Release();
         else
             delay->DecrementReference();
@@ -118,7 +118,7 @@ void le::AnimatedTextureProxy::ClearAllVars()
 {
     if ( frames )
     {
-        if ( frames->GetCountReferences() <= 1 )
+        if ( frames->GetCountReferences() <= 0 )
             frames->Release();
         else
             frames->DecrementReference();
@@ -128,7 +128,7 @@ void le::AnimatedTextureProxy::ClearAllVars()
 
     if ( textureRectVar )
     {
-        if ( textureRectVar->GetCountReferences() <= 1 )
+        if ( textureRectVar->GetCountReferences() <= 0 )
             textureRectVar->Release();
         else
             textureRectVar->DecrementReference();
@@ -138,7 +138,7 @@ void le::AnimatedTextureProxy::ClearAllVars()
 
     if ( delay )
     {
-        if ( delay->GetCountReferences() <= 1 )
+        if ( delay->GetCountReferences() <= 0 )
             delay->Release();
         else
             delay->DecrementReference();

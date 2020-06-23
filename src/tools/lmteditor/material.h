@@ -17,6 +17,7 @@
 
 #include "engine/imaterial.h"
 #include "shaderparameter.h"
+#include "materialproxy.h"
 
 //---------------------------------------------------------------------//
 
@@ -34,7 +35,9 @@ public:
 	void							EnableBlend( bool Enable = true );
 	void							EnableCullFace( bool Enable = true );
 	void							AddParameter( const QString& Name, le::SHADER_PARAMETER_TYPE Type );
+	void							AddProxy( const QString& Name );
 	void							RemoveParameter( quint32 Index );
+	void							RemoveProxy( quint32 Index );
 
 	void							SetSurface( const QString& Name );
 	void							SetShader( const QString& Name );
@@ -53,13 +56,20 @@ public:
 		if ( Index >= parameters.size() ) return nullptr;
 		return parameters[ Index ];
 	}
+	inline MaterialProxyPtr			GetProxy( quint32 Index ) const
+	{
+		if ( Index >= proxes.size() ) return nullptr;
+		return proxes[ Index ];
+	}
 	inline const std::vector< ShaderParameterPtr >&			GetParameters() const	{ return parameters; }
-	inline std::string				GetShader() const				{ return material->GetNameShader(); }
-	inline le::IMaterial*			GetHandle() const				{ return material; }
+	inline const std::vector< MaterialProxyPtr >&			GetProxes() const		{ return proxes; }
+	inline std::string										GetShader() const		{ return material->GetNameShader(); }
+	inline le::IMaterial*									GetHandle() const		{ return material; }
 
 private:
 	le::IMaterial*							material;
 	std::vector< ShaderParameterPtr >		parameters;
+	std::vector< MaterialProxyPtr >			proxes;
 };
 
 //---------------------------------------------------------------------//

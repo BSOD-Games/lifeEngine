@@ -50,6 +50,7 @@ bool Material::Load( const QString& Path )
 	if ( !lmtDoc.Load( Path.toStdString() ) )
 		return false;
 
+	// Getting general settings
 	material->Clear();
 	material->SetSurfaceName( lmtDoc.GetSurface().c_str() );
 	material->SetShader( lmtDoc.GetShader().c_str() );
@@ -65,6 +66,7 @@ bool Material::Load( const QString& Path )
 	material->EnableDepthTest( lmtDoc.IsEnabledDepthTest() );
 	material->EnableDepthWrite( lmtDoc.IsEnabledDepthWrite() );
 
+	// Getting shader parameters
 	const std::vector< LMTParameter >&		shaderParameters = lmtDoc.GetParameters();
 	if ( !shaderParameters.empty() )
 		for ( quint32 index = 0, count = shaderParameters.size(); index < count; ++index )
@@ -131,6 +133,20 @@ bool Material::Load( const QString& Path )
 			parameters.push_back( shaderParameter );
 		}
 
+	// Getting proxes
+	const std::vector< LMTProxy >&		proxes = lmtDoc.GetProxes();
+	if ( !proxes.empty() )
+		for ( quint32 index = 0, count = proxes.size(); index < count; ++index )
+		{
+			const LMTProxy&			lmtProxy = proxes[ index ];
+			MaterialProxyPtr		materialProxy = std::make_shared< MaterialProxy >();
+
+			if ( !materialProxy->Create( lmtProxy.GetName().c_str() ) )		continue;
+
+			material->AddProxy( materialProxy->GetHandle() );
+			this->proxes.push_back( materialProxy );
+		}
+
 	return true;
 }
 
@@ -158,7 +174,7 @@ bool Material::Save( const QString& Path )
 	for ( quint32 index = 0, count = parameters.size(); index < count; ++index )
 	{
 		ShaderParameterPtr			parameter = parameters[ index ];
-		LMTParameter			lmtParameter;
+		LMTParameter				lmtParameter;
 
 		lmtParameter.SetName( parameter->GetName().toStdString() );
 
@@ -204,6 +220,16 @@ bool Material::Save( const QString& Path )
 		}
 
 		lmtDoc.AddParameter( lmtParameter );
+	}
+
+	// Add proxes
+	for ( quint32 index = 0, count = proxes.size(); index < count; ++index )
+	{
+		MaterialProxyPtr			proxy = proxes[ index ];
+		LMTProxy					lmtProxy;
+
+		lmtProxy.SetName( proxy->GetName().toStdString() );
+		lmtDoc.AddProxy( lmtProxy );
 	}
 
 	return lmtDoc.Save( Path.toStdString() );
@@ -291,7 +317,7 @@ void Material::AddParameter( const QString& Name, le::SHADER_PARAMETER_TYPE Type
 // ------------------------------------------------------------------------------------ //
 void Material::RemoveParameter( quint32 Index )
 {
-	if ( Index >= parameters.size() ) return;
+	if ( !material || Index >= parameters.size() ) return;
 
 	material->RemoveParameter( Index );
 	parameters.erase( parameters.begin() + Index );
@@ -318,4 +344,31 @@ void Material::Clear()
 
 	material->Clear();
 	parameters.clear();
+	proxes.clear();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Add proxy
+// ------------------------------------------------------------------------------------ //
+void Material::AddProxy( const QString& Name )
+{
+	if ( !material ) return;
+
+	MaterialProxyPtr				proxy = std::make_shared< MaterialProxy >();
+	if ( !proxy->Create( Name.toStdString().c_str() ) )
+		return;
+
+	material->AddProxy( proxy->GetHandle() );
+	proxes.push_back( proxy );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Remove proxy
+// ------------------------------------------------------------------------------------ //
+void Material::RemoveProxy( quint32 Index )
+{
+	if ( Index >= proxes.size() ) return;
+
+	material->RemoveProxy( Index );
+	proxes.erase( proxes.begin() + Index );
 }

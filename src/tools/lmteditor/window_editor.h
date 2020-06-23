@@ -58,6 +58,7 @@ private slots:
 	void			on_comboBox_cullfaceType_currentIndexChanged( int Value );
 
 	void			on_listWidget_parameters_currentRowChanged( int Row );
+	void			on_listWidget_proxies_currentRowChanged( int Row );
 	void			on_lineEdit_surface_textChanged( QString Value );
 
 	void			on_actionNew_file_triggered();
@@ -72,7 +73,9 @@ private slots:
 	void			OnAddShaderParameter();
 	void			OnRemoveShaderParameter();
 	void			OnAddProxy();
+	void			OnRemoveProxy();
 	void			OnAddProxyParameter();
+	void			OnRemoveProxyParameter();
 
 private:
 
@@ -97,6 +100,13 @@ private:
 	void			UpdateWindowTitle();	
 	void			AddShaderParameter( const QString& Name, le::SHADER_PARAMETER_TYPE Type );
 	void			RemoveShaderParameter( quint32 Index );
+	void			RemoveAllShaderParameters();
+	void			AddProxy( const QString& Name );
+	void			RemoveProxy( quint32 Index );
+	void			RemoveAllProxes();
+	void			AddProxyParameter( const QString& Name, le::MATERIAL_PROXY_VAR_TYPE Type );
+	void			RemoveProxyParameter( quint32 Index );
+	void			RemoveAllProxyParameters();
 	void			ShowWidgetShaderParameter( ShaderParameterPtr ShaderParameter, le::SHADER_PARAMETER_TYPE Type );
 	void			HideWidgetShaderParameter();
 	void			OnEditMaterial();
@@ -104,6 +114,7 @@ private:
 	Scene								scene;
 	Material							material;
 	FileInfo							fileInfo;
+	MaterialProxyPtr					currentMaterialProxy;
 	QWidget*							widget_shaderParameter;
 
 	le::ICamera*						camera;

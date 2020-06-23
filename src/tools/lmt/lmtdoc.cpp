@@ -365,10 +365,8 @@ bool LMTDoc::Save( const std::string& Path )
 				file << ",\n";
 		}
 
-		file << "\t}\n";
+		file << "\t}";
 	}
-	else
-		file << "\n";
 
 	// Write proxes
 	if ( !proxes.empty() )
@@ -521,10 +519,10 @@ bool LMTDoc::Save( const std::string& Path )
 				file << ",\n\n";
 		}
 
-		file << "\t}\n";
+		file << "\t}";
 	}
 
-	file << "}";
+	file << "\n}";
 	file.close();
 	return true;
 }

@@ -61,7 +61,6 @@ public:
 
 	inline bool								IsDefined() const
 	{
-		if ( !shaderParameter ) return false;
 		return shaderParameter->IsDefined();
 	}
 

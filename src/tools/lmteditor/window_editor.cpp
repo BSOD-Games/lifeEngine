@@ -50,7 +50,8 @@ Window_Editor::Window_Editor( const GameDescriptor& GameDescriptor, QWidget* Par
 	camera( nullptr ),
 	model( nullptr ),
 	pointLight( nullptr ),
-	widget_shaderParameter( nullptr )
+	widget_shaderParameter( nullptr ),
+	currentMaterialProxy( nullptr )
 {
 	ui->setupUi( this );
 	if ( !ui->widget_preview->Initialize() )
@@ -199,6 +200,8 @@ void Window_Editor::on_listWidget_proxiesParameters_customContextMenuRequested( 
 
 	if ( !ui->listWidget_proxiesParameters->itemAt( Point ) )		action_delete.setEnabled( false );
 
+	connect( &action_delete, SIGNAL( triggered() ), this, SLOT( OnRemoveProxyParameter() ) );
+
 	contextMenu.addMenu( &menu_add );
 	contextMenu.addAction( &action_delete );
 	contextMenu.exec( QCursor::pos() );
@@ -286,15 +289,39 @@ void Window_Editor::OnRemoveShaderParameter()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Event: remove proxy
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::OnRemoveProxy()
+{
+	RemoveProxy( ui->listWidget_proxies->currentRow() );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Event: add proxy parameter
 // ------------------------------------------------------------------------------------ //
 void Window_Editor::OnAddProxyParameter()
 {
 	if ( !selectedMaterialProxyDescriptor.name ) return;
 
-	QString			selectedProxyParameter = static_cast< QAction* >( sender() )->text();
-	ui->listWidget_proxiesParameters->addItem( selectedProxyParameter );
-	OnEditMaterial();
+	QString							selectedProxyParameter = static_cast< QAction* >( sender() )->text();
+	le::MATERIAL_PROXY_VAR_TYPE		proxyParameterType;
+
+	for ( quint32 index = 0; index < selectedMaterialProxyDescriptor.countParameters; ++index )
+		if ( selectedProxyParameter == selectedMaterialProxyDescriptor.parametersInfo[ index ].name )
+		{
+			proxyParameterType = selectedMaterialProxyDescriptor.parametersInfo[ index ].type;
+			break;
+		}
+
+	AddProxyParameter( selectedProxyParameter, proxyParameterType );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: remove proxy parameter
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::OnRemoveProxyParameter()
+{
+	RemoveProxyParameter( ui->listWidget_proxiesParameters->currentRow() );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -303,8 +330,7 @@ void Window_Editor::OnAddProxyParameter()
 void Window_Editor::OnAddProxy()
 {
 	QString			selectedProxy = static_cast< QAction* >( sender() )->text();
-	ui->listWidget_proxies->addItem( selectedProxy );
-	OnEditMaterial();
+	AddProxy( selectedProxy );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -339,6 +365,8 @@ void Window_Editor::on_listWidget_proxies_customContextMenuRequested( QPoint Poi
 		}
 
 	if ( !ui->listWidget_proxies->itemAt( Point ) )		action_delete.setEnabled( false );
+
+	connect( &action_delete, SIGNAL( triggered() ), this, SLOT( OnRemoveProxy() ) );
 
 	contextMenu.addMenu( &menu_add );
 	contextMenu.addAction( &action_delete );
@@ -407,6 +435,26 @@ void Window_Editor::on_listWidget_parameters_currentRowChanged( int Row )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Event: selected proxy
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::on_listWidget_proxies_currentRowChanged( int Row )
+{
+	currentMaterialProxy = material.GetProxy( Row );
+	if ( !currentMaterialProxy ) return;
+
+	le::IMaterialProxyFactory*			proxyFactory = EngineAPI::GetInstance()->GetMaterialSystem()->GetMaterialProxyFactory();
+	le::MaterialProxyDescriptor*		proxyDescriptors = proxyFactory->GetMaterialProxes();
+	quint32								countProxyDescriptors = proxyFactory->GetCountMaterialProxes();
+
+	for ( quint32 index = 0; index < countProxyDescriptors; ++index )
+		if ( currentMaterialProxy->GetName() == proxyDescriptors[ index ].name )
+		{
+			selectedMaterialProxyDescriptor = proxyDescriptors[ index ];
+			break;
+		}
+}
+
+// ------------------------------------------------------------------------------------ //
 // Event: change surface name
 // ------------------------------------------------------------------------------------ //
 void Window_Editor::on_lineEdit_surface_textChanged( QString Value )
@@ -433,9 +481,9 @@ void Window_Editor::Clear()
 	ui->checkBox_depthWrite->setChecked( true );
 	ui->comboBox_cullfaceType->setCurrentIndex( 0 );
 
-	ui->listWidget_parameters->clear();
-	ui->listWidget_proxies->clear();
-	ui->listWidget_proxiesParameters->clear();
+	RemoveAllShaderParameters();
+	RemoveAllProxes();
+	RemoveAllProxyParameters();
 
 	fileInfo.Clear();
 	HideWidgetShaderParameter();
@@ -463,6 +511,15 @@ void Window_Editor::RemoveShaderParameter( quint32 Index )
 	ui->listWidget_parameters->clearSelection();
 	ui->listWidget_parameters->setCurrentRow( -1 );
 	OnEditMaterial();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Remove all shader parameters
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::RemoveAllShaderParameters()
+{
+	for ( quint32 index = 0, count = ui->listWidget_parameters->count(); index < count; ++index )
+		RemoveShaderParameter( 0 );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -568,6 +625,11 @@ void Window_Editor::on_actionOpen_file_triggered()
 	auto&		parameters = material.GetParameters();
 	for ( quint32 index = 0, count = parameters.size(); index < count; ++index )
 		ui->listWidget_parameters->addItem( parameters[ index ]->GetName() );
+	
+	// Show name proxes in material
+	auto&		proxes = material.GetProxes();
+	for ( quint32 index = 0, count = proxes.size(); index < count; ++index )
+		ui->listWidget_proxies->addItem( proxes[ index ]->GetName() );
 
 	fileInfo = QFileInfo( path );
 	UpdateWindowTitle();
@@ -711,4 +773,78 @@ void Window_Editor::RequestSave()
 void Window_Editor::OnEditMaterial()
 {
 	fileInfo.isSavedFile = false;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Add proxy
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::AddProxy( const QString& Name )
+{
+	material.AddProxy( Name );
+	ui->listWidget_proxies->addItem( Name );
+	OnEditMaterial();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Remove proxy
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::RemoveProxy( quint32 Index )
+{
+	if ( currentMaterialProxy == material.GetProxy( Index ) )
+	{
+		RemoveAllProxyParameters();
+		currentMaterialProxy = nullptr;
+	}
+
+	material.RemoveProxy( Index );
+	ui->listWidget_proxies->model()->removeRow( Index );
+	ui->listWidget_proxies->clearSelection();
+	ui->listWidget_proxies->setCurrentRow( -1 );
+
+	selectedMaterialProxyDescriptor = le::MaterialProxyDescriptor();	
+	OnEditMaterial();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Remove all proxes
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::RemoveAllProxes()
+{
+	for ( quint32 index = 0, count = ui->listWidget_proxies->count(); index < count; ++index )
+		RemoveProxy( 0 );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Add proxy parameter
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::AddProxyParameter( const QString& Name, le::MATERIAL_PROXY_VAR_TYPE Type )
+{
+	if ( !currentMaterialProxy ) return;
+
+	currentMaterialProxy->AddParameter( Name, Type );
+	ui->listWidget_proxiesParameters->addItem( Name );
+	OnEditMaterial();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Remove proxy parameter
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::RemoveProxyParameter( quint32 Index )
+{
+	if ( !currentMaterialProxy ) return;
+
+	currentMaterialProxy->RemoveParameter( Index );
+	ui->listWidget_proxiesParameters->model()->removeRow( Index );
+	ui->listWidget_proxiesParameters->clearSelection();
+	ui->listWidget_proxiesParameters->setCurrentRow( -1 );
+	OnEditMaterial();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Remove all proxy parameters
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::RemoveAllProxyParameters()
+{
+	for ( quint32 index = 0, count = ui->listWidget_proxiesParameters->count(); index < count; ++index )
+		RemoveProxyParameter( 0 );
 }
