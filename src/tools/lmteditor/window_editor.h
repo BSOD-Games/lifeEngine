@@ -93,11 +93,13 @@ private:
 	//---------------------------------------------------------------------//
 
 	void			Clear();
+	void			RequestSave();
 	void			UpdateWindowTitle();	
 	void			AddShaderParameter( const QString& Name, le::SHADER_PARAMETER_TYPE Type );
 	void			RemoveShaderParameter( quint32 Index );
 	void			ShowWidgetShaderParameter( ShaderParameterPtr ShaderParameter, le::SHADER_PARAMETER_TYPE Type );
 	void			HideWidgetShaderParameter();
+	void			OnEditMaterial();
 
 	Scene								scene;
 	Material							material;

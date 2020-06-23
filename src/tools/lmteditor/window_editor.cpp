@@ -213,7 +213,7 @@ void Window_Editor::on_listWidget_proxiesParameters_customContextMenuRequested( 
 void Window_Editor::on_checkBox_depthTest_stateChanged( int State )
 {
 	material.EnableDepthTest( ui->checkBox_depthTest->isChecked() );
-	fileInfo.isSavedFile = false;
+	OnEditMaterial();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -222,7 +222,7 @@ void Window_Editor::on_checkBox_depthTest_stateChanged( int State )
 void Window_Editor::on_checkBox_depthWrite_stateChanged( int State )
 {
 	material.EnableDepthWrite( ui->checkBox_depthWrite->isChecked() );
-	fileInfo.isSavedFile = false;
+	OnEditMaterial();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -231,7 +231,7 @@ void Window_Editor::on_checkBox_depthWrite_stateChanged( int State )
 void Window_Editor::on_checkBox_blend_stateChanged( int State )
 {
 	material.EnableBlend( ui->checkBox_blend->isChecked() );
-	fileInfo.isSavedFile = false;
+	OnEditMaterial();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -246,7 +246,7 @@ void Window_Editor::on_comboBox_cullfaceType_currentIndexChanged( int Value )
 	else if ( currentText == "Front" )		cullfaceType = le::CT_FRONT;
 
 	material.SetCullFaceType( cullfaceType );
-	fileInfo.isSavedFile = false;
+	OnEditMaterial();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -255,7 +255,7 @@ void Window_Editor::on_comboBox_cullfaceType_currentIndexChanged( int Value )
 void Window_Editor::on_checkBox_cullface_stateChanged( int State )
 {
 	material.EnableCullFace( ui->checkBox_cullface->isChecked() );
-	fileInfo.isSavedFile = false;
+	OnEditMaterial();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -294,7 +294,7 @@ void Window_Editor::OnAddProxyParameter()
 
 	QString			selectedProxyParameter = static_cast< QAction* >( sender() )->text();
 	ui->listWidget_proxiesParameters->addItem( selectedProxyParameter );
-	fileInfo.isSavedFile = false;
+	OnEditMaterial();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -304,7 +304,7 @@ void Window_Editor::OnAddProxy()
 {
 	QString			selectedProxy = static_cast< QAction* >( sender() )->text();
 	ui->listWidget_proxies->addItem( selectedProxy );
-	fileInfo.isSavedFile = false;
+	OnEditMaterial();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -381,7 +381,7 @@ void Window_Editor::on_comboBox_shader_currentIndexChanged( int Value )
 		--index;
 	}
 
-	fileInfo.isSavedFile = false;
+	OnEditMaterial();
 	HideWidgetShaderParameter();
 }
 
@@ -412,7 +412,7 @@ void Window_Editor::on_listWidget_parameters_currentRowChanged( int Row )
 void Window_Editor::on_lineEdit_surface_textChanged( QString Value )
 {
 	material.SetSurface( Value );
-	fileInfo.isSavedFile = false;
+	OnEditMaterial();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -424,8 +424,7 @@ void Window_Editor::Clear()
 	EngineAPI::GetInstance()->GetResourceSystem()->UnloadAll();
 
 	ui->comboBox_shader->setCurrentIndex( 0 );
-	material.SetShader( ui->comboBox_shader->currentText() );
-	fileInfo.Clear();
+	material.SetShader( ui->comboBox_shader->currentText() );	
 
 	ui->lineEdit_surface->setText( "" );
 	ui->checkBox_blend->setChecked( false );
@@ -438,6 +437,7 @@ void Window_Editor::Clear()
 	ui->listWidget_proxies->clear();
 	ui->listWidget_proxiesParameters->clear();
 
+	fileInfo.Clear();
 	HideWidgetShaderParameter();
 	UpdateWindowTitle();
 }
@@ -450,7 +450,7 @@ void Window_Editor::AddShaderParameter( const QString& Name, le::SHADER_PARAMETE
 	material.AddParameter( Name, Type );
 	ui->listWidget_parameters->addItem( Name );
 	ui->listWidget_parameters->setCurrentRow( ui->listWidget_parameters->model()->rowCount() - 1 );
-	fileInfo.isSavedFile = false;
+	OnEditMaterial();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -462,7 +462,7 @@ void Window_Editor::RemoveShaderParameter( quint32 Index )
 	ui->listWidget_parameters->model()->removeRow( Index );
 	ui->listWidget_parameters->clearSelection();
 	ui->listWidget_parameters->setCurrentRow( -1 );
-	fileInfo.isSavedFile = false;
+	OnEditMaterial();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -501,6 +501,10 @@ void Window_Editor::HideWidgetShaderParameter()
 // ------------------------------------------------------------------------------------ //
 void Window_Editor::on_actionNew_file_triggered()
 {
+	// Save file if not saved
+	RequestSave();
+
+	// Clear material
 	Clear();
 }
 
@@ -509,6 +513,9 @@ void Window_Editor::on_actionNew_file_triggered()
 // ------------------------------------------------------------------------------------ //
 void Window_Editor::on_actionOpen_file_triggered()
 {
+	// Save file if not saved
+	RequestSave();
+
 	// Select file for load
 	QString			path = QFileDialog::getOpenFileName( this, "Open material", EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "lifeEngine material (*.lmt)" );
 	if ( path.isEmpty() ) return;
@@ -612,6 +619,10 @@ void Window_Editor::on_actionSave_file_as_triggered()
 // ------------------------------------------------------------------------------------ //
 void Window_Editor::on_actionClose_file_triggered()
 {
+	// Save file if not saved
+	RequestSave();
+
+	// Clear material and close window
 	Clear();
 	close();
 }
@@ -656,7 +667,7 @@ void Window_Editor::UpdateWindowTitle()
 // Constructor FileInfo
 // ------------------------------------------------------------------------------------ //
 Window_Editor::FileInfo::FileInfo() :
-	isSavedFile( false )
+	isSavedFile( true )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -666,7 +677,7 @@ void Window_Editor::FileInfo::Clear()
 {
 	name = "";
 	path = "";
-	isSavedFile = false;
+	isSavedFile = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -679,4 +690,25 @@ Window_Editor::FileInfo& Window_Editor::FileInfo::operator=( const QFileInfo& Fi
 	isSavedFile = true;
 	
 	return *this;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Request save material
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::RequestSave()
+{
+	if ( !fileInfo.isSavedFile )
+	{
+		QMessageBox::StandardButton			button = ( QMessageBox::StandardButton ) QMessageBox::warning( this, "Warning LMTEditor", "Material not saved. Save?", QMessageBox::StandardButton::Ok, QMessageBox::StandardButton::Cancel );
+		if ( button == QMessageBox::StandardButton::Ok )
+			on_actionSave_file_triggered();
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// On edit material
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::OnEditMaterial()
+{
+	fileInfo.isSavedFile = false;
 }
