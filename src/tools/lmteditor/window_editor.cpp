@@ -188,7 +188,8 @@ void Window_Editor::on_listWidget_proxiesParameters_customContextMenuRequested( 
 	QAction							action_delete( "Delete", this );
 	QList< QAction* >				action_addProxyParameters;
 
-	if ( selectedMaterialProxyDescriptor.countParameters == 0 )		menu_add.setEnabled( false );
+	if ( selectedMaterialProxyDescriptor.countParameters == 0 || !currentMaterialProxy )		
+		menu_add.setEnabled( false );
 	else
 		for ( quint32 index = 0; index < selectedMaterialProxyDescriptor.countParameters; ++index )
 		{
@@ -196,6 +197,9 @@ void Window_Editor::on_listWidget_proxiesParameters_customContextMenuRequested( 
 			action_addProxyParameters.append( proxyParameter );
 			menu_add.addAction( proxyParameter );
 			connect( proxyParameter, SIGNAL( triggered() ), this, SLOT( OnAddProxyParameter() ) );
+
+			if ( currentMaterialProxy->HasParameter( selectedMaterialProxyDescriptor.parametersInfo[ index ].name ) )
+				proxyParameter->setEnabled( false );
 		}
 
 	if ( !ui->listWidget_proxiesParameters->itemAt( Point ) )		action_delete.setEnabled( false );
@@ -439,9 +443,11 @@ void Window_Editor::on_listWidget_parameters_currentRowChanged( int Row )
 // ------------------------------------------------------------------------------------ //
 void Window_Editor::on_listWidget_proxies_currentRowChanged( int Row )
 {
+	// Get current material proxy
 	currentMaterialProxy = material.GetProxy( Row );
 	if ( !currentMaterialProxy ) return;
 
+	// Get current descriptor for material proxy
 	le::IMaterialProxyFactory*			proxyFactory = EngineAPI::GetInstance()->GetMaterialSystem()->GetMaterialProxyFactory();
 	le::MaterialProxyDescriptor*		proxyDescriptors = proxyFactory->GetMaterialProxes();
 	quint32								countProxyDescriptors = proxyFactory->GetCountMaterialProxes();
@@ -452,6 +458,13 @@ void Window_Editor::on_listWidget_proxies_currentRowChanged( int Row )
 			selectedMaterialProxyDescriptor = proxyDescriptors[ index ];
 			break;
 		}
+
+	// Show all parameters in material proxy
+	auto&			proxyParameters = currentMaterialProxy->GetParameters();
+	ui->listWidget_proxiesParameters->clear();
+
+	for ( quint32 index = 0, count = proxyParameters.size(); index < count; ++index )
+		ui->listWidget_proxiesParameters->addItem( proxyParameters[ index ]->GetName() );
 }
 
 // ------------------------------------------------------------------------------------ //

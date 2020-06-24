@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>149</width>
+    <width>162</width>
     <height>20</height>
    </rect>
   </property>
@@ -29,6 +29,19 @@
    <property name="bottomMargin">
     <number>0</number>
    </property>
+   <item>
+    <widget class="QLabel" name="label_value">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Value:</string>
+     </property>
+    </widget>
+   </item>
    <item>
     <widget class="QDoubleSpinBox" name="doubleSpinBox_value">
      <property name="decimals">
