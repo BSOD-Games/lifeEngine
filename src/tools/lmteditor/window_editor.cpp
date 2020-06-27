@@ -116,6 +116,9 @@ Window_Editor::Window_Editor( const GameDescriptor& GameDescriptor, QWidget* Par
 	pointLight->SetRadius( 350 );
 	pointLight->SetIntensivity( 8500 );
 	scene.AddLight( pointLight );
+
+	// Clear material to default settings
+	Clear();
 }
 
 // ------------------------------------------------------------------------------------ //

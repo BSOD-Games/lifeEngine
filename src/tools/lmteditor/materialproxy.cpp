@@ -70,6 +70,24 @@ void MaterialProxy::AddParameter( const QString& Name, le::MATERIAL_PROXY_VAR_TY
 }
 
 // ------------------------------------------------------------------------------------ //
+// Add parameter
+// ------------------------------------------------------------------------------------ //
+void MaterialProxy::AddParameter( MaterialProxyParameterPtr MaterialProxyParameter )
+{
+	if ( !materialProxy ) return;
+
+	for ( quint32 index = 0, count = parameters.size(); index < count; ++index )
+		if ( parameters[ index ]->GetName() == MaterialProxyParameter->GetName() )
+		{
+			parameters.erase( parameters.begin() + index );
+			break;
+		}
+
+	materialProxy->SetVar( MaterialProxyParameter->GetHandle() );
+	parameters.push_back( MaterialProxyParameter );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Remove parameter
 // ------------------------------------------------------------------------------------ //
 void MaterialProxy::RemoveParameter( quint32 Index )

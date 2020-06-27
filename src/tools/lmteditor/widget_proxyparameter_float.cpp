@@ -37,7 +37,20 @@ Widget_ProxyParameter_Float::Widget_ProxyParameter_Float( MaterialProxyParameter
 		return;
 	}
 
-	SetFloat( proxyParameter->GetValueFloat() );
+	switch ( proxyParameter->GetType() )
+	{
+	case le::MPVT_INT:
+		SetFloat( proxyParameter->GetValueInt() );
+		break;
+
+	case le::MPVT_FLOAT:
+		SetFloat( proxyParameter->GetValueFloat() );
+		break;
+
+	default:
+		Error_Info( "Widget_ProxyParameter_Float::Widget_ProxyParameter_Float( MaterialProxyParameterPtr, QWidget* ) => proxy parameter mast be int or float" );
+		break;
+	}	
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -54,7 +67,17 @@ Widget_ProxyParameter_Float::~Widget_ProxyParameter_Float()
 void Widget_ProxyParameter_Float::SetFloat( float Value )
 {
 	ui->doubleSpinBox_value->setValue( Value );
-	proxyParameter->SetValueFloat( Value );
+
+	switch ( proxyParameter->GetType() )
+	{
+	case le::MPVT_INT:
+		proxyParameter->SetValueInt( Value );
+		break;
+
+	case le::MPVT_FLOAT:
+		proxyParameter->SetValueFloat( Value );
+		break;
+	}	
 }
 
 // ------------------------------------------------------------------------------------ //

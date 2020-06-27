@@ -38,7 +38,22 @@ Widget_ShaderParameter_Float::Widget_ShaderParameter_Float( ShaderParameterPtr S
 		return;
 	}
 	else
-		SetFloat( shaderParameter->GetValueFloat() );
+	{
+		switch ( shaderParameter->GetType() )
+		{
+		case le::SPT_INT:
+			SetFloat( shaderParameter->GetValueInt() );
+			break;
+
+		case le::SPT_FLOAT:
+			SetFloat( shaderParameter->GetValueFloat() );
+			break;
+
+		default:
+			Error_Info( "Widget_ShaderParameter_Float::Widget_ShaderParameter_Float( ShaderParameterPtr, QWidget* ) => shader parameter mast be int or float" );
+			break;
+		}
+	}
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -55,8 +70,18 @@ Widget_ShaderParameter_Float::~Widget_ShaderParameter_Float()
 void Widget_ShaderParameter_Float::SetFloat( float Value )
 {
 	ui->doubleSpinBox_value->setValue( Value );
-	shaderParameter->SetValueFloat( Value );
 	value = Value;
+
+	switch ( shaderParameter->GetType() )
+	{
+	case le::SPT_INT:
+		shaderParameter->SetValueInt( Value );
+		break;
+
+	case le::SPT_FLOAT:
+		shaderParameter->SetValueFloat( Value );
+		break;
+	}
 }
 
 // ------------------------------------------------------------------------------------ //

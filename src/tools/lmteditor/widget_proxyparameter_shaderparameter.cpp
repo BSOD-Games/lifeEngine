@@ -65,17 +65,18 @@ void Widget_ProxyParameter_ShaderParameter::UpdateComboBoxShaderParameters()
 	ui->comboBox_shaderParameter->clear();
 	if ( shaderParameters.empty() ) return;
 
+	le::IShaderParameter*		shaderParameter = proxyParameter->GetValueShaderParameter();
+
 	for ( quint32 index = 0, count = shaderParameters.size(); index < count; ++index )
 		ui->comboBox_shaderParameter->addItem( shaderParameters[ index ]->GetName() );
 
-	le::IShaderParameter*		shaderParameter = proxyParameter->GetValueShaderParameter();
 	if ( shaderParameter )
 	{
 		bool			isFindParamater = false;
 		for ( quint32 index = 0, count = shaderParameters.size(); index < count; ++index )
-			if ( shaderParameters[ index ]->GetHandle() == shaderParameter )
+			if ( shaderParameters[ index ]->GetName() == shaderParameter->GetName() )
 			{
-				ui->comboBox_shaderParameter->setCurrentIndex( index );
+				SetShaderParameter( index );
 				isFindParamater = true;
 				break;
 			}
@@ -91,7 +92,7 @@ void Widget_ProxyParameter_ShaderParameter::UpdateComboBoxShaderParameters()
 // ------------------------------------------------------------------------------------ //
 void Widget_ProxyParameter_ShaderParameter::SetShaderParameter( int Index )
 {
-	if ( shaderParameters.empty() || Index >= shaderParameters.size() ) return;
+	if ( Index >= shaderParameters.size() ) return;
 
 	ui->comboBox_shaderParameter->setCurrentIndex( Index );
 	proxyParameter->SetValueShaderParameter( shaderParameters[ Index ]->GetHandle() );

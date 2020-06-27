@@ -38,7 +38,22 @@ Widget_ShaderParameter_Int::Widget_ShaderParameter_Int( ShaderParameterPtr Shade
 		return;
 	}
 	else
-		SetInt( shaderParameter->GetValueInt() );
+	{
+		switch ( shaderParameter->GetType() )
+		{
+		case le::SPT_INT:
+			SetInt( shaderParameter->GetValueInt() );
+			break;
+
+		case le::SPT_FLOAT:
+			SetInt( shaderParameter->GetValueFloat() );
+			break;
+
+		default:
+			Error_Info( "Widget_ShaderParameter_Int::Widget_ShaderParameter_Int( ShaderParameterPtr, QWidget* ) => shader parameter mast be int or float" );
+			break;
+		}
+	}
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -55,8 +70,18 @@ Widget_ShaderParameter_Int::~Widget_ShaderParameter_Int()
 void Widget_ShaderParameter_Int::SetInt( int Value )
 {
 	ui->spinBox_value->setValue( Value );
-	shaderParameter->SetValueInt( Value );
 	value = Value;
+
+	switch ( shaderParameter->GetType() )
+	{
+	case le::SPT_INT:
+		shaderParameter->SetValueInt( Value );
+		break;
+
+	case le::SPT_FLOAT:
+		shaderParameter->SetValueFloat( Value );
+		break;
+	}
 }
 
 // ------------------------------------------------------------------------------------ //

@@ -96,7 +96,7 @@ bool Material::Load( const QString& Path )
 			case le::SPT_SHADER_FLAG:	shaderParameter->SetValueBool( parameter.GetValueBool() );		break;
 			case le::SPT_TEXTURE:
 			{
-				const std::string&		path = parameter.GetValueTexture();
+				std::string				path = parameter.GetValueTexture();
 				le::ITexture*			texture = EngineAPI::GetInstance()->GetResourceSystem()->LoadTexture( path.c_str(), path.c_str() );
 				if ( !texture )			continue;
 
@@ -105,25 +105,25 @@ bool Material::Load( const QString& Path )
 			}
 			case le::SPT_COLOR:
 			{
-				const LMTColor&			color = parameter.GetValueColor();
+				LMTColor			color = parameter.GetValueColor();
 				shaderParameter->SetValueColor( QColor::fromRgbF( color.r, color.g, color.b, color.a ) );
 				break;
 			}
 			case le::SPT_VECTOR_2D:
 			{
-				const LMTVector2D&		vec2d = parameter.GetValueVector2D();
+				LMTVector2D		vec2d = parameter.GetValueVector2D();
 				shaderParameter->SetValueVector2D( le::Vector2D_t( vec2d.x, vec2d.y ) );
 				break;
 			}
 			case le::SPT_VECTOR_3D:
 			{
-				const LMTVector3D&		vec3d = parameter.GetValueVector3D();
+				LMTVector3D		vec3d = parameter.GetValueVector3D();
 				shaderParameter->SetValueVector3D( le::Vector3D_t( vec3d.x, vec3d.y, vec3d.z ) );
 				break;
 			}
 			case le::SPT_VECTOR_4D:
 			{
-				const LMTVector4D&		vec4d = parameter.GetValueVector4D();
+				LMTVector4D		vec4d = parameter.GetValueVector4D();
 				shaderParameter->SetValueVector4D( le::Vector4D_t( vec4d.x, vec4d.y, vec4d.z, vec4d.w ) );
 				break;
 			}
@@ -141,13 +141,69 @@ bool Material::Load( const QString& Path )
 			const LMTProxy&			lmtProxy = proxes[ index ];
 			auto&					lmtProxyParameters = lmtProxy.GetParameters();
 			MaterialProxyPtr		materialProxy = std::make_shared< MaterialProxy >();
-
 			if ( !materialProxy->Create( lmtProxy.GetName().c_str() ) )		continue;
-
+			
 			for ( quint32 indexParameter = 0, countParameters = lmtProxyParameters.size(); indexParameter < countParameters; ++indexParameter )
 			{
 				const LMTProxyParameter&		lmtProxyParameter = lmtProxyParameters[ indexParameter ];
-				// TODO: Write loading proxy vars
+				MaterialProxyParameterPtr		proxyParameter = std::make_shared< MaterialProxyParameter >();
+	
+				le::MATERIAL_PROXY_VAR_TYPE		proxyParameterType = le::MPVT_NONE;
+				switch ( lmtProxyParameter.GetType() )
+				{
+				case LMTProxyParameter::PT_BOOL:				proxyParameterType = le::MPVT_BOOL;					break;
+				case LMTProxyParameter::PT_INT:					proxyParameterType = le::MPVT_INT;					break;
+				case LMTProxyParameter::PT_FLOAT:				proxyParameterType = le::MPVT_FLOAT;				break;
+				case LMTProxyParameter::PT_SHADER_PARAMETER:	proxyParameterType = le::MPVT_SHADER_PARAMETER;		break;
+				case LMTProxyParameter::PT_VECTOR_2D:			proxyParameterType = le::MPVT_VECTOR_2D;			break;
+				case LMTProxyParameter::PT_VECTOR_3D:			proxyParameterType = le::MPVT_VECTOR_3D;			break;
+				case LMTProxyParameter::PT_VECTOR_4D:			proxyParameterType = le::MPVT_VECTOR_4D;			break;
+				}
+
+				proxyParameter->SetName( lmtProxyParameter.GetName().c_str(), proxyParameterType );
+
+				switch ( proxyParameterType )
+				{
+				case le::MPVT_BOOL:					proxyParameter->SetValueBool( lmtProxyParameter.GetValueBool() );		break;
+				case le::MPVT_INT:					proxyParameter->SetValueInt( lmtProxyParameter.GetValueInt() );			break;
+				case le::MPVT_FLOAT:				proxyParameter->SetValueFloat( lmtProxyParameter.GetValueFloat() );		break;
+				case le::MPVT_SHADER_PARAMETER:
+				{
+					std::string		nameShaderParameter = lmtProxyParameter.GetValueShaderParameter();
+					bool			isFindShaderParameter = false;
+					
+					for ( quint32 indexShaderParameter = 0, countShaderParameter = parameters.size(); indexShaderParameter < countShaderParameter; ++indexShaderParameter )
+						if ( parameters[ indexShaderParameter ]->GetName() == nameShaderParameter.c_str() )
+						{
+							proxyParameter->SetValueShaderParameter( parameters[ indexShaderParameter ]->GetHandle() );
+							isFindShaderParameter = true;
+							break;
+						}
+
+					if ( isFindShaderParameter )	break;
+					else							continue;
+				}
+				case le::MPVT_VECTOR_2D:
+				{
+					LMTVector2D			vec2d = lmtProxyParameter.GetValueVector2D();
+					proxyParameter->SetValueVector2D( le::Vector2D_t( vec2d.x, vec2d.y ) );
+					break;
+				}
+				case le::MPVT_VECTOR_3D:
+				{
+					LMTVector3D			vec3d = lmtProxyParameter.GetValueVector3D();
+					proxyParameter->SetValueVector3D( le::Vector3D_t( vec3d.x, vec3d.y, vec3d.z ) );
+					break;
+				}
+				case le::MPVT_VECTOR_4D:
+				{
+					LMTVector4D			vec4d = lmtProxyParameter.GetValueVector4D();
+					proxyParameter->SetValueVector4D( le::Vector4D_t( vec4d.x, vec4d.y, vec4d.z, vec4d.w ) );
+					break;
+				}
+				}
+
+				materialProxy->AddParameter( proxyParameter );
 			}
 
 			material->AddProxy( materialProxy->GetHandle() );

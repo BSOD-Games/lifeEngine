@@ -29,6 +29,7 @@ public:
 	bool								Create( const QString& Name );
 	void								Delete();
 	void								AddParameter( const QString& Name, le::MATERIAL_PROXY_VAR_TYPE Type );
+	void								AddParameter( MaterialProxyParameterPtr MaterialProxyParameter );
 	void								RemoveParameter( quint32 Index );
 
 	bool								HasParameter( const QString& Name ) const;

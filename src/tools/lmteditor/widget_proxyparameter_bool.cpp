@@ -36,7 +36,24 @@ Widget_ProxyParameter_Bool::Widget_ProxyParameter_Bool( MaterialProxyParameterPt
 		return;
 	}
 
-	SetBool( proxyParameter->GetValueBool() );
+	switch ( proxyParameter->GetType() )
+	{
+	case le::MPVT_INT:
+		SetBool( proxyParameter->GetValueInt() == 0 ? false : true );
+		break;
+
+	case le::MPVT_FLOAT:
+		SetBool( proxyParameter->GetValueFloat() == 0.f ? false : true );
+		break;
+
+	case le::MPVT_BOOL:
+		SetBool( proxyParameter->GetValueBool() );
+		break;
+
+	default:
+		Error_Info( "Widget_ProxyParameter_Bool::Widget_ProxyParameter_Bool( MaterialProxyParameterPtr, QWidget* ) => proxy parameter mast be int or float, or bool" );
+		break;
+	}
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -53,7 +70,21 @@ Widget_ProxyParameter_Bool::~Widget_ProxyParameter_Bool()
 void Widget_ProxyParameter_Bool::SetBool( bool Value )
 {
 	ui->checkBox_value->setChecked( Value );
-	proxyParameter->SetValueBool( Value );
+
+	switch ( proxyParameter->GetType() )
+	{
+	case le::MPVT_INT:
+		proxyParameter->SetValueInt( Value ? 1 : 0 );
+		break;
+
+	case le::MPVT_FLOAT:
+		proxyParameter->SetValueFloat( Value ? 1.f : 0.f );
+		break;
+
+	case le::MPVT_BOOL:
+		proxyParameter->SetValueBool( Value );
+		break;
+	}
 }
 
 // ------------------------------------------------------------------------------------ //

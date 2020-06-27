@@ -38,7 +38,26 @@ Widget_ShaderParameter_Bool::Widget_ShaderParameter_Bool( ShaderParameterPtr Sha
 		return;
 	}
 	else
-		SetBool( shaderParameter->GetValueBool() );
+	{
+		switch ( shaderParameter->GetType() )
+		{
+		case le::SPT_INT:
+			SetBool( shaderParameter->GetValueInt() == 0 ? false : true );
+			break;
+
+		case le::SPT_FLOAT:
+			SetBool( shaderParameter->GetValueFloat() == 0.f ? false : true );
+			break;
+
+		case le::SPT_SHADER_FLAG:
+			SetBool( shaderParameter->GetValueBool() );
+			break;
+
+		default:
+			Error_Info( "Widget_ShaderParameter_Bool::Widget_ShaderParameter_Bool( ShaderParameterPtr, QWidget* ) => shader parameter mast be int or float, or bool" );
+			break;
+		}
+	}
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -55,8 +74,22 @@ Widget_ShaderParameter_Bool::~Widget_ShaderParameter_Bool()
 void Widget_ShaderParameter_Bool::SetBool( bool Value )
 {
 	ui->checkBox_value->setChecked( Value );
-	shaderParameter->SetValueBool( Value );
 	value = Value;
+
+	switch ( shaderParameter->GetType() )
+	{
+	case le::SPT_INT:
+		shaderParameter->SetValueInt( Value ? 1 : 0 );
+		break;
+
+	case le::SPT_FLOAT:
+		shaderParameter->SetValueFloat( Value ? 1.f : 0.f );
+		break;
+
+	case le::SPT_SHADER_FLAG:
+		shaderParameter->SetValueBool( Value );
+		break;
+	}
 }
 
 // ------------------------------------------------------------------------------------ //
