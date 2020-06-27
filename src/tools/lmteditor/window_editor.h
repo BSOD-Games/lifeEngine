@@ -59,6 +59,7 @@ private slots:
 
 	void			on_listWidget_parameters_currentRowChanged( int Row );
 	void			on_listWidget_proxies_currentRowChanged( int Row );
+	void			on_listWidget_proxiesParameters_currentRowChanged( int Row );
 	void			on_lineEdit_surface_textChanged( QString Value );
 
 	void			on_actionNew_file_triggered();
@@ -95,6 +96,8 @@ private:
 
 	//---------------------------------------------------------------------//
 
+	void			OnEditMaterial();
+
 	void			Clear();
 	void			RequestSave();
 	void			UpdateWindowTitle();	
@@ -109,13 +112,15 @@ private:
 	void			RemoveAllProxyParameters();
 	void			ShowWidgetShaderParameter( ShaderParameterPtr ShaderParameter, le::SHADER_PARAMETER_TYPE Type );
 	void			HideWidgetShaderParameter();
-	void			OnEditMaterial();
+	void			ShowWidgetProxyParameter( MaterialProxyParameterPtr ProxyParameter, le::MATERIAL_PROXY_VAR_TYPE Type );
+	void			HideWidgetProxyParameter();
 
 	Scene								scene;
 	Material							material;
 	FileInfo							fileInfo;
 	MaterialProxyPtr					currentMaterialProxy;
 	QWidget*							widget_shaderParameter;
+	QWidget*							widget_proxyParameter;
 
 	le::ICamera*						camera;
 	le::IModel*							model;

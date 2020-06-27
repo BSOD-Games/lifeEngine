@@ -379,7 +379,7 @@ bool LMTDoc::Save( const std::string& Path )
 		{
 			LMTProxy&		proxy = proxes[ index ];
 			file << "\t\t\"" << proxy.GetName() << "\":\n";
-			file << "\t\t{";
+			file << "\t\t{\n";
 
 			auto&			parameters = proxy.GetParameters();
 			for ( std::uint32_t indexParameter = 0, countParameters = parameters.size(); indexParameter < countParameters; ++indexParameter )
@@ -482,10 +482,10 @@ bool LMTDoc::Save( const std::string& Path )
 					file << "\t\t\t]";
 					break;
 				}
-				case LMTProxyParameter::PT_BOOL:				file << ( proxyParameter.GetValueBool() ? "true" : "false" );	break;
-				case LMTProxyParameter::PT_FLOAT:				file << proxyParameter.GetValueFloat();							break;
-				case LMTProxyParameter::PT_INT:					file << proxyParameter.GetValueInt();							break;
-				case LMTProxyParameter::PT_SHADER_PARAMETER:	file << proxyParameter.GetValueShaderParameter();				break;
+				case LMTProxyParameter::PT_BOOL:				file << ( proxyParameter.GetValueBool() ? "true" : "false" );			break;
+				case LMTProxyParameter::PT_FLOAT:				file << proxyParameter.GetValueFloat();									break;
+				case LMTProxyParameter::PT_INT:					file << proxyParameter.GetValueInt();									break;
+				case LMTProxyParameter::PT_SHADER_PARAMETER:	file << "\"" << proxyParameter.GetValueShaderParameter() << "\"";		break;
 				case LMTProxyParameter::PT_VECTOR_2D: 
 				{
 					LMTVector2D&		value = proxyParameter.GetValueVector2D();

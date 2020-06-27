@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Widget_ShaderParameter_Bool</class>
- <widget class="QWidget" name="Widget_ShaderParameter_Bool">
+ <class>Widget_ProxyParameter_Float</class>
+ <widget class="QWidget" name="Widget_ProxyParameter_Float">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>94</width>
-    <height>19</height>
+    <width>162</width>
+    <height>20</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -43,30 +43,15 @@
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="checkBox_value">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
+    <widget class="QDoubleSpinBox" name="doubleSpinBox_value">
+     <property name="decimals">
+      <number>6</number>
      </property>
-     <property name="text">
-      <string/>
+     <property name="minimum">
+      <double>-999999.000000000000000</double>
      </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-     <property name="autoRepeat">
-      <bool>false</bool>
-     </property>
-     <property name="autoExclusive">
-      <bool>false</bool>
-     </property>
-     <property name="autoRepeatInterval">
-      <number>0</number>
-     </property>
-     <property name="tristate">
-      <bool>false</bool>
+     <property name="maximum">
+      <double>999999.000000000000000</double>
      </property>
     </widget>
    </item>

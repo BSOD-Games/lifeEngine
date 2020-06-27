@@ -154,7 +154,8 @@ void le::AnimatedTextureProxy::ClearAllVars()
 // ------------------------------------------------------------------------------------ //
 void le::AnimatedTextureProxy::Update()
 {
-    if ( !isInitialized ) return;
+    if ( !isInitialized || !frames->IsDefined() || !textureRectVar->IsDefined() ) 
+        return;
 
     le::UInt32_t        count;
     le::Vector4D_t*     arrayFrames = frames->GetValueArrayVector4D( count );

@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "proxes/animatedtextureproxy.h"
+#include "proxes/sineproxy.h"
 
 #include "materialproxyfactory.h"
 
@@ -91,6 +92,7 @@ le::MaterialProxyDescriptor* le::MaterialProxyFactory::GetMaterialProxes() const
 le::MaterialProxyFactory::MaterialProxyFactory()
 {
 	Register( AnimatedTextureProxy::GetDescriptor() );
+	Register( SineProxy::GetDescriptor() );
 }
 
 // ------------------------------------------------------------------------------------ //

@@ -35,6 +35,7 @@ namespace le
         virtual void                            Clear();
 
         virtual void                            SetName( const char* Name );
+        virtual void                            SetType( MATERIAL_PROXY_VAR_TYPE Type );
         virtual void                            SetValueInt( int Value );
         virtual void                            SetValueFloat( float Value );
         virtual void                            SetValueBool( bool Value );
@@ -54,9 +55,9 @@ namespace le
         virtual int                             GetValueInt() const;
         virtual float                           GetValueFloat() const;
         virtual bool                            GetValueBool() const;
-        virtual const Vector2D_t&               GetValueVector2D() const;
-        virtual const Vector3D_t&               GetValueVector3D() const;
-        virtual const Vector4D_t&               GetValueVector4D() const;
+        virtual Vector2D_t                      GetValueVector2D() const;
+        virtual Vector3D_t                      GetValueVector3D() const;
+        virtual Vector4D_t                      GetValueVector4D() const;
         virtual IShaderParameter*               GetValueShaderParameter() const;
         virtual float*                          GetValueArrayFloat( UInt32_t& Count );
         virtual int*                            GetValueArrayInt( UInt32_t& Count );

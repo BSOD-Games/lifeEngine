@@ -31,6 +31,9 @@
 #include "errors.h"
 #include "engineapi.h"
 #include "window_editor.h"
+#include "ui_window_editor.h"
+
+// Widgets for edit shader parameter
 #include "widget_shaderparameter_texture.h"
 #include "widget_shaderparameter_color.h"
 #include "widget_shaderparameter_vector4d.h"
@@ -39,7 +42,15 @@
 #include "widget_shaderparameter_int.h"
 #include "widget_shaderparameter_float.h"
 #include "widget_shaderparameter_bool.h"
-#include "ui_window_editor.h"
+
+// Widgets for edit proxy parameter
+#include "widget_proxyparameter_bool.h"
+#include "widget_proxyparameter_int.h"
+#include "widget_proxyparameter_float.h"
+#include "widget_proxyparameter_vector2d.h"
+#include "widget_proxyparameter_vector3d.h"
+#include "widget_proxyparameter_vector4d.h"
+#include "widget_proxyparameter_shaderparameter.h"
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
@@ -51,6 +62,7 @@ Window_Editor::Window_Editor( const GameDescriptor& GameDescriptor, QWidget* Par
 	model( nullptr ),
 	pointLight( nullptr ),
 	widget_shaderParameter( nullptr ),
+	widget_proxyParameter( nullptr ),
 	currentMaterialProxy( nullptr )
 {
 	ui->setupUi( this );
@@ -140,6 +152,7 @@ Window_Editor::~Window_Editor()
 	}
 
 	HideWidgetShaderParameter();
+	HideWidgetProxyParameter();
 	delete ui;
 }
 
@@ -298,6 +311,7 @@ void Window_Editor::OnRemoveShaderParameter()
 void Window_Editor::OnRemoveProxy()
 {
 	RemoveProxy( ui->listWidget_proxies->currentRow() );
+	HideWidgetProxyParameter();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -326,6 +340,7 @@ void Window_Editor::OnAddProxyParameter()
 void Window_Editor::OnRemoveProxyParameter()
 {
 	RemoveProxyParameter( ui->listWidget_proxiesParameters->currentRow() );
+	HideWidgetProxyParameter();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -465,6 +480,30 @@ void Window_Editor::on_listWidget_proxies_currentRowChanged( int Row )
 
 	for ( quint32 index = 0, count = proxyParameters.size(); index < count; ++index )
 		ui->listWidget_proxiesParameters->addItem( proxyParameters[ index ]->GetName() );
+
+	HideWidgetProxyParameter();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: selected proxy parameter
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::on_listWidget_proxiesParameters_currentRowChanged( int Row )
+{
+	if ( !currentMaterialProxy ) return;
+	MaterialProxyParameterPtr			proxyParameter = currentMaterialProxy->GetParameter( Row );
+	if ( !proxyParameter ) return;
+
+	HideWidgetProxyParameter();
+
+	le::MATERIAL_PROXY_VAR_TYPE		proxyParameterType;
+	for ( quint32 index = 0; index < selectedMaterialProxyDescriptor.countParameters; ++index )
+		if ( proxyParameter->GetName() == selectedMaterialProxyDescriptor.parametersInfo[ index ].name )
+		{
+			proxyParameterType = selectedMaterialProxyDescriptor.parametersInfo[ index ].type;
+			break;
+		}
+
+	ShowWidgetProxyParameter( proxyParameter, proxyParameterType );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -500,6 +539,7 @@ void Window_Editor::Clear()
 
 	fileInfo.Clear();
 	HideWidgetShaderParameter();
+	HideWidgetProxyParameter();
 	UpdateWindowTitle();
 }
 
@@ -564,6 +604,36 @@ void Window_Editor::HideWidgetShaderParameter()
 
 	delete widget_shaderParameter;
 	widget_shaderParameter = nullptr;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Show widget proxy parameter
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::ShowWidgetProxyParameter( MaterialProxyParameterPtr ProxyParameter, le::MATERIAL_PROXY_VAR_TYPE Type )
+{
+	switch ( Type )
+	{
+	case le::MPVT_BOOL:				widget_proxyParameter = new Widget_ProxyParameter_Bool( ProxyParameter );											break;
+	case le::MPVT_FLOAT:			widget_proxyParameter = new Widget_ProxyParameter_Float( ProxyParameter );											break;
+	case le::MPVT_INT:				widget_proxyParameter = new Widget_ProxyParameter_Int( ProxyParameter );											break;
+	case le::MPVT_SHADER_PARAMETER: widget_proxyParameter = new Widget_ProxyParameter_ShaderParameter( ProxyParameter, material.GetParameters() );		break;
+	case le::MPVT_VECTOR_2D:		widget_proxyParameter = new Widget_ProxyParameter_Vector2D( ProxyParameter );										break;
+	case le::MPVT_VECTOR_3D:		widget_proxyParameter = new Widget_ProxyParameter_Vector3D( ProxyParameter );										break;
+	case le::MPVT_VECTOR_4D:		widget_proxyParameter = new Widget_ProxyParameter_Vector4D( ProxyParameter );										break;
+	}
+
+	if ( widget_proxyParameter )		ui->verticalLayout_5->addWidget( widget_proxyParameter );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Hide widget proxy parameter
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::HideWidgetProxyParameter()
+{
+	if ( !widget_proxyParameter ) return;
+
+	delete widget_proxyParameter;
+	widget_proxyParameter = nullptr;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -844,9 +914,9 @@ void Window_Editor::AddProxyParameter( const QString& Name, le::MATERIAL_PROXY_V
 // ------------------------------------------------------------------------------------ //
 void Window_Editor::RemoveProxyParameter( quint32 Index )
 {
-	if ( !currentMaterialProxy ) return;
+	if ( currentMaterialProxy ) 
+		currentMaterialProxy->RemoveParameter( Index );
 
-	currentMaterialProxy->RemoveParameter( Index );
 	ui->listWidget_proxiesParameters->model()->removeRow( Index );
 	ui->listWidget_proxiesParameters->clearSelection();
 	ui->listWidget_proxiesParameters->setCurrentRow( -1 );

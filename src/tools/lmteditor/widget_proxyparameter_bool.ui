@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Widget_ShaderParameter_Bool</class>
- <widget class="QWidget" name="Widget_ShaderParameter_Bool">
+ <class>Widget_ProxyParameter_Bool</class>
+ <widget class="QWidget" name="Widget_ProxyParameter_Bool">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>94</width>
-    <height>19</height>
+    <height>16</height>
    </rect>
   </property>
   <property name="windowTitle">

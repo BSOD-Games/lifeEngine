@@ -166,10 +166,16 @@ void le::ShaderParameter::SetValueColor( const Color_t& Value )
 // ------------------------------------------------------------------------------------ //
 void le::ShaderParameter::SetValueTexture( ITexture* Value )
 {
-    if ( isDefined && type != SPT_VECTOR_4D )       Clear();
+    if ( isDefined && type != SPT_TEXTURE )       Clear();
+    if ( value )
+    {
+        le::ITexture*       texture = static_cast< le::ITexture* >( value );
+        if ( texture->GetCountReferences() <= 1 )       texture->Release();
+        else                                            texture->DecrementReference();
+    }
 
-    Value->IncrementReference();
     value = Value;
+    if ( Value )        Value->IncrementReference();
     if ( material )		material->NeadUpdateShader();
 
     type = SPT_TEXTURE;

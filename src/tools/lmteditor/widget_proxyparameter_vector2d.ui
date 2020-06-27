@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Widget_ShaderParameter_Vector3D</class>
- <widget class="QWidget" name="Widget_ShaderParameter_Vector3D">
+ <class>Widget_ProxyParameter_Vector2D</class>
+ <widget class="QWidget" name="Widget_ProxyParameter_Vector2D">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>111</width>
-    <height>72</height>
+    <height>46</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,6 +29,28 @@
    <property name="horizontalSpacing">
     <number>3</number>
    </property>
+   <item row="0" column="1">
+    <widget class="QDoubleSpinBox" name="doubleSpinBox_x">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="decimals">
+      <number>6</number>
+     </property>
+     <property name="minimum">
+      <double>-99999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>99999.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.050000000000000</double>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="0">
     <widget class="QLabel" name="label_x">
      <property name="sizePolicy">
@@ -63,28 +85,6 @@ padding-right: 3%;</string>
      </property>
     </widget>
    </item>
-   <item row="0" column="1">
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_x">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="decimals">
-      <number>6</number>
-     </property>
-     <property name="minimum">
-      <double>-99999.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>99999.000000000000000</double>
-     </property>
-     <property name="singleStep">
-      <double>0.050000000000000</double>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label_y">
      <property name="sizePolicy">
@@ -109,50 +109,6 @@ padding-right: 3%;</string>
    </item>
    <item row="1" column="1">
     <widget class="QDoubleSpinBox" name="doubleSpinBox_y">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="decimals">
-      <number>6</number>
-     </property>
-     <property name="minimum">
-      <double>-99999.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>99999.000000000000000</double>
-     </property>
-     <property name="singleStep">
-      <double>0.050000000000000</double>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="label_z">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">color: white;
-background-color: green; 
-padding-left: 3%;
-padding-right: 3%;</string>
-     </property>
-     <property name="text">
-      <string>&lt;b&gt;Z&lt;/b&gt;</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_z">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
        <horstretch>0</horstretch>

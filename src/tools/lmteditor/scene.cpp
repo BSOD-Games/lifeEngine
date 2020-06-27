@@ -38,7 +38,7 @@ void Scene::Render()
 	if ( !studioRender ) return;
 
 	studioRender->BeginScene( camera );
-
+	
 	// Render models
 	for ( auto it = models.begin(), itEnd = models.end(); it != itEnd; ++it )
 		studioRender->SubmitModel( *it );

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Widget_ShaderParameter_Vector3D</class>
- <widget class="QWidget" name="Widget_ShaderParameter_Vector3D">
+ <class>Widget_ProxyParameter_Vector4D</class>
+ <widget class="QWidget" name="Widget_ProxyParameter_Vector4D">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>111</width>
-    <height>72</height>
+    <width>115</width>
+    <height>98</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
    <item row="0" column="0">
     <widget class="QLabel" name="label_x">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -66,16 +66,25 @@ padding-right: 3%;</string>
    <item row="0" column="1">
     <widget class="QDoubleSpinBox" name="doubleSpinBox_x">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="wrapping">
+      <bool>false</bool>
+     </property>
+     <property name="buttonSymbols">
+      <enum>QAbstractSpinBox::UpDownArrows</enum>
+     </property>
+     <property name="showGroupSeparator" stdset="0">
+      <bool>false</bool>
      </property>
      <property name="decimals">
       <number>6</number>
      </property>
      <property name="minimum">
-      <double>-99999.000000000000000</double>
+      <double>-99999.999989999996615</double>
      </property>
      <property name="maximum">
       <double>99999.000000000000000</double>
@@ -83,12 +92,18 @@ padding-right: 3%;</string>
      <property name="singleStep">
       <double>0.050000000000000</double>
      </property>
+     <property name="stepType">
+      <enum>QAbstractSpinBox::DefaultStepType</enum>
+     </property>
+     <property name="value">
+      <double>0.000000000000000</double>
+     </property>
     </widget>
    </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label_y">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -110,7 +125,7 @@ padding-right: 3%;</string>
    <item row="1" column="1">
     <widget class="QDoubleSpinBox" name="doubleSpinBox_y">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -132,7 +147,7 @@ padding-right: 3%;</string>
    <item row="2" column="0">
     <widget class="QLabel" name="label_z">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -152,6 +167,57 @@ padding-right: 3%;</string>
     </widget>
    </item>
    <item row="2" column="1">
+    <widget class="QDoubleSpinBox" name="doubleSpinBox_w">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="decimals">
+      <number>6</number>
+     </property>
+     <property name="minimum">
+      <double>-99999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>99999.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.050000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_w">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: white;
+background-color: rgb(83, 83, 83);
+padding-left: 3%;
+padding-right: 3%;
+</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="text">
+      <string>&lt;b&gt;W&lt;/b&gt;</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
     <widget class="QDoubleSpinBox" name="doubleSpinBox_z">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">

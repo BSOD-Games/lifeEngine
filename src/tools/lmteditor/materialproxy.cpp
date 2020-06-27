@@ -76,6 +76,7 @@ void MaterialProxy::RemoveParameter( quint32 Index )
 {
 	if ( !materialProxy || Index >= parameters.size() ) return;
 
+	// TODO: Add set shader parameter to default value
 	materialProxy->ClearVar( parameters[ Index ]->GetName().toStdString().c_str() );
 	parameters.erase( parameters.begin() + Index );
 }

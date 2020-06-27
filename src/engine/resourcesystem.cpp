@@ -450,7 +450,7 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 	{
 		bool                        isProxyValid = true;
 		le::IMaterialProxy*         proxy = static_cast< le::MaterialProxyFactory* >( le::g_materialSystem->GetMaterialProxyFactory() )->Create( itProxies->name.c_str() );
-		if ( !proxy ) continue;
+		if ( !proxy )			continue;
 
 		for ( auto itProxiesVar = itProxies->values.begin(), itProxiesVarEnd = itProxies->values.end(); itProxiesVar != itProxiesVarEnd; ++itProxiesVar )
 		{

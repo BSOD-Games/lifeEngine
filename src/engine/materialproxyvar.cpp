@@ -37,7 +37,7 @@ void le::MaterialProxyVar::Clear()
     {
         ShaderParameter*           value = static_cast< ShaderParameter* >( this->value );
 
-        if ( value->GetCountReferences() <= 1 )     value->Release();
+        if ( value->GetCountReferences() <= 0 )     value->Release();
         else                                        value->DecrementReference();
 
         break;
@@ -55,6 +55,29 @@ void le::MaterialProxyVar::Clear()
 void le::MaterialProxyVar::SetName( const char* Name )
 {
     name = Name;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set type
+// ------------------------------------------------------------------------------------ //
+void le::MaterialProxyVar::SetType( MATERIAL_PROXY_VAR_TYPE Type )
+{
+    switch ( Type )
+    {
+    case MPVT_NONE:                 Clear();                                                break;
+    case MPVT_INT:                  SetValueInt( 0 );                                       break;
+    case MPVT_FLOAT:                SetValueFloat( 0.f );                                   break;
+    case MPVT_BOOL:                 SetValueBool( false );                                  break;
+    case MPVT_SHADER_PARAMETER:     SetValueShaderParameter( nullptr );                     break;
+    case MPVT_VECTOR_2D:            SetValueVector2D( Vector2D_t( 0.f, 0.f ) );             break;
+    case MPVT_VECTOR_3D:            SetValueVector3D( Vector3D_t( 0.f, 0.f, 0.f ) );        break;
+    case MPVT_VECTOR_4D:            SetValueVector4D( Vector4D_t( 0.f, 0.f, 0.f, 0.f ) );   break;
+    case MPVT_ARRAY_INT:            SetValueArrayInt( nullptr, 0 );                         break;
+    case MPVT_ARRAY_FLOAT:          SetValueArrayFloat( nullptr, 0 );                       break;
+    case MPVT_ARRAY_VECTOR_2D:      SetValueArrayVector2D( nullptr, 0 );                    break;
+    case MPVT_ARRAY_VECTOR_3D:      SetValueArrayVector3D( nullptr, 0 );                    break;
+    case MPVT_ARRAY_VECTOR_4D:      SetValueArrayVector4D( nullptr, 0 );                    break;
+    }
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -140,13 +163,22 @@ void le::MaterialProxyVar::SetValueVector4D( const Vector4D_t& Value )
 // ------------------------------------------------------------------------------------ //
 void le::MaterialProxyVar::SetValueShaderParameter( IShaderParameter* Value )
 {
-    LIFEENGINE_ASSERT( Value );
-    if ( isDefined && type != MPVT_SHADER_PARAMETER )          Clear();
+    if ( isDefined || type != MPVT_SHADER_PARAMETER )          
+        Clear();
 
-    Value->IncrementReference();
-    value = static_cast< ShaderParameter* >( Value );
-    type = MPVT_SHADER_PARAMETER;
-    isDefined = true;
+    if ( Value )
+    {
+        Value->IncrementReference();
+        value = static_cast< ShaderParameter* >( Value );
+        isDefined = true;
+    }
+    else
+    {
+        value = nullptr;
+        isDefined = false;
+    }
+      
+    type = MPVT_SHADER_PARAMETER;   
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -155,14 +187,20 @@ void le::MaterialProxyVar::SetValueShaderParameter( IShaderParameter* Value )
 void le::MaterialProxyVar::SetValueArrayFloat( float* Array, UInt32_t Count )
 {
     if ( isDefined && type != MPVT_ARRAY_FLOAT )            Clear();
-    if ( !isDefined )                                       value = new std::vector< float >();
+    if ( Array && Count > 0 )
+    {
+        if ( !isDefined )     value = new std::vector< float >();
 
-    auto            valueArray = static_cast< std::vector< float >* >( value );
-    valueArray->resize( Count );
-    memcpy( valueArray->data(), Array, Count * sizeof( float ) );
+        auto            valueArray = static_cast< std::vector< float >* >( value );
+        valueArray->resize( Count );
+        memcpy( valueArray->data(), Array, Count * sizeof( float ) );
+
+        isDefined = true;       
+    }
+    else
+        Clear(); 
 
     type = MPVT_ARRAY_FLOAT;
-    isDefined = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -170,15 +208,21 @@ void le::MaterialProxyVar::SetValueArrayFloat( float* Array, UInt32_t Count )
 // ------------------------------------------------------------------------------------ //
 void le::MaterialProxyVar::SetValueArrayInt( int* Array, UInt32_t Count )
 {
-    if ( isDefined && type != MPVT_ARRAY_INT )              Clear();
-    if ( !isDefined )                                       value = new std::vector< int >();
+    if ( isDefined && type != MPVT_ARRAY_INT )            Clear();
+    if ( Array && Count > 0 )
+    {
+        if ( !isDefined )     value = new std::vector< int >();
 
-    auto            valueArray = static_cast< std::vector< int >* >( value );
-    valueArray->resize( Count );
-    memcpy( valueArray->data(), Array, Count * sizeof( int ) );
+        auto            valueArray = static_cast< std::vector< int >* >( value );
+        valueArray->resize( Count );
+        memcpy( valueArray->data(), Array, Count * sizeof( int ) );
+
+        isDefined = true;        
+    }
+    else
+        Clear();
 
     type = MPVT_ARRAY_INT;
-    isDefined = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -186,15 +230,21 @@ void le::MaterialProxyVar::SetValueArrayInt( int* Array, UInt32_t Count )
 // ------------------------------------------------------------------------------------ //
 void le::MaterialProxyVar::SetValueArrayVector2D( Vector2D_t* Array, UInt32_t Count )
 {
-    if ( isDefined && type != MPVT_ARRAY_VECTOR_2D )        Clear();
-    if ( !isDefined )                                       value = new std::vector< Vector2D_t >();
+    if ( isDefined && type != MPVT_ARRAY_VECTOR_2D )            Clear();
+    if ( Array && Count > 0 )
+    {
+        if ( !isDefined )     value = new std::vector< Vector2D_t >();
 
-    auto            valueArray = static_cast< std::vector< Vector2D_t >* >( value );
-    valueArray->resize( Count );
-    memcpy( valueArray->data(), Array, Count * sizeof( Vector2D_t ) );
+        auto            valueArray = static_cast< std::vector< Vector2D_t >* >( value );
+        valueArray->resize( Count );
+        memcpy( valueArray->data(), Array, Count * sizeof( Vector2D_t ) );
+
+        isDefined = true;      
+    }
+    else
+        Clear();
 
     type = MPVT_ARRAY_VECTOR_2D;
-    isDefined = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -202,15 +252,21 @@ void le::MaterialProxyVar::SetValueArrayVector2D( Vector2D_t* Array, UInt32_t Co
 // ------------------------------------------------------------------------------------ //
 void le::MaterialProxyVar::SetValueArrayVector3D( Vector3D_t* Array, UInt32_t Count )
 {
-    if ( isDefined && type != MPVT_ARRAY_VECTOR_3D )        Clear();
-    if ( !isDefined )                                       value = new std::vector< Vector3D_t >();
+    if ( isDefined && type != MPVT_ARRAY_VECTOR_3D )            Clear();
+    if ( Array && Count > 0 )
+    {
+        if ( !isDefined )     value = new std::vector< Vector3D_t >();
 
-    auto            valueArray = static_cast< std::vector< Vector3D_t >* >( value );
-    valueArray->resize( Count );
-    memcpy( valueArray->data(), Array, Count * sizeof( Vector3D_t ) );
+        auto            valueArray = static_cast< std::vector< Vector3D_t >* >( value );
+        valueArray->resize( Count );
+        memcpy( valueArray->data(), Array, Count * sizeof( Vector3D_t ) );
+
+        isDefined = true;       
+    }
+    else
+        Clear();
 
     type = MPVT_ARRAY_VECTOR_3D;
-    isDefined = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -218,15 +274,21 @@ void le::MaterialProxyVar::SetValueArrayVector3D( Vector3D_t* Array, UInt32_t Co
 // ------------------------------------------------------------------------------------ //
 void le::MaterialProxyVar::SetValueArrayVector4D( Vector4D_t* Array, UInt32_t Count )
 {
-    if ( isDefined && type != MPVT_ARRAY_VECTOR_4D )        Clear();
-    if ( !isDefined )                                       value = new std::vector< Vector4D_t >();
+    if ( isDefined && type != MPVT_ARRAY_VECTOR_4D )            Clear();
+    if ( Array && Count > 0 )
+    {
+        if ( !isDefined )     value = new std::vector< Vector4D_t >();
 
-    auto            valueArray = static_cast< std::vector< Vector4D_t >* >( value );
-    valueArray->resize( Count );
-    memcpy( valueArray->data(), Array, Count * sizeof( Vector4D_t ) );
+        auto            valueArray = static_cast< std::vector< Vector4D_t >* >( value );
+        valueArray->resize( Count );
+        memcpy( valueArray->data(), Array, Count * sizeof( Vector4D_t ) );
+
+        isDefined = true;
+    }
+    else
+        Clear();
 
     type = MPVT_ARRAY_VECTOR_4D;
-    isDefined = true;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -283,24 +345,27 @@ bool le::MaterialProxyVar::GetValueBool() const
 // ------------------------------------------------------------------------------------ //
 // Получить переменную
 // ------------------------------------------------------------------------------------ //
-const le::Vector2D_t& le::MaterialProxyVar::GetValueVector2D() const
+le::Vector2D_t le::MaterialProxyVar::GetValueVector2D() const
 {
+    if ( type != MPVT_VECTOR_2D )       return Vector2D_t( 0.f, 0.f );
     return *static_cast< Vector2D_t* >( value );
 }
 
 // ------------------------------------------------------------------------------------ //
 // Получить переменную
 // ------------------------------------------------------------------------------------ //
-const le::Vector3D_t& le::MaterialProxyVar::GetValueVector3D() const
+le::Vector3D_t le::MaterialProxyVar::GetValueVector3D() const
 {
+    if ( type != MPVT_VECTOR_3D )       return Vector3D_t( 0.f, 0.f, 0.f );
     return *static_cast< Vector3D_t* >( value );
 }
 
 // ------------------------------------------------------------------------------------ //
 // Получить переменную
 // ------------------------------------------------------------------------------------ //
-const le::Vector4D_t& le::MaterialProxyVar::GetValueVector4D() const
+le::Vector4D_t le::MaterialProxyVar::GetValueVector4D() const
 {
+    if ( type != MPVT_VECTOR_4D )       return Vector4D_t( 0.f, 0.f, 0.f, 0.f );
     return *static_cast< Vector4D_t* >( value );
 }
 
@@ -309,7 +374,7 @@ const le::Vector4D_t& le::MaterialProxyVar::GetValueVector4D() const
 // ------------------------------------------------------------------------------------ //
 le::IShaderParameter* le::MaterialProxyVar::GetValueShaderParameter() const
 {
-    if ( type != MPVT_SHADER_PARAMETER )     return nullptr;
+    if ( type != MPVT_SHADER_PARAMETER || !isDefined )     return nullptr;
     return static_cast< IShaderParameter* >( value );
 }
 
@@ -318,7 +383,7 @@ le::IShaderParameter* le::MaterialProxyVar::GetValueShaderParameter() const
 // ------------------------------------------------------------------------------------ //
 float* le::MaterialProxyVar::GetValueArrayFloat( UInt32_t& Count )
 {
-    if ( type != MPVT_ARRAY_FLOAT )
+    if ( type != MPVT_ARRAY_FLOAT || !isDefined )
     {
         Count = 0;
         return nullptr;
@@ -334,7 +399,11 @@ float* le::MaterialProxyVar::GetValueArrayFloat( UInt32_t& Count )
 // ------------------------------------------------------------------------------------ //
 int* le::MaterialProxyVar::GetValueArrayInt( UInt32_t& Count )
 {
-    if ( type != MPVT_ARRAY_INT )     return nullptr;
+    if ( type != MPVT_ARRAY_INT || !isDefined )
+    {
+        Count = 0;
+        return nullptr;
+    }
 
     auto        value = static_cast< std::vector< int >* >( this->value );
     Count = value->size();
@@ -346,7 +415,7 @@ int* le::MaterialProxyVar::GetValueArrayInt( UInt32_t& Count )
 // ------------------------------------------------------------------------------------ //
 le::Vector2D_t* le::MaterialProxyVar::GetValueArrayVector2D( UInt32_t& Count )
 {
-    if ( type != MPVT_ARRAY_VECTOR_2D )
+    if ( type != MPVT_ARRAY_VECTOR_2D || !isDefined )
     {
         Count = 0;
         return nullptr;
@@ -362,7 +431,7 @@ le::Vector2D_t* le::MaterialProxyVar::GetValueArrayVector2D( UInt32_t& Count )
 // ------------------------------------------------------------------------------------ //
 le::Vector3D_t* le::MaterialProxyVar::GetValueArrayVector3D( UInt32_t& Count )
 {
-    if ( type != MPVT_ARRAY_VECTOR_3D )
+    if ( type != MPVT_ARRAY_VECTOR_3D || !isDefined )
     {
         Count = 0;
         return nullptr;
@@ -378,7 +447,7 @@ le::Vector3D_t* le::MaterialProxyVar::GetValueArrayVector3D( UInt32_t& Count )
 // ------------------------------------------------------------------------------------ //
 le::Vector4D_t* le::MaterialProxyVar::GetValueArrayVector4D( UInt32_t& Count )
 {
-    if ( type != MPVT_ARRAY_VECTOR_4D )
+    if ( type != MPVT_ARRAY_VECTOR_4D || !isDefined )
     {
         Count = 0;
         return nullptr;

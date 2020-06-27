@@ -139,9 +139,16 @@ bool Material::Load( const QString& Path )
 		for ( quint32 index = 0, count = proxes.size(); index < count; ++index )
 		{
 			const LMTProxy&			lmtProxy = proxes[ index ];
+			auto&					lmtProxyParameters = lmtProxy.GetParameters();
 			MaterialProxyPtr		materialProxy = std::make_shared< MaterialProxy >();
 
 			if ( !materialProxy->Create( lmtProxy.GetName().c_str() ) )		continue;
+
+			for ( quint32 indexParameter = 0, countParameters = lmtProxyParameters.size(); indexParameter < countParameters; ++indexParameter )
+			{
+				const LMTProxyParameter&		lmtProxyParameter = lmtProxyParameters[ indexParameter ];
+				// TODO: Write loading proxy vars
+			}
 
 			material->AddProxy( materialProxy->GetHandle() );
 			this->proxes.push_back( materialProxy );
@@ -186,27 +193,27 @@ bool Material::Save( const QString& Path )
 		case le::SPT_SHADER_FLAG:		lmtParameter.SetValueBool( parameter->GetValueBool() );				break;
 		case le::SPT_VECTOR_2D:	
 		{
-			le::Vector2D_t*			value = &parameter->GetValueVector2D();
-			lmtParameter.SetValueVector2D( LMTVector2D( value->x, value->y ) );
+			le::Vector2D_t			value = parameter->GetValueVector2D();
+			lmtParameter.SetValueVector2D( LMTVector2D( value.x, value.y ) );
 			break;
 		}
 		case le::SPT_VECTOR_3D:
 		{
-			le::Vector3D_t*			value = &parameter->GetValueVector3D();
-			lmtParameter.SetValueVector3D( LMTVector3D( value->x, value->y, value->z ) );
+			le::Vector3D_t			value = parameter->GetValueVector3D();
+			lmtParameter.SetValueVector3D( LMTVector3D( value.x, value.y, value.z ) );
 			break;
 		}
 		case le::SPT_VECTOR_4D:
 		{
-			le::Vector4D_t*			value = &parameter->GetValueVector4D();
-			lmtParameter.SetValueVector4D( LMTVector4D( value->x, value->y, value->z, value->w ) );
+			le::Vector4D_t			value = parameter->GetValueVector4D();
+			lmtParameter.SetValueVector4D( LMTVector4D( value.x, value.y, value.z, value.w ) );
 			break;
 		}
 		case le::SPT_COLOR:
 		{
-			QColor*				value = &parameter->GetValueColor();
+			QColor				value = parameter->GetValueColor();
 			qreal				r, g, b, a;
-			value->getRgbF( &r, &g, &b, &a );
+			value.getRgbF( &r, &g, &b, &a );
 
 			lmtParameter.SetValueColor( LMTColor( r, g, b, a ) );
 			break;
@@ -226,9 +233,52 @@ bool Material::Save( const QString& Path )
 	for ( quint32 index = 0, count = proxes.size(); index < count; ++index )
 	{
 		MaterialProxyPtr			proxy = proxes[ index ];
+		auto&						parameters = proxy->GetParameters();
 		LMTProxy					lmtProxy;
 
 		lmtProxy.SetName( proxy->GetName().toStdString() );
+		for ( quint32 indexParameter = 0, countParameter = parameters.size(); indexParameter < countParameter; ++indexParameter )
+		{
+			MaterialProxyParameterPtr		proxyParameter = parameters[ indexParameter ];
+			LMTProxyParameter				lmtProxyParameter;
+			
+			lmtProxyParameter.SetName( proxyParameter->GetName().toStdString() );
+			switch ( proxyParameter->GetType() )
+			{
+			case le::MPVT_BOOL:					lmtProxyParameter.SetValueBool( proxyParameter->GetValueBool() );		break;
+			case le::MPVT_INT:					lmtProxyParameter.SetValueInt( proxyParameter->GetValueInt() );			break;
+			case le::MPVT_FLOAT:				lmtProxyParameter.SetValueFloat( proxyParameter->GetValueFloat() );		break;
+			case le::MPVT_SHADER_PARAMETER:
+			{
+				le::IShaderParameter*			shaderParameter = proxyParameter->GetValueShaderParameter();
+				if ( !shaderParameter ) continue;
+
+				lmtProxyParameter.SetValueShaderParameter( shaderParameter->GetName() );
+				break;
+			}
+			case le::MPVT_VECTOR_2D:	
+			{
+				le::Vector2D_t			value = proxyParameter->GetValueVector2D();
+				lmtProxyParameter.SetValueVector2D( LMTVector2D( value.x, value.y ) );			
+				break;
+			}
+			case le::MPVT_VECTOR_3D:
+			{
+				le::Vector3D_t			value = proxyParameter->GetValueVector3D();
+				lmtProxyParameter.SetValueVector3D( LMTVector3D( value.x, value.y, value.z ) );
+				break;
+			}
+			case le::MPVT_VECTOR_4D:
+			{
+				le::Vector4D_t			value = proxyParameter->GetValueVector4D();
+				lmtProxyParameter.SetValueVector4D( LMTVector4D( value.x, value.y, value.z, value.z ) );
+				break;
+			}
+			}
+	
+			lmtProxy.AddParameter( lmtProxyParameter );
+		}
+
 		lmtDoc.AddProxy( lmtProxy );
 	}
 

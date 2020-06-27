@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Widget_ShaderParameter_Vector3D</class>
- <widget class="QWidget" name="Widget_ShaderParameter_Vector3D">
+ <class>Widget_ProxyParameter_Vector3D</class>
+ <widget class="QWidget" name="Widget_ProxyParameter_Vector3D">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -66,7 +66,7 @@ padding-right: 3%;</string>
    <item row="0" column="1">
     <widget class="QDoubleSpinBox" name="doubleSpinBox_x">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>

@@ -80,6 +80,8 @@ void Widget_Viewport::Render()
 	if ( !studioRender )
 		return;
 
+	EngineAPI::GetInstance()->GetMaterialSystem()->Update();
+
 	studioRender->Begin();
     Scene::GetInstance()->Render();
 	studioRender->End();
