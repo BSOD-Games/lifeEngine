@@ -70,6 +70,27 @@ namespace le
         ~MaterialProxyVar();
 
     private:
+
+        //---------------------------------------------------------------------//
+
+        class ShaderParameterDescriptor
+        {
+        public:
+            ShaderParameterDescriptor( le::IShaderParameter* ShaderParameter );
+            ~ShaderParameterDescriptor();
+
+            inline le::IShaderParameter*        GetShaderParameter() const
+            {
+                return shaderParameter;
+            }
+
+        private:
+            le::IShaderParameter*           shaderParameter;
+            void*                           defaultValue;
+        };
+
+        //---------------------------------------------------------------------//
+
         bool                            isDefined;
         UInt32_t                        countReferences;
 

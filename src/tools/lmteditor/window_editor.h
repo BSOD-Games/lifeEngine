@@ -46,6 +46,8 @@ public:
 	Window_Editor( const GameDescriptor& GameDescriptor, QWidget* Parent = nullptr );
 	~Window_Editor();
 
+	virtual void			closeEvent( QCloseEvent* Event );
+
 private slots:
 	void			on_comboBox_shader_currentIndexChanged( int Value );
 	void			on_listWidget_parameters_customContextMenuRequested( QPoint Point );
@@ -56,7 +58,9 @@ private slots:
 	void			on_checkBox_blend_stateChanged( int State );
 	void			on_checkBox_cullface_stateChanged( int State );
 	void			on_comboBox_cullfaceType_currentIndexChanged( int Value );
+	void			on_horizontalSlider_cameraUp_sliderMoved( int Value );
 
+	void			on_tabWidget_material_currentChanged( int Index );
 	void			on_listWidget_parameters_currentRowChanged( int Row );
 	void			on_listWidget_proxies_currentRowChanged( int Row );
 	void			on_listWidget_proxiesParameters_currentRowChanged( int Row );
@@ -124,7 +128,7 @@ private:
 
 	le::ICamera*						camera;
 	le::IModel*							model;
-	le::IPointLight*					pointLight;
+	le::IDirectionalLight*				directionalLight;
 	Ui::Window_Editor*					ui;
 
 	le::ShaderDescriptor				selectedShaderDescriptor;

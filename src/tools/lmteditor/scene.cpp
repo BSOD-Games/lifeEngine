@@ -56,7 +56,7 @@ void Scene::Render()
 void Scene::Update()
 {
 	for ( auto it = models.begin(), itEnd = models.end(); it != itEnd; ++it )
-		( *it )->Rotate( le::Vector3D_t( 0.005f ) );
+		( *it )->Rotate( le::Vector3D_t( 0.f, 0.005f, 0.f ) );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -73,7 +73,7 @@ void Scene::AddModel( le::IModel* Model )
 // ------------------------------------------------------------------------------------ //
 // Add light
 // ------------------------------------------------------------------------------------ //
-void Scene::AddLight( le::IPointLight* Light )
+void Scene::AddLight( le::IDirectionalLight* Light )
 {
 	if ( !Light ) return;
 
@@ -120,7 +120,7 @@ void Scene::Clear()
 
 	for ( auto it = lights.begin(), itEnd = lights.end(); it != itEnd; ++it )
 	{
-		le::IPointLight*			light = *it;
+		le::IDirectionalLight*			light = *it;
 		if ( light->GetCountReferences() <= 1 )			light->Release();
 		else											light->DecrementReference();
 	}

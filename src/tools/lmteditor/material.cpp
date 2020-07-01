@@ -425,6 +425,28 @@ void Material::RemoveParameter( quint32 Index )
 {
 	if ( !material || Index >= parameters.size() ) return;
 
+	ShaderParameterPtr			parameter = parameters[ Index ];
+
+	// Delete this shader parameter in all proxes
+	for ( quint32 index = 0, count = proxes.size(); index < count; ++index )
+	{
+		MaterialProxyPtr			proxy = proxes[ index ];
+		for ( quint32 indexParameter = 0; indexParameter < proxy->GetCountParameters(); ++indexParameter )
+		{
+			MaterialProxyParameterPtr			proxyParameter = proxy->GetParameter( indexParameter );
+			if ( proxyParameter->GetType() == le::MPVT_SHADER_PARAMETER )
+			{
+				le::IShaderParameter*			shaderParameter = proxyParameter->GetValueShaderParameter();
+				if ( !shaderParameter ) continue;
+				if ( shaderParameter->GetName() == parameter->GetName() )
+				{
+					proxy->RemoveParameter( indexParameter );
+					indexParameter--;
+				}
+			}
+		}
+	}
+
 	material->RemoveParameter( Index );
 	parameters.erase( parameters.begin() + Index );
 }

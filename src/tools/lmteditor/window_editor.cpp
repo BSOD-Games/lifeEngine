@@ -60,7 +60,7 @@ Window_Editor::Window_Editor( const GameDescriptor& GameDescriptor, QWidget* Par
 	ui( new Ui::Window_Editor() ),
 	camera( nullptr ),
 	model( nullptr ),
-	pointLight( nullptr ),
+	directionalLight( nullptr ),
 	widget_shaderParameter( nullptr ),
 	widget_proxyParameter( nullptr ),
 	currentMaterialProxy( nullptr )
@@ -71,8 +71,13 @@ Window_Editor::Window_Editor( const GameDescriptor& GameDescriptor, QWidget* Par
 
 	connect( ui->widget_preview, SIGNAL( ResizeViewport( quint32, quint32 ) ), this, SLOT( OnResizeViewport( quint32, quint32 ) ) );
 
+	qDebug() << "Loading game";
+	
 	if ( !EngineAPI::GetInstance()->GetEngine()->LoadGame( GameDescriptor.path.toStdString().c_str() ) )
 		Error_Critical( "Failed loading game" );
+	
+	qDebug() << "Loaded game";
+	qDebug() << "Initialize scene";
 
 	// Getting all shaders list
 	le::IShaderFactory*			shaderFactory = EngineAPI::GetInstance()->GetMaterialSystem()->GetShaderFactory();
@@ -90,35 +95,41 @@ Window_Editor::Window_Editor( const GameDescriptor& GameDescriptor, QWidget* Par
 
 	camera->IncrementReference();
 	camera->InitProjection_Perspective( 75.f, ( float ) ui->widget_preview->width() / ui->widget_preview->height(), 0.1f, 5500.f );
+	camera->SetPosition( le::Vector3D_t( 0.f, 0.f, 150.f ) );
 	scene.SetCamera( camera );
 
-	// Loading sphere for preview
-	le::IMesh*			mesh = EngineAPI::GetInstance()->GetResourceSystem()->LoadMesh( "sphere", "models/sphere.mdl" );
-	if ( !mesh )		Error_Critical( "Mesh [models/sphere.mdl] not found" );
-
-	std::vector< le::IMaterial* >		updateMaterials( mesh->GetCountMaterials() );
-	std::fill( updateMaterials.begin(), updateMaterials.end(), material.GetHandle() );
-	mesh->Update( updateMaterials.data(), updateMaterials.size(), 0 );
-
+	// Creating model
 	model = ( le::IModel* ) EngineAPI::GetInstance()->GetEngine()->GetFactory()->Create( MODEL_INTERFACE_VERSION );
 	if ( !model )		Error_Critical( "Interface le::IModel version[" MODEL_INTERFACE_VERSION "] not found in core" );
-
-	model->SetMesh( mesh );
-	model->SetScale( le::Vector3D_t( 50, 50, 50 ) );
-	model->SetPosition( le::Vector3D_t( 0, 0, -150 ) );
 	scene.AddModel( model );
 
 	// Creating light source
-	pointLight = ( le::IPointLight* ) EngineAPI::GetInstance()->GetStudioRender()->GetFactory()->Create( POINTLIGHT_INTERFACE_VERSION );
-	if ( !pointLight )		Error_Critical( "Interface le::IPointLight version[" POINTLIGHT_INTERFACE_VERSION "] not found in studiorender" );
+	directionalLight = ( le::IDirectionalLight* ) EngineAPI::GetInstance()->GetStudioRender()->GetFactory()->Create( DIRECTIONALLIGHT_INTERFACE_VERSION );
+	if ( !directionalLight )		Error_Critical( "Interface le::IDirectionalLight version[" DIRECTIONALLIGHT_INTERFACE_VERSION "] not found in studiorender" );
 
-	pointLight->SetPosition( le::Vector3D_t( 100, 0, 0 ) );
-	pointLight->SetRadius( 350 );
-	pointLight->SetIntensivity( 8500 );
-	scene.AddLight( pointLight );
+	directionalLight->SetDirection( le::Vector3D_t( 0.f, 0.5f, 0.5f ) );
+	directionalLight->SetIntensivity( 0.5f );
+	scene.AddLight( directionalLight );
+
+	// Loading sphere for preview
+	le::IMesh*		mesh = EngineAPI::GetInstance()->GetResourceSystem()->LoadMesh( "sphere", "models/sphere.mdl" );
+	if ( mesh )
+	{
+		// Update all materials on edit material
+		std::vector< le::IMaterial* >		updateMaterials( mesh->GetCountMaterials() );
+		std::fill( updateMaterials.begin(), updateMaterials.end(), material.GetHandle() );
+		mesh->Update( updateMaterials.data(), updateMaterials.size(), 0 );
+
+		model->SetMesh( mesh );
+		model->SetScale( le::Vector3D_t( 50, 50, 50 ) );
+	}
+
+	qDebug() << "Initialized scene";
 
 	// Clear material to default settings
 	Clear();
+
+	qDebug() << "Window editor open";
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -146,17 +157,27 @@ Window_Editor::~Window_Editor()
 			camera->DecrementReference();
 	}
 
-	if ( pointLight )
+	if ( directionalLight )
 	{
-		if ( pointLight->GetCountReferences() <= 1 )
-			pointLight->Release();
+		if ( directionalLight->GetCountReferences() <= 1 )
+			directionalLight->Release();
 		else
-			pointLight->DecrementReference();
+			directionalLight->DecrementReference();
 	}
 
 	HideWidgetShaderParameter();
 	HideWidgetProxyParameter();
 	delete ui;
+
+	qDebug() << "Window editor close";
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: close event
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::closeEvent( QCloseEvent* Event )
+{
+	on_actionClose_file_triggered();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -270,6 +291,19 @@ void Window_Editor::on_comboBox_cullfaceType_currentIndexChanged( int Value )
 
 	material.SetCullFaceType( cullfaceType );
 	OnEditMaterial();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: Slider camera up moved
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::on_horizontalSlider_cameraUp_sliderMoved( int Value )
+{
+	le::Vector3D_t			position = camera->GetPosition();
+	position.y = Value;
+
+	// Update position and target direction
+	camera->SetPosition( position );
+	camera->SetTargetDirection( model->GetPosition() - camera->GetPosition() );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -436,6 +470,35 @@ void Window_Editor::on_comboBox_shader_currentIndexChanged( int Value )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Event: current tab changed
+// ------------------------------------------------------------------------------------ //
+void Window_Editor::on_tabWidget_material_currentChanged( int Index )
+{
+	// Clear current row and selection shader parameters
+	ui->listWidget_parameters->clearSelection();
+	ui->listWidget_parameters->setCurrentRow( -1 );
+
+	// Clear current row and selection proxy
+	ui->listWidget_proxies->clearSelection();
+	ui->listWidget_proxies->setCurrentRow( -1 );
+
+	// Clear showing proxy parameters
+	QAbstractItemModel*			model = ui->listWidget_proxiesParameters->model();
+	for ( quint32 index = 0; index < model->rowCount(); ++index )
+	{
+		model->removeRow( index );
+		--index;
+	}
+	
+	ui->listWidget_proxiesParameters->clearSelection();
+	ui->listWidget_proxiesParameters->setCurrentRow( -1 );
+
+	// Hide widgets for edit parameters
+	HideWidgetShaderParameter();
+	HideWidgetProxyParameter();
+}
+
+// ------------------------------------------------------------------------------------ //
 // Event: selected shader parameter
 // ------------------------------------------------------------------------------------ //
 void Window_Editor::on_listWidget_parameters_currentRowChanged( int Row )
@@ -544,6 +607,8 @@ void Window_Editor::Clear()
 	HideWidgetShaderParameter();
 	HideWidgetProxyParameter();
 	UpdateWindowTitle();
+
+	qDebug() << "Material reset to default settings";
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -649,6 +714,7 @@ void Window_Editor::on_actionNew_file_triggered()
 
 	// Clear material
 	Clear();
+	qDebug() << "Created new file";
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -719,6 +785,7 @@ void Window_Editor::on_actionOpen_file_triggered()
 
 	fileInfo = QFileInfo( path );
 	UpdateWindowTitle();
+	qDebug() << "File [" << path << "] openned";
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -740,6 +807,7 @@ void Window_Editor::on_actionSave_file_triggered()
 	}
 
 	fileInfo.isSavedFile = true;
+	qDebug() << "File saved";
 	UpdateWindowTitle();
 }
 
@@ -759,6 +827,7 @@ void Window_Editor::on_actionSave_file_as_triggered()
 	}
 
 	fileInfo = QFileInfo( path );
+	qDebug() << "File saved to " << path;
 	UpdateWindowTitle();
 }
 
@@ -773,6 +842,7 @@ void Window_Editor::on_actionClose_file_triggered()
 	// Clear material and close window
 	Clear();
 	close();
+	qDebug() << "Closed file";
 }
 
 // ------------------------------------------------------------------------------------ //

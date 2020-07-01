@@ -9,6 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "engine/lifeengine.h"
+#include "studiorender/itexture.h"
 #include "materialproxyvar.h"
 
 #include "shaderparameter.h"
@@ -22,26 +23,18 @@ void le::MaterialProxyVar::Clear()
 
     switch ( type )
     {
-    case MPVT_INT:                  delete static_cast< int* >( value );                        break;
-    case MPVT_FLOAT:                delete static_cast< float* >( value );                      break;
-    case MPVT_BOOL:                 delete static_cast< bool* >( value );                       break;
-    case MPVT_VECTOR_2D:            delete static_cast< Vector2D_t* >( value );                 break;
-    case MPVT_VECTOR_3D:            delete static_cast< Vector3D_t* >( value );                 break;
-    case MPVT_VECTOR_4D:            delete static_cast< Vector4D_t* >( value );                 break;
-    case MPVT_ARRAY_FLOAT:          delete static_cast< std::vector< float >* >( value );       break;
-    case MPVT_ARRAY_INT:            delete static_cast< std::vector< int >* >( value );         break;
-    case MPVT_ARRAY_VECTOR_2D:      delete static_cast< std::vector< Vector2D_t >* >( value );  break;
-    case MPVT_ARRAY_VECTOR_3D:      delete static_cast< std::vector< Vector3D_t >* >( value );  break;
-    case MPVT_ARRAY_VECTOR_4D:      delete static_cast< std::vector< Vector4D_t >* >( value );  break;
-    case MPVT_SHADER_PARAMETER:
-    {
-        ShaderParameter*           value = static_cast< ShaderParameter* >( this->value );
-
-        if ( value->GetCountReferences() <= 0 )     value->Release();
-        else                                        value->DecrementReference();
-
-        break;
-    }
+    case MPVT_INT:                  delete static_cast< int* >( value );                              break;
+    case MPVT_FLOAT:                delete static_cast< float* >( value );                            break;
+    case MPVT_BOOL:                 delete static_cast< bool* >( value );                             break;
+    case MPVT_VECTOR_2D:            delete static_cast< Vector2D_t* >( value );                       break;
+    case MPVT_VECTOR_3D:            delete static_cast< Vector3D_t* >( value );                       break;
+    case MPVT_VECTOR_4D:            delete static_cast< Vector4D_t* >( value );                       break;
+    case MPVT_ARRAY_FLOAT:          delete static_cast< std::vector< float >* >( value );             break;
+    case MPVT_ARRAY_INT:            delete static_cast< std::vector< int >* >( value );               break;
+    case MPVT_ARRAY_VECTOR_2D:      delete static_cast< std::vector< Vector2D_t >* >( value );        break;
+    case MPVT_ARRAY_VECTOR_3D:      delete static_cast< std::vector< Vector3D_t >* >( value );        break;
+    case MPVT_ARRAY_VECTOR_4D:      delete static_cast< std::vector< Vector4D_t >* >( value );        break;
+    case MPVT_SHADER_PARAMETER:     delete static_cast< ShaderParameterDescriptor* >( value );        break;
     }
 
     type = MPVT_NONE;
@@ -168,16 +161,10 @@ void le::MaterialProxyVar::SetValueShaderParameter( IShaderParameter* Value )
 
     if ( Value )
     {
-        Value->IncrementReference();
-        value = static_cast< ShaderParameter* >( Value );
+        value = new ShaderParameterDescriptor( Value );
         isDefined = true;
     }
-    else
-    {
-        value = nullptr;
-        isDefined = false;
-    }
-      
+
     type = MPVT_SHADER_PARAMETER;   
 }
 
@@ -375,7 +362,7 @@ le::Vector4D_t le::MaterialProxyVar::GetValueVector4D() const
 le::IShaderParameter* le::MaterialProxyVar::GetValueShaderParameter() const
 {
     if ( type != MPVT_SHADER_PARAMETER || !isDefined )     return nullptr;
-    return static_cast< IShaderParameter* >( value );
+    return static_cast< ShaderParameterDescriptor* >( value )->GetShaderParameter();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -506,4 +493,126 @@ void le::MaterialProxyVar::Release()
 le::UInt32_t le::MaterialProxyVar::GetCountReferences() const
 {
     return countReferences;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Constructor ShaderParameterDescriptor
+// ------------------------------------------------------------------------------------ //
+le::MaterialProxyVar::ShaderParameterDescriptor::ShaderParameterDescriptor( le::IShaderParameter* ShaderParameter ) :
+    shaderParameter( ShaderParameter ),
+    defaultValue( nullptr )
+{
+    if ( !shaderParameter ) return;
+    shaderParameter->IncrementReference();
+
+    switch ( shaderParameter->GetType() )
+    {
+    case SPT_INT:
+        defaultValue = new int;
+        *static_cast< int* >( defaultValue ) = shaderParameter->GetValueInt();
+        break;
+
+    case SPT_FLOAT: 
+        defaultValue = new float;
+        *static_cast< float* >( defaultValue ) = shaderParameter->GetValueFloat();
+        break;
+
+    case SPT_SHADER_FLAG: 
+        defaultValue = new bool;
+        *static_cast< bool* >( defaultValue ) = shaderParameter->GetValueShaderFlag();
+        break;
+
+    case SPT_TEXTURE:
+    {
+        ITexture*       texture = shaderParameter->GetValueTexture();
+        if ( texture )  texture->IncrementReference();
+
+        defaultValue = texture;
+        break;
+    }
+
+    case SPT_COLOR:
+        defaultValue = new Color_t();
+        *static_cast< Color_t* >( defaultValue ) = shaderParameter->GetValueColor();
+        break;
+
+    case SPT_VECTOR_2D: 
+        defaultValue = new Vector2D_t();
+        *static_cast< Vector2D_t* >( defaultValue ) = shaderParameter->GetValueVector2D();
+        break;
+
+    case SPT_VECTOR_3D: 
+        defaultValue = new Vector3D_t();
+        *static_cast< Vector3D_t* >( defaultValue ) = shaderParameter->GetValueVector3D(); 
+        break;
+
+    case SPT_VECTOR_4D: 
+        defaultValue = new Vector4D_t();
+        *static_cast< Vector4D_t* >( defaultValue ) = shaderParameter->GetValueVector4D();
+        break;
+    }
+}
+
+// ------------------------------------------------------------------------------------ //
+// Destructor ShaderParameterDescriptor
+// ------------------------------------------------------------------------------------ //
+le::MaterialProxyVar::ShaderParameterDescriptor::~ShaderParameterDescriptor()
+{
+    if ( !shaderParameter ) return;
+    if ( defaultValue )
+    {
+        switch ( shaderParameter->GetType() )
+        {
+        case SPT_INT:
+            shaderParameter->SetValueInt( *static_cast< int* >( defaultValue ) );
+            delete static_cast< int* >( defaultValue );
+            break;
+
+        case SPT_FLOAT:
+            shaderParameter->SetValueFloat( *static_cast< float* >( defaultValue ) );
+            delete static_cast< float* >( defaultValue );
+            break;
+
+        case SPT_SHADER_FLAG:
+            shaderParameter->SetValueShaderFlag( *static_cast< bool* >( defaultValue ) );
+            delete static_cast< bool* >( defaultValue );
+            break;
+
+        case SPT_TEXTURE:
+        {
+            ITexture*       texture = static_cast< ITexture* >( defaultValue );
+            shaderParameter->SetValueTexture( texture );
+
+            if ( texture )
+            {
+                if ( texture->GetCountReferences() <= 1 )       texture->Release();
+                else                                            texture->DecrementReference();
+            }
+            break;
+        }
+
+        case SPT_COLOR:
+            shaderParameter->SetValueColor( *static_cast< Color_t* >( defaultValue ) );
+            delete static_cast< Color_t* >( defaultValue );
+            break;
+
+        case SPT_VECTOR_2D:
+            shaderParameter->SetValueVector2D( *static_cast< Vector2D_t* >( defaultValue ) );
+            delete static_cast< Vector2D_t* >( defaultValue );
+            break;
+
+        case SPT_VECTOR_3D:
+            shaderParameter->SetValueVector3D( *static_cast< Vector3D_t* >( defaultValue ) );
+            delete static_cast< Vector3D_t* >( defaultValue );
+            break;
+
+        case SPT_VECTOR_4D:
+            shaderParameter->SetValueVector4D( *static_cast< Vector4D_t* >( defaultValue ) );
+            delete static_cast< Vector4D_t* >( defaultValue );
+            break;
+        }
+    }
+
+    if ( shaderParameter->GetCountReferences() <= 1 )       shaderParameter->Release();
+    else                                                    shaderParameter->DecrementReference();
 }

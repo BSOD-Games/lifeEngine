@@ -677,7 +677,7 @@ bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile )
 		// Р—Р°РіСЂСѓР¶Р°РµРј Рё РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РїРѕРґСЃРёСЃС‚РµРјС‹
 		if ( !LoadModule_StudioRender( ( engineDirectory + "/" + LIFEENGINE_STUDIORENDER_DLL ).c_str() ) )        throw std::runtime_error( "Failed loading studiorender" );
 		if ( !LoadModule_PhysicsSystem( ( engineDirectory + "/" + LIFEENGINE_PHYSICSSYSTEM_DLL ).c_str() ) )      throw std::runtime_error( "Failed loading physics system" );
-
+		
 		// Initialize studiorender
 		if ( !studioRender )							throw std::runtime_error( "Studiorender not loaded" );
 		else if ( !studioRender->Initialize( this ) )	throw std::runtime_error( "Fail initialize studiorender" );
@@ -685,7 +685,7 @@ bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile )
 		// Initialize physics
 		if ( !physicSystem )							throw std::runtime_error( "Physics system not loaded" );
 		else if ( !physicSystem->Initialize( this ) )	throw std::runtime_error( "Fail initialize physics system" );
-
+		
 		// Initialize fonts
 		if ( !FontFreeType::InitializeFreeType() )		throw std::runtime_error( "Fail initialize freetype library" );
 

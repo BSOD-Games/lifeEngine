@@ -435,7 +435,7 @@
        <property name="title">
         <string>Preview</string>
        </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <layout class="QVBoxLayout" name="verticalLayout_6">
         <property name="spacing">
          <number>0</number>
         </property>
@@ -453,6 +453,12 @@
         </property>
         <item>
          <widget class="Widget_Viewport" name="widget_preview" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="autoFillBackground">
            <bool>false</bool>
           </property>

@@ -33,8 +33,9 @@ public:
 	void								RemoveParameter( quint32 Index );
 
 	bool								HasParameter( const QString& Name ) const;
-	inline le::IMaterialProxy*			GetHandle()			{ return materialProxy; }
-	inline const QString&				GetName()			{ return name; }
+	inline le::IMaterialProxy*			GetHandle()						{ return materialProxy; }
+	inline const QString&				GetName()						{ return name; }
+	inline quint32						GetCountParameters() const		{ return parameters.size(); }
 	inline MaterialProxyParameterPtr	GetParameter( quint32 Index ) const
 	{
 		if ( Index >= parameters.size() ) return nullptr;

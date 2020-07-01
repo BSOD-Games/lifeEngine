@@ -103,10 +103,7 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 	g_engine = Engine;
 
 	if ( !g_consoleSystem )
-	{
-		g_consoleSystem->PrintError( "Studiorender requared console system" );
 		return false;
-	}
 
 	// Register console commands and vars
 	r_wireframe = ( IConVar* ) g_consoleSystem->GetFactory()->Create( CONVAR_INTERFACE_VERSION );
@@ -524,7 +521,9 @@ void le::StudioRender::Render_FinalPass()
 	shaderPostrocess.Bind();
 
 	glDrawElements( GL_TRIANGLES, quad.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( quad.GetStartIndex() * sizeof( UInt32_t ) ) );
+	
 	OpenGLState::EnableDepthTest( true );
+	quad.Unbind();
 }
 
 // ------------------------------------------------------------------------------------ //

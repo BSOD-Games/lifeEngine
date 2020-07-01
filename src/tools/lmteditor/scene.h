@@ -16,7 +16,7 @@
 
 #include "engine/icamera.h"
 #include "engine/imodel.h"
-#include "studiorender/ipointlight.h"
+#include "studiorender/idirectionallight.h"
 #include "studiorender/istudiorender.h"
 
 #include "tsingleton.h"
@@ -35,7 +35,7 @@ public:
 	void				Render();
 	void				Clear();
 	void				AddModel( le::IModel* Model );
-	void				AddLight( le::IPointLight* Light );
+	void				AddLight( le::IDirectionalLight* Light );
 
 	inline void			SetStudioRender( le::IStudioRender* StudioRender )		{ studioRender = StudioRender; }
 	void				SetCamera( le::ICamera* Camera );
@@ -46,10 +46,10 @@ private slots:
 private:
 	QTimer								timerUpdate;
 
-	le::ICamera*						camera;
-	le::IStudioRender*					studioRender;
-	std::list< le::IModel* >			models;
-	std::list< le::IPointLight* >		lights;
+	le::ICamera*							camera;
+	le::IStudioRender*						studioRender;
+	std::list< le::IModel* >				models;
+	std::list< le::IDirectionalLight* >		lights;
 };
 
 //---------------------------------------------------------------------//

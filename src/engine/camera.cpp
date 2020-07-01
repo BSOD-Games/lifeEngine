@@ -178,7 +178,7 @@ void le::Camera::SetRotation( const Vector3D_t& Rotation )
 {    
 	// 6.28319 радиан = 360 градусов
 
-	eulerRotation = Rotation;
+	eulerRotation = le::Vector3D_t( glm::radians( Rotation.x ), glm::radians( Rotation.y ), glm::radians( Rotation.z ) );
 
 	if ( eulerRotation.z < -6.28319f || eulerRotation.z > 6.28319f )
 		eulerRotation.z = 0.f;
