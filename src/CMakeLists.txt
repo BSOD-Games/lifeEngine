@@ -14,6 +14,7 @@ set( PROJECT_STUDIORENDER studiorender )
 set( PROJECT_PHYSICS physics )
 set( PROJECT_LMDL tools/lmdl )
 set( PROJECT_MATERIALS_EDITOR tools/lmteditor ) 
+set( PROJECT_MODEL_VIEWER tools/lmdviewer )
 set( PROJECT_LMT tools/lmt )
 
 #
@@ -59,6 +60,7 @@ option( BUILD_STUDIORENDER "Build studiorender" OFF )
 option( BUILD_PHYSICS "Build physics" OFF )
 option( BUILD_CONVERTER_MODELS "Build converter models" OFF )
 option( BUILD_MATERIALS_EDITOR "Build materials editor" OFF )
+option( BUILD_MODEL_VIEWER "Build model viewer" OFF )
 
 if( LIFEENGINE_DEBUG )
     message( STATUS "Debug mode enabled" )
@@ -106,6 +108,10 @@ endif()
 
 if ( BUILD_MATERIALS_EDITOR )
 	add_subdirectory( ${PROJECT_MATERIALS_EDITOR} )
+endif()
+
+if ( BUILD_MODEL_VIEWER )
+	add_subdirectory( ${PROJECT_MODEL_VIEWER} )
 endif()
 
 add_subdirectory( ${PROJECT_LMT} )

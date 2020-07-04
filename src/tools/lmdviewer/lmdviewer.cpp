@@ -1,27 +1,25 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Р”РІРёРіР°С‚РµР»СЊ Р¶РёР·РЅРё) ***
+//			*** lifeEngine (Двигатель жизни) ***
 //				Copyright (C) 2018-2020
 //
-// Р РµРїРѕР·РёС‚РѕСЂРёР№ РґРІРёР¶РєР°:  https://github.com/zombihello/lifeEngine
-// РђРІС‚РѕСЂС‹:				Р•РіРѕСЂ РџРѕРіСѓР»СЏРєР° (zombiHello)
+// Репозиторий движка:  https://github.com/zombihello/lifeEngine
+// Авторы:				Егор Погуляка (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
 #include <qapplication.h>
 #include <qfile.h>
 #include <qtextstream.h>
-#include <fstream>
-#include <qmessagebox.h>
-#include <sstream>
 #include <qdebug.h>
+#include <sstream>
+#include <string.h>
 
 #include "engine/iconsolesystem.h"
 
-#include "lmteditor.h"
+#include "lmdviewer.h"
 #include "engineapi.h"
 #include "window_selectgame.h"
-#include "window_editor.h"
 #include "errors.h"
 
 // ------------------------------------------------------------------------------------ //
@@ -65,7 +63,7 @@ int Application_ComputeBuildNumber( int GoldDate )
 // ------------------------------------------------------------------------------------ //
 // Print message in logs
 // ------------------------------------------------------------------------------------ //
-void Application_MessageOutput( QtMsgType Type, const QMessageLogContext &Context, const QString &Message )
+void Application_MessageOutput( QtMsgType Type, const QMessageLogContext& Context, const QString& Message )
 {
 	static le::IConsoleSystem*			consoleSystem = nullptr;
 	if ( !consoleSystem )				consoleSystem = EngineAPI::GetInstance()->GetConsoleSystem();
@@ -110,11 +108,11 @@ int main( int argc, char** argv )
 		return 1;
 	}
 
-    qInstallMessageHandler( Application_MessageOutput  );
+	qInstallMessageHandler( Application_MessageOutput );
 	GameDescriptor		gameDescriptor;
 	{
 		std::stringstream				strStream;
-		strStream << "LMTEditor " << LMTEDITOR_VERSION_MAJOR << "." << LMTEDITOR_VERSION_MINOR << "." << LMTEDITOR_VERSION_PATCH << " (build " << Application_ComputeBuildNumber( GOLD_DATE ) << ")";
+		strStream << "LMDViewer " << LMDVIEWER_VERSION_MAJOR << "." << LMDVIEWER_VERSION_MINOR << "." << LMDVIEWER_VERSION_PATCH << " (build " << Application_ComputeBuildNumber( GOLD_DATE ) << ")";
 		qDebug() << strStream.str().c_str();
 
 		strStream.str( "" );
@@ -141,14 +139,11 @@ int main( int argc, char** argv )
 			return 0;
 
 		gameDescriptor = window_SelectGame.GetGame();
-		if ( gameDescriptor.path.isEmpty() )		
+		if ( gameDescriptor.path.isEmpty() )
 			Error_Critical( "Game not selected or path to game directory is empty" );
 	}
 
-	// Start editor
-	Window_Editor				window_Editor( gameDescriptor );
-	window_Editor.show();	
-	return application.exec();
+	return 0;
 }
 
 //---------------------------------------------------------------------//
