@@ -20,6 +20,7 @@
 #include "lmdviewer.h"
 #include "engineapi.h"
 #include "window_selectgame.h"
+#include "window_viewer.h"
 #include "errors.h"
 
 // ------------------------------------------------------------------------------------ //
@@ -143,7 +144,10 @@ int main( int argc, char** argv )
 			Error_Critical( "Game not selected or path to game directory is empty" );
 	}
 
-	return 0;
+	// Start viewer
+	Window_Viewer				window_Viewer( gameDescriptor );
+	window_Viewer.show();
+	return application.exec();
 }
 
 //---------------------------------------------------------------------//
