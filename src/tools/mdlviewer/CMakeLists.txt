@@ -8,7 +8,7 @@ file( GLOB_RECURSE SOURCE_FILES "*.h" "*.cpp" )
 file( GLOB_RECURSE FORMS_FILES "*.ui" )
 file( GLOB_RECURSE RESOURCES "*.qrc" )
 
-set( MODULE_NAME lmdviewer )
+set( MODULE_NAME mdlviewer )
 
 #
 #   --- Платформозависимые настройки ---
@@ -44,10 +44,11 @@ qt5_add_resources ( RCC_SOURCES ${RESOURCES} )
 
 configure_file( ${PATHS_H}.in ${PATHS_H} )
 add_executable( ${MODULE_NAME} WIN32 ${SOURCE_FILES} ${RCC_SOURCES} ${UI_HEADERS} ${FORMS_FILES} ${RESOURCE} )
-target_link_libraries( ${MODULE_NAME} lmt )
+target_link_libraries( ${MODULE_NAME} mdlloader )
 target_link_libraries( ${MODULE_NAME} Qt5::Widgets Qt5::Core ${CMAKE_DL_LIBS} )
 
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
 
+include_directories( ../mdlloader )
 include_directories( ../../public )
 include_directories( ../../ )

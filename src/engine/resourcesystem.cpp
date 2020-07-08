@@ -34,6 +34,8 @@
 #include "studiorender/igpuprogram.h"
 
 #include "global.h"
+#include "mdldoc.h"
+#include "lmtdoc.h"
 #include "consolesystem.h"
 #include "resourcesystem.h"
 #include "level.h"
@@ -43,74 +45,8 @@
 #include "materialproxyfactory.h"
 #include "materialsystem.h"
 
-#define MDL_ID			"LMDL"
 #define PHY_ID			"LPHY"
-#define MDL_VERSION		1
-#define LMT_VERSION		2
 #define PHY_VERSION		1
-
-struct MaterialProxy
-{
-	std::string                                                 name;
-	std::unordered_map< std::string, rapidjson::Value* >        values;
-};
-
-struct Material
-{
-	Material() :
-		isDepthTest( true ),
-		isDepthWrite( true ),
-		isBlend( false ),
-		isCullFace( true ),
-		cullFaceType( le::CT_BACK )
-	{}
-
-	bool														isDepthTest;
-	bool														isDepthWrite;
-	bool														isBlend;
-	bool														isCullFace;
-	le::CULLFACE_TYPE											cullFaceType;
-	std::string													shader;
-	std::unordered_map< std::string, rapidjson::Value* >		parameters;
-	std::vector< MaterialProxy >                                proxes;
-};
-
-enum MDL_LUMPS
-{
-	ML_MATERIALS,
-	ML_VERTECES,
-	ML_INDECES,
-	ML_SURFACES,
-	ML_MAX_LUMPS
-};
-
-struct MDLHeader
-{
-	char				strId[ 4 ]; // Always 'LMDL'
-	le::UInt32_t		version;
-};
-
-struct MDLLump
-{
-	le::UInt32_t		offset;
-	le::UInt32_t		length;
-};
-
-struct MDLVertex
-{
-	le::Vector3D_t		position;
-	le::Vector3D_t		normal;
-	le::Vector2D_t		texCoords;
-	le::Vector3D_t		tangent;
-	le::Vector3D_t		bitangent;
-};
-
-struct MDLSurface
-{
-	le::UInt32_t		materialId;
-	le::UInt32_t        startIndex;
-	le::UInt32_t        countIndex;
-};
 
 enum PHY_LUMPS
 {
@@ -130,104 +66,6 @@ struct PHYLump
 	le::UInt32_t		offset;
 	le::UInt32_t		length;
 };
-
-// ------------------------------------------------------------------------------------ //
-// Преобразовать JSON массив в 2D вектор 
-// ------------------------------------------------------------------------------------ //
-inline le::Vector2D_t JsonArrayToVec2( rapidjson::Value::Array& Array )
-{
-	try
-	{
-		if ( Array.Size() < 2 ) throw;
-
-		for ( size_t index = 0, count = Array.Size(); index < count; ++index )
-			if ( !Array[ index ].IsNumber() )
-				throw;
-	}
-	catch ( ... )
-	{
-		return le::Vector2D_t( 0.f, 0.f );
-	}
-
-	return le::Vector2D_t( Array[ 0 ].GetFloat(), Array[ 1 ].GetFloat() );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Преобразовать JSON массив в 3D вектор 
-// ------------------------------------------------------------------------------------ //
-inline le::Vector3D_t JsonArrayToVec3( rapidjson::Value::Array& Array )
-{
-	try
-	{
-		if ( Array.Size() < 3 ) throw;
-
-		for ( size_t index = 0, count = Array.Size(); index < count; ++index )
-			if ( !Array[ index ].IsNumber() )
-				throw;
-	}
-	catch ( ... )
-	{
-		return le::Vector3D_t( 0.f, 0.f, 0.f );
-	}
-
-	return le::Vector3D_t( Array[ 0 ].GetFloat(), Array[ 1 ].GetFloat(), Array[ 2 ].GetFloat() );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Преобразовать JSON массив в 4D вектор 
-// ------------------------------------------------------------------------------------ //
-inline le::Vector4D_t JsonArrayToVec4( rapidjson::Value::Array& Array )
-{
-	try
-	{
-		if ( Array.Size() < 4 ) throw;
-
-		for ( size_t index = 0, count = Array.Size(); index < count; ++index )
-			if ( !Array[ index ].IsNumber() )
-				throw;
-	}
-	catch ( ... )
-	{
-		return le::Vector4D_t( 0.f, 0.f, 0.f, 0.f );
-	}
-
-	return le::Vector4D_t( Array[ 0 ].GetFloat(), Array[ 1 ].GetFloat(), Array[ 2 ].GetFloat(), Array[ 3 ].GetFloat() );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Преобразовать JSON массив в матрицу 4х4
-// ------------------------------------------------------------------------------------ //
-inline le::Matrix4x4_t JsonArrayToMatrix( rapidjson::Value::Array& Array )
-{
-	try
-	{
-		if ( Array.Size() < 16 ) throw;
-
-		for ( size_t index = 0, count = Array.Size(); index < count; ++index )
-			if ( !Array[ index ].IsNumber() )
-				throw;
-	}
-	catch ( ... )
-	{
-		return le::Matrix4x4_t( 1.f );
-	}
-
-	return le::Matrix4x4_t( Array[ 0 ].GetFloat(), Array[ 1 ].GetFloat(), Array[ 2 ].GetFloat(), Array[ 3 ].GetFloat(),
-							Array[ 4 ].GetFloat(), Array[ 5 ].GetFloat(), Array[ 6 ].GetFloat(), Array[ 7 ].GetFloat(),
-							Array[ 8 ].GetFloat(), Array[ 9 ].GetFloat(), Array[ 10 ].GetFloat(), Array[ 11 ].GetFloat(),
-							Array[ 12 ].GetFloat(), Array[ 13 ].GetFloat(), Array[ 14 ].GetFloat(), Array[ 15 ].GetFloat() );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Преобразовать строку в перечисление типа отсекаемых полигонов
-// ------------------------------------------------------------------------------------ //
-inline le::CULLFACE_TYPE CullFaceType_StringToEnum( const char* Type )
-{
-	if ( !Type || Type == "" ) return le::CT_BACK;
-
-	if ( strcmp( Type, "front" ) == 0 )		return le::CT_FRONT;
-	else									return le::CT_BACK;
-}
 
 // ------------------------------------------------------------------------------------ //
 // Загрузить изображение
@@ -314,253 +152,172 @@ le::ITexture* LE_LoadTexture( const char* Path, le::IFactory* StudioRenderFactor
 // ------------------------------------------------------------------------------------ //
 le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceSystem, le::IMaterialSystem* MaterialSystem, le::IFactory* EngineFactory )
 {
-	std::ifstream		file( Path );
-	if ( !file.is_open() )						return nullptr;
+	LMTDoc			lmtDoc;
+	if ( !lmtDoc.Load( Path ) )				return nullptr;
 
-	std::string					stringBuffer;
-	std::getline( file, stringBuffer, '\0' );
+	// Create material and set surface name and shader
+	le::Material*		material = new le::Material();
+	material->SetSurfaceName( lmtDoc.GetSurface().c_str() );
+	material->SetShader( lmtDoc.GetShader().c_str() );
 
-	rapidjson::Document			document;
-	document.Parse( stringBuffer.c_str() );
-	if ( document.HasParseError() )				return nullptr;
-
-	if ( document.FindMember( "version" ) == document.MemberEnd() ||
-		 !document[ "version" ].IsNumber() || document[ "version" ].GetInt() != LMT_VERSION )
-		return nullptr;
-
-	std::string					surface;
-	Material					material;
-
-	// Считываем все параметры материала в память
-	for ( auto itRoot = document.MemberBegin(), itRootEnd = document.MemberEnd(); itRoot != itRootEnd; ++itRoot )
+	// Set cullface type
+	switch ( lmtDoc.GetCullfaceType() )
 	{
-		// Название поверхности
-		if ( strcmp( itRoot->name.GetString(), "surface" ) == 0 && itRoot->value.IsString() )
-			surface = itRoot->value.GetString();
-
-		// Включен ли тест глубины
-		if ( strcmp( itRoot->name.GetString(), "depthTest" ) == 0 && itRoot->value.IsBool() )
-			material.isDepthTest = itRoot->value.GetBool();
-
-		// Включена ли запись в буфер глубины
-		else if ( strcmp( itRoot->name.GetString(), "depthWrite" ) == 0 && itRoot->value.IsBool() )
-			material.isDepthWrite = itRoot->value.GetBool();
-
-		// Включено ли смешивание
-		else if ( strcmp( itRoot->name.GetString(), "blend" ) == 0 && itRoot->value.IsBool() )
-			material.isBlend = itRoot->value.GetBool();
-
-		// Включено ли отсечение полигонов
-		else if ( strcmp( itRoot->name.GetString(), "cullface" ) == 0 && itRoot->value.IsBool() )
-			material.isCullFace = itRoot->value.GetBool();
-
-		// Тип отсикаемых полигонов
-		else if ( strcmp( itRoot->name.GetString(), "cullface_type" ) == 0 )
-			if ( itRoot->value.IsString() )
-				material.cullFaceType = CullFaceType_StringToEnum( itRoot->value.GetString() );
-			else if ( itRoot->value.IsNumber() )
-				material.cullFaceType = ( le::CULLFACE_TYPE ) itRoot->value.GetInt();
-
-		// Шейдер
-		if ( strcmp( itRoot->name.GetString(), "shader" ) == 0 && itRoot->value.IsString() )
-			material.shader = itRoot->value.GetString();
-
-		// Параметры шейдера
-		else if ( strcmp( itRoot->name.GetString(), "parameters" ) == 0 && itRoot->value.IsObject() )
-			for ( auto itParameter = itRoot->value.GetObject().MemberBegin(), itParameterEnd = itRoot->value.GetObject().MemberEnd(); itParameter != itParameterEnd; ++itParameter )
-				material.parameters[ itParameter->name.GetString() ] = &itParameter->value;
-
-		// Прокси-материалы для прохода
-		else if ( strcmp( itRoot->name.GetString(), "proxies" ) == 0 && itRoot->value.IsObject() )
-			for ( auto itProxy = itRoot->value.GetObject().MemberBegin(), itProxyEnd = itRoot->value.GetObject().MemberEnd(); itProxy != itProxyEnd; ++itProxy )
-			{
-				MaterialProxy           proxy;
-				if ( !itProxy->name.IsString() || !itProxy->value.IsObject() ) continue;
-
-				proxy.name = itProxy->name.GetString();
-				for ( auto itProxyValue = itProxy->value.GetObject().MemberBegin(), itProxyValueEnd = itProxy->value.GetObject().MemberEnd(); itProxyValue != itProxyValueEnd; ++itProxyValue )
-					proxy.values[ itProxyValue->name.GetString() ] = &itProxyValue->value;
-
-				material.proxes.push_back( proxy );
-			}
+	case LMTDoc::CT_BACK:		material->SetCullFaceType( le::CT_BACK );	break;
+	case LMTDoc::CT_FRONT:		material->SetCullFaceType( le::CT_FRONT );	break;
 	}
 
-	le::Material*				lmtMatterial = new le::Material();
-	if ( !surface.empty() )		lmtMatterial->SetSurfaceName( surface.c_str() );
+	// Set settings material
+	material->EnableBlend( lmtDoc.IsEnabledBlend() );
+	material->EnableCullFace( lmtDoc.IsEnabledCullFace() );
+	material->EnableDepthTest( lmtDoc.IsEnabledDepthTest() );
+	material->EnableDepthWrite( lmtDoc.IsEnabledDepthWrite() );
 
-	lmtMatterial->SetShader( material.shader.c_str() );
-	lmtMatterial->EnableDepthTest( material.isDepthTest );
-	lmtMatterial->EnableDepthWrite( material.isDepthWrite );
-	lmtMatterial->EnableBlend( material.isBlend );
-	lmtMatterial->EnableCullFace( material.isCullFace );
-	lmtMatterial->SetCullFaceType( material.cullFaceType );
-
-	for ( auto itParameters = material.parameters.begin(), itParametersEnd = material.parameters.end(); itParameters != itParametersEnd; ++itParameters )
-	{
-		auto& value = itParameters->second;
-		le::ShaderParameter*		parameter = new le::ShaderParameter();
-		if ( !parameter )		return nullptr;
-
-		parameter->SetName( itParameters->first.c_str() );
-
-		if ( itParameters->second->IsString() )
+	// Getting shader parameters
+	const std::vector< LMTParameter >&			shaderParameters = lmtDoc.GetParameters();
+	if ( !shaderParameters.empty() )
+		for ( le::UInt32_t index = 0, count = shaderParameters.size(); index < count; ++index )
 		{
-			le::ITexture* texture = ResourceSystem->LoadTexture( itParameters->second->GetString(), itParameters->second->GetString() );
-			if ( !texture )	continue;
+			const LMTParameter&			parameter = shaderParameters[ index ];
+			le::ShaderParameter*		shaderParameter = new le::ShaderParameter();
 
-			parameter->SetValueTexture( texture );
-		}
-
-		else if ( itParameters->second->IsObject() )
-		{
-			rapidjson::Value::Object            object = itParameters->second->GetObject();
-			if ( !object.HasMember( "type" ) )	continue;
-
-			std::string			type = object[ "type" ].GetString();
-			if ( type.empty() )		continue;
-
-			if ( type == "vector2d" && object.HasMember( "x" ) && object.HasMember( "y" ) )
+			le::SHADER_PARAMETER_TYPE			shaderParameterType;
+			switch ( parameter.GetType() )
 			{
-				parameter->SetValueVector2D( le::Vector2D_t( object[ "x" ].GetFloat(), object[ "y" ].GetFloat() ) );
+			case LMTParameter::PT_INT:			shaderParameterType = le::SPT_INT;			break;
+			case LMTParameter::PT_FLOAT:		shaderParameterType = le::SPT_FLOAT;		break;
+			case LMTParameter::PT_BOOL:			shaderParameterType = le::SPT_SHADER_FLAG;	break;
+			case LMTParameter::PT_TEXTURE:		shaderParameterType = le::SPT_TEXTURE;		break;
+			case LMTParameter::PT_COLOR:		shaderParameterType = le::SPT_COLOR;		break;
+			case LMTParameter::PT_VECTOR_2D:	shaderParameterType = le::SPT_VECTOR_2D;	break;
+			case LMTParameter::PT_VECTOR_3D:	shaderParameterType = le::SPT_VECTOR_3D;	break;
+			case LMTParameter::PT_VECTOR_4D:	shaderParameterType = le::SPT_VECTOR_4D;	break;
+			default:							delete shaderParameter;						continue;
 			}
-			else if ( type == "vector3d" && object.HasMember( "x" ) && object.HasMember( "y" ) && object.HasMember( "z" ) )
+
+			shaderParameter->SetName( parameter.GetName().c_str() );
+
+			switch ( shaderParameterType )
 			{
-				parameter->SetValueVector3D( le::Vector3D_t( object[ "x" ].GetFloat(), object[ "y" ].GetFloat(), object[ "z" ].GetFloat() ) );
-			}
-			else if ( type == "vector4d" && object.HasMember( "x" ) && object.HasMember( "y" ) && object.HasMember( "z" ) && object.HasMember( "w" ) )
+			case le::SPT_INT:			shaderParameter->SetValueInt( parameter.GetValueInt() );			break;
+			case le::SPT_FLOAT:			shaderParameter->SetValueFloat( parameter.GetValueFloat() );		break;
+			case le::SPT_SHADER_FLAG:	shaderParameter->SetValueShaderFlag( parameter.GetValueBool() );	break;
+			case le::SPT_TEXTURE:
 			{
-				parameter->SetValueVector4D( le::Vector4D_t( object[ "x" ].GetFloat(), object[ "y" ].GetFloat(), object[ "z" ].GetFloat(), object[ "w" ].GetFloat() ) );
-			}
-			else if ( type == "color" && object.HasMember( "r" ) && object.HasMember( "g" ) && object.HasMember( "b" ) && object.HasMember( "a" ) )
-			{
-				parameter->SetValueColor( le::Color_t( object[ "r" ].GetFloat(), object[ "g" ].GetFloat(), object[ "b" ].GetFloat(), object[ "a" ].GetFloat() ) );
-			}
-			else continue;
-		}
-
-		else if ( itParameters->second->IsBool() )		parameter->SetValueShaderFlag( itParameters->second->GetBool() );
-		else if ( itParameters->second->IsDouble() )	parameter->SetValueFloat( itParameters->second->GetDouble() );
-		else if ( itParameters->second->IsFloat() )		parameter->SetValueFloat( itParameters->second->GetFloat() );
-		else if ( itParameters->second->IsInt() )		parameter->SetValueInt( itParameters->second->GetInt() );
-
-		lmtMatterial->AddParameter( parameter );
-	}
-
-	for ( auto itProxies = material.proxes.begin(), itProxiesEnd = material.proxes.end(); itProxies != itProxiesEnd; ++itProxies )
-	{
-		bool                        isProxyValid = true;
-		le::IMaterialProxy*         proxy = static_cast< le::MaterialProxyFactory* >( le::g_materialSystem->GetMaterialProxyFactory() )->Create( itProxies->name.c_str() );
-		if ( !proxy )			continue;
-
-		for ( auto itProxiesVar = itProxies->values.begin(), itProxiesVarEnd = itProxies->values.end(); itProxiesVar != itProxiesVarEnd; ++itProxiesVar )
-		{
-			le::MaterialProxyVar*           var = new le::MaterialProxyVar();
-			var->SetName( itProxiesVar->first.c_str() );
-
-			if ( itProxiesVar->second->IsArray() )
-			{
-				rapidjson::Value::Array         array = itProxiesVar->second->GetArray();
-
-				if ( array.Begin()->IsInt() )
+				std::string				path = parameter.GetValueTexture();
+				le::ITexture*			texture = ResourceSystem->LoadTexture( path.c_str(), path.c_str() );
+				if ( !texture )
 				{
-					std::vector< int >          stdArray;
-					for ( le::UInt32_t index = 0, count = array.Size(); index < count; ++index )
-						stdArray.push_back( array[ index ].GetInt() );
-
-					var->SetValueArrayInt( stdArray.data(), stdArray.size() );
-				}
-				else if ( array.Begin()->IsFloat() )
-				{
-					std::vector< float >          stdArray;
-					for ( le::UInt32_t index = 0, count = array.Size(); index < count; ++index )
-						stdArray.push_back( array[ index ].GetInt() );
-
-					var->SetValueArrayFloat( stdArray.data(), stdArray.size() );
-				}
-				else if ( array.Begin()->IsObject() )
-				{
-					rapidjson::Value::Object            object = array.Begin()->GetObject();
-					bool                                hasX = object.HasMember( "x" );
-					bool                                hasY = object.HasMember( "y" );
-					bool                                hasZ = object.HasMember( "z" );
-					bool                                hasW = object.HasMember( "w" );
-
-					if ( hasX && hasY && !hasZ && !hasW )
-					{
-						std::vector< le::Vector2D_t >          stdArray;
-						for ( le::UInt32_t index = 0, count = array.Size(); index < count; ++index )
-						{
-							object = array[ index ].GetObject();
-							stdArray.push_back( le::Vector2D_t( object.FindMember( "x" )->value.GetFloat(), object.FindMember( "y" )->value.GetFloat() ) );
-						}
-
-						var->SetValueArrayVector2D( stdArray.data(), stdArray.size() );
-					}
-					else if ( hasX && hasY && hasZ && !hasW )
-					{
-						std::vector< le::Vector3D_t >          stdArray;
-						for ( le::UInt32_t index = 0, count = array.Size(); index < count; ++index )
-						{
-							object = array[ index ].GetObject();
-							stdArray.push_back( le::Vector3D_t( object.FindMember( "x" )->value.GetFloat(), object.FindMember( "y" )->value.GetFloat(), object.FindMember( "z" )->value.GetFloat() ) );
-						}
-
-						var->SetValueArrayVector3D( stdArray.data(), stdArray.size() );
-					}
-					else if ( hasX && hasY && hasZ && hasW )
-					{
-						std::vector< le::Vector4D_t >          stdArray;
-						for ( le::UInt32_t index = 0, count = array.Size(); index < count; ++index )
-						{
-							object = array[ index ].GetObject();
-							stdArray.push_back( le::Vector4D_t( object.FindMember( "x" )->value.GetFloat(), object.FindMember( "y" )->value.GetFloat(), object.FindMember( "z" )->value.GetFloat(), object.FindMember( "w" )->value.GetFloat() ) );
-						}
-
-						var->SetValueArrayVector4D( stdArray.data(), stdArray.size() );
-					}
-				}
-			}
-			else if ( itProxiesVar->second->IsString() )
-			{
-				le::IShaderParameter*           parameter = lmtMatterial->FindParameter( itProxiesVar->second->GetString() );
-				if ( !parameter )
-				{
-					delete var;
+					delete shaderParameter;
 					continue;
 				}
 
-				var->SetValueShaderParameter( parameter );
+				shaderParameter->SetValueTexture( texture );
+				break;
 			}
-			else if ( itProxiesVar->second->IsObject() )
+			case le::SPT_COLOR:
 			{
-				rapidjson::Value::Object            object = itProxiesVar->second->GetObject();
-				bool                                hasX = object.HasMember( "x" );
-				bool                                hasY = object.HasMember( "y" );
-				bool                                hasZ = object.HasMember( "z" );
-				bool                                hasW = object.HasMember( "w" );
-
-				if ( hasX && hasY && !hasZ && !hasW )       var->SetValueVector2D( le::Vector2D_t( object.FindMember( "x" )->value.GetFloat(), object.FindMember( "y" )->value.GetFloat() ) );
-				else if ( hasX && hasY && hasZ && !hasW )   var->SetValueVector3D( le::Vector3D_t( object.FindMember( "x" )->value.GetFloat(), object.FindMember( "y" )->value.GetFloat(), object.FindMember( "z" )->value.GetFloat() ) );
-				else if ( hasX && hasY && hasZ && hasW )    var->SetValueVector4D( le::Vector4D_t( object.FindMember( "x" )->value.GetFloat(), object.FindMember( "y" )->value.GetFloat(), object.FindMember( "z" )->value.GetFloat(), object.FindMember( "w" )->value.GetFloat() ) );
+				LMTColor			color = parameter.GetValueColor();
+				shaderParameter->SetValueColor( le::Color_t( color.r, color.g, color.b, color.a ) );
+				break;
 			}
-			else if ( itProxiesVar->second->IsBool() )          var->SetValueBool( itProxiesVar->second->GetBool() );
-			else if ( itProxiesVar->second->IsDouble() )        var->SetValueFloat( itProxiesVar->second->GetFloat() );
-			else if ( itProxiesVar->second->IsFloat() )         var->SetValueFloat( itProxiesVar->second->GetFloat() );
-			else if ( itProxiesVar->second->IsInt() )           var->SetValueInt( itProxiesVar->second->GetInt() );
+			case le::SPT_VECTOR_2D:
+			{
+				LMTVector2D		vec2d = parameter.GetValueVector2D();
+				shaderParameter->SetValueVector2D( le::Vector2D_t( vec2d.x, vec2d.y ) );
+				break;
+			}
+			case le::SPT_VECTOR_3D:
+			{
+				LMTVector3D		vec3d = parameter.GetValueVector3D();
+				shaderParameter->SetValueVector3D( le::Vector3D_t( vec3d.x, vec3d.y, vec3d.z ) );
+				break;
+			}
+			case le::SPT_VECTOR_4D:
+			{
+				LMTVector4D		vec4d = parameter.GetValueVector4D();
+				shaderParameter->SetValueVector4D( le::Vector4D_t( vec4d.x, vec4d.y, vec4d.z, vec4d.w ) );
+				break;
+			}
+			}
 
-			proxy->SetVar( var );
+			material->AddParameter( shaderParameter );
 		}
 
-		if ( !isProxyValid )
+	// Getting proxes
+	const std::vector< LMTProxy >&			proxes = lmtDoc.GetProxes();
+	if ( !proxes.empty() )
+		for ( le::UInt32_t index = 0, count = proxes.size(); index < count; ++index )
 		{
-			delete proxy;
-			continue;
+			const LMTProxy&				lmtProxy = proxes[ index ];
+			auto&						lmtProxyParameters = lmtProxy.GetParameters();
+			le::IMaterialProxy*			materialProxy = static_cast< le::MaterialProxyFactory* >( MaterialSystem->GetMaterialProxyFactory() )->Create( lmtProxy.GetName().c_str() );
+			if ( !materialProxy )		continue;
+
+			for ( le::UInt32_t indexParameter = 0, countParameters = lmtProxyParameters.size(); indexParameter < countParameters; ++indexParameter )
+			{
+				const LMTProxyParameter&		lmtProxyParameter = lmtProxyParameters[ indexParameter ];
+				le::MaterialProxyVar*			proxyParameter = new le::MaterialProxyVar();
+
+				le::MATERIAL_PROXY_VAR_TYPE		proxyParameterType = le::MPVT_NONE;
+				switch ( lmtProxyParameter.GetType() )
+				{
+				case LMTProxyParameter::PT_BOOL:				proxyParameterType = le::MPVT_BOOL;					break;
+				case LMTProxyParameter::PT_INT:					proxyParameterType = le::MPVT_INT;					break;
+				case LMTProxyParameter::PT_FLOAT:				proxyParameterType = le::MPVT_FLOAT;				break;
+				case LMTProxyParameter::PT_SHADER_PARAMETER:	proxyParameterType = le::MPVT_SHADER_PARAMETER;		break;
+				case LMTProxyParameter::PT_VECTOR_2D:			proxyParameterType = le::MPVT_VECTOR_2D;			break;
+				case LMTProxyParameter::PT_VECTOR_3D:			proxyParameterType = le::MPVT_VECTOR_3D;			break;
+				case LMTProxyParameter::PT_VECTOR_4D:			proxyParameterType = le::MPVT_VECTOR_4D;			break;
+				}
+
+				proxyParameter->SetName( lmtProxyParameter.GetName().c_str() );
+
+				switch ( proxyParameterType )
+				{
+				case le::MPVT_BOOL:					proxyParameter->SetValueBool( lmtProxyParameter.GetValueBool() );		break;
+				case le::MPVT_INT:					proxyParameter->SetValueInt( lmtProxyParameter.GetValueInt() );			break;
+				case le::MPVT_FLOAT:				proxyParameter->SetValueFloat( lmtProxyParameter.GetValueFloat() );		break;
+				case le::MPVT_SHADER_PARAMETER:
+				{
+					std::string					nameShaderParameter = lmtProxyParameter.GetValueShaderParameter();
+					le::IShaderParameter*		parameter = material->FindParameter( nameShaderParameter.c_str() );
+					if ( !parameter )
+					{
+						delete proxyParameter;
+						continue;
+					}
+
+					proxyParameter->SetValueShaderParameter( parameter );
+					break;
+				}
+				case le::MPVT_VECTOR_2D:
+				{
+					LMTVector2D			vec2d = lmtProxyParameter.GetValueVector2D();
+					proxyParameter->SetValueVector2D( le::Vector2D_t( vec2d.x, vec2d.y ) );
+					break;
+				}
+				case le::MPVT_VECTOR_3D:
+				{
+					LMTVector3D			vec3d = lmtProxyParameter.GetValueVector3D();
+					proxyParameter->SetValueVector3D( le::Vector3D_t( vec3d.x, vec3d.y, vec3d.z ) );
+					break;
+				}
+				case le::MPVT_VECTOR_4D:
+				{
+					LMTVector4D			vec4d = lmtProxyParameter.GetValueVector4D();
+					proxyParameter->SetValueVector4D( le::Vector4D_t( vec4d.x, vec4d.y, vec4d.z, vec4d.w ) );
+					break;
+				}
+				}
+
+				materialProxy->SetVar( proxyParameter );
+			}
+
+			material->AddProxy( materialProxy );
 		}
 
-		lmtMatterial->AddProxy( proxy );
-	}
-
-	return lmtMatterial;
+	return material;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -568,97 +325,42 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 // ------------------------------------------------------------------------------------ //
 le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, le::IFactory* StudioRenderFactory )
 {
-	std::ifstream				file( Path, std::ios::binary );
-	if ( !file.is_open() )		return nullptr;
+	MDLDoc				mdlDoc;
+	if ( !mdlDoc.Load( Path ) )		return nullptr;
 
-	// Read header file
-	MDLHeader			mdlHeader;
-	file.read( ( char* ) &mdlHeader, sizeof( MDLHeader ) );
-	if ( strncmp( mdlHeader.strId, MDL_ID, 4 ) != 0 || mdlHeader.version != MDL_VERSION )
-		return nullptr;
+	// Getting all data
+	auto&				verteces = mdlDoc.GetVerteces();
+	auto&				vertexIndeces = mdlDoc.GetVertexIndeces();
+	auto&				materialPaths = mdlDoc.GetMaterials();
+	auto&				surfaces = mdlDoc.GetSurfaces();
+	MDLVector3D			minXYZ = mdlDoc.GetMinXYZ();
+	MDLVector3D			maxXYZ = mdlDoc.GetMaxXYZ();
 
-	// Read all lumps
-	MDLLump				mdlLumps[ ML_MAX_LUMPS ];
-	file.read( ( char* ) &mdlLumps[ 0 ], sizeof( MDLLump ) * ML_MAX_LUMPS );
-
-	// Read materials
+	// Loading materials
 	std::vector< le::IMaterial* >		materials;
-	le::UInt32_t						countMaterials;
-
-	file.seekg( mdlLumps[ ML_MATERIALS ].offset, std::ios::beg );
-	file.read( ( char* ) &countMaterials, sizeof( le::UInt32_t ) );
-
-	for ( le::UInt32_t index = 0; index < countMaterials; ++index )
+	for ( le::UInt32_t index = 0, count = materialPaths.size(); index < count; ++index )
 	{
-		le::UInt32_t		sizePath;
-		std::string			path;
-
-		file.read( ( char* ) &sizePath, sizeof( le::UInt32_t ) );
-		path.resize( sizePath );
-		file.read( ( char* ) path.data(), sizePath );
-
-		le::IMaterial*			material = ResourceSystem->LoadMaterial( path.c_str(), path.c_str() );
+		le::IMaterial*			material = ResourceSystem->LoadMaterial( materialPaths[ index ].c_str(), materialPaths[ index ].c_str() );
 		if ( !material ) continue;
 
 		materials.push_back( material );
 	}
 
-	// Read verteces
-	std::vector< MDLVertex >		verteces;
-	le::UInt32_t					countVerteces;
-
-	file.seekg( mdlLumps[ ML_VERTECES ].offset, std::ios::beg );
-	file.read( ( char* ) &countVerteces, sizeof( le::UInt32_t ) );
-
-	verteces.resize( countVerteces );
-	file.read( ( char* ) verteces.data(), countVerteces * sizeof( MDLVertex ) );
-
-	// Read indeces
-	std::vector< le::UInt32_t >		indeces;
-	le::UInt32_t					countIndeces;
-
-	file.seekg( mdlLumps[ ML_INDECES ].offset, std::ios::beg );
-	file.read( ( char* ) &countIndeces, sizeof( le::UInt32_t ) );
-
-	indeces.resize( countIndeces );
-	file.read( ( char* ) indeces.data(), countIndeces * sizeof( le::UInt32_t ) );
-
-	// Read surfaces
-	std::vector< le::MeshSurface >		surfaces;
-	le::UInt32_t						countSurfaces;
-
-	file.seekg( mdlLumps[ ML_SURFACES ].offset, std::ios::beg );
-	file.read( ( char* ) &countSurfaces, sizeof( le::UInt32_t ) );
-	surfaces.resize( countSurfaces );
-
-	for ( le::UInt32_t index = 0; index < countSurfaces; ++index )
+	// Convert MDLSurface to le::MeshSurface
+	std::vector< le::MeshSurface >			meshSurfaces;
+	for ( le::UInt32_t index = 0, count = surfaces.size(); index < count; ++index )
 	{
-		MDLSurface			mdlSurface;
-		file.read( ( char* ) &mdlSurface, sizeof( MDLSurface ) );
-
-		le::MeshSurface&	surface = surfaces[ index ];
+		const MDLSurface&		mdlSurface = surfaces[ index ];
+		le::MeshSurface			surface;
+		
 		surface.startVertexIndex = 0;
 		surface.lightmapID = 0;
 		surface.materialID = mdlSurface.materialId;
-		surface.startIndex = mdlSurface.startIndex;
-		surface.countIndeces = mdlSurface.countIndex;
+		surface.startIndex = mdlSurface.startVertexIndex;
+		surface.countIndeces = mdlSurface.countVertexIndeces;
+		meshSurfaces.push_back( surface );
 	}
-
-	// Find min xyz and max
-	le::Vector3D_t			min = verteces[ 0 ].position;
-	le::Vector3D_t			max = verteces[ 0 ].position;
-
-	for ( uint32_t index = 0; index < countVerteces; ++index )
-	{
-		min.x = glm::min( min.x, verteces[ index ].position.x );
-		min.y = glm::min( min.y, verteces[ index ].position.y );
-		min.z = glm::min( min.z, verteces[ index ].position.z );
-
-		max.x = glm::max( max.x, verteces[ index ].position.x );
-		max.y = glm::max( max.y, verteces[ index ].position.y );
-		max.z = glm::max( max.z, verteces[ index ].position.z );
-	}
-
+		
 	le::IMesh* mesh = ( le::IMesh* ) StudioRenderFactory->Create( MESH_INTERFACE_VERSION );
 	if ( !mesh )				return nullptr;
 
@@ -674,20 +376,20 @@ le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, l
 
 	// Creating mesh descriptor and loading to gpu
 	le::MeshDescriptor				meshDescriptor;
-	meshDescriptor.countIndeces = indeces.size();
+	meshDescriptor.countIndeces = vertexIndeces.size();
 	meshDescriptor.countMaterials = materials.size();
 	meshDescriptor.countLightmaps = 0;
-	meshDescriptor.countSurfaces = surfaces.size();
+	meshDescriptor.countSurfaces = meshSurfaces.size();
 	meshDescriptor.sizeVerteces = verteces.size() * sizeof( MDLVertex );
 
-	meshDescriptor.indeces = indeces.data();
+	meshDescriptor.indeces = ( le::UInt32_t* ) vertexIndeces.data();
 	meshDescriptor.materials = materials.data();
 	meshDescriptor.lightmaps = nullptr;
-	meshDescriptor.surfaces = surfaces.data();
+	meshDescriptor.surfaces = meshSurfaces.data();
 	meshDescriptor.verteces = verteces.data();
 
-	meshDescriptor.min = min;
-	meshDescriptor.max = max;
+	meshDescriptor.min = le::Vector3D_t( minXYZ.x, minXYZ.y, minXYZ.z );
+	meshDescriptor.max = le::Vector3D_t( maxXYZ.x, maxXYZ.y, maxXYZ.z );
 	meshDescriptor.primitiveType = le::PT_TRIANGLES;
 	meshDescriptor.countVertexElements = vertexElements.size();
 	meshDescriptor.vertexElements = vertexElements.data();

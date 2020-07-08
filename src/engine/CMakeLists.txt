@@ -55,9 +55,13 @@ add_definitions( -DLIFEENGINE_EXPORT )
 configure_file( ${PATHS_H}.in ${PATHS_H} )
 add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${ICON} )
 set_target_properties( ${MODULE_NAME} PROPERTIES PREFIX "" )
+target_link_libraries( ${MODULE_NAME} mdlloader )
+target_link_libraries( ${MODULE_NAME} lmtloader )
 
 include_directories( ${CMAKE_BINARY_DIR}/${MODULE_NAME} )
 include_directories( ../public )
+include_directories( ../tools/mdlloader )
+include_directories( ../tools/lmtloader )
 include_directories( ../ )
 
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )

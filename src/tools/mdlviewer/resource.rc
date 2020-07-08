@@ -20,9 +20,9 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "BSOD"
             VALUE "FileDescription", "Model viewer"
-            VALUE "InternalName", "lmdviewer.exe"
+            VALUE "InternalName", "mdlviewer.exe"
             VALUE "LegalCopyright", "Copyright (C) 2016-2020"
-            VALUE "OriginalFilename", "lmdviewer.exe"
+            VALUE "OriginalFilename", "mdlviewer.exe"
             VALUE "ProductName", "lifeEngine"
             VALUE "ProductVersion", LIFEENGINE_VERSION
         END

@@ -6,7 +6,7 @@
 
 file( GLOB_RECURSE SOURCE_FILES "*.h" "*.cpp" )
 
-set( MODULE_NAME lmt )
+set( MODULE_NAME lmtloader )
 set( RAPIDJSON_PATH ${EXTLIBS_DIR} CACHE PATH "Path to RapidJSON" )
 
 #

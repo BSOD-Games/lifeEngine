@@ -29,7 +29,10 @@ endif()
 
 add_executable( ${MODULE_NAME} ${SOURCE_FILES} ${RESOURCE} )
 target_link_libraries( ${MODULE_NAME} ${CMAKE_DL_LIBS} )
+target_link_libraries( ${MODULE_NAME} mdlloader )
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
+
+include_directories( ../mdlloader )
 include_directories( ../../public )
 
 #

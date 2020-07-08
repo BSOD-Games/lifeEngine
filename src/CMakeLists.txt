@@ -14,8 +14,9 @@ set( PROJECT_STUDIORENDER studiorender )
 set( PROJECT_PHYSICS physics )
 set( PROJECT_LMDL tools/lmdl )
 set( PROJECT_MATERIALS_EDITOR tools/lmteditor ) 
-set( PROJECT_MODEL_VIEWER tools/lmdviewer )
-set( PROJECT_LMT tools/lmt )
+set( PROJECT_MODEL_VIEWER tools/mdlviewer )
+set( PROJECT_LMTLOADER tools/lmtloader )
+set( PROJECT_MDLLOADER tools/mdlloader )
 
 #
 #   --- Настройки сборки и пути к каталогам ---
@@ -114,4 +115,5 @@ if ( BUILD_MODEL_VIEWER )
 	add_subdirectory( ${PROJECT_MODEL_VIEWER} )
 endif()
 
-add_subdirectory( ${PROJECT_LMT} )
+add_subdirectory( ${PROJECT_LMTLOADER} )
+add_subdirectory( ${PROJECT_MDLLOADER} )
