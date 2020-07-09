@@ -59,15 +59,14 @@ namespace le
 		Collider();
 		~Collider();
 
+		void							Update();
 		void							RegisterBody( Body* Body );
 		void							UnregisterBody( Body* Body );
-		void							UpdateTransformation();
 
 		inline btCollisionShape&		GetCollisionShape() const		{ return ( btCollisionShape& ) shape; }
 
-	private:
-		inline void						NeadUpdateTransformation();
-		void							UpdateBodies();
+	private:		
+		void							NeedUpdateScale();
 
 		//---------------------------------------------------------------------//
 
@@ -104,7 +103,7 @@ namespace le
 
 		//---------------------------------------------------------------------//
 
-		bool									isNeadUpdateTransformation;
+		bool									isNeedUpdateScale;
 		UInt32_t								countReferences;
 		Vector3D_t								scale;
 		std::vector< ShapeDescriptor >			shapesDescriptors;

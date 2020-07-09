@@ -177,7 +177,7 @@ void le::Collider::RemoveShape( le::UInt32_t Index )
 	case ST_PHYSICSMODEL:
 	{
 		PhysicsModel*			physicsModel = static_cast< PhysicsModel* >( shapeDescriptor.shape );
-		if ( physicsModel->GetCountReferences() <= 1 )
+		if ( physicsModel->GetCountReferences() <= 0 )
 			physicsModel->Release();
 		else
 			physicsModel->DecrementReference();
@@ -257,7 +257,7 @@ le::UInt32_t le::Collider::GetCountShapes() const
 // Constructor
 // ------------------------------------------------------------------------------------ //
 le::Collider::Collider() :
-	isNeadUpdateTransformation( false ),
+	isNeedUpdateScale( false ),
 	countReferences( 0 ),
 	scale( 1.f, 1.f, 1.f )
 {}
@@ -295,39 +295,17 @@ void le::Collider::UnregisterBody( le::Body* Body )
 }
 
 // ------------------------------------------------------------------------------------ //
-// Update transformation shapes
+// Update collider
 // ------------------------------------------------------------------------------------ //
-void le::Collider::UpdateTransformation()
+void le::Collider::Update()
 {
-	btTransform				transform;
-	Matrix4x4_t				matrixTransform = glm::scale( scale );
-	transform.setFromOpenGLMatrix( glm::value_ptr( matrixTransform ) );
+	if ( !isNeedUpdateScale ) return;	
+	shape.setLocalScaling( btVector3( scale.x, scale.y, scale.z ) );
 
-	for ( UInt32_t index = 0, count = shape.getNumChildShapes(); index < count; ++index )
-		shape.updateChildTransform( index, transform );
-
-	UpdateBodies();
-	isNeadUpdateTransformation = false;
-}
-
-// ------------------------------------------------------------------------------------ //
-// NeadUpdateTransformation
-// ------------------------------------------------------------------------------------ //
-inline void le::Collider::NeadUpdateTransformation()
-{
-	if ( isNeadUpdateTransformation ) return;
-
-	g_physicsSystem->UpdateCollider( this );
-	isNeadUpdateTransformation = true;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Update all bodies
-// ------------------------------------------------------------------------------------ //
-void le::Collider::UpdateBodies()
-{
 	for ( UInt32_t index = 0, count = bodies.size(); index < count; ++index )
 		bodies[ index ]->UpdateLocalInertia();
+
+	isNeedUpdateScale = false;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -380,12 +358,23 @@ le::Collider::ColliderMeshDescriptor::~ColliderMeshDescriptor()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Need update scale
+// ------------------------------------------------------------------------------------ //
+void le::Collider::NeedUpdateScale()
+{
+	if ( isNeedUpdateScale ) return;
+
+	g_physicsSystem->UpdateCollider( this );
+	isNeedUpdateScale = true;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Scale
 // ------------------------------------------------------------------------------------ //
 void le::Collider::Scale( const le::Vector3D_t& FactorScale )
 {
 	scale += FactorScale;
-	NeadUpdateTransformation();
+	NeedUpdateScale();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -394,7 +383,7 @@ void le::Collider::Scale( const le::Vector3D_t& FactorScale )
 void le::Collider::SetScale( const le::Vector3D_t& Scale )
 {
 	scale = Scale;
-	NeadUpdateTransformation();
+	NeedUpdateScale();
 }
 
 // ------------------------------------------------------------------------------------ //

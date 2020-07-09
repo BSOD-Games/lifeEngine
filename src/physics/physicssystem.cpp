@@ -70,9 +70,9 @@ void le::PhysicsSystem::Update()
 	{
 		for ( auto it = updateColliders.begin(), itEnd = updateColliders.end(); it != itEnd; ++it )
 		{
-			(*it)->UpdateTransformation();
+			( *it )->Update();
 
-			if ( (*it)->GetCountReferences() <= 1 )
+			if ( (*it)->GetCountReferences() <= 0 )
 				(*it)->Release();
 			else
 				(*it)->DecrementReference();
