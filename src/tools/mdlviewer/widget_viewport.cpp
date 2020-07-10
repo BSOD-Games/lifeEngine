@@ -15,6 +15,9 @@
 #include "engine/lifeengine.h"
 #include "studiorender/studiorenderviewport.h"
 
+#include "common/meshdescriptor.h"
+#include "common/meshsurface.h"
+
 #include "engineapi.h"
 #include "scene.h"
 #include "widget_viewport.h"
@@ -22,7 +25,9 @@
 #include "engine/ifactory.h"
 #include "engine/icamera.h"
 #include "studiorender/imesh.h"
-#include "scene.h"
+#include "studiorender/studiovertexelement.h"
+#include "engine/iconsolesystem.h"
+#include "errors.h"
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
@@ -33,6 +38,7 @@ Widget_Viewport::Widget_Viewport( QWidget* Parent ) :
 	studioRender( nullptr )
 {
 	setAttribute( Qt::WA_PaintOnScreen );
+
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -71,6 +77,7 @@ bool Widget_Viewport::Initialize()
 	timerUpdate.start( 0 );   
 	return isInitialize;
 }
+
 
 // ------------------------------------------------------------------------------------ //
 // Render frame

@@ -16,6 +16,10 @@
 
 #include "engine/icamera.h"
 #include "studiorender/istudiorenderinternal.h"
+#include "engine/iresourcesystem.h"
+#include "engine/imaterial.h"
+#include "mdldoc.h"
+
 
 //---------------------------------------------------------------------//
 
@@ -43,6 +47,7 @@ signals:
 
 private slots:
 	void					Render();
+
 
 private:
 	bool							isInitialize;

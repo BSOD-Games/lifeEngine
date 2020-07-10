@@ -15,6 +15,7 @@
 
 #include "scene.h"
 #include "gamedescriptor.h"
+#include "mesh.h"
 
 //---------------------------------------------------------------------//
 
@@ -36,10 +37,15 @@ public:
 
 private slots:
 	void			OnResizeViewport( quint32 Width, quint32 Height );
+	void			on_actionOpen_triggered();
 
 private:
 	Scene								scene;
 	Ui::Window_Viewer*					ui;
+	le::IModel*							model;
+	le::ICamera*						camera;
+	le::IDirectionalLight*				directionalLight;
+	Mesh								mesh;
 };
 
 //---------------------------------------------------------------------//

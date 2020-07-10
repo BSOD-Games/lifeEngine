@@ -323,7 +323,7 @@ le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceS
 // ------------------------------------------------------------------------------------ //
 // Загрузить меш
 // ------------------------------------------------------------------------------------ //
-le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, le::IFactory* StudioRenderFactory )
+le::IMesh* LE_LoadMesh ( const char* Path, le::IResourceSystem* ResourceSystem, le::IFactory* StudioRenderFactory )
 {
 	MDLDoc				mdlDoc;
 	if ( !mdlDoc.Load( Path ) )		return nullptr;

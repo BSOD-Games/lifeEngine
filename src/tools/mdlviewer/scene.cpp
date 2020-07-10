@@ -9,6 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "scene.h"
+#include <qdebug.h>
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
@@ -40,8 +41,11 @@ void Scene::Render()
 	studioRender->BeginScene( camera );
 	
 	// Render models
-	for ( auto it = models.begin(), itEnd = models.end(); it != itEnd; ++it )
-		studioRender->SubmitModel( *it );
+	for (auto it = models.begin(), itEnd = models.end(); it != itEnd; ++it)
+	{
+		qDebug() << "Model go!";
+		studioRender->SubmitModel(*it);
+	}
 
 	// Render lights
 	for ( auto it = lights.begin(), itEnd = lights.end(); it != itEnd; ++it )
