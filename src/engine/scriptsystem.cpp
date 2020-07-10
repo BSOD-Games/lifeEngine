@@ -421,9 +421,14 @@ bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 	// Physics model
 	REGISTER_FUNCTION( PhysicsModel_Create );
 	REGISTER_FUNCTION( PhysicsModel_Delete );
-	REGISTER_FUNCTION( PhysicsModel_ClearMesh );
-	REGISTER_FUNCTION( PhysicsModel_InitializeMesh );
-	REGISTER_FUNCTION( PhysicsModel_IsInitializedMesh );
+	REGISTER_FUNCTION( PhysicsModel_Clear );
+	REGISTER_FUNCTION( PhysicsModel_Initialize );
+	REGISTER_FUNCTION( PhysicsModel_SetMasa );
+	REGISTER_FUNCTION( PhysicsModel_SetInertia );	
+	REGISTER_FUNCTION( PhysicsModel_IsStatic );
+	REGISTER_FUNCTION( PhysicsModel_IsInitialized );
+	REGISTER_FUNCTION( PhysicsModel_GetMasa );
+	REGISTER_FUNCTION( PhysicsModel_GetInertia );
 
 	return true;
 }

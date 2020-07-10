@@ -3,6 +3,7 @@ project( lifeEngine )
 
 include( ${CMAKE_ROOT}/Modules/ExternalProject.cmake )
 find_package( Git REQUIRED )	
+set_property( GLOBAL PROPERTY USE_FOLDERS ON )
 
 #
 #   --- Название проектов ---
@@ -17,6 +18,7 @@ set( PROJECT_MATERIALS_EDITOR tools/lmteditor )
 set( PROJECT_MODEL_VIEWER tools/mdlviewer )
 set( PROJECT_LMTLOADER tools/lmtloader )
 set( PROJECT_MDLLOADER tools/mdlloader )
+set( PROJECT_PHYLOADER tools/phyloader )
 
 #
 #   --- Настройки сборки и пути к каталогам ---
@@ -117,3 +119,4 @@ endif()
 
 add_subdirectory( ${PROJECT_LMTLOADER} )
 add_subdirectory( ${PROJECT_MDLLOADER} )
+add_subdirectory( ${PROJECT_PHYLOADER} )

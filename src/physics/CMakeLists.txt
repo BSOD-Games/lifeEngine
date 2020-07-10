@@ -26,6 +26,8 @@ add_definitions( -DLIFEENGINE_EXPORT )
 #
 
 add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${ICON} )
+
+set_target_properties (${MODULE_NAME} PROPERTIES FOLDER Engine )
 set_target_properties( ${MODULE_NAME} PROPERTIES PREFIX "" )
 
 include_directories( ${CMAKE_BINARY_DIR}/${MODULE_NAME} )

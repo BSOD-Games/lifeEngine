@@ -55,6 +55,7 @@ add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${ICON} )
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
 install( DIRECTORY "shaders/shaders" DESTINATION ${BUILD_DIR}/engine )
 
+set_target_properties (${MODULE_NAME} PROPERTIES FOLDER Engine )
 set_target_properties( ${MODULE_NAME} PROPERTIES PREFIX "" )
 include_directories( ../public )
 include_directories( ../ )

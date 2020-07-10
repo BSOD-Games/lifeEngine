@@ -24,10 +24,13 @@ set( MODULE_NAME launcher )
 #
 
 add_executable( ${MODULE_NAME} WIN32 ${SOURCE_FILE} ${ICON} )
+set_target_properties (${MODULE_NAME} PROPERTIES FOLDER Engine )
+
 target_link_libraries( ${MODULE_NAME} ${CMAKE_DL_LIBS} )
-install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR} )
 include_directories( ../ )
 include_directories( ../public )
+
+install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR} )
 
 #
 #   --- Ищим и подключаем зависимости ---

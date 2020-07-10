@@ -17,6 +17,7 @@
 #include <fstream>
 
 #include "common/types.h"
+#include "phytypes.h"
 
 //---------------------------------------------------------------------//
 
@@ -41,43 +42,26 @@ private:
 
 	//---------------------------------------------------------------------//
 
-	enum PHY_LUMPS
+	struct AIMesh
 	{
-		PL_VERTECES,
-		PL_INDECES,
-		PL_MAX_LUMPS
-	};
+		AIMesh()
+		{}
 
-	struct PHYHeader
-	{
-		char				strId[ 4 ]; // Always 'LPHY'
-		le::UInt32_t		version;
-	};
+		AIMesh( const aiMatrix4x4& Transformation, aiMesh* Mesh ) :
+			transformation( Transformation ),
+			mesh( Mesh )
+		{}
 
-	struct PHYLump
-	{
-		le::UInt32_t		offset;
-		le::UInt32_t		length;
-	};
-
-	struct PHYVertex
-	{
-		PHYVertex();
-
-		float		position[ 3 ];
-
-		bool operator==( const PHYVertex& Right );
+		aiMatrix4x4			transformation;
+		aiMesh*				mesh;
 	};
 
 	//---------------------------------------------------------------------//
 
-	void			ProcessNode( aiNode* Node, const aiScene* Scene, std::unordered_map<le::UInt32_t, std::vector< aiMesh* > >& Meshes );
-	void			UpdateLumps( std::ofstream& File, PHYLump* Lumps, le::UInt32_t OffsetToLumps );
-	void			WriteVerteces( std::ofstream& File, PHYLump& Lump );
-	void			WriteIndeces( std::ofstream& File, PHYLump& Lump );
+	void			ProcessNode( aiNode* Node, const aiScene* Scene, std::unordered_map<le::UInt32_t, std::vector<AIMesh>>& Meshes );
 
 	bool							isLoaded;
-	std::vector< PHYVertex >		verteces;
+	std::vector< PHYVector3D >		verteces;
 	std::vector< le::UInt32_t >		indices;
 };
 

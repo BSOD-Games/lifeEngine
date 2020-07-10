@@ -18,9 +18,12 @@
 // Constructor
 // ------------------------------------------------------------------------------------ //
 le::PhysicsModel::PhysicsModel() :
+	isStatic( false ),
+	masa( 0.f ),
+	inertia( 0.f, 0.f, 0.f ),
 	countReferences( 0 ),
-	triangleMesh( nullptr ),
-	convexTriangleMesh( nullptr )
+	mesh( nullptr ),
+	shape( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -28,7 +31,7 @@ le::PhysicsModel::PhysicsModel() :
 // ------------------------------------------------------------------------------------ //
 le::PhysicsModel::~PhysicsModel()
 {
-	ClearMesh();
+	Clear();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -64,60 +67,123 @@ le::UInt32_t le::PhysicsModel::GetCountReferences() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Initialize mesh
+// Initialize
 // ------------------------------------------------------------------------------------ //
-void le::PhysicsModel::InitializeMesh( le::Vector3D_t* Verteces, le::UInt32_t CountVerteces, le::UInt32_t* Indeces, le::UInt32_t CountIndeces )
+void le::PhysicsModel::Initialize( le::Vector3D_t* Verteces, le::UInt32_t CountVerteces, le::UInt32_t* Indeces, le::UInt32_t CountIndeces, bool IsStatic )
 {
-	LIFEENGINE_ASSERT( Verteces && CountVerteces > 0 );
-
-	if ( triangleMesh || convexTriangleMesh )
-		ClearMesh();
-
-	triangleMesh = new btTriangleMesh();
+	if ( !Verteces || CountVerteces <= 0 )		return;
+	if ( mesh || shape )						Clear();
 
 	// If mesh with indeces
-	if ( Indeces && CountIndeces > 0)
-		for ( UInt32_t index = 0, offset = 0, count = CountIndeces / 3; index < count; ++index, offset += 3 )
-		{
-			Vector3D_t&		vertex1 = Verteces[ Indeces[ offset ] ];
-			Vector3D_t&		vertex2 = Verteces[ Indeces[ offset + 1 ] ];
-			Vector3D_t&		vertex3 = Verteces[ Indeces[ offset + 2 ] ];
-
-			triangleMesh->addTriangle( btVector3( vertex1.x, vertex1.y, vertex1.z ),
-									   btVector3( vertex2.x, vertex2.y, vertex2.z),
-									   btVector3( vertex3.x, vertex3.y, vertex3.z ) );
-		}
+	if ( Indeces && CountIndeces > 0 )
+	{
+		// Copy verteces and indeces
+		verteces.resize( CountVerteces );
+		indeces.resize( CountIndeces );
+		memcpy( verteces.data(), Verteces, CountVerteces * sizeof( Vector3D_t ) );
+		memcpy( indeces.data(), Indeces, CountIndeces * sizeof( UInt32_t ) );
+	}
 	else
-		for ( UInt32_t index = 0, offset = 0, count = CountVerteces / 3; index < count; ++index, offset += 3 )
+	{
+		// Generate indeced mesh
+		for ( UInt32_t index = 0; index < CountVerteces; ++index )
 		{
-			Vector3D_t&		vertex1 = Verteces[ offset ];
-			Vector3D_t&		vertex2 = Verteces[ offset + 1 ];
-			Vector3D_t&		vertex3 = Verteces[ offset + 2 ];
-
-			triangleMesh->addTriangle( btVector3( vertex1.x, vertex1.y, vertex1.z ),
-									   btVector3( vertex2.x, vertex2.y, vertex2.z),
-									   btVector3( vertex3.x, vertex3.y, vertex3.z ) );
+			auto		it = find( verteces.begin(), verteces.end(), Verteces[ index ] );
+			
+			// Look for the vertex index in the shared vertex buffer,
+			// if not found, add the vertex to the buffer,
+			// and then write its index
+			if ( it == verteces.end() )
+			{
+				indeces.push_back( verteces.size() );
+				verteces.push_back( Verteces[ index ] );
+			}
+			else
+				indeces.push_back( it - verteces.begin() );
 		}
+	}
 
-	convexTriangleMesh = new btConvexTriangleMeshShape( triangleMesh );
+	// Make collision shape
+	mesh = new btTriangleIndexVertexArray();
+	btIndexedMesh		indexedMesh;
+	indexedMesh.m_numTriangles = indeces.size() / 3;
+	indexedMesh.m_numVertices = verteces.size();
+	indexedMesh.m_vertexBase = ( unsigned char* ) verteces.data();
+	indexedMesh.m_vertexStride = sizeof( Vector3D_t );
+	indexedMesh.m_vertexType = PHY_FLOAT;
+	indexedMesh.m_triangleIndexBase = ( unsigned char* ) indeces.data();
+	indexedMesh.m_triangleIndexStride = 3 * sizeof( UInt32_t );
+
+	mesh->addIndexedMesh( indexedMesh );
+
+	if ( IsStatic )		shape = new btBvhTriangleMeshShape( mesh, true );
+	else				shape = new btConvexTriangleMeshShape( mesh, true );
+	
+	isStatic = IsStatic;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Clear mesh
+// Clear
 // ------------------------------------------------------------------------------------ //
-void le::PhysicsModel::ClearMesh()
+void le::PhysicsModel::Clear()
 {
-	if ( triangleMesh )			delete triangleMesh;
-	if ( convexTriangleMesh ) delete convexTriangleMesh;
+	if ( mesh )		delete mesh;
+	if ( shape )	delete shape;
 
-	triangleMesh = nullptr;
-	convexTriangleMesh = nullptr;
+	isStatic = false;
+	masa = 0.f;
+	inertia = le::Vector3D_t( 0.f, 0.f, 0.f );
+	mesh = nullptr;
+	shape = nullptr;
+
+	verteces.clear();
+	indeces.clear();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Is initialized mesh
+// Set mass
 // ------------------------------------------------------------------------------------ //
-bool le::PhysicsModel::IsInitializedMesh() const
+void le::PhysicsModel::SetMasa( float Masa )
 {
-	return triangleMesh && convexTriangleMesh;
+	masa = Masa;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set inertia
+// ------------------------------------------------------------------------------------ //
+void le::PhysicsModel::SetInertia( const le::Vector3D_t& Inertia )
+{
+	inertia = Inertia;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Is static
+// ------------------------------------------------------------------------------------ //
+bool le::PhysicsModel::IsStatic() const
+{
+	return isStatic;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Is initialized
+// ------------------------------------------------------------------------------------ //
+bool le::PhysicsModel::IsInitialized() const
+{
+	return mesh && shape;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get masa
+// ------------------------------------------------------------------------------------ //
+float le::PhysicsModel::GetMasa() const
+{
+	return masa;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get inertia
+// ------------------------------------------------------------------------------------ //
+le::Vector3D_t le::PhysicsModel::GetInertia() const
+{
+	return inertia;
 }

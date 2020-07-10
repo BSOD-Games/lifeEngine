@@ -34,6 +34,7 @@
 #include "studiorender/igpuprogram.h"
 
 #include "global.h"
+#include "phydoc.h"
 #include "mdldoc.h"
 #include "lmtdoc.h"
 #include "consolesystem.h"
@@ -44,28 +45,6 @@
 #include "shaderparameter.h"
 #include "materialproxyfactory.h"
 #include "materialsystem.h"
-
-#define PHY_ID			"LPHY"
-#define PHY_VERSION		1
-
-enum PHY_LUMPS
-{
-	PL_VERTECES,
-	PL_INDECES,
-	PL_MAX_LUMPS
-};
-
-struct PHYHeader
-{
-	char				strId[ 4 ]; // Always 'LPHY'
-	le::UInt32_t		version;
-};
-
-struct PHYLump
-{
-	le::UInt32_t		offset;
-	le::UInt32_t		length;
-};
 
 // ------------------------------------------------------------------------------------ //
 // Загрузить изображение
@@ -471,46 +450,21 @@ le::IScript* LE_LoadScript( const char* Path, le::UInt32_t CountFunctions, le::S
 // ------------------------------------------------------------------------------------ //
 le::IPhysicsModel* LE_LoadPhysicsModel( const char* Path, le::IFactory* PhysicsSystemFactory )
 {
-	std::ifstream				file( Path, std::ios::binary );
-	if ( !file.is_open() )		return nullptr;
+	PHYDoc			phyDoc;
+	if ( !phyDoc.Load( Path ) )		return nullptr;
 
-	// Read header file
-	PHYHeader			phyHeader;
-	file.read( ( char* ) &phyHeader, sizeof( PHYHeader ) );
-	if ( strncmp( phyHeader.strId, PHY_ID, 4 ) != 0 || phyHeader.version != PHY_VERSION )
-		return nullptr;
-
-	// Read all lumps
-	PHYLump				phyLumps[ PL_MAX_LUMPS ];
-	file.read( ( char* ) &phyLumps[ 0 ], sizeof( PHYLump ) * PL_MAX_LUMPS );
-
-	// Read verteces
-	std::vector< le::Vector3D_t >		verteces;
-	le::UInt32_t						countVerteces;
-
-	file.seekg( phyLumps[ PL_VERTECES ].offset, std::ios::beg );
-	file.read( ( char* ) &countVerteces, sizeof( le::UInt32_t ) );
-
-	verteces.resize( countVerteces );
-	file.read( ( char* ) verteces.data(), countVerteces * sizeof( le::Vector3D_t ) );
-
-	// Read indeces
-	std::vector< le::UInt32_t >		indeces;
-	le::UInt32_t					countIndeces;
-
-	file.seekg( phyLumps[ PL_INDECES ].offset, std::ios::beg );
-	file.read( ( char* ) &countIndeces, sizeof( le::UInt32_t ) );
-
-	indeces.resize( countIndeces );
-	file.read( ( char* ) indeces.data(), countIndeces * sizeof( le::UInt32_t ) );
-
-	if ( verteces.empty() ) return nullptr;
+	auto&					verteces = phyDoc.GetVerteces();
+	auto&					vertexIndeces = phyDoc.GetVertexIndeces();
+	const PHYVector3D&		inertia = phyDoc.GetInertia();
 
 	// Creating physics models
 	le::IPhysicsModel*		physicsModel = ( le::IPhysicsModel* ) PhysicsSystemFactory->Create( PHYSICSMODEL_INTERFACE_VERSION );
 	if ( !physicsModel )	return nullptr;
 
-	physicsModel->InitializeMesh( verteces.data(), verteces.size(), indeces.data(), indeces.size() );
+	physicsModel->Initialize( ( le::Vector3D_t* ) verteces.data(), verteces.size(), ( le::UInt32_t* ) vertexIndeces.data(), vertexIndeces.size(), phyDoc.IsStatic() );
+	physicsModel->SetMasa( phyDoc.GetMasa() );
+	physicsModel->SetInertia( le::Vector3D_t( inertia.x, inertia.y, inertia.z ) );
+
 	return physicsModel;
 }
 
@@ -1301,6 +1255,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 		RegisterLoader_Image( "png", LE_LoadImage );
 		RegisterLoader_Image( "jpg", LE_LoadImage );
 		RegisterLoader_Image( "tga", LE_LoadImage );
+		RegisterLoader_Image( "ico", LE_LoadImage );
 		RegisterLoader_Texture( "png", LE_LoadTexture );
 		RegisterLoader_Texture( "jpg", LE_LoadTexture );
 		RegisterLoader_Texture( "tga", LE_LoadTexture );

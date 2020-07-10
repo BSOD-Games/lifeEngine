@@ -24,10 +24,16 @@ namespace le
 	{
 	public:
 		virtual ~IPhysicsModel() {}
-		virtual void			InitializeMesh( Vector3D_t* Verteces, UInt32_t CountVerteces, UInt32_t* Indeces, UInt32_t CountIndeces ) = 0;
-		virtual void			ClearMesh() = 0;
+		virtual void			Initialize( Vector3D_t* Verteces, UInt32_t CountVerteces, UInt32_t* Indeces, UInt32_t CountIndeces, bool IsStatic = false ) = 0;
+		virtual void			Clear() = 0;
 
-		virtual bool			IsInitializedMesh() const = 0;
+		virtual void			SetMasa( float Masa ) = 0;
+		virtual void			SetInertia( const le::Vector3D_t& Inertia ) = 0;
+
+		virtual bool			IsStatic() const = 0;
+		virtual bool			IsInitialized() const = 0;
+		virtual float			GetMasa() const = 0;
+		virtual le::Vector3D_t	GetInertia() const = 0;
 	};
 
 	//---------------------------------------------------------------------//
@@ -35,7 +41,7 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#define PHYSICSMODEL_INTERFACE_VERSION			"LE_PhysicsModel001"
+#define PHYSICSMODEL_INTERFACE_VERSION			"LE_PhysicsModel002"
 
 //---------------------------------------------------------------------//
 

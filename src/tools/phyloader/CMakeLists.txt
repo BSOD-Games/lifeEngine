@@ -5,8 +5,7 @@
 #
 
 file( GLOB_RECURSE SOURCE_FILES "*.h" "*.cpp" )
-
-set( MODULE_NAME mdlloader )
+set( MODULE_NAME phyloader )
 
 #
 #   --- Настройки проекта ---

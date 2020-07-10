@@ -15,6 +15,7 @@ set( RAPIDJSON_PATH ${EXTLIBS_DIR} CACHE PATH "Path to RapidJSON" )
 
 #source_group("Source Files\\module" FILES ${SOURCE_FILES})
 add_library( ${MODULE_NAME} STATIC ${SOURCE_FILES} )
+set_target_properties (${MODULE_NAME} PROPERTIES FOLDER Libraries )
 
 #---------------
 #   RapidJSON

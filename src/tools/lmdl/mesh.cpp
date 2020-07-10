@@ -54,7 +54,7 @@ void Mesh::Load( const std::string& Path )
 	if ( !scene )			throw std::runtime_error( import.GetErrorString() );
 	if ( isLoaded )			Clear();
 
-	std::unordered_map<le::UInt32_t, std::vector<aiMesh*>>			meshes;
+	std::unordered_map<le::UInt32_t, std::vector<AIMesh>>			meshes;
 	ProcessNode( scene->mRootNode, scene, meshes );
 	if ( meshes.empty() )	throw std::runtime_error( "In file not found meshes" );
 
@@ -70,7 +70,7 @@ void Mesh::Load( const std::string& Path )
 
 		for ( auto itMesh = itRoot->second.begin(), itMeshEnd = itRoot->second.end(); itMesh != itMeshEnd; ++itMesh )
 		{
-			aiMesh*			mesh = *itMesh;
+			aiMesh*			mesh = ( *itMesh ).mesh;
 
 			// Prepare the vertex buffer.
 			// If the vertices of the mesh do not fit into the buffer, then
@@ -80,20 +80,20 @@ void Mesh::Load( const std::string& Path )
 
 			// Read all verteces
 			for ( le::UInt32_t index = 0; index < mesh->mNumVertices; ++index )
-			{
-				aiVector3D		tempVector = mesh->mVertices[ index ];
+			{				
+				aiVector3D		tempVector = ( *itMesh ).transformation * mesh->mVertices[ index ];
 				vertex.position.x = tempVector.x;
 				vertex.position.y = tempVector.y;
 				vertex.position.z = tempVector.z;
 
-				tempVector = mesh->mNormals[ index ];
+				tempVector =  ( aiMatrix3x3 ) ( *itMesh ).transformation * mesh->mNormals[ index ];
 				vertex.normal.x = tempVector.x;
 				vertex.normal.y = tempVector.y;
 				vertex.normal.z = tempVector.z;
 
 				if ( mesh->mTangents )
 				{
-					tempVector = mesh->mTangents[ index ];
+					tempVector = ( aiMatrix3x3 ) ( *itMesh ).transformation * mesh->mTangents[ index ];
 					vertex.tangent.x = tempVector.x;
 					vertex.tangent.y = tempVector.y;
 					vertex.tangent.z = tempVector.z;
@@ -101,7 +101,7 @@ void Mesh::Load( const std::string& Path )
 
 				if ( mesh->mBitangents )
 				{
-					tempVector = mesh->mBitangents[ index ];
+					tempVector = ( aiMatrix3x3 ) ( *itMesh ).transformation * mesh->mBitangents[ index ];
 					vertex.bitangent.x = tempVector.x;
 					vertex.bitangent.y = tempVector.y;
 					vertex.bitangent.z = tempVector.z;
@@ -206,10 +206,13 @@ void Mesh::Clear()
 // ----------------------------------------------------------------------------------- //
 // Process node scene in assimp
 // ------------------------------------------------------------------------------------ //
-void Mesh::ProcessNode( aiNode* Node, const aiScene* Scene, std::unordered_map<le::UInt32_t, std::vector< aiMesh* > >& Meshes )
+void Mesh::ProcessNode( aiNode* Node, const aiScene* Scene, std::unordered_map<le::UInt32_t, std::vector<AIMesh>>& Meshes )
 {
 	for ( le::UInt32_t index = 0; index < Node->mNumMeshes; ++index )
-		Meshes[ Scene->mMeshes[ Node->mMeshes[ index ] ]->mMaterialIndex ].push_back( Scene->mMeshes[ Node->mMeshes[ index ] ] );
+	{
+		aiMesh*			mesh = Scene->mMeshes[ Node->mMeshes[ index ] ];
+		Meshes[ mesh->mMaterialIndex ].push_back( AIMesh( Node->mTransformation, mesh ) );
+	}
 
 	for ( le::UInt32_t index = 0; index < Node->mNumChildren; ++index )
 		ProcessNode( Node->mChildren[ index ], Scene, Meshes );

@@ -400,7 +400,7 @@ const le::Vector3D_t& le::Collider::GetScale() const
 void le::Collider::AddShape( le::IPhysicsModel* PhysicsModel, const le::Matrix4x4_t& LocalTransormation )
 {
 	LIFEENGINE_ASSERT( PhysicsModel );
-	if ( !PhysicsModel->IsInitializedMesh() ) return;
+	if ( !PhysicsModel->IsInitialized() ) return;
 
 	le::PhysicsModel*		physicsModel = static_cast< le::PhysicsModel* >( PhysicsModel );
 	ShapeDescriptor			shapeDescriptor;
@@ -410,6 +410,6 @@ void le::Collider::AddShape( le::IPhysicsModel* PhysicsModel, const le::Matrix4x
 	btTransform		transform;
 	transform.setIdentity();
 	transform.setFromOpenGLMatrix( glm::value_ptr( LocalTransormation ) );
-	shape.addChildShape( transform, ( btCollisionShape* ) physicsModel->GetMesh() );
+	shape.addChildShape( transform, physicsModel->GetShape() );
 	physicsModel->IncrementReference();
 }
