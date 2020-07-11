@@ -23,6 +23,7 @@ set( TCC_PATH ${EXTLIBS_DIR}/tcc CACHE PATH "Path to Tiny C Compiler" )
 set( ENGINE_DLL "engine" )
 set( STUDIORENDER_DLL "studiorender" )
 set( PHYSICSSYSTEM_DLL "physics" )
+set( AUDIOSYSTEM_DLL "audio" )
 set( PATHS_H paths.h )
 
 #   Название модулей для Windows
@@ -30,6 +31,7 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
     set( ENGINE_DLL ${ENGINE_DLL}.dll )
     set( PHYSICSSYSTEM_DLL ${PHYSICSSYSTEM_DLL}.dll )
     set( STUDIORENDER_DLL ${STUDIORENDER_DLL}.dll )
+	set( AUDIOSYSTEM_DLL ${AUDIOSYSTEM_DLL}.dll )
     set( ICON resource.rc )
 
  #   Название модулей для Linux
@@ -37,6 +39,7 @@ elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
     set( ENGINE_DLL ${ENGINE_DLL}.so )
     set( PHYSICSSYSTEM_DLL ${PHYSICSSYSTEM_DLL}.so )
     set( STUDIORENDER_DLL ${STUDIORENDER_DLL}.so )
+	set( AUDIOSYSTEM_DLL ${AUDIOSYSTEM_DLL}.so )
 
 else()
     message( SEND_ERROR "Unknow platform" )

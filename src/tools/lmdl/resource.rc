@@ -15,7 +15,7 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", "BSOD"
+            VALUE "CompanyName", "BSOD - Game Edition"
             VALUE "FileDescription", "Converter models to MDL and PHY"
             VALUE "InternalName", "lmdl.exe"
             VALUE "LegalCopyright", "Copyright (C) 2016-2020"

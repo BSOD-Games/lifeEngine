@@ -16,10 +16,10 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "BSOD - Game Edition"
-            VALUE "FileDescription", "Render module lifeEngine"
-            VALUE "InternalName", "studiorender.dll"
+            VALUE "FileDescription", "Audio module lifeEngine"
+            VALUE "InternalName", "audio.dll"
             VALUE "LegalCopyright", "Copyright (C) 2016-2020"
-            VALUE "OriginalFilename", "studiorender.dll"
+            VALUE "OriginalFilename", "audio.dll"
             VALUE "ProductName", "lifeEngine"
             VALUE "ProductVersion", LIFEENGINE_VERSION
         END

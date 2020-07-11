@@ -31,6 +31,7 @@
 #include "studiorender/istudiorenderinternal.h"
 #include "studiorender/studiorenderviewport.h"
 #include "physics/iphysicssysteminternal.h"
+#include "audio/iaudiosysteminternal.h"
 
 #define	FIXED_TIME_UPDATE		( 1 / 60.f )
 
@@ -99,6 +100,8 @@ le::Engine::Engine() :
 	studioRenderDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
 	physicSystem( nullptr ),
 	physicSystemDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
+	audioSystem( nullptr ),
+	audioSystemDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
 	game( nullptr ),
 	gameDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
 	criticalError( nullptr ),
@@ -134,8 +137,9 @@ le::Engine::~Engine()
 	resourceSystem.UnloadAll();
 
 	if ( physicSystem )     UnloadModule_PhysicsSystem();
-
 	if ( studioRender )		UnloadModule_StudioRender();
+	if ( audioSystem )		UnloadModule_AudioSystem();
+
 	if ( window.IsOpen() )	window.Close();
 
 	if ( cmd_Exit )			consoleSystem.UnregisterCommand( cmd_Exit->GetName() );
@@ -223,7 +227,7 @@ bool le::Engine::LoadModule_PhysicsSystem( const char *PathDLL )
 		// Р‘РµСЂРµРј РёР· РјРѕРґСѓР»СЏ API РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РЅРёРј
 		physicSystemDescriptor.LE_CreatePhysicsSystem = ( LE_CreatePhysicsSystemFn_t ) SDL_LoadFunction( physicSystemDescriptor.handle, "LE_CreatePhysicsSystem" );
 		physicSystemDescriptor.LE_DeletePhysicsSystem = ( LE_DeletePhysicsSystemFn_t ) SDL_LoadFunction( physicSystemDescriptor.handle, "LE_DeletePhysicsSystem" );
-		physicSystemDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( studioRenderDescriptor.handle, "LE_SetCriticalError" );
+		physicSystemDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( physicSystemDescriptor.handle, "LE_SetCriticalError" );
 		if ( !physicSystemDescriptor.LE_CreatePhysicsSystem )	throw std::runtime_error( "Function LE_CreatePhysicsSystem not found" );
 
 		// РЎРѕР·РґР°РµРј СЂРµРЅРґРµСЂ
@@ -260,6 +264,61 @@ void le::Engine::UnloadModule_PhysicsSystem()
 	physicSystemDescriptor = { nullptr, nullptr, nullptr, nullptr };
 
 	consoleSystem.PrintInfo( "Unloaded physics system" );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Load module audio system
+// ------------------------------------------------------------------------------------ //
+bool le::Engine::LoadModule_AudioSystem( const char* PathDLL )
+{
+	// Р•СЃР»Рё РјРѕРґСѓР»СЊ СЂР°РЅРµРµ Р±С‹Р» Р·Р°РіСЂСѓР¶РµРЅ, С‚Рѕ СѓРґР°Р»СЏРµРј
+	if ( audioSystemDescriptor.handle ) UnloadModule_AudioSystem();
+
+	consoleSystem.PrintInfo( "Loading audio system [%s]", PathDLL );
+
+	try
+	{
+		// Р—Р°РіСЂСѓР¶Р°РµРј РјРѕРґСѓР»СЊ
+		audioSystemDescriptor.handle = SDL_LoadObject( PathDLL );
+		if ( !audioSystemDescriptor.handle )	throw std::runtime_error( SDL_GetError() );
+
+		// Р‘РµСЂРµРј РёР· РјРѕРґСѓР»СЏ API РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РЅРёРј
+		audioSystemDescriptor.LE_CreateAudioSystem = ( LE_CreateAudioSystemFn_t ) SDL_LoadFunction( audioSystemDescriptor.handle, "LE_CreateAudioSystem" );
+		audioSystemDescriptor.LE_DeleteAudioSystem = ( LE_DeleteAudioSystemFn_t ) SDL_LoadFunction( audioSystemDescriptor.handle, "LE_DeleteAudioSystem" );
+		audioSystemDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( audioSystemDescriptor.handle, "LE_SetCriticalError" );
+		if ( !audioSystemDescriptor.LE_CreateAudioSystem )	throw std::runtime_error( "Function LE_CreateAudioSystem not found" );
+
+		// РЎРѕР·РґР°РµРј СЂРµРЅРґРµСЂ
+		if ( audioSystemDescriptor.LE_SetCriticalError )
+			audioSystemDescriptor.LE_SetCriticalError( g_criticalError );
+
+		audioSystem = ( IAudioSystemInternal* ) audioSystemDescriptor.LE_CreateAudioSystem();
+	}
+	catch ( std::exception& Exception )
+	{
+		consoleSystem.PrintError( Exception.what() );
+		return false;
+	}
+
+	consoleSystem.PrintInfo( "Loaded audio system [%s]", PathDLL );
+	return true;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Unload module audio system
+// ------------------------------------------------------------------------------------ //
+void le::Engine::UnloadModule_AudioSystem()
+{
+	if ( !audioSystem ) return;
+
+	if ( audioSystemDescriptor.LE_DeleteAudioSystem )
+		audioSystemDescriptor.LE_DeleteAudioSystem( audioSystem );
+
+	SDL_UnloadObject( audioSystemDescriptor.handle );
+	audioSystem = nullptr;
+	audioSystemDescriptor = { nullptr, nullptr, nullptr, nullptr };
+
+	consoleSystem.PrintInfo( "Unloaded audio system" );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -675,9 +734,10 @@ bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile )
 		resourceSystem.AddPath( EngineDirectory );
 
 		// Р—Р°РіСЂСѓР¶Р°РµРј Рё РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РїРѕРґСЃРёСЃС‚РµРјС‹
-		if ( !LoadModule_StudioRender( ( engineDirectory + "/" + LIFEENGINE_STUDIORENDER_DLL ).c_str() ) )        throw std::runtime_error( "Failed loading studiorender" );
-		if ( !LoadModule_PhysicsSystem( ( engineDirectory + "/" + LIFEENGINE_PHYSICSSYSTEM_DLL ).c_str() ) )      throw std::runtime_error( "Failed loading physics system" );
-		
+		if ( !LoadModule_StudioRender( ( engineDirectory + "/" + LIFEENGINE_STUDIORENDER_DLL ).c_str() ) )			throw std::runtime_error( "Failed loading studiorender" );
+		if ( !LoadModule_PhysicsSystem( ( engineDirectory + "/" + LIFEENGINE_PHYSICSSYSTEM_DLL ).c_str() ) )		throw std::runtime_error( "Failed loading physics system" );
+		if ( !LoadModule_AudioSystem( ( engineDirectory + "/" + LIFEENGINE_AUDIOSYSTEM_DLL ).c_str() ) )			throw std::runtime_error( "Failed loading audio system" );
+
 		// Initialize studiorender
 		if ( !studioRender )							throw std::runtime_error( "Studiorender not loaded" );
 		else if ( !studioRender->Initialize( this ) )	throw std::runtime_error( "Fail initialize studiorender" );
@@ -686,6 +746,10 @@ bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile )
 		if ( !physicSystem )							throw std::runtime_error( "Physics system not loaded" );
 		else if ( !physicSystem->Initialize( this ) )	throw std::runtime_error( "Fail initialize physics system" );
 		
+		// Initialize audio
+		if ( !audioSystem )								throw std::runtime_error( "Audio system not loaded" );
+		else if ( !audioSystem->Initialize( this ) )	throw std::runtime_error( "Fail initialize audio system" );
+
 		// Initialize fonts
 		if ( !FontFreeType::InitializeFreeType() )		throw std::runtime_error( "Fail initialize freetype library" );
 

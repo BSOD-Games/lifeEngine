@@ -762,7 +762,7 @@ void le::StudioRender::SubmitModel( IModel* Model, UInt32_t StartSurface, UInt32
 	if ( !Model )			return;
 
 	Mesh*			mesh = ( Mesh* ) Model->GetMesh();
-	if ( !mesh->IsCreated() )		return;
+	if ( !mesh || !mesh->IsCreated() )		return;
 
 	MeshSurface*							surfaces = mesh->GetSurfaces();
 	StaticModelRenderer::RenderObject		renderObject;

@@ -32,6 +32,7 @@ namespace le
 
 	class IStudioRenderInternal;
     class IPhysicsSystemInternal;
+	class IAudioSystemInternal;
 	class IConCmd;
 	class IConVar;
 
@@ -56,6 +57,16 @@ namespace le
     };
 
     //---------------------------------------------------------------------//
+
+	struct AudioSystemDescriptor
+	{
+		void*								handle;
+		LE_CreateAudioSystemFn_t			LE_CreateAudioSystem;
+		LE_DeleteAudioSystemFn_t			LE_DeleteAudioSystem;
+		LE_SetCriticalErrorFn_t				LE_SetCriticalError;
+	};
+
+	//---------------------------------------------------------------------//
 
 	struct GameDescriptor
 	{
@@ -111,6 +122,8 @@ namespace le
 		void							UnloadModule_StudioRender();
         bool							LoadModule_PhysicsSystem( const char* PathDLL );
         void							UnloadModule_PhysicsSystem();
+		bool							LoadModule_AudioSystem( const char* PathDLL );
+		void							UnloadModule_AudioSystem();
 		bool							LoadGameInfo( const char* GameDir );
 		bool							LoadModule_Game( const char* PathDLL, UInt32_t CountArguments, const char** Arguments  );
 		void							UnloadModule_Game();
@@ -133,6 +146,9 @@ namespace le
 
         IPhysicsSystemInternal*         physicSystem;
         PhysicsSystemDescriptor         physicSystemDescriptor;
+
+		IAudioSystemInternal*			audioSystem;
+		AudioSystemDescriptor			audioSystemDescriptor;
 
 		IGame*							game;
 		GameDescriptor					gameDescriptor;

@@ -3,7 +3,7 @@
 //			*** lifeEngine (Двигатель жизни) ***
 //				Copyright (C) 2018-2020
 //
-// Репозиторий движка:  https://github.com/BSOD-Games/lifeEngine
+// Репозиторий движка:  https://github.com/BSOD-GameEdition/lifeEngine
 // Авторы:				Егор Погуляка (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
