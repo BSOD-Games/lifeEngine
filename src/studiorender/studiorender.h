@@ -74,6 +74,11 @@ namespace le
 		StudioRender();
 		~StudioRender();
 
+		inline const RenderContext&								GetRenderContext() const
+		{
+			return renderContext;
+		}
+
 	private:
 		void								Render_GeometryPass();
 		void								Render_LightPass();

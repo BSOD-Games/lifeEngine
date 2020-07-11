@@ -110,6 +110,8 @@ bool le::StudioRender::Initialize( IEngine* Engine )
 	r_wireframe->Initialize( "r_wireframe", "0", CVT_BOOL, "Enable wireframe mode", true, 0, true, 1,
 							 []( le::IConVar* Var )
 							 {
+								 if ( !g_studioRender->GetRenderContext().IsCreated() ) return;
+
 								 if ( Var->GetValueBool() )
 									 glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 								 else
