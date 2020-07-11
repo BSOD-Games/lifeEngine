@@ -8,6 +8,7 @@
 #include "engine/imodel.h"
 #include "studiorender/istudiorender.h"
 #include "mdldoc.h"
+#include "ui_window_viewer.h"
 
 #include <qfiledialog.h>
 #include <qdebug.h>
@@ -35,6 +36,7 @@ bool Mesh::Load(const QString& Path)
 		materials.push_back(material);
 		paths.push_back(materialPaths[index].c_str());
 	}
+
 
 	// Convert MDLSurface to le::MeshSurface
 	std::vector< le::MeshSurface >			meshSurfaces;
@@ -64,7 +66,7 @@ bool Mesh::Load(const QString& Path)
 		{ 3, le::VET_FLOAT },
 		{ 3, le::VET_FLOAT }
 	};
-
+	
 	// Creating mesh descriptor and loading to gpu
 	le::MeshDescriptor				meshDescriptor;
 	meshDescriptor.countIndeces = vertexIndeces.size();
@@ -98,12 +100,31 @@ bool Mesh::Load(const QString& Path)
 	return true;
 }
 
+bool Mesh::LoadMaterial( const QString& Path, le::UInt32_t Index )
+{
+	le::IMaterial* material = EngineAPI::GetInstance()->GetResourceSystem()->LoadMaterial( Path.toStdString().c_str(), Path.toStdString().c_str() );
+
+	if (!material)	return false;
+
+	mesh->Update(&material, 1, Index);
+	paths[Index] = Path;
+	qDebug() << paths[Index];
+	return true;
+}
+
 le::IMesh* Mesh::GetMesh()
 {
 	if ( !mesh ) return nullptr;
 
 	qDebug() << "Mesh isn`t nullptr";
 	return mesh;
+}
+
+std::vector<QString> Mesh::GetPaths()
+{
+	if (paths.empty()) return std::vector<QString>();
+
+	return paths;
 }
 
 Mesh::Mesh()

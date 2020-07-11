@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "studiorender/imesh.h"
+#include "ui_window_viewer.h"
 
 class Mesh
 {
@@ -23,7 +24,10 @@ public:
 	~Mesh();
 
 	bool						Load( const QString& Path );
+	bool						LoadMaterial(	const QString& Path, le::UInt32_t Index	);
+
 	le::IMesh*					GetMesh();
+	std::vector<QString>		GetPaths();
 
 private:
 	le::IMesh*					mesh;
