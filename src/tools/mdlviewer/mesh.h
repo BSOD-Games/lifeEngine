@@ -25,12 +25,16 @@ public:
 
 	bool						Load( const QString& Path );
 	bool						LoadMaterial(	const QString& Path, le::UInt32_t Index	);
+	bool						Save();
+	bool						SaveAs( const QString& Path );
+	void						Clear();
 
 	le::IMesh*					GetMesh();
-	std::vector<QString>		GetPaths();
+	std::vector<std::string>	GetMaterialPaths();
 
 private:
 	le::IMesh*					mesh;
-	std::vector<QString>		paths;
+	MDLDoc						mdlDoc;
+	std::string					path;
 };
 

@@ -12,6 +12,8 @@
 #include <qwidget.h>
 #include <qfiledialog.h>
 #include <string>
+#include <qmessagebox.h>
+#include <QCloseEvent>
 
 #include "engine/iengine.h"
 #include "engine/iresourcesystem.h"
@@ -38,7 +40,7 @@ Window_Viewer::Window_Viewer( const GameDescriptor& GameDescriptor, QWidget* Par
 	QMainWindow( Parent ),
 	ui( new Ui::Window_Viewer() )
 {
-	ui->setupUi( this );
+	ui->setupUi(this);
 	if ( !ui->widget_viewport->Initialize() )
 		Error_Critical( "Failed initialize viewport" );
 
@@ -73,10 +75,13 @@ Window_Viewer::Window_Viewer( const GameDescriptor& GameDescriptor, QWidget* Par
 	camera->InitProjection_Perspective( 75.f, ( float )ui->widget_viewport->width() / ui->widget_viewport->height(), 0.1f, 5500.f );
 	camera->SetPosition(le::Vector3D_t( 0.f, 0.f, 150.f ) );
 	scene.SetCamera( camera );
+	scene.AddModel( model );
 
 	qDebug() << "Loaded camera";
 
 	ui->toolButton_pathMaterial->setDisabled(true);
+	ui->actionSave->setDisabled(true);
+	ui->actionSave_As->setDisabled(true);
 
 //	EngineAPI::GetInstance()->GetConsoleSystem()->Exec("r_showgbuffer 1");
 }
@@ -94,57 +99,94 @@ Window_Viewer::~Window_Viewer()
 // ------------------------------------------------------------------------------------ //
 void Window_Viewer::on_actionOpen_triggered()
 {
-	QString path = QFileDialog::getOpenFileName(this, "Choose model file", EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model files (*.mdl)");
+	QString path = QFileDialog::getOpenFileName(this, "Choose model file",
+		EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)");
 	if( path.isEmpty() ) return;
 	
 	mesh.Load( path );
 	model->SetMesh( mesh.GetMesh() );
-	std::vector<QString> paths = mesh.GetPaths();
+
+	std::vector<std::string> paths = mesh.GetMaterialPaths();
 	if( paths.empty() ) return;
+
+	ui->actionSave->setEnabled(true);
+	ui->actionSave_As->setEnabled(true);
+	ui->listWidget_materials->clear();
+	ui->lineEdit_pathMaterial->clear();
+
 	std::string fileName = "";
+
 	for (le::UInt32_t index = 0, count = paths.size(); index < count; ++index)
 	{
-		std::size_t found = paths[index].toStdString().find_last_of("/\\");
-		fileName = paths[index].toStdString().substr(found + 1);
+		std::size_t found = paths[index].find_last_of("/\\");
+		fileName = paths[index].substr(found + 1);
 		ui->listWidget_materials->addItem((QString)fileName.c_str());
 	}
-
-	scene.AddModel( model );
 }
 
+// ------------------------------------------------------------------------------------ //
+// Event: save model
+// ------------------------------------------------------------------------------------ //
+void Window_Viewer::on_actionSave_triggered()
+{
+	QMessageBox::Button result =  
+		QMessageBox::information(this, "Info", "Do you want save this model?", QMessageBox::Button::Ok, QMessageBox::Button::Cancel);
+
+	if (result == QMessageBox::Button::Ok)
+		mesh.Save();
+	
+	return;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: save model as
+// ------------------------------------------------------------------------------------ //
+void Window_Viewer::on_actionSave_As_triggered()
+{
+	QMessageBox::QMessageBox::Button result =
+		QMessageBox::information(this, "Info", "Do you want save this model?", QMessageBox::Button::Ok, QMessageBox::Button::Cancel);
+
+	if (result == QMessageBox::Button::Ok)
+		mesh.SaveAs(QFileDialog::getSaveFileName(this, "Save model as",
+			EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)"));
+
+	return;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: select item on the material list
+// ------------------------------------------------------------------------------------ //
 void Window_Viewer::on_listWidget_materials_itemSelectionChanged()
 {
 	if (ui->listWidget_materials->currentRow() == -1)
 		return;
 
-	std::vector<QString> paths = mesh.GetPaths();
-	ui->lineEdit_pathMaterial->setText(paths[ui->listWidget_materials->currentRow()]);
+	std::vector<std::string> paths = mesh.GetMaterialPaths();
+	ui->lineEdit_pathMaterial->setText(paths[ui->listWidget_materials->currentRow()].c_str());
 	ui->toolButton_pathMaterial->setDisabled(false);
 }
 
 // ------------------------------------------------------------------------------------ //
-// Event:load material
+// Event: load material
 // ------------------------------------------------------------------------------------ //
 void Window_Viewer::on_toolButton_pathMaterial_clicked()
 {
 	QDir dir = EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir;
 	QString path = dir.relativeFilePath( QFileDialog::getOpenFileName(this, "Choose material file", EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "*.lmt"));
 	if (path.isEmpty()) return;
-	
-	qDebug() << "Material path: " << path;
 
+	ui->lineEdit_pathMaterial->setText(path);
 	mesh.LoadMaterial(path, ui->listWidget_materials->currentRow());
 
 	ui->listWidget_materials->clear();
-	std::vector<QString> paths = mesh.GetPaths();
+	std::vector<std::string> paths = mesh.GetMaterialPaths();
 	std::string fileName = "";
 	for (le::UInt32_t index = 0, count = paths.size(); index < count; ++index)
 	{
-		std::size_t found = paths[index].toStdString().find_last_of("/\\");
-		fileName = paths[index].toStdString().substr(found + 1);
+		std::size_t found = paths[index].find_last_of("/\\");
+		fileName = paths[index].substr(found + 1);
 		ui->listWidget_materials->addItem((QString)fileName.c_str());
 	}
-
 }
 
 // ------------------------------------------------------------------------------------ //

@@ -44,35 +44,40 @@ namespace le
 	{
 	public:
 		// IStudioRenderInternal
-		virtual bool											Initialize( IEngine* Engine );
-		virtual bool											CreateContext( WindowHandle_t WindowHandle, UInt32_t Width, UInt32_t Height );
+		virtual bool											Initialize(IEngine* Engine);
+		virtual bool											CreateContext(WindowHandle_t WindowHandle, UInt32_t Width, UInt32_t Height);
 		virtual void											Begin();
 		virtual void											End();
 		virtual void											Present();
 
 		// IStudioRender				
-		virtual void											BeginScene( ICamera* Camera );
-		virtual void											SubmitDebugLine( const Vector3D_t& From, const Vector3D_t& To, const Vector3D_t& Color );
-		virtual void											SubmitDebugPoint( const Vector3D_t& Position, const Vector3D_t& Color );
-		virtual void											SubmitText( IText* Text );
-		virtual void											SubmitSprite( ISprite* Sprite );
-		virtual void											SubmitModel( IModel* Model );
-		virtual void											SubmitModel( IModel* Model, UInt32_t StartSurface, UInt32_t CountSurface );
-		virtual void											SubmitLight( IPointLight* PointLight );
-		virtual void											SubmitLight( ISpotLight* SpotLight );
-		virtual void											SubmitLight( IDirectionalLight* DirectionalLight );
+		virtual void											BeginScene(ICamera* Camera);
+		virtual void											SubmitDebugLine(const Vector3D_t& From, const Vector3D_t& To, const Vector3D_t& Color);
+		virtual void											SubmitDebugPoint(const Vector3D_t& Position, const Vector3D_t& Color);
+		virtual void											SubmitText(IText* Text);
+		virtual void											SubmitSprite(ISprite* Sprite);
+		virtual void											SubmitModel(IModel* Model);
+		virtual void											SubmitModel(IModel* Model, UInt32_t StartSurface, UInt32_t CountSurface);
+		virtual void											SubmitLight(IPointLight* PointLight);
+		virtual void											SubmitLight(ISpotLight* SpotLight);
+		virtual void											SubmitLight(IDirectionalLight* DirectionalLight);
 		virtual void											EndScene();
 
-		virtual void											SetVerticalSyncEnabled( bool IsEnabled = true );
-		virtual void											SetViewport( const StudioRenderViewport& Viewport );
+		virtual void											SetVerticalSyncEnabled(bool IsEnabled = true);
+		virtual void											SetViewport(const StudioRenderViewport& Viewport);
 
-		virtual IFactory*										GetFactory() const;
-		virtual const StudioRenderViewport&						GetViewport() const;
-		virtual const StudioRenderDeviceConfigurations&			GetDeviceConfigurations() const;
-		
+		virtual IFactory* GetFactory() const;
+		virtual const StudioRenderViewport& GetViewport() const;
+		virtual const StudioRenderDeviceConfigurations& GetDeviceConfigurations() const;
+
 		// StudioRender
 		StudioRender();
 		~StudioRender();
+
+		inline const RenderContext& GetRenderContext() const
+		{
+			return renderContext;
+		}
 
 	private:
 		void								Render_GeometryPass();
@@ -102,7 +107,7 @@ namespace le
 		VertexBufferObject					vbo_DebugPrimitive;
 
 		UInt32_t							currentScene;
-		std::vector< SceneDescriptor >		scenes;		
+		std::vector< SceneDescriptor >		scenes;
 	};
 
 	//---------------------------------------------------------------------//

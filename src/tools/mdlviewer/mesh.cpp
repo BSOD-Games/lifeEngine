@@ -13,9 +13,17 @@
 #include <qfiledialog.h>
 #include <qdebug.h>
 
+
+//-----------------------------------------------------------------
+// Load model
+//-----------------------------------------------------------------
 bool Mesh::Load(const QString& Path)
 {
-	MDLDoc mdlDoc;
+
+	// Clear mesh, mdlDoc and path
+	if ( mesh )						Clear();
+
+	// Load model
 	if ( !mdlDoc.Load( Path.toStdString() ) ) return false;
 
 	// Getting all data	
@@ -34,9 +42,7 @@ bool Mesh::Load(const QString& Path)
 		if (!material) continue;
 
 		materials.push_back(material);
-		paths.push_back(materialPaths[index].c_str());
 	}
-
 
 	// Convert MDLSurface to le::MeshSurface
 	std::vector< le::MeshSurface >			meshSurfaces;
@@ -90,26 +96,76 @@ bool Mesh::Load(const QString& Path)
 	qDebug() << "Created mesh desctiptor";
 
 	// Loading mesh to gpu
-	mesh->Create(meshDescriptor);
-	if (!mesh->IsCreated())
+	mesh->Create( meshDescriptor );
+	mesh->IncrementReference();
+	if ( !mesh->IsCreated() )
 	{
-		EngineAPI::GetInstance()->GetStudioRender()->GetFactory()->Delete(mesh);
+		EngineAPI::GetInstance()->GetStudioRender()->GetFactory()->Delete( mesh );
 		return false;
 	}
+
+	path = Path.toStdString();
+
 	qDebug() << "End Load";
 	return true;
 }
 
+//-----------------------------------------------------------------
+// Load material
+//-----------------------------------------------------------------
 bool Mesh::LoadMaterial( const QString& Path, le::UInt32_t Index )
 {
 	le::IMaterial* material = EngineAPI::GetInstance()->GetResourceSystem()->LoadMaterial( Path.toStdString().c_str(), Path.toStdString().c_str() );
 
-	if (!material)	return false;
+	if ( !material )	return false;
 
-	mesh->Update(&material, 1, Index);
-	paths[Index] = Path;
-	qDebug() << paths[Index];
+	mesh->Update( &material, 1, Index );
+	mdlDoc.SetMaterial( Path.toStdString(), Index );
+	
 	return true;
+}
+
+//-----------------------------------------------------------------
+// Save model
+//-----------------------------------------------------------------
+bool Mesh::Save()
+{
+	if( mdlDoc.Save( path ) )
+		return true;
+	
+	return false;
+}
+
+//-----------------------------------------------------------------
+// Save model as
+//-----------------------------------------------------------------
+bool Mesh::SaveAs( const QString& Path )
+{
+	if ( mdlDoc.Save( Path.toStdString() ) )
+	{
+		path = Path.toStdString();
+		return true;
+	}
+
+	return false;
+}
+
+void Mesh::Clear()
+{
+	if ( mesh->GetCountReferences() <= 0 )
+	{
+		mesh->Release();
+		path = "";
+		mdlDoc.Clear();
+		EngineAPI::GetInstance()->GetResourceSystem()->UnloadAll();
+	}
+	else
+	{
+		mesh->DecrementReference();
+		path = "";
+		mdlDoc.Clear();
+		EngineAPI::GetInstance()->GetResourceSystem()->UnloadAll();
+	}
 }
 
 le::IMesh* Mesh::GetMesh()
@@ -120,11 +176,11 @@ le::IMesh* Mesh::GetMesh()
 	return mesh;
 }
 
-std::vector<QString> Mesh::GetPaths()
+std::vector<std::string> Mesh::GetMaterialPaths()
 {
-	if (paths.empty()) return std::vector<QString>();
+	if(mdlDoc.GetCountMaterials() == 0) return std::vector<std::string>();
 
-	return paths;
+	return mdlDoc.GetMaterials();
 }
 
 Mesh::Mesh()

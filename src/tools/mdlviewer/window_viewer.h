@@ -38,6 +38,8 @@ public:
 private slots:
 	void			OnResizeViewport( quint32 Width, quint32 Height );
 	void			on_actionOpen_triggered();
+	void			on_actionSave_triggered();
+	void			on_actionSave_As_triggered();
 	void			on_listWidget_materials_itemSelectionChanged();
 	void			on_toolButton_pathMaterial_clicked();
 

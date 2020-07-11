@@ -43,7 +43,6 @@ void Scene::Render()
 	// Render models
 	for (auto it = models.begin(), itEnd = models.end(); it != itEnd; ++it)
 	{
-		qDebug() << "Model go!";
 		studioRender->SubmitModel(*it);
 	}
 
