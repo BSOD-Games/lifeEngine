@@ -55,7 +55,7 @@ Window_Viewer::Window_Viewer( const GameDescriptor& GameDescriptor, QWidget* Par
 
 	model = ( le::IModel* ) EngineAPI::GetInstance()->GetEngine()->GetFactory()->Create( MODEL_INTERFACE_VERSION );
 	if ( !model )	Error_Critical( "Interface le::IModel Version [" MODEL_INTERFACE_VERSION "] not found in core" );
-	//scene.AddModel(model);
+	scene.AddModel(model);
 
 	qDebug() << "Loaded model";
 
@@ -74,16 +74,13 @@ Window_Viewer::Window_Viewer( const GameDescriptor& GameDescriptor, QWidget* Par
 	camera->IncrementReference();
 	camera->InitProjection_Perspective( 75.f, ( float ) ui->widget_viewport->width() / ui->widget_viewport->height(), 0.1f, 5500.f );
 	camera->SetPosition( le::Vector3D_t( 0.f, 0.f, 150.f ) );
-	scene.SetCamera( camera );
-	scene.AddModel( model );
+	scene.SetCamera( camera );	
 
 	qDebug() << "Loaded camera";
 
 	ui->toolButton_pathMaterial->setDisabled( true );
 	ui->actionSave->setDisabled( true );
 	ui->actionSave_As->setDisabled( true );
-
-	//	EngineAPI::GetInstance()->GetConsoleSystem()->Exec("r_showgbuffer 1");
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -99,35 +96,31 @@ Window_Viewer::~Window_Viewer()
 // ------------------------------------------------------------------------------------ //
 void Window_Viewer::on_actionOpen_triggered()
 {
-	QString path = QFileDialog::getOpenFileName( this, "Choose model file",
-		EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)" );
-	if ( path.isEmpty() ) return;
+	QString path = QFileDialog::getOpenFileName( this, "Choose model file", 
+												 EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)" );
+	if ( path.isEmpty() ) return;	
+
+	mesh.Load( path );
+	model->SetMesh( mesh.GetMesh() );
+	//model->SetRotation( le::Vector3D_t( 0, 0, 0 ) );
+
+	RemoveAllMaterials();
+	UpdateCameraPosition();
+
+	std::vector<std::string>	paths = mesh.GetMaterialPaths();
+	std::string					fileName = "";
+
+	for ( le::UInt32_t index = 0, count = paths.size(); index < count; ++index )
+	{
+		std::size_t found = paths[ index ].find_last_of( "/\\" );
+		fileName = paths[ index ].substr( found + 1 );
+		ui->listWidget_materials->addItem( ( QString ) fileName.c_str() );
+	}
 
 	ui->toolButton_pathMaterial->setDisabled( true );
 	ui->actionSave->setEnabled( true );
 	ui->actionSave_As->setEnabled( true );
-	ui->lineEdit_pathMaterial->clear();
-
-	RemoveAllMaterials();
-
-	mesh.Load( path );
-	model->SetMesh( mesh.GetMesh() );
-	model->SetRotation( le::Vector3D_t( 0, 0, 0 ) );
-
-	std::vector<std::string> paths = mesh.GetMaterialPaths();
-	if ( paths.empty() ) return;
-
-	UpdateCameraPosition();
-
-
-	std::string fileName = "";
-
-	for ( le::UInt32_t index = 0, count = paths.size(); index < count; ++index )
-	{
-		std::size_t found = paths [ index ].find_last_of( "/\\" );
-		fileName = paths [ index ].substr( found + 1 );
-		ui->listWidget_materials->addItem( ( QString ) fileName.c_str() );
-	}
+	ui->lineEdit_pathMaterial->setText( "" );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -140,8 +133,6 @@ void Window_Viewer::on_actionSave_triggered()
 
 	if ( result == QMessageBox::Button::Ok )
 		mesh.Save();
-
-	return;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -149,14 +140,12 @@ void Window_Viewer::on_actionSave_triggered()
 // ------------------------------------------------------------------------------------ //
 void Window_Viewer::on_actionSave_As_triggered()
 {
-	QMessageBox::QMessageBox::Button result =
+	QMessageBox::QMessageBox::Button result = 
 		QMessageBox::information( this, "Info", "Do you want save this model?", QMessageBox::Button::Ok, QMessageBox::Button::Cancel );
 
 	if ( result == QMessageBox::Button::Ok )
 		mesh.SaveAs( QFileDialog::getSaveFileName( this, "Save model as",
-			EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)" ) );
-
-	return;
+					 EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)" ) );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -168,7 +157,7 @@ void Window_Viewer::on_listWidget_materials_itemSelectionChanged()
 		return;
 
 	std::vector<std::string> paths = mesh.GetMaterialPaths();
-	ui->lineEdit_pathMaterial->setText( paths [ ui->listWidget_materials->currentRow() ].c_str() );
+	ui->lineEdit_pathMaterial->setText( paths[ ui->listWidget_materials->currentRow() ].c_str() );
 	ui->toolButton_pathMaterial->setDisabled( false );
 }
 
@@ -179,7 +168,7 @@ void Window_Viewer::on_toolButton_pathMaterial_clicked()
 {
 	QDir dir = EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir;
 	QString path = dir.relativeFilePath( QFileDialog::getOpenFileName( this, "Choose material file",
-		EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Material file (*.lmt)" ) );
+										 EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Material file (*.lmt)" ) );
 
 	if ( path.isEmpty() ) return;
 
@@ -191,8 +180,8 @@ void Window_Viewer::on_toolButton_pathMaterial_clicked()
 	std::string fileName = "";
 	for ( le::UInt32_t index = 0, count = paths.size(); index < count; ++index )
 	{
-		std::size_t found = paths [ index ].find_last_of( "/\\" );
-		fileName = paths [ index ].substr( found + 1 );
+		std::size_t found = paths[ index ].find_last_of( "/\\" );
+		fileName = paths[ index ].substr( found + 1 );
 		ui->listWidget_materials->addItem( ( QString ) fileName.c_str() );
 	}
 }
@@ -214,14 +203,8 @@ void Window_Viewer::UpdateCameraPosition()
 // ------------------------------------------------------------------------------------ //
 void Window_Viewer::RemoveAllMaterials()
 {
-	int count = ui->listWidget_materials->model()->rowCount();
-
-	for ( int index = 0; index < count; ++index )
-	{
-		ui->listWidget_materials->model()->removeRow( index );
-		ui->listWidget_materials->clearSelection();
-		ui->listWidget_materials->setCurrentRow( -1 );
-	}
+	ui->listWidget_materials->clear();
+	ui->listWidget_materials->clearFocus();
 }
 
 // ------------------------------------------------------------------------------------ //

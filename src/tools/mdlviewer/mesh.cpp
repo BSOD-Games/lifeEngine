@@ -37,7 +37,7 @@ bool Mesh::Load( const QString& Path )
 	std::vector< le::IMaterial* >		materials;
 	for ( le::UInt32_t index = 0, count = materialPaths.size(); index < count; ++index )
 	{
-		le::IMaterial* material = EngineAPI::GetInstance()->GetResourceSystem()->LoadMaterial( materialPaths [ index ].c_str(), materialPaths [ index ].c_str() );
+		le::IMaterial* material = EngineAPI::GetInstance()->GetResourceSystem()->LoadMaterial( materialPaths[ index ].c_str(), materialPaths[ index ].c_str() );
 		if ( !material ) continue;
 
 		materials.push_back( material );
@@ -47,7 +47,7 @@ bool Mesh::Load( const QString& Path )
 	std::vector< le::MeshSurface >			meshSurfaces;
 	for ( le::UInt32_t index = 0, count = surfaces.size(); index < count; ++index )
 	{
-		const MDLSurface& mdlSurface = surfaces [ index ];
+		const MDLSurface& mdlSurface = surfaces[ index ];
 		le::MeshSurface			surface;
 
 		surface.startVertexIndex = 0;
