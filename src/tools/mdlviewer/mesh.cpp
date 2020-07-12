@@ -17,9 +17,8 @@
 //-----------------------------------------------------------------
 // Load model
 //-----------------------------------------------------------------
-bool Mesh::Load(const QString& Path)
+bool Mesh::Load( const QString& Path )
 {
-
 	// Clear mesh, mdlDoc and path
 	if ( mesh )						Clear();
 
@@ -33,22 +32,22 @@ bool Mesh::Load(const QString& Path)
 	auto& surfaces = mdlDoc.GetSurfaces();
 	MDLVector3D			minXYZ = mdlDoc.GetMinXYZ();
 	MDLVector3D			maxXYZ = mdlDoc.GetMaxXYZ();
-	
+
 	// Loading materials
 	std::vector< le::IMaterial* >		materials;
-	for (le::UInt32_t index = 0, count = materialPaths.size(); index < count; ++index)
+	for ( le::UInt32_t index = 0, count = materialPaths.size(); index < count; ++index )
 	{
-		le::IMaterial* material = EngineAPI::GetInstance()->GetResourceSystem()->LoadMaterial(materialPaths[index].c_str(), materialPaths[index].c_str());
-		if (!material) continue;
+		le::IMaterial* material = EngineAPI::GetInstance()->GetResourceSystem()->LoadMaterial( materialPaths [ index ].c_str(), materialPaths [ index ].c_str() );
+		if ( !material ) continue;
 
-		materials.push_back(material);
+		materials.push_back( material );
 	}
 
 	// Convert MDLSurface to le::MeshSurface
 	std::vector< le::MeshSurface >			meshSurfaces;
-	for (le::UInt32_t index = 0, count = surfaces.size(); index < count; ++index)
+	for ( le::UInt32_t index = 0, count = surfaces.size(); index < count; ++index )
 	{
-		const MDLSurface& mdlSurface = surfaces[index];
+		const MDLSurface& mdlSurface = surfaces [ index ];
 		le::MeshSurface			surface;
 
 		surface.startVertexIndex = 0;
@@ -56,11 +55,11 @@ bool Mesh::Load(const QString& Path)
 		surface.materialID = mdlSurface.materialId;
 		surface.startIndex = mdlSurface.startVertexIndex;
 		surface.countIndeces = mdlSurface.countVertexIndeces;
-		meshSurfaces.push_back(surface);
+		meshSurfaces.push_back( surface );
 	}
 
-	mesh = (le::IMesh*) EngineAPI::GetInstance()->GetStudioRender()->GetFactory()->Create(MESH_INTERFACE_VERSION);
-	if (!mesh)				return false;
+	mesh = ( le::IMesh* ) EngineAPI::GetInstance()->GetStudioRender()->GetFactory()->Create( MESH_INTERFACE_VERSION );
+	if ( !mesh )				return false;
 	qDebug() << "Create mesh";
 
 	// Create descriptor format verteces
@@ -72,27 +71,27 @@ bool Mesh::Load(const QString& Path)
 		{ 3, le::VET_FLOAT },
 		{ 3, le::VET_FLOAT }
 	};
-	
+
 	// Creating mesh descriptor and loading to gpu
 	le::MeshDescriptor				meshDescriptor;
 	meshDescriptor.countIndeces = vertexIndeces.size();
 	meshDescriptor.countMaterials = materials.size();
 	meshDescriptor.countLightmaps = 0;
 	meshDescriptor.countSurfaces = meshSurfaces.size();
-	meshDescriptor.sizeVerteces = verteces.size() * sizeof(MDLVertex);
+	meshDescriptor.sizeVerteces = verteces.size() * sizeof( MDLVertex );
 
-	meshDescriptor.indeces = (le::UInt32_t*) vertexIndeces.data();
+	meshDescriptor.indeces = ( le::UInt32_t* ) vertexIndeces.data();
 	meshDescriptor.materials = materials.data();
 	meshDescriptor.lightmaps = nullptr;
 	meshDescriptor.surfaces = meshSurfaces.data();
 	meshDescriptor.verteces = verteces.data();
 
-	meshDescriptor.min = le::Vector3D_t(minXYZ.x, minXYZ.y, minXYZ.z);
-	meshDescriptor.max = le::Vector3D_t(maxXYZ.x, maxXYZ.y, maxXYZ.z);
+	meshDescriptor.min = le::Vector3D_t( minXYZ.x, minXYZ.y, minXYZ.z );
+	meshDescriptor.max = le::Vector3D_t( maxXYZ.x, maxXYZ.y, maxXYZ.z );
 	meshDescriptor.primitiveType = le::PT_TRIANGLES;
 	meshDescriptor.countVertexElements = vertexElements.size();
 	meshDescriptor.vertexElements = vertexElements.data();
-	
+
 	qDebug() << "Created mesh desctiptor";
 
 	// Loading mesh to gpu
@@ -121,7 +120,7 @@ bool Mesh::LoadMaterial( const QString& Path, le::UInt32_t Index )
 
 	mesh->Update( &material, 1, Index );
 	mdlDoc.SetMaterial( Path.toStdString(), Index );
-	
+
 	return true;
 }
 
@@ -130,9 +129,9 @@ bool Mesh::LoadMaterial( const QString& Path, le::UInt32_t Index )
 //-----------------------------------------------------------------
 bool Mesh::Save()
 {
-	if( mdlDoc.Save( path ) )
+	if ( mdlDoc.Save( path ) )
 		return true;
-	
+
 	return false;
 }
 
@@ -178,7 +177,7 @@ le::IMesh* Mesh::GetMesh()
 
 std::vector<std::string> Mesh::GetMaterialPaths()
 {
-	if(mdlDoc.GetCountMaterials() == 0) return std::vector<std::string>();
+	if ( mdlDoc.GetCountMaterials() == 0 ) return std::vector<std::string>();
 
 	return mdlDoc.GetMaterials();
 }

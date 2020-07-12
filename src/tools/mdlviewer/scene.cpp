@@ -39,11 +39,12 @@ void Scene::Render()
 	if ( !studioRender ) return;
 
 	studioRender->BeginScene( camera );
-	
+
 	// Render models
-	for (auto it = models.begin(), itEnd = models.end(); it != itEnd; ++it)
+	for ( auto it = models.begin(), itEnd = models.end(); it != itEnd; ++it )
 	{
-		studioRender->SubmitModel(*it);
+		studioRender->SubmitModel( *it );
+		studioRender->SubmitDebugLine( ( *it )->GetMin(), ( *it )->GetMax(), le::Vector3D_t( 1, 1, 1 ) );
 	}
 
 	// Render lights
@@ -116,14 +117,14 @@ void Scene::Clear()
 
 	for ( auto it = models.begin(), itEnd = models.end(); it != itEnd; ++it )
 	{
-		le::IModel*			model = *it;
+		le::IModel* model = *it;
 		if ( model->GetCountReferences() <= 1 )			model->Release();
 		else											model->DecrementReference();
 	}
 
 	for ( auto it = lights.begin(), itEnd = lights.end(); it != itEnd; ++it )
 	{
-		le::IDirectionalLight*			light = *it;
+		le::IDirectionalLight* light = *it;
 		if ( light->GetCountReferences() <= 1 )			light->Release();
 		else											light->DecrementReference();
 	}

@@ -40,7 +40,7 @@ Window_Viewer::Window_Viewer( const GameDescriptor& GameDescriptor, QWidget* Par
 	QMainWindow( Parent ),
 	ui( new Ui::Window_Viewer() )
 {
-	ui->setupUi(this);
+	ui->setupUi( this );
 	if ( !ui->widget_viewport->Initialize() )
 		Error_Critical( "Failed initialize viewport" );
 
@@ -59,31 +59,31 @@ Window_Viewer::Window_Viewer( const GameDescriptor& GameDescriptor, QWidget* Par
 
 	qDebug() << "Loaded model";
 
-	directionalLight = (le::IDirectionalLight*) EngineAPI::GetInstance()->GetStudioRender()->GetFactory()->Create(DIRECTIONALLIGHT_INTERFACE_VERSION);
-	if (!directionalLight)		Error_Critical("Interface le::IDirectionalLight version[" DIRECTIONALLIGHT_INTERFACE_VERSION "] not found in studiorender");
+	directionalLight = ( le::IDirectionalLight* ) EngineAPI::GetInstance()->GetStudioRender()->GetFactory()->Create( DIRECTIONALLIGHT_INTERFACE_VERSION );
+	if ( !directionalLight )		Error_Critical( "Interface le::IDirectionalLight version[" DIRECTIONALLIGHT_INTERFACE_VERSION "] not found in studiorender" );
 
-	directionalLight->SetDirection(le::Vector3D_t(0.f, 0.5f, 0.5f));
-	directionalLight->SetIntensivity(0.5f);
-	scene.AddLight(directionalLight);
+	directionalLight->SetDirection( le::Vector3D_t( 0.f, 0.5f, 0.5f ) );
+	directionalLight->SetIntensivity( 0.5f );
+	scene.AddLight( directionalLight );
 
 	qDebug() << "Created directional light";
 
-	camera = (le::ICamera*) EngineAPI::GetInstance()->GetEngine()->GetFactory()->Create( CAMERA_INTERFACE_VERSION );
+	camera = ( le::ICamera* ) EngineAPI::GetInstance()->GetEngine()->GetFactory()->Create( CAMERA_INTERFACE_VERSION );
 	if ( !camera )    Error_Critical( "Interface le::ICamera version [" CAMERA_INTERFACE_VERSION "] don`t found in core" );
 
 	camera->IncrementReference();
-	camera->InitProjection_Perspective( 75.f, ( float )ui->widget_viewport->width() / ui->widget_viewport->height(), 0.1f, 5500.f );
-	camera->SetPosition(le::Vector3D_t( 0.f, 0.f, 150.f ) );
+	camera->InitProjection_Perspective( 75.f, ( float ) ui->widget_viewport->width() / ui->widget_viewport->height(), 0.1f, 5500.f );
+	camera->SetPosition( le::Vector3D_t( 0.f, 0.f, 150.f ) );
 	scene.SetCamera( camera );
 	scene.AddModel( model );
 
 	qDebug() << "Loaded camera";
 
-	ui->toolButton_pathMaterial->setDisabled(true);
-	ui->actionSave->setDisabled(true);
-	ui->actionSave_As->setDisabled(true);
+	ui->toolButton_pathMaterial->setDisabled( true );
+	ui->actionSave->setDisabled( true );
+	ui->actionSave_As->setDisabled( true );
 
-//	EngineAPI::GetInstance()->GetConsoleSystem()->Exec("r_showgbuffer 1");
+	//	EngineAPI::GetInstance()->GetConsoleSystem()->Exec("r_showgbuffer 1");
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -99,28 +99,34 @@ Window_Viewer::~Window_Viewer()
 // ------------------------------------------------------------------------------------ //
 void Window_Viewer::on_actionOpen_triggered()
 {
-	QString path = QFileDialog::getOpenFileName(this, "Choose model file",
-		EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)");
-	if( path.isEmpty() ) return;
-	
+	QString path = QFileDialog::getOpenFileName( this, "Choose model file",
+		EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)" );
+	if ( path.isEmpty() ) return;
+
+	ui->toolButton_pathMaterial->setDisabled( true );
+	ui->actionSave->setEnabled( true );
+	ui->actionSave_As->setEnabled( true );
+	ui->lineEdit_pathMaterial->clear();
+
+	RemoveAllMaterials();
+
 	mesh.Load( path );
 	model->SetMesh( mesh.GetMesh() );
+	model->SetRotation( le::Vector3D_t( 0, 0, 0 ) );
 
 	std::vector<std::string> paths = mesh.GetMaterialPaths();
-	if( paths.empty() ) return;
+	if ( paths.empty() ) return;
 
-	ui->actionSave->setEnabled(true);
-	ui->actionSave_As->setEnabled(true);
-	ui->listWidget_materials->clear();
-	ui->lineEdit_pathMaterial->clear();
+	UpdateCameraPosition();
+
 
 	std::string fileName = "";
 
-	for (le::UInt32_t index = 0, count = paths.size(); index < count; ++index)
+	for ( le::UInt32_t index = 0, count = paths.size(); index < count; ++index )
 	{
-		std::size_t found = paths[index].find_last_of("/\\");
-		fileName = paths[index].substr(found + 1);
-		ui->listWidget_materials->addItem((QString)fileName.c_str());
+		std::size_t found = paths [ index ].find_last_of( "/\\" );
+		fileName = paths [ index ].substr( found + 1 );
+		ui->listWidget_materials->addItem( ( QString ) fileName.c_str() );
 	}
 }
 
@@ -129,12 +135,12 @@ void Window_Viewer::on_actionOpen_triggered()
 // ------------------------------------------------------------------------------------ //
 void Window_Viewer::on_actionSave_triggered()
 {
-	QMessageBox::Button result =  
-		QMessageBox::information(this, "Info", "Do you want save this model?", QMessageBox::Button::Ok, QMessageBox::Button::Cancel);
+	QMessageBox::Button result =
+		QMessageBox::information( this, "Info", "Do you want save this model?", QMessageBox::Button::Ok, QMessageBox::Button::Cancel );
 
-	if (result == QMessageBox::Button::Ok)
+	if ( result == QMessageBox::Button::Ok )
 		mesh.Save();
-	
+
 	return;
 }
 
@@ -144,11 +150,11 @@ void Window_Viewer::on_actionSave_triggered()
 void Window_Viewer::on_actionSave_As_triggered()
 {
 	QMessageBox::QMessageBox::Button result =
-		QMessageBox::information(this, "Info", "Do you want save this model?", QMessageBox::Button::Ok, QMessageBox::Button::Cancel);
+		QMessageBox::information( this, "Info", "Do you want save this model?", QMessageBox::Button::Ok, QMessageBox::Button::Cancel );
 
-	if (result == QMessageBox::Button::Ok)
-		mesh.SaveAs(QFileDialog::getSaveFileName(this, "Save model as",
-			EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)"));
+	if ( result == QMessageBox::Button::Ok )
+		mesh.SaveAs( QFileDialog::getSaveFileName( this, "Save model as",
+			EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)" ) );
 
 	return;
 }
@@ -158,12 +164,12 @@ void Window_Viewer::on_actionSave_As_triggered()
 // ------------------------------------------------------------------------------------ //
 void Window_Viewer::on_listWidget_materials_itemSelectionChanged()
 {
-	if (ui->listWidget_materials->currentRow() == -1)
+	if ( ui->listWidget_materials->currentRow() == -1 )
 		return;
 
 	std::vector<std::string> paths = mesh.GetMaterialPaths();
-	ui->lineEdit_pathMaterial->setText(paths[ui->listWidget_materials->currentRow()].c_str());
-	ui->toolButton_pathMaterial->setDisabled(false);
+	ui->lineEdit_pathMaterial->setText( paths [ ui->listWidget_materials->currentRow() ].c_str() );
+	ui->toolButton_pathMaterial->setDisabled( false );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -172,20 +178,49 @@ void Window_Viewer::on_listWidget_materials_itemSelectionChanged()
 void Window_Viewer::on_toolButton_pathMaterial_clicked()
 {
 	QDir dir = EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir;
-	QString path = dir.relativeFilePath( QFileDialog::getOpenFileName(this, "Choose material file", EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "*.lmt"));
-	if (path.isEmpty()) return;
+	QString path = dir.relativeFilePath( QFileDialog::getOpenFileName( this, "Choose material file",
+		EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Material file (*.lmt)" ) );
 
-	ui->lineEdit_pathMaterial->setText(path);
-	mesh.LoadMaterial(path, ui->listWidget_materials->currentRow());
+	if ( path.isEmpty() ) return;
+
+	ui->lineEdit_pathMaterial->setText( path );
+	mesh.LoadMaterial( path, ui->listWidget_materials->currentRow() );
 
 	ui->listWidget_materials->clear();
 	std::vector<std::string> paths = mesh.GetMaterialPaths();
 	std::string fileName = "";
-	for (le::UInt32_t index = 0, count = paths.size(); index < count; ++index)
+	for ( le::UInt32_t index = 0, count = paths.size(); index < count; ++index )
 	{
-		std::size_t found = paths[index].find_last_of("/\\");
-		fileName = paths[index].substr(found + 1);
-		ui->listWidget_materials->addItem((QString)fileName.c_str());
+		std::size_t found = paths [ index ].find_last_of( "/\\" );
+		fileName = paths [ index ].substr( found + 1 );
+		ui->listWidget_materials->addItem( ( QString ) fileName.c_str() );
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Update camera position 
+// ------------------------------------------------------------------------------------ //
+void Window_Viewer::UpdateCameraPosition()
+{
+	le::Vector3D_t maxXYZ = mesh.GetMesh()->GetMax();
+
+	float max = glm::max( maxXYZ.x, glm::max( maxXYZ.y, maxXYZ.z ) );
+
+	camera->SetPosition( le::Vector3D_t( 0, maxXYZ.y / 2.f, max + 150.f ) );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Delete materials before load model
+// ------------------------------------------------------------------------------------ //
+void Window_Viewer::RemoveAllMaterials()
+{
+	int count = ui->listWidget_materials->model()->rowCount();
+
+	for ( int index = 0; index < count; ++index )
+	{
+		ui->listWidget_materials->model()->removeRow( index );
+		ui->listWidget_materials->clearSelection();
+		ui->listWidget_materials->setCurrentRow( -1 );
 	}
 }
 
@@ -194,6 +229,6 @@ void Window_Viewer::on_toolButton_pathMaterial_clicked()
 // ------------------------------------------------------------------------------------ //
 void Window_Viewer::OnResizeViewport( quint32 Width, quint32 Height )
 {
-	if (!camera) return;
-		camera->InitProjection_Perspective(75.f, (float)Width / (float)Height, 0.1f, 5500.f);
+	if ( !camera ) return;
+	camera->InitProjection_Perspective( 75.f, ( float ) Width / ( float ) Height, 0.1f, 5500.f );
 }

@@ -44,6 +44,10 @@ private slots:
 	void			on_toolButton_pathMaterial_clicked();
 
 private:
+	void			UpdateCameraPosition();
+	void			RemoveAllMaterials();
+
+
 	Scene								scene;
 	Ui::Window_Viewer*					ui;
 	le::IModel*							model;
