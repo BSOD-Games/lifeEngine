@@ -15,6 +15,7 @@
 #include "audio/iaudiosysteminternal.h"
 
 #include "audiosystemfactory.h"
+#include "audiodevice.h"
 
 //---------------------------------------------------------------------//
 
@@ -32,6 +33,7 @@ namespace le
 		virtual bool			Initialize( IEngine* Engine );		
 
 	private:
+		AudioDevice				audioDevice;
 		AudioSystemFactory		factory;
 	};
 
