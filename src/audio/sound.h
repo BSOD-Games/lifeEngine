@@ -8,18 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef AUDIODEVICE_H
-#define AUDIODEVICE_H
+#ifndef SOUND_H
+#define SOUND_H
 
-#include <string>
-
-#include "common/types.h"
-#include "soundbuffer.h"
-
-//---------------------------------------------------------------------//
-
-struct ALCdevice;
-struct ALCcontext;
+#include "audio/isound.h"
 
 //---------------------------------------------------------------------//
 
@@ -27,22 +19,32 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class AudioDevice
+	class SoundBuffer;
+
+	//---------------------------------------------------------------------//
+
+	class Sound : public ISound
 	{
 	public:
-		AudioDevice();
-		~AudioDevice();
+		// ISound
+		virtual void				Create();
+		virtual void				Delete();
+		virtual void				Play();
+		virtual void				Pause();
+		virtual void				Stop();
 
-		bool					Create();
-		void					Destroy();
+		virtual void				SetBuffer( ISoundBuffer* SoundBuffer );
 
-		static UInt32_t			GetSampleFormat( SAMPLE_FORMAT SampleFormat );
+		virtual SOUND_STATUS		GetStatus() const;
+		virtual ISoundBuffer*		GetBuffer() const;
+
+		// Sound
+		Sound();
+		~Sound();
 
 	private:
-		bool					IsExtensionSupported( const std::string& Extension );
-
-		ALCdevice*			audioDevice;
-		ALCcontext*			audioContext;
+		UInt32_t				handle;
+		SoundBuffer*			soundBuffer;
 	};
 
 	//---------------------------------------------------------------------//
@@ -50,4 +52,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !AUDIODEVICE_H
+#endif // !SOUND_H

@@ -33,6 +33,7 @@ void Engine_CriticalError( const char* Message )
     MessageBoxA( nullptr, Message, "Error lifeEngine", MB_OK | MB_ICONERROR );
     fileLog << "\nCritical error: " << Message;
 
+    fileLog.flush();
     exit( 1 );
 }
 

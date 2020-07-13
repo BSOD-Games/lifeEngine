@@ -15,6 +15,8 @@ set( GLM_PATH ${EXTLIBS_DIR} CACHE PATH "Path to GLM" )
 set( FREEIMAGE_PATH ${EXTLIBS_DIR}/FreeImage CACHE PATH "Path to FreeImage" )
 set( FREETYPE_PATH ${EXTLIBS_DIR}/freetype CACHE PATH "Path to Freetype" )
 set( TCC_PATH ${EXTLIBS_DIR}/tcc CACHE PATH "Path to Tiny C Compiler" )
+set( OGG_PATH ${EXTLIBS_DIR}/ogg CACHE PATH "Path to ogg" )
+set( VORBIS_PATH ${EXTLIBS_DIR}/vorbis CACHE PATH "Path to vorbis" )
 
 #
 #   --- Название модулей движка ---
@@ -148,4 +150,28 @@ if( NOT TCC_FOUND )
 else()
     include_directories( ${TCC_INCLUDE} )
     target_link_libraries( ${MODULE_NAME} ${TCC_LIB} ${CMAKE_DL_LIBS} )
+endif()
+
+#--------------
+#	OGG
+
+find_package( Ogg REQUIRED )
+if( NOT OGG_FOUND )
+	message( SEND_ERROR "Failed to find Ogg" )
+	return()
+else()
+	include_directories( ${OGG_INCLUDE} )
+	target_link_libraries( ${MODULE_NAME} ${OGG_LIB} )
+endif()
+
+#--------------
+#	VORBIS
+
+find_package( Vorbis REQUIRED )
+if( NOT VORBIS_FOUND )
+	message( SEND_ERROR "Failed to find Vorbis" )
+	return()
+else()
+	include_directories( ${VORBIS_INCLUDE} )
+	target_link_libraries( ${MODULE_NAME} ${VORBIS_LIB} ${VORBISFILE_LIB} )
 endif()

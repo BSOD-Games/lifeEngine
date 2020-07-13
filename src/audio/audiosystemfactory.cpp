@@ -8,13 +8,20 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include <string.h>
+
 #include "audiosystemfactory.h"
+#include "soundbuffer.h"
+#include "sound.h"
 
 // ------------------------------------------------------------------------------------ //
 // Create object
 // ------------------------------------------------------------------------------------ //
 void* le::AudioSystemFactory::Create( const char* NameInterface )
 {
+	if ( strcmp( NameInterface, SOUNDBUFFER_INTERFACE_VERSION ) == 0 )			return new SoundBuffer();
+	else if ( strcmp( NameInterface, SOUND_INTERFACE_VERSION ) == 0 )			return new Sound();
+	
 	return nullptr;
 }
 

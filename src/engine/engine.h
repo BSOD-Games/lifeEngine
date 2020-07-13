@@ -98,6 +98,7 @@ namespace le
         virtual IMaterialSystem*		GetMaterialSystem() const;
         virtual IPhysicsSystem*         GetPhysicsSystem() const;
 		virtual IScriptSystem*			GetScriptSystem() const;
+		virtual IAudioSystem*			GetAudioSystem() const;
 		virtual IWindow*				GetWindow() const;
 		virtual IFactory*				GetFactory() const;
 		virtual float					GetDeltaTime() const;

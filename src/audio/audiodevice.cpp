@@ -96,6 +96,22 @@ void le::AudioDevice::Destroy()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Get sample format
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::AudioDevice::GetSampleFormat( SAMPLE_FORMAT SampleFormat )
+{
+	switch ( SampleFormat )
+	{
+	case SF_MONO8:		return AL_FORMAT_MONO8;
+	case SF_MONO16:		return AL_FORMAT_MONO16;
+	case SF_STEREO8:	return AL_FORMAT_STEREO8;
+	case SF_STEREO16:	return AL_FORMAT_STEREO16;
+	}
+
+	return 0;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Is extension supported
 // ------------------------------------------------------------------------------------ //
 bool le::AudioDevice::IsExtensionSupported( const std::string& Extension )

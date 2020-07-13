@@ -27,10 +27,19 @@ namespace le
 	{
 	public:
 		// IAudioSystem
-		virtual IFactory*		GetFactory() const;	
+		virtual IFactory*				GetFactory() const;	
 
 		// IAudioSystemInternal
-		virtual bool			Initialize( IEngine* Engine );		
+		virtual bool					Initialize( IEngine* Engine );		
+
+		// AudioSystem
+		AudioSystem();
+		~AudioSystem();
+
+		inline const AudioDevice&		GetAudioDevice() const
+		{
+			return audioDevice;
+		}
 
 	private:
 		AudioDevice				audioDevice;

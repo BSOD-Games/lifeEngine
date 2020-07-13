@@ -16,6 +16,9 @@
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+#include <vorbisfile.h>
+#include <vorbisenc.h>
+#include <ogg/ogg.h>
 
 #include "common/image.h"
 #include "common/meshsurface.h"
@@ -32,6 +35,8 @@
 #include "studiorender/studiovertexelement.h"
 #include "studiorender/studiorendersampler.h"
 #include "studiorender/igpuprogram.h"
+#include "audio/iaudiosystem.h"
+#include "audio/isoundbuffer.h"
 
 #include "global.h"
 #include "phydoc.h"
@@ -527,6 +532,44 @@ le::IGPUProgram* LE_LoadGPUProgram( const char* Directory, const char* Path, le:
 		return nullptr;
 
 	return gpuProgram;
+}
+
+struct SoundOGGFile
+{
+	std::ifstream		file;
+};
+
+// ------------------------------------------------------------------------------------ //
+// Loading sound buffer
+// ------------------------------------------------------------------------------------ //
+le::ISoundBuffer* LE_LoadSoundBuffer( const char* Path, le::IFactory* AudioSystemFactory )
+{
+	OggVorbis_File		oggVorbisFile;
+	if ( ov_fopen( Path, &oggVorbisFile ) < 0 )			return nullptr;
+
+	vorbis_info*		vorbisInfo = ov_info( &oggVorbisFile, -1 );
+
+	le::UInt32_t		sizeData = ov_pcm_total( &oggVorbisFile, -1 ) * vorbisInfo->channels * 2;
+	le::UInt16_t*		data = ( le::UInt16_t* ) malloc( sizeData );
+
+	le::UInt32_t		offset = 0;
+	le::UInt32_t		size = 0;
+	le::UInt32_t		sel = 0;
+	
+	do
+	{
+		size = ov_read( &oggVorbisFile, ( char* ) data + offset, 4096, 0, 2, 1, ( int* ) &sel );
+		offset += size;
+	}
+	while ( size != 0 );
+
+	le::ISoundBuffer*			soundBuffer = ( le::ISoundBuffer* ) AudioSystemFactory->Create( SOUNDBUFFER_INTERFACE_VERSION );
+	soundBuffer->IncrementReference();
+	soundBuffer->Create();
+	soundBuffer->Append( vorbisInfo->channels == 1 ? le::SF_MONO16 : le::SF_STEREO16, data, sizeData, vorbisInfo->rate );
+
+	free( data );
+	return soundBuffer;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1172,6 +1215,7 @@ void le::ResourceSystem::UnloadAll()
 	UnloadTextures();
 	UnloadPhysicsModels();
 	UnloadGPUPrograms();
+	UnloadSoundBuffers();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1250,6 +1294,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 
 		studioRenderFactory = studioRender->GetFactory();
 		scriptSystemFactory = g_scriptSystem->GetFactory();
+		audioSystemFactory = Engine->GetAudioSystem()->GetFactory();
 		engineFactory = Engine->GetFactory();
 
 		RegisterLoader_Image( "png", LE_LoadImage );
@@ -1266,6 +1311,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 		RegisterLoader_Script( "c", LE_LoadScript );
 		RegisterLoader_PhysicsModel( "phy", LE_LoadPhysicsModel );
 		RegisterLoader_GPUProgram( "shader", LE_LoadGPUProgram );
+		RegisterLoader_SoundBuffer( "ogg", LE_LoadSoundBuffer );
 	}
 	catch ( std::exception & Exception )
 	{
@@ -1491,6 +1537,18 @@ void le::ResourceSystem::RegisterLoader_GPUProgram( const char* Format, LoadGPUP
 }
 
 // ------------------------------------------------------------------------------------ //
+// Register loader sound buffer
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader_SoundBuffer( const char* Format, LoadSoundBufferFn_t LoadSoundBuffer )
+{
+	LIFEENGINE_ASSERT( Format );
+	LIFEENGINE_ASSERT( LoadSoundBuffer );
+
+	g_consoleSystem->PrintInfo( "Loader sound buffer for format [%s] registered", Format );
+	loaderSoundBuffers[ Format ] = LoadSoundBuffer;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Unregister loader for physics model
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnregisterLoader_PhysicsModel( const char *Format )
@@ -1516,6 +1574,20 @@ void le::ResourceSystem::UnregisterLoader_GPUProgram( const char* Format )
 
 	loaderGPUProgram.erase( it );
 	g_consoleSystem->PrintInfo( "Loader gpu program for format [%s] unregistered", Format );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Unregister loader sound buffer
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnregisterLoader_SoundBuffer( const char* Format )
+{
+	LIFEENGINE_ASSERT( Format );
+
+	auto		it = loaderSoundBuffers.find( Format );
+	if ( it == loaderSoundBuffers.end() ) return;
+
+	loaderSoundBuffers.erase( it );
+	g_consoleSystem->PrintInfo( "Loader sound buffer for format [%s] unregistered", Format );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1578,6 +1650,22 @@ void le::ResourceSystem::UnloadGPUProgram( const char* Name )
 		}
 		else
 			++itShader;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Unload sound buffer
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadSoundBuffer( const char* Name )
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto				it = soundBuffers.find( Name );
+	if ( it == soundBuffers.end() || it->second->GetCountReferences() > 1 )		return;
+
+	it->second->Release();
+	soundBuffers.erase( it );
+
+	g_consoleSystem->PrintInfo( "Unloaded sound buffer [%s]", Name );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1685,6 +1773,52 @@ le::IGPUProgram* le::ResourceSystem::LoadGPUProgram( const char* Name, const cha
 }
 
 // ------------------------------------------------------------------------------------ //
+// Load sound buffer
+// ------------------------------------------------------------------------------------ //
+le::ISoundBuffer* le::ResourceSystem::LoadSoundBuffer( const char* Name, const char* Path )
+{
+	LIFEENGINE_ASSERT( Name );
+	LIFEENGINE_ASSERT( Path );
+
+	try
+	{
+		if ( soundBuffers.find( Name ) != soundBuffers.end() )		return soundBuffers[ Name ];
+		if ( loaderSoundBuffers.empty() )							throw std::runtime_error( "No sound buffer loaders" );
+
+		g_consoleSystem->PrintInfo( "Loading sound buffer [%s] with name [%s]", Path, Name );
+
+		std::string			format = GetFormatFile( Path );
+		if ( format.empty() )								throw std::runtime_error( "In sound buffer format not found" );
+
+		auto				parser = loaderSoundBuffers.find( format );
+		if ( parser == loaderSoundBuffers.end() )			throw std::runtime_error( "Loader for format sound buffer not found" );
+
+		le::ISoundBuffer*		soundBuffer = nullptr;
+		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
+		{
+			soundBuffer = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), audioSystemFactory );
+			if ( soundBuffer )
+			{
+				g_consoleSystem->PrintInfo( "Sound buffer founded in [%s]", paths[ index ].c_str() );
+				break;
+			}
+		}
+
+		if ( !soundBuffer )		throw std::runtime_error( "Fail loading sound buffer" );
+		soundBuffer->IncrementReference();
+		soundBuffers.insert( std::make_pair( Name, soundBuffer ) );
+		g_consoleSystem->PrintInfo( "Loaded sound buffer [%s]", Name );
+
+		return soundBuffer;
+	}
+	catch ( std::exception& Exception )
+	{
+		g_consoleSystem->PrintError( "Sound buffer [%s] not loaded: %s", Path, Exception.what() );
+		return nullptr;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
 // Unload physics models
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadPhysicsModels()
@@ -1736,6 +1870,26 @@ void le::ResourceSystem::UnloadGPUPrograms()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Unload sound buffers
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadSoundBuffers()
+{
+	if ( soundBuffers.empty() ) return;
+
+	for ( auto it = soundBuffers.begin(), itEnd = soundBuffers.end(); it != itEnd; )
+		if ( it->second->GetCountReferences() <= 1 )
+		{
+			it->second->Release();
+
+			g_consoleSystem->PrintInfo( "Unloaded sound buffer [%s]", it->first.c_str() );
+			it = soundBuffers.erase( it );
+			itEnd = soundBuffers.end();
+		}
+		else
+			++it;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Get physics model
 // ------------------------------------------------------------------------------------ //
 le::IPhysicsModel* le::ResourceSystem::GetPhysicsModel( const char* Name ) const
@@ -1762,6 +1916,19 @@ le::IGPUProgram* le::ResourceSystem::GetGPUProgram( const char* Name, UInt32_t F
 	if ( itShader == itShaders->second.end() )	return nullptr;
 
 	return itShader->second;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get sound buffer
+// ------------------------------------------------------------------------------------ //
+le::ISoundBuffer* le::ResourceSystem::GetSoundBuffer( const char* Name ) const
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto	it = soundBuffers.find( Name );
+	if ( it != soundBuffers.end() )		return it->second;
+
+	return nullptr;
 }
 
 // ------------------------------------------------------------------------------------ //

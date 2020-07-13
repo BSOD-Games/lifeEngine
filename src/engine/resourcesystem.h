@@ -42,6 +42,7 @@ namespace le
 		virtual void					RegisterLoader_Script( const char* Format, LoadScriptFn_t LoadScript );
 		virtual void					RegisterLoader_PhysicsModel( const char* Format, LoadPhysicsModelFn_t LoadPhysicsModel );
 		virtual void					RegisterLoader_GPUProgram( const char* Format, LoadGPUProgramFn_t LoadGPUProgram );
+		virtual void					RegisterLoader_SoundBuffer( const char* Format, LoadSoundBufferFn_t LoadSoundBuffer );
 		virtual void					UnregisterLoader_Image( const char* Format );
 		virtual void					UnregisterLoader_Texture( const char* Format );
 		virtual void					UnregisterLoader_Material( const char* Format );
@@ -51,6 +52,7 @@ namespace le
 		virtual void					UnregisterLoader_Script( const char* Format );
 		virtual void					UnregisterLoader_PhysicsModel( const char* Format );
 		virtual void					UnregisterLoader_GPUProgram( const char* Format );
+		virtual void					UnregisterLoader_SoundBuffer( const char* Format );
 
 		virtual Image					LoadImage( const char* Path, bool& IsError, bool IsFlipVertical = false, bool IsSwitchRedAndBlueChannels = false );
 		virtual ITexture*				LoadTexture( const char* Name, const char* Path );
@@ -61,6 +63,7 @@ namespace le
 		virtual IScript*				LoadScript( const char* Name, const char* Path, UInt32_t CountFunctions = 0, ScriptDescriptor::Symbol* Functions = nullptr, UInt32_t CountVars = 0, ScriptDescriptor::Symbol* Vars = nullptr );
 		virtual IPhysicsModel*			LoadPhysicsModel( const char* Name, const char* Path );
 		virtual IGPUProgram*			LoadGPUProgram( const char* Name, const char* Path, UInt32_t Flags = 0, UInt32_t CountDefines = 0, const char** Defines = nullptr );
+		virtual ISoundBuffer*			LoadSoundBuffer( const char* Name, const char* Path );
 		virtual void					UnloadImage( Image& Image );
 		virtual void					UnloadTexture( const char* Name );
 		virtual void					UnloadMaterial( const char* Name );
@@ -71,6 +74,7 @@ namespace le
 		virtual void					UnloadPhysicsModel( const char* Name );
 		virtual void					UnloadGPUProgram( const char* Name, UInt32_t Flags );
 		virtual void					UnloadGPUProgram( const char* Name );
+		virtual void					UnloadSoundBuffer( const char* Name );
 		virtual void					UnloadTextures();
 		virtual void					UnloadMaterials();
 		virtual void					UnloadMeshes();
@@ -79,6 +83,7 @@ namespace le
 		virtual void					UnloadScripts();
 		virtual void					UnloadPhysicsModels();	
 		virtual void					UnloadGPUPrograms();
+		virtual void					UnloadSoundBuffers();
 		virtual void					UnloadAll();
 
 		virtual ITexture*				GetTexture( const char* Name ) const;
@@ -89,6 +94,7 @@ namespace le
 		virtual IScript*				GetScript( const char* Name ) const;
 		virtual IPhysicsModel*			GetPhysicsModel( const char* Name ) const;
 		virtual IGPUProgram*			GetGPUProgram( const char* Name, UInt32_t Flags = 0 ) const;
+		virtual ISoundBuffer*			GetSoundBuffer( const char* Name ) const;
 
 		// IResourceSystemInternal
 		virtual bool					Initialize( IEngine* Engine );
@@ -115,6 +121,7 @@ namespace le
 		typedef			std::unordered_map< std::string, LoadScriptFn_t >											LoaderScriptMap_t;
 		typedef			std::unordered_map< std::string, LoadPhysicsModelFn_t >										LoaderPhysicsModelMap_t;
 		typedef			std::unordered_map< std::string, LoadGPUProgramFn_t >										LoaderGPUProgramMap_t;
+		typedef			std::unordered_map< std::string, LoadSoundBufferFn_t >										LoaderSoundBufferMap_t;
 		typedef			std::unordered_map< std::string, ITexture* >												TextureMap_t;
 		typedef			std::unordered_map< std::string, IMaterial* >												MaterialMap_t;
 		typedef			std::unordered_map< std::string, IMesh* >													MeshMap_t;
@@ -123,10 +130,12 @@ namespace le
 		typedef			std::unordered_map< std::string, IScript* >													ScriptMap_t;
 		typedef			std::unordered_map< std::string, IPhysicsModel* >											PhysicsModelMap_t;
 		typedef			std::unordered_map< std::string, std::unordered_map< UInt32_t, IGPUProgram* > >				GPUProgramMap_t;
+		typedef			std::unordered_map< std::string, ISoundBuffer* >											SoundBufferMap_t;
 
 		IFactory*					studioRenderFactory;
 		IFactory*					scriptSystemFactory;
 		IFactory*					engineFactory;
+		IFactory*					audioSystemFactory;
 
 		std::vector< std::string >	paths;
 		LoaderImageMap_t			loaderImages;
@@ -138,6 +147,7 @@ namespace le
 		LoaderScriptMap_t			loaderScripts;
 		LoaderPhysicsModelMap_t		loaderPhysicsModels;
 		LoaderGPUProgramMap_t		loaderGPUProgram;
+		LoaderSoundBufferMap_t		loaderSoundBuffers;
 
 		TextureMap_t				textures;
 		MaterialMap_t				materials;
@@ -147,6 +157,7 @@ namespace le
 		ScriptMap_t					scripts;
 		PhysicsModelMap_t			physicsModels;
 		GPUProgramMap_t				gpuPrograms;
+		SoundBufferMap_t			soundBuffers;
 	};
 
 	//---------------------------------------------------------------------//

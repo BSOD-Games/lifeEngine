@@ -17,6 +17,7 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	IConsoleSystem*					g_consoleSystem = nullptr;
+	AudioSystem*					g_audioSystem = nullptr;
 
 	//---------------------------------------------------------------------//
 }
