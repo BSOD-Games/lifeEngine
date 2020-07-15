@@ -8,10 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IAUDIOSYSTEM_H
-#define IAUDIOSYSTEM_H
+#ifndef LISTENER_H
+#define LISTENER_H
 
-#include "common/types.h"
+#include "audio/ilistener.h"
 
 //---------------------------------------------------------------------//
 
@@ -19,17 +19,19 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IFactory;
-	class IListener;
-
-	//---------------------------------------------------------------------//
-
-	class IAudioSystem
+	class Listener : public IListener
 	{
 	public:
-		virtual ~IAudioSystem() {}
-		virtual IListener*			GetListener() const = 0;
-		virtual IFactory*			GetFactory() const = 0;
+		// IListener
+		virtual void			SetGlobalVolume( float Volume );
+		virtual void			SetPosition( const Vector3D_t& Position );
+		virtual void			SetDirection( const Vector3D_t& Direction );
+		virtual void			SetUp( const Vector3D_t& Up );
+
+		virtual float			GetGlobalVolume() const;
+		virtual Vector3D_t		GetPosition() const;
+		virtual Vector3D_t		GetDirection() const;
+		virtual Vector3D_t		GetUp() const;
 	};
 
 	//---------------------------------------------------------------------//
@@ -37,4 +39,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !IAUDIOSYSTEM_H
+#endif // !LISTENER_H

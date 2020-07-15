@@ -14,6 +14,7 @@
 #include "engine/lifeengine.h"
 #include "audio/iaudiosysteminternal.h"
 
+#include "listener.h"
 #include "audiosystemfactory.h"
 #include "audiodevice.h"
 
@@ -27,6 +28,7 @@ namespace le
 	{
 	public:
 		// IAudioSystem
+		virtual IListener*				GetListener() const;			
 		virtual IFactory*				GetFactory() const;	
 
 		// IAudioSystemInternal
@@ -36,6 +38,10 @@ namespace le
 		AudioSystem();
 		~AudioSystem();
 
+		inline AudioDevice&				GetAudioDevice()		
+		{
+			return audioDevice;
+		}
 		inline const AudioDevice&		GetAudioDevice() const
 		{
 			return audioDevice;
@@ -43,6 +49,7 @@ namespace le
 
 	private:
 		AudioDevice				audioDevice;
+		Listener				listener;
 		AudioSystemFactory		factory;
 	};
 

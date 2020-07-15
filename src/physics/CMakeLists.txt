@@ -4,7 +4,8 @@ cmake_minimum_required( VERSION 2.6 )
 #   --- Задаем переменные ---
 #
 
-file( GLOB SOURCE_FILES "*.h" "*.cpp" "../public/physics/*.h" "../public/physics/*.h" )
+file( GLOB SOURCE_FILES "*.h" "*.cpp" )
+file( GLOB PUBLIC_FILES "../public/physics/*.h" "../public/physics/*.h" )
 set( MODULE_NAME physics )
 
 set( BULLET_PATH ${EXTLIBS_DIR}/bullet3 CACHE PATH "Path to Bullet3" )
@@ -25,7 +26,9 @@ add_definitions( -DLIFEENGINE_EXPORT )
 #   --- Настройки проекта ---
 #
 
-add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${ICON} )
+source_group( "Public Files" FILES ${PUBLIC_FILES} )
+
+add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${PUBLIC_FILES} ${ICON} )
 
 set_target_properties (${MODULE_NAME} PROPERTIES FOLDER Engine )
 set_target_properties( ${MODULE_NAME} PROPERTIES PREFIX "" )

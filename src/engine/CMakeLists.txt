@@ -4,9 +4,12 @@ cmake_minimum_required( VERSION 2.6 )
 #   --- Задаем переменные ---
 #
 
-file( GLOB_RECURSE SOURCE_FILES "*.h" "*.cpp"
-								"../public/common/*.h"
-								"../public/engine/*.h" )
+file( GLOB SOURCE_FILES "*.h" "*.cpp" )	
+file( GLOB PROXES_FILES "proxes/*.h" "proxes/*.cpp" )	
+file( GLOB_RECURSE SCRIPTS_FILES "scripts/*.h" "scripts/*.cpp" )
+file( GLOB SHADERS_FILES "shaders/*.h" "shaders/*.cpp" )						
+file( GLOB PUBLIC_FILES "../public/common/*.h" "../public/engine/*.h" )								
+								
 set( MODULE_NAME engine )
 
 set( SDL2_PATH ${EXTLIBS_DIR}/SDL2 CACHE PATH "Path to SDL2" )
@@ -57,8 +60,19 @@ add_definitions( -DLIFEENGINE_EXPORT )
 #   --- Настройки проекта ---
 #
 
+file( GLOB SOURCE_FILES "*.h" "*.cpp" )	
+file( GLOB PROXES_FILES "proxes/*.h" "proxes/*.cpp" )	
+file( GLOB_RECURSE SCRIPTS_FILES "scripts/*.h" "scripts/*.cpp" )
+file( GLOB SHADERS_FILES "shaders/*.h" "shaders/*.cpp" )						
+file( GLOB PUBLIC_FILES "../public/common/*.h" "../public/engine/*.h" )	
+
+source_group( "Public Files" FILES ${PUBLIC_FILES} )
+source_group( "Proxes Files" FILES ${PROXES_FILES} )
+source_group( "Scripts Files" FILES ${SCRIPTS_FILES} )
+source_group( "Shaders Files" FILES ${SHADERS_FILES} )
+
 configure_file( ${PATHS_H}.in ${PATHS_H} )
-add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${ICON} )
+add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${PUBLIC_FILES} ${PROXES_FILES} ${SCRIPTS_FILES} ${SHADERS_FILES} ${ICON} )
 
 set_target_properties (${MODULE_NAME} PROPERTIES FOLDER Engine )
 set_target_properties( ${MODULE_NAME} PROPERTIES PREFIX "" )

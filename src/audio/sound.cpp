@@ -20,6 +20,15 @@ void le::Sound::Create()
 {
 	if ( handle != 0 )		return;
 	alGenSources( 1, &handle );
+
+	// Initialize propperties sound
+	SetLoop( false );
+	SetRelativeToListener( false );
+	SetVolume( 100.f );
+	SetPitch( 1.f );
+	SetMinDistance( 1.f );
+	SetAttenuation( 1.f );
+	SetPosition( Vector3D_t( 0.f, 0.f, 0.f ) );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -59,6 +68,60 @@ void le::Sound::Stop()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Set loop
+// ------------------------------------------------------------------------------------ //
+void le::Sound::SetLoop( bool IsLoop )
+{
+	if ( handle == 0 )		return;
+	alSourcei( handle, AL_LOOPING, IsLoop );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set relative to listener
+// ------------------------------------------------------------------------------------ //
+void le::Sound::SetRelativeToListener( bool IsRelative )
+{
+	if ( handle == 0 )		return;
+	alSourcei( handle, AL_SOURCE_RELATIVE, IsRelative );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set volume
+// ------------------------------------------------------------------------------------ //
+void le::Sound::SetVolume( float Volume )
+{
+	if ( handle == 0 )		return;
+	alSourcef( handle, AL_GAIN, Volume * 0.01f );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set pitch
+// ------------------------------------------------------------------------------------ //
+void le::Sound::SetPitch( float Pitch )
+{
+	if ( handle == 0 )		return;
+	alSourcef( handle, AL_PITCH, Pitch );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set min distance
+// ------------------------------------------------------------------------------------ //
+void le::Sound::SetMinDistance( float Distance )
+{
+	if ( handle == 0 )		return;
+	alSourcef( handle, AL_REFERENCE_DISTANCE, Distance );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set attenuation
+// ------------------------------------------------------------------------------------ //
+void le::Sound::SetAttenuation( float Attenuation )
+{
+	if ( handle == 0 )		return;
+	alSourcef( handle, AL_ROLLOFF_FACTOR, Attenuation );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Set buffer
 // ------------------------------------------------------------------------------------ //
 void le::Sound::SetBuffer( ISoundBuffer* SoundBuffer )
@@ -67,6 +130,93 @@ void le::Sound::SetBuffer( ISoundBuffer* SoundBuffer )
 
 	soundBuffer = ( le::SoundBuffer* ) SoundBuffer;
 	alSourcei( handle, AL_BUFFER, soundBuffer->GetHandle() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set position
+// ------------------------------------------------------------------------------------ //
+void le::Sound::SetPosition( const Vector3D_t& Position )
+{
+	if ( handle == 0 )		return;
+	alSource3f( handle, AL_POSITION, Position.x, Position.y, Position.z );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Is looped
+// ------------------------------------------------------------------------------------ //
+bool le::Sound::IsLooped() const
+{
+	if ( handle == 0 )		return false;
+
+	ALint			isLoop = 0;
+	alGetSourcei( handle, AL_LOOPING, &isLoop );
+
+	return isLoop != 0;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Is relative to listener
+// ------------------------------------------------------------------------------------ //
+bool le::Sound::IsRelativeToListener() const
+{
+	if ( handle == 0 )		return false;
+
+	ALint			isRelativeToListener = 0;
+	alGetSourcei( handle, AL_SOURCE_RELATIVE, &isRelativeToListener );
+
+	return isRelativeToListener != 0;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get volume
+// ------------------------------------------------------------------------------------ //
+float le::Sound::GetVolume() const
+{
+	if ( handle == 0 )		return 0.f;
+
+	ALfloat			volume = 0.f;
+	alGetSourcef( handle, AL_GAIN, &volume );
+
+	return volume * 100.f;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get pitch
+// ------------------------------------------------------------------------------------ //
+float le::Sound::GetPitch() const
+{
+	if ( handle == 0 )		return 0.f;
+
+	ALfloat			pitch = 0.f;
+	alGetSourcef( handle, AL_PITCH, &pitch );
+
+	return pitch;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get min distance
+// ------------------------------------------------------------------------------------ //
+float le::Sound::GetMinDistance() const
+{
+	if ( handle == 0 )		return 0.f;
+
+	ALfloat			distance = 0.f;
+	alGetSourcef( handle, AL_REFERENCE_DISTANCE, &distance );
+
+	return distance;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get attenuation
+// ------------------------------------------------------------------------------------ //
+float le::Sound::GetAttenuation() const
+{
+	if ( handle == 0 )		return 0.f;
+
+	ALfloat			attenuation = 0.f;
+	alGetSourcef( handle, AL_ROLLOFF_FACTOR, &attenuation );
+
+	return attenuation;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -96,6 +246,19 @@ le::SOUND_STATUS le::Sound::GetStatus() const
 le::ISoundBuffer* le::Sound::GetBuffer() const
 {
 	return soundBuffer;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get position
+// ------------------------------------------------------------------------------------ //
+le::Vector3D_t le::Sound::GetPosition() const
+{
+	if ( handle == 0 )		return Vector3D_t( 0.f, 0.f, 0.f );
+
+	Vector3D_t			position;
+	alGetSource3f( handle, AL_POSITION, &position.x, &position.y, &position.z );
+
+	return position;
 }
 
 // ------------------------------------------------------------------------------------ //

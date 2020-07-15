@@ -21,8 +21,12 @@
 // Constructor
 // ------------------------------------------------------------------------------------ //
 le::AudioDevice::AudioDevice() :
+	listenerVolume( 100.f ),
 	audioDevice( nullptr ),
-	audioContext( nullptr )
+	audioContext( nullptr ),
+	listenerPosition( 0.f, 0.f, 0.f ),
+	listenerDirection( 0.f, 0.f, -1.f ),
+	listenerUp( 0.f, 1.f, 0.f )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -71,6 +75,12 @@ bool le::AudioDevice::Create()
 		g_consoleSystem->PrintInfo( "OpenAL version: %s", alGetString( AL_VERSION ) );
 		g_consoleSystem->PrintInfo( "OpenAL extensions: %s", alGetString( AL_EXTENSIONS ) );
 		g_consoleSystem->PrintInfo( "*** Audio device info end ***" );
+
+		// Initialize listener
+		SetGlobalVolume( listenerVolume );
+		SetListenerPosition( listenerPosition );
+		SetListenerDirection( listenerDirection );
+		SetListenerUp( listenerUp );
 	}
 	catch ( const std::exception& Exception )
 	{
@@ -96,6 +106,54 @@ void le::AudioDevice::Destroy()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Set global volume
+// ------------------------------------------------------------------------------------ //
+void le::AudioDevice::SetGlobalVolume( float Volume )
+{
+	if ( !audioContext ) return;
+
+	alListenerf( AL_GAIN, Volume * 0.01f );
+	listenerVolume = Volume;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set listener position
+// ------------------------------------------------------------------------------------ //
+void le::AudioDevice::SetListenerPosition( const Vector3D_t& Position )
+{
+	if ( !audioContext ) return;
+
+	alListener3f( AL_POSITION, listenerPosition.x, listenerPosition.y, listenerPosition.z );
+	listenerPosition = Position;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set listener direction
+// ------------------------------------------------------------------------------------ //
+void le::AudioDevice::SetListenerDirection( const Vector3D_t& Direction )
+{
+	if ( !audioContext ) return;
+
+	float		orientation[] = { Direction.x, Direction.y, Direction.z, listenerUp.x, listenerUp.y, listenerUp.z };
+	alListenerfv( AL_ORIENTATION, orientation );
+
+	listenerDirection = Direction;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set listener up
+// ------------------------------------------------------------------------------------ //
+void le::AudioDevice::SetListenerUp( const Vector3D_t& Up )
+{
+	if ( !audioContext ) return;
+
+	float		orientation[] = { listenerDirection.x, listenerDirection.y, listenerDirection.z, Up.x, Up.y, Up.z };
+	alListenerfv( AL_ORIENTATION, orientation );
+
+	listenerUp = Up;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Get sample format
 // ------------------------------------------------------------------------------------ //
 le::UInt32_t le::AudioDevice::GetSampleFormat( SAMPLE_FORMAT SampleFormat )
@@ -109,6 +167,38 @@ le::UInt32_t le::AudioDevice::GetSampleFormat( SAMPLE_FORMAT SampleFormat )
 	}
 
 	return 0;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get global volume
+// ------------------------------------------------------------------------------------ //
+float le::AudioDevice::GetGlobalVolume() const
+{
+	return listenerVolume;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get listener position
+// ------------------------------------------------------------------------------------ //
+const le::Vector3D_t& le::AudioDevice::GetListenerPosition() const
+{
+	return listenerPosition;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get listener direction
+// ------------------------------------------------------------------------------------ //
+const le::Vector3D_t& le::AudioDevice::GetListenerDirection() const
+{
+	return listenerDirection;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get listener up
+// ------------------------------------------------------------------------------------ //
+const le::Vector3D_t& le::AudioDevice::GetListenerUp() const
+{
+	return listenerUp;
 }
 
 // ------------------------------------------------------------------------------------ //
