@@ -90,23 +90,27 @@ void Window_ConvertPHY::on_pushButton_Convert_clicked()
 {
 	mass = ui->doubleSpinBox_Mass->value();
 
+	if ( mass == 0 )
+		mass = 10;
+
 	inertia.setX( ui->doubleSpinBox_x->value() );
 	inertia.setY( ui->doubleSpinBox_y->value() );
 	inertia.setZ( ui->doubleSpinBox_z->value() );
 
 	QProcess			process;
-	std::stringstream	arguments;
+	QStringList			arguments;
 
-	arguments << "-s " << inputPath.toStdString() << " -o " << outputPath.toStdString();
-	arguments << " -c" << " -m " << mass << " -i " << inertia.x() << " " << inertia.y() << " " << inertia.z();
+	arguments << "-s" << inputPath << "-o" << outputPath;
+	arguments << "-m" << QString::number( mass ) << "-i" << QString::number( inertia.x() ) << " " << QString::number( inertia.y() )
+		<< QString::number( inertia.z() );
 
 	if ( isStatic )
-		arguments << " -static";
-	if ( isHullShape )
-		arguments << " -ghs";
+		arguments << "-static";
 
-	qDebug() << QStringList() <<  arguments.str().c_str();
-	qDebug() << process.execute( "lmdl.exe", QStringList() << arguments.str().c_str() );
+	if ( isHullShape )
+		arguments << "-ghs";
+
+	process.execute( "lmdl", arguments );
 	process.waitForFinished();
 	this->close();
 }
