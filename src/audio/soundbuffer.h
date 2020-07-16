@@ -33,7 +33,8 @@ namespace le
 
 		// ISoundBuffer		
 		virtual void			Create();
-		virtual void			Append( SAMPLE_FORMAT SampleFormat, const void* Samples, UInt32_t SamplesSize, UInt32_t SampleRate );
+		virtual void			Append( IParserSoundBuffer* ParserSoundBuffer );
+		virtual void			Append( SAMPLE_FORMAT SampleFormat, const Byte_t* Samples, UInt32_t SamplesSize, UInt32_t SampleRate );
 		virtual void			Delete();
 		
 		virtual UInt32_t		GetCountSamples() const;

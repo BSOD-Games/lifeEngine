@@ -15,6 +15,11 @@
 
 //---------------------------------------------------------------------//
 
+struct OggVorbis_File;
+struct vorbis_info;
+
+//---------------------------------------------------------------------//
+
 namespace le
 {
 	//---------------------------------------------------------------------//
@@ -23,6 +28,8 @@ namespace le
 	{
 	public:
 		// IParser
+		virtual void				Release();
+
 		virtual const char*			GetVersion() const;
 		virtual const char*			GetName() const;
 		virtual UInt32_t			GetCountFileExtensions() const;
@@ -30,8 +37,29 @@ namespace le
 		virtual const char*			GetAuthor() const;
 
 		// IParserSoundBuffer
-		virtual ISoundBuffer*		Open( const char* Path, IFactory* AudioSystemFactory );
-		virtual ISoundBuffer*		Read( const char* Path, IFactory* AudioSystemFactory );
+		ParserSoundBufferOGG();
+		~ParserSoundBufferOGG();
+
+		virtual bool				Open( const char* Path );
+		virtual void				Close();
+		virtual void				Seek( UInt64_t SampleOffset );
+		virtual UInt64_t			Read( Byte_t* Samples, UInt64_t MaxSize );
+
+		virtual bool				IsOpened() const;
+		virtual UInt64_t			GetSampleCount() const;
+		virtual UInt32_t			GetSampleRate() const;
+		virtual UInt64_t			GetSampleOffset() const;
+		virtual SAMPLE_FORMAT		GetSampleFormat() const;
+
+	private:
+		SAMPLE_FORMAT			sampleFormat;
+		UInt32_t				sampleRate;
+		UInt64_t				sampleCount;
+		UInt64_t				sampleOffset;
+		UInt32_t				channelCount;
+
+		OggVorbis_File*			oggVorbisFile;
+		vorbis_info*			vorbisInfo;
 	};
 
 	//---------------------------------------------------------------------//

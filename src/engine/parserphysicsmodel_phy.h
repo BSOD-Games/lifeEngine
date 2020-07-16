@@ -23,6 +23,8 @@ namespace le
 	{
 	public:
 		// IParser
+		virtual void					Release();
+
 		virtual const char*				GetVersion() const;
 		virtual const char*				GetName() const;
 		virtual UInt32_t				GetCountFileExtensions() const;

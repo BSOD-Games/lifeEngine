@@ -17,17 +17,6 @@
 
 #include "engine/iresourcesysteminternal.h"
 
-#include "parsergpuprogram_shader.h"
-#include "parserfont_freetype.h"
-#include "parserimage_freeimage.h"
-#include "parserlevel_bsp.h"
-#include "parsermaterial_lmt.h"
-#include "parsermesh_mdl.h"
-#include "parserphysicsmodel_phy.h"
-#include "parserscript_c.h"
-#include "parsertexture_freeimage.h"
-#include "parsersoundbuffer_ogg.h"
-
 //---------------------------------------------------------------------//
 
 namespace le
@@ -44,16 +33,16 @@ namespace le
 	{
 	public:
 		// IResourceSystem
-		virtual void					RegisterLoader( IParserImage* ParserImage );
-		virtual void					RegisterLoader( IParserTexture* ParserTexture );
-		virtual void					RegisterLoader( IParserMaterial* ParserMaterial );
-		virtual void					RegisterLoader( IParserMesh* ParserMesh );
-		virtual void					RegisterLoader( IParserLevel* ParserLevel );
-		virtual void					RegisterLoader( IParserFont* ParserFont );
-		virtual void					RegisterLoader( IParserScript* ParserScript );
-		virtual void					RegisterLoader( IParserPhysicsModel* ParserPhysicsModel );
-		virtual void					RegisterLoader( IParserGPUProgram* ParserGPUProgram );
-		virtual void					RegisterLoader( IParserSoundBuffer* ParserSoundBuffer );
+		virtual void					RegisterLoader( CreateParserImageFn_t CreateParserImage );
+		virtual void					RegisterLoader( CreateParserTextureFn_t CreateParserTexture );
+		virtual void					RegisterLoader( CreateParserMaterialFn_t CreateParserMaterial );
+		virtual void					RegisterLoader( CreateParserMeshFn_t CreateParserMesh );
+		virtual void					RegisterLoader( CreateParserLevelFn_t CreateParserLevel );
+		virtual void					RegisterLoader( CreateParserFontFn_t CreateParserFont );
+		virtual void					RegisterLoader( CreateParserScriptFn_t CreateParserScript );
+		virtual void					RegisterLoader( CreateParserPhysicsModelFn_t CreateParserPhysicsModel );
+		virtual void					RegisterLoader( CreateParserGPUProgramFn_t CreateParserGPUProgram );
+		virtual void					RegisterLoader( CreateParserSoundBufferFn_t CreateParserSoundBuffer );
 
 		virtual Image					LoadImage( const char* Path, bool& IsError, bool IsFlipVertical = false, bool IsSwitchRedAndBlueChannels = false );
 		virtual ITexture*				LoadTexture( const char* Name, const char* Path );
@@ -65,6 +54,7 @@ namespace le
 		virtual IPhysicsModel*			LoadPhysicsModel( const char* Name, const char* Path );
 		virtual IGPUProgram*			LoadGPUProgram( const char* Name, const char* Path, UInt32_t Flags = 0, UInt32_t CountDefines = 0, const char** Defines = nullptr );
 		virtual ISoundBuffer*			LoadSoundBuffer( const char* Name, const char* Path );
+		virtual ISoundBuffer*			OpenSoundBuffer( const char* Name, const char* Path );
 		virtual void					UnloadImage( Image& Image );
 		virtual void					UnloadTexture( const char* Name );
 		virtual void					UnloadMaterial( const char* Name );
@@ -113,16 +103,16 @@ namespace le
 	private:
 		inline std::string						GetFormatFile( const std::string& Route );
 
-		typedef			std::unordered_map< std::string, IParserImage* >									LoaderImageMap_t;
-		typedef			std::unordered_map< std::string, IParserTexture* >									LoaderTextureMap_t;
-		typedef			std::unordered_map< std::string, IParserMaterial* >									LoaderMaterialMap_t;
-		typedef			std::unordered_map< std::string, IParserMesh* >										LoaderMeshMap_t;
-		typedef			std::unordered_map< std::string, IParserLevel* >									LoaderLevelMap_t;
-		typedef			std::unordered_map< std::string, IParserFont* >										LoaderFontMap_t;
-		typedef			std::unordered_map< std::string, IParserScript* >									LoaderScriptMap_t;
-		typedef			std::unordered_map< std::string, IParserPhysicsModel* >								LoaderPhysicsModelMap_t;
-		typedef			std::unordered_map< std::string, IParserGPUProgram* >								LoaderGPUProgramMap_t;
-		typedef			std::unordered_map< std::string, IParserSoundBuffer* >								LoaderSoundBufferMap_t;
+		typedef			std::unordered_map< std::string, CreateParserImageFn_t >							LoaderImageMap_t;
+		typedef			std::unordered_map< std::string, CreateParserTextureFn_t >							LoaderTextureMap_t;
+		typedef			std::unordered_map< std::string, CreateParserMaterialFn_t >							LoaderMaterialMap_t;
+		typedef			std::unordered_map< std::string, CreateParserMeshFn_t >								LoaderMeshMap_t;
+		typedef			std::unordered_map< std::string, CreateParserLevelFn_t >							LoaderLevelMap_t;
+		typedef			std::unordered_map< std::string, CreateParserFontFn_t >								LoaderFontMap_t;
+		typedef			std::unordered_map< std::string, CreateParserScriptFn_t >							LoaderScriptMap_t;
+		typedef			std::unordered_map< std::string, CreateParserPhysicsModelFn_t >						LoaderPhysicsModelMap_t;
+		typedef			std::unordered_map< std::string, CreateParserGPUProgramFn_t >						LoaderGPUProgramMap_t;
+		typedef			std::unordered_map< std::string, CreateParserSoundBufferFn_t >						LoaderSoundBufferMap_t;
 		typedef			std::unordered_map< std::string, ITexture* >										TextureMap_t;
 		typedef			std::unordered_map< std::string, IMaterial* >										MaterialMap_t;
 		typedef			std::unordered_map< std::string, IMesh* >											MeshMap_t;
@@ -149,17 +139,6 @@ namespace le
 		LoaderPhysicsModelMap_t		loaderPhysicsModels;
 		LoaderGPUProgramMap_t		loaderGPUProgram;
 		LoaderSoundBufferMap_t		loaderSoundBuffers;
-
-		ParserFontFreeType			parserFontFreeType;
-		ParserGPUProgramShader		parserGPUProgramShader;
-		ParserImageFreeImage		parserImageFreeImage;
-		ParserLevelBSP				parserLevelBSP;
-		ParserMaterialLMT			parserMaterialLMT;
-		ParserMeshMDL				parserMeshMDL;
-		ParserPhysicsModelPHY		parserPhysicsModelPHY;
-		ParserScriptC				parserScriptC;
-		ParserTextureFreeImage		parserTextureFreeImage;
-		ParserSoundBufferOGG		parserSoundBufferOGG;
 
 		TextureMap_t				textures;
 		MaterialMap_t				materials;

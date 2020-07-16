@@ -23,14 +23,16 @@ namespace le
 	{
 	public:
 		// IParser
-		virtual const char*					GetVersion() const;
-		virtual const char*					GetName() const;
-		virtual UInt32_t					GetCountFileExtensions() const;
-		virtual const char**				GetFileExtensions() const;
-		virtual const char*					GetAuthor() const;
+		virtual void					Release();
+
+		virtual const char*				GetVersion() const;
+		virtual const char*				GetName() const;
+		virtual UInt32_t				GetCountFileExtensions() const;
+		virtual const char**			GetFileExtensions() const;
+		virtual const char*				GetAuthor() const;
 
 		// IParserMaterial
-		virtual IMaterial*					Read( const char* Path, IResourceSystem* ResourceSystem, IMaterialSystem* MaterialSystem, IFactory* EngineFactory );
+		virtual IMaterial*				Read( const char* Path, IResourceSystem* ResourceSystem, IMaterialSystem* MaterialSystem, IFactory* EngineFactory );
 	};
 
 	//---------------------------------------------------------------------//

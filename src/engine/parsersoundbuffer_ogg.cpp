@@ -12,11 +12,17 @@
 #include <vorbisenc.h>
 #include <ogg/ogg.h>
 
-#include "audio/isoundbuffer.h"
-
 #include "global.h"
 #include "consolesystem.h"
 #include "parsersoundbuffer_ogg.h"
+
+// ------------------------------------------------------------------------------------ //
+// Release
+// ------------------------------------------------------------------------------------ //
+void le::ParserSoundBufferOGG::Release()
+{
+	delete this;
+}
 
 // ------------------------------------------------------------------------------------ //
 // Get version
@@ -60,49 +66,144 @@ const char* le::ParserSoundBufferOGG::GetAuthor() const
 }
 
 // ------------------------------------------------------------------------------------ //
+// Constructor
+// ------------------------------------------------------------------------------------ //
+le::ParserSoundBufferOGG::ParserSoundBufferOGG() :
+	oggVorbisFile( nullptr ),
+	vorbisInfo( nullptr ),
+	sampleCount( 0 ),
+	sampleRate( 0 ),
+	sampleOffset( 0 ),
+	channelCount( 0 )
+{}
+
+// ------------------------------------------------------------------------------------ //
+// Destructor
+// ------------------------------------------------------------------------------------ //
+le::ParserSoundBufferOGG::~ParserSoundBufferOGG()
+{
+	if ( IsOpened() )		Close();
+}
+
+// ------------------------------------------------------------------------------------ //
 // Open
 // ------------------------------------------------------------------------------------ //
-le::ISoundBuffer* le::ParserSoundBufferOGG::Open( const char* Path, IFactory* AudioSystemFactory )
+bool le::ParserSoundBufferOGG::Open( const char* Path )
 {
-	g_consoleSystem->PrintWarning( "le::ParserSoundBufferOGG::Open( const char*, IFactory* ) - not implemented" );
-	return nullptr;
+	oggVorbisFile = new OggVorbis_File();
+	if ( ov_fopen( Path, oggVorbisFile ) < 0 )
+	{
+		g_consoleSystem->PrintError( "Failed open sound buffer" );
+
+		Close();
+		return false;
+	}
+
+	vorbisInfo = ov_info( oggVorbisFile, -1 );
+	channelCount = vorbisInfo->channels;
+	sampleFormat = vorbisInfo->channels == 1 ? le::SF_MONO16 : le::SF_STEREO16;
+	sampleRate = vorbisInfo->rate;
+	sampleCount = ov_pcm_total( oggVorbisFile, -1 ) * vorbisInfo->channels * 2;
+
+	return true;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Close
+// ------------------------------------------------------------------------------------ //
+void le::ParserSoundBufferOGG::Close()
+{
+	if ( vorbisInfo )		vorbis_info_clear( vorbisInfo );
+	if ( oggVorbisFile )
+	{
+		ov_clear( oggVorbisFile );
+		delete oggVorbisFile;
+	}
+
+	oggVorbisFile = nullptr;
+	vorbisInfo = nullptr;
+	sampleCount = 0;
+	sampleOffset = 0;
+	sampleRate = 0;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Seek
+// ------------------------------------------------------------------------------------ //
+void le::ParserSoundBufferOGG::Seek( UInt64_t SampleOffset )
+{
+	if ( !oggVorbisFile ) return;
+
+	sampleOffset = SampleOffset;
+	ov_pcm_seek( oggVorbisFile, sampleOffset / channelCount );
 }
 
 // ------------------------------------------------------------------------------------ //
 // Read
 // ------------------------------------------------------------------------------------ //
-le::ISoundBuffer* le::ParserSoundBufferOGG::Read( const char* Path, IFactory* AudioSystemFactory )
+le::UInt64_t le::ParserSoundBufferOGG::Read( Byte_t * Samples, UInt64_t MaxSize )
 {
-	OggVorbis_File		oggVorbisFile;
-	if ( ov_fopen( Path, &oggVorbisFile ) < 0 )
+	if ( !IsOpened() || !Samples )		return 0;
+
+	// Try to read the requested number of samples, stop only on error or end of file
+	UInt64_t			size = 0;
+	while ( size < MaxSize )
 	{
-		g_consoleSystem->PrintError( "Failed open sound buffer" );
-		return nullptr;
+		UInt64_t		bytesToRead = ( MaxSize - size ) * sizeof( Byte_t );
+		long			bytesRead = ov_read( oggVorbisFile, ( char* ) Samples, bytesToRead, 0, 2, 1, nullptr );
+
+		if ( bytesRead > 0 )
+		{
+			long		samplesRead = bytesRead / sizeof( Byte_t );
+			size += samplesRead;
+			Samples += samplesRead;
+		}
+		else
+		{
+			// error or end of file
+			break;
+		}
 	}
 
-	vorbis_info*		vorbisInfo = ov_info( &oggVorbisFile, -1 );
+	return size;
+}
 
-	le::UInt32_t		sizeData = ov_pcm_total( &oggVorbisFile, -1 ) * vorbisInfo->channels * 2;
-	le::UInt16_t*		data = ( le::UInt16_t* ) malloc( sizeData );
+// ------------------------------------------------------------------------------------ //
+// Is opened
+// ------------------------------------------------------------------------------------ //
+bool le::ParserSoundBufferOGG::IsOpened() const
+{
+	return oggVorbisFile;
+}
 
-	le::UInt32_t		offset = 0;
-	le::UInt32_t		size = 0;
-	le::UInt32_t		sel = 0;
+// ------------------------------------------------------------------------------------ //
+// Get sample count
+// ------------------------------------------------------------------------------------ //
+le::UInt64_t le::ParserSoundBufferOGG::GetSampleCount() const
+{
+	return sampleCount;
+}
 
-	do
-	{
-		size = ov_read( &oggVorbisFile, ( char* ) data + offset, 4096, 0, 2, 1, ( int* ) &sel );
-		offset += size;
-	}
-	while ( size != 0 );
+// ------------------------------------------------------------------------------------ //
+// Get sample rate
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::ParserSoundBufferOGG::GetSampleRate() const
+{
+	return sampleRate;
+}
 
-	le::ISoundBuffer* soundBuffer = ( le::ISoundBuffer* ) AudioSystemFactory->Create( SOUNDBUFFER_INTERFACE_VERSION );
-	soundBuffer->IncrementReference();
-	soundBuffer->Create();
-	soundBuffer->Append( vorbisInfo->channels == 1 ? le::SF_MONO16 : le::SF_STEREO16, data, sizeData, vorbisInfo->rate );
+// ------------------------------------------------------------------------------------ //
+// Get sample offset
+// ------------------------------------------------------------------------------------ //
+le::UInt64_t le::ParserSoundBufferOGG::GetSampleOffset() const
+{
+	return sampleOffset;
+}
 
-	free( data );
-	vorbis_info_clear( vorbisInfo );
-	ov_clear( &oggVorbisFile );
-	return soundBuffer;
+// ------------------------------------------------------------------------------------ //
+// Get sample format
+// ------------------------------------------------------------------------------------ //
+le::SAMPLE_FORMAT le::ParserSoundBufferOGG::GetSampleFormat() const
+{
+	return sampleFormat;
 }

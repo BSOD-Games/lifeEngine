@@ -42,22 +42,33 @@ namespace le
 	class IGPUProgram;
 	class ISoundBuffer;
 
+	typedef IParserImage*			( *CreateParserImageFn_t )();
+	typedef IParserTexture*			( *CreateParserTextureFn_t )( );
+	typedef IParserMaterial*		( *CreateParserMaterialFn_t )( );
+	typedef IParserMesh*			( *CreateParserMeshFn_t )( );
+	typedef IParserLevel*			( *CreateParserLevelFn_t )( );
+	typedef IParserFont*			( *CreateParserFontFn_t )( );
+	typedef IParserScript*			( *CreateParserScriptFn_t )( );
+	typedef IParserPhysicsModel*	( *CreateParserPhysicsModelFn_t )( );
+	typedef IParserGPUProgram*		( *CreateParserGPUProgramFn_t )( );
+	typedef IParserSoundBuffer*		( *CreateParserSoundBufferFn_t )( );
+
 	//---------------------------------------------------------------------//
 
 	class IResourceSystem
 	{
 	public:
 		virtual ~IResourceSystem() {}
-		virtual void					RegisterLoader( IParserImage* ParserImage ) = 0;
-		virtual void					RegisterLoader( IParserTexture* ParserTexture ) = 0;
-		virtual void					RegisterLoader( IParserMaterial* ParserMaterial ) = 0;
-		virtual void					RegisterLoader( IParserMesh* ParserMesh ) = 0;
-		virtual void					RegisterLoader( IParserLevel* ParserLevel ) = 0;
-		virtual void					RegisterLoader( IParserFont* ParserFont ) = 0;
-		virtual void					RegisterLoader( IParserScript* ParserScript ) = 0;
-		virtual void					RegisterLoader( IParserPhysicsModel* ParserPhysicsModel ) = 0;
-		virtual void					RegisterLoader( IParserGPUProgram* ParserGPUProgram ) = 0;
-		virtual void					RegisterLoader( IParserSoundBuffer* ParserSoundBuffer ) = 0;
+		virtual void					RegisterLoader( CreateParserImageFn_t CreateParserImage ) = 0;
+		virtual void					RegisterLoader( CreateParserTextureFn_t CreateParserTexture ) = 0;
+		virtual void					RegisterLoader( CreateParserMaterialFn_t CreateParserMaterial ) = 0;
+		virtual void					RegisterLoader( CreateParserMeshFn_t CreateParserMesh ) = 0;
+		virtual void					RegisterLoader( CreateParserLevelFn_t CreateParserLevel ) = 0;
+		virtual void					RegisterLoader( CreateParserFontFn_t CreateParserFont ) = 0;
+		virtual void					RegisterLoader( CreateParserScriptFn_t CreateParserScript ) = 0;
+		virtual void					RegisterLoader( CreateParserPhysicsModelFn_t CreateParserPhysicsModel ) = 0;
+		virtual void					RegisterLoader( CreateParserGPUProgramFn_t CreateParserGPUProgram ) = 0;
+		virtual void					RegisterLoader( CreateParserSoundBufferFn_t CreateParserSoundBuffer ) = 0;
 
 		virtual Image					LoadImage( const char* Path, bool& IsError, bool IsFlipVertical = false, bool IsSwitchRedAndBlueChannels = false ) = 0;
 		virtual ITexture*				LoadTexture( const char* Name, const char* Path ) = 0;
@@ -69,6 +80,7 @@ namespace le
 		virtual IPhysicsModel*			LoadPhysicsModel( const char* Name, const char* Path ) = 0;
 		virtual IGPUProgram*			LoadGPUProgram( const char* Name, const char* Path, UInt32_t Flags = 0, UInt32_t CountDefines = 0, const char** Defines = nullptr ) = 0;
 		virtual ISoundBuffer*			LoadSoundBuffer( const char* Name, const char* Path ) = 0;
+		virtual ISoundBuffer*			OpenSoundBuffer( const char* Name, const char* Path ) = 0;
 		virtual void					UnloadImage( Image& Image ) = 0;
 		virtual void					UnloadTexture( const char* Name ) = 0;
 		virtual void					UnloadMaterial( const char* Name ) = 0;

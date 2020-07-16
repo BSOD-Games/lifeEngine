@@ -11,6 +11,8 @@
 #include <al.h>
 #include <alc.h>
 
+#include "engine/iparsersoundbuffer.h"
+
 #include "global.h"
 #include "audiodevice.h"
 #include "soundbuffer.h"
@@ -74,14 +76,22 @@ void le::SoundBuffer::Create()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Append streem
+// ------------------------------------------------------------------------------------ //
+void le::SoundBuffer::Append( IParserSoundBuffer* ParserSoundBuffer )
+{
+	g_consoleSystem->PrintWarning( " le::SoundBuffer::Append( IParserSoundBuffer* ) - not implemented" );
+	ParserSoundBuffer->Release();
+}
+
+// ------------------------------------------------------------------------------------ //
 // Append
 // ------------------------------------------------------------------------------------ //
-void le::SoundBuffer::Append( SAMPLE_FORMAT SampleFormat, const void* Samples, UInt32_t SamplesSize, UInt32_t SampleRate )
+void le::SoundBuffer::Append( SAMPLE_FORMAT SampleFormat, const Byte_t* Samples, UInt32_t SamplesSize, UInt32_t SampleRate )
 {
 	if ( handle == 0 || !Samples )		return;
 	
-	alBufferData( handle, AudioDevice::GetSampleFormat( SampleFormat ), Samples, SamplesSize, SampleRate );
-	
+	alBufferData( handle, AudioDevice::GetSampleFormat( SampleFormat ), Samples, SamplesSize, SampleRate );	
 	sampleRate = SampleRate;
 }
 

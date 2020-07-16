@@ -23,6 +23,8 @@ namespace le
 	{
 	public:
 		// IParser
+		virtual void					Release();
+
 		virtual const char*				GetVersion() const;
 		virtual const char*				GetName() const;
 		virtual UInt32_t				GetCountFileExtensions() const;
@@ -33,8 +35,8 @@ namespace le
 		virtual IFont*					Read( const char* Path );
 
 		// ParserFontFreeType
-		bool		InitializeFreeType();
-		void		UninitializeFreeType();
+		static bool						InitializeFreeType();
+		static void						UninitializeFreeType();
 	};
 
 	//---------------------------------------------------------------------//
