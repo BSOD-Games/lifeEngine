@@ -60,7 +60,7 @@ bool le::FontFreeType::InitializeFreeType()
         g_consoleSystem->PrintError( "Could not init FreeType library" );
         return false;
     }
-
+     
     g_consoleSystem->PrintInfo( "FreeType library intialized" );
     FontFreeType::ftLibrary = ftLibrary;
     return true;
@@ -192,6 +192,22 @@ void le::FontFreeType::Unload()
     ftFace = nullptr;
     familyName = "";
     pages.clear();
+}
+
+// ------------------------------------------------------------------------------------ //
+//  Get FreeType version
+// ------------------------------------------------------------------------------------ //
+void le::FontFreeType::GetFreeTypeVersion( UInt32_t& Major, UInt32_t& Minor, UInt32_t& Path )
+{
+    if ( !ftLibrary )
+    {
+        Major = 0;
+        Minor = 0;
+        Path = 0;
+        return;
+    }
+
+    FT_Library_Version( ( FT_Library ) ftLibrary, ( FT_Int* ) &Major, ( FT_Int* ) &Minor, ( FT_Int* ) &Path );
 }
 
 // ------------------------------------------------------------------------------------ //

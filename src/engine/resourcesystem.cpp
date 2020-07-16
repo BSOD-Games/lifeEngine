@@ -11,722 +11,26 @@
 #include <exception>
 #include <fstream>
 #include <algorithm>
-#include <FreeImage.h>
-#include <rapidjson/rapidjson.h>
-#include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
-#include <vorbisfile.h>
-#include <vorbisenc.h>
-#include <ogg/ogg.h>
 
-#include "common/image.h"
-#include "common/meshsurface.h"
-#include "common/meshdescriptor.h"
 #include "engine/lifeengine.h"
-#include "engine/engine.h"
-#include "engine/imaterialproxy.h"
-#include "engine/materialproxyvar.h"
-#include "engine/script.h"
-#include "physics/iphysicsmodel.h"
+#include "engine/iengine.h"
+#include "engine/ifont.h"
+#include "engine/imaterial.h"
+#include "engine/iscript.h"
+#include "engine/ilevel.h"
 #include "studiorender/istudiorender.h"
+#include "studiorender/igpuprogram.h"
 #include "studiorender/itexture.h"
 #include "studiorender/imesh.h"
-#include "studiorender/studiovertexelement.h"
-#include "studiorender/studiorendersampler.h"
-#include "studiorender/igpuprogram.h"
+#include "physics/iphysicsmodel.h"
 #include "audio/iaudiosystem.h"
 #include "audio/isoundbuffer.h"
 
 #include "global.h"
-#include "phydoc.h"
-#include "mdldoc.h"
-#include "lmtdoc.h"
+#include "materialsystem.h"
+#include "scriptsystem.h"
 #include "consolesystem.h"
 #include "resourcesystem.h"
-#include "level.h"
-#include "fontfreetype.h"
-#include "material.h"
-#include "shaderparameter.h"
-#include "materialproxyfactory.h"
-#include "materialsystem.h"
-
-// ------------------------------------------------------------------------------------ //
-// Загрузить изображение
-// ------------------------------------------------------------------------------------ //
-void LE_LoadImage( const char* Path, le::Image& Image, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels )
-{
-	IsError = false;
-	FREE_IMAGE_FORMAT		imageFormat = FIF_UNKNOWN;
-	imageFormat = FreeImage_GetFileType( Path, 0 );
-
-	if ( imageFormat == FIF_UNKNOWN )
-		imageFormat = FreeImage_GetFIFFromFilename( Path );
-
-	FIBITMAP* bitmap = FreeImage_Load( imageFormat, Path, 0 );
-	if ( !bitmap )
-	{
-		IsError = true;
-		return;
-	}
-
-	if ( IsFlipVertical )				FreeImage_FlipVertical( bitmap );
-	if ( IsSwitchRedAndBlueChannels )
-	{
-		auto		red = FreeImage_GetChannel( bitmap, FREE_IMAGE_COLOR_CHANNEL::FICC_RED );
-		auto		blue = FreeImage_GetChannel( bitmap, FREE_IMAGE_COLOR_CHANNEL::FICC_BLUE );
-
-		FreeImage_SetChannel( bitmap, blue, FREE_IMAGE_COLOR_CHANNEL::FICC_RED );
-		FreeImage_SetChannel( bitmap, red, FREE_IMAGE_COLOR_CHANNEL::FICC_BLUE );
-
-		FreeImage_Unload( red );
-		FreeImage_Unload( blue );
-	}
-
-	le::UInt8_t* tempData = FreeImage_GetBits( bitmap );
-	Image.width = FreeImage_GetWidth( bitmap );
-	Image.height = FreeImage_GetHeight( bitmap );
-	Image.depth = FreeImage_GetBPP( bitmap );
-	Image.pitch = FreeImage_GetPitch( bitmap );
-
-	Image.data = ( le::UInt8_t* ) malloc( Image.pitch * Image.height );
-	memcpy( Image.data, tempData, Image.pitch * Image.height );
-
-	Image.rMask = 0x00ff0000;
-	Image.gMask = 0x0000ff00;
-	Image.bMask = 0x000000ff;
-	Image.aMask = ( Image.depth == 24 ) ? 0 : 0xff000000;
-
-	FreeImage_Unload( bitmap );
-	return;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Загрузить текстуру
-// ------------------------------------------------------------------------------------ //
-le::ITexture* LE_LoadTexture( const char* Path, le::IFactory* StudioRenderFactory )
-{
-	bool				isError = false;
-	le::Image			image;
-
-	LE_LoadImage( Path, image, isError, false, true );
-	if ( isError )			return nullptr;
-
-	le::ITexture* texture = ( le::ITexture* ) StudioRenderFactory->Create( TEXTURE_INTERFACE_VERSION );
-	if ( !texture )			return nullptr;
-
-	texture->Initialize( le::TT_2D, image.aMask > 0 ? le::IF_RGBA_8UNORM : le::IF_RGB_8UNORM, image.width, image.height );
-	texture->Bind();
-	texture->Append( image.data );
-	texture->GenerateMipmaps();
-
-	le::StudioRenderSampler			sampler;
-	sampler.minFilter = le::SF_LINEAR_MIPMAP_LINEAR;
-	sampler.magFilter = le::SF_LINEAR;
-	texture->SetSampler( sampler );
-
-	texture->Unbind();
-
-	delete[] image.data;
-	return texture;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Загрузить материал
-// ------------------------------------------------------------------------------------ //
-le::IMaterial* LE_LoadMaterial( const char* Path, le::IResourceSystem* ResourceSystem, le::IMaterialSystem* MaterialSystem, le::IFactory* EngineFactory )
-{
-	LMTDoc			lmtDoc;
-	if ( !lmtDoc.Load( Path ) )				return nullptr;
-
-	// Create material and set surface name and shader
-	le::Material*		material = new le::Material();
-	material->SetSurfaceName( lmtDoc.GetSurface().c_str() );
-	material->SetShader( lmtDoc.GetShader().c_str() );
-
-	// Set cullface type
-	switch ( lmtDoc.GetCullfaceType() )
-	{
-	case LMTDoc::CT_BACK:		material->SetCullFaceType( le::CT_BACK );	break;
-	case LMTDoc::CT_FRONT:		material->SetCullFaceType( le::CT_FRONT );	break;
-	}
-
-	// Set settings material
-	material->EnableBlend( lmtDoc.IsEnabledBlend() );
-	material->EnableCullFace( lmtDoc.IsEnabledCullFace() );
-	material->EnableDepthTest( lmtDoc.IsEnabledDepthTest() );
-	material->EnableDepthWrite( lmtDoc.IsEnabledDepthWrite() );
-
-	// Getting shader parameters
-	const std::vector< LMTParameter >&			shaderParameters = lmtDoc.GetParameters();
-	if ( !shaderParameters.empty() )
-		for ( le::UInt32_t index = 0, count = shaderParameters.size(); index < count; ++index )
-		{
-			const LMTParameter&			parameter = shaderParameters[ index ];
-			le::ShaderParameter*		shaderParameter = new le::ShaderParameter();
-
-			le::SHADER_PARAMETER_TYPE			shaderParameterType;
-			switch ( parameter.GetType() )
-			{
-			case LMTParameter::PT_INT:			shaderParameterType = le::SPT_INT;			break;
-			case LMTParameter::PT_FLOAT:		shaderParameterType = le::SPT_FLOAT;		break;
-			case LMTParameter::PT_BOOL:			shaderParameterType = le::SPT_SHADER_FLAG;	break;
-			case LMTParameter::PT_TEXTURE:		shaderParameterType = le::SPT_TEXTURE;		break;
-			case LMTParameter::PT_COLOR:		shaderParameterType = le::SPT_COLOR;		break;
-			case LMTParameter::PT_VECTOR_2D:	shaderParameterType = le::SPT_VECTOR_2D;	break;
-			case LMTParameter::PT_VECTOR_3D:	shaderParameterType = le::SPT_VECTOR_3D;	break;
-			case LMTParameter::PT_VECTOR_4D:	shaderParameterType = le::SPT_VECTOR_4D;	break;
-			default:							delete shaderParameter;						continue;
-			}
-
-			shaderParameter->SetName( parameter.GetName().c_str() );
-
-			switch ( shaderParameterType )
-			{
-			case le::SPT_INT:			shaderParameter->SetValueInt( parameter.GetValueInt() );			break;
-			case le::SPT_FLOAT:			shaderParameter->SetValueFloat( parameter.GetValueFloat() );		break;
-			case le::SPT_SHADER_FLAG:	shaderParameter->SetValueShaderFlag( parameter.GetValueBool() );	break;
-			case le::SPT_TEXTURE:
-			{
-				std::string				path = parameter.GetValueTexture();
-				le::ITexture*			texture = ResourceSystem->LoadTexture( path.c_str(), path.c_str() );
-				if ( !texture )
-				{
-					delete shaderParameter;
-					continue;
-				}
-
-				shaderParameter->SetValueTexture( texture );
-				break;
-			}
-			case le::SPT_COLOR:
-			{
-				LMTColor			color = parameter.GetValueColor();
-				shaderParameter->SetValueColor( le::Color_t( color.r, color.g, color.b, color.a ) );
-				break;
-			}
-			case le::SPT_VECTOR_2D:
-			{
-				LMTVector2D		vec2d = parameter.GetValueVector2D();
-				shaderParameter->SetValueVector2D( le::Vector2D_t( vec2d.x, vec2d.y ) );
-				break;
-			}
-			case le::SPT_VECTOR_3D:
-			{
-				LMTVector3D		vec3d = parameter.GetValueVector3D();
-				shaderParameter->SetValueVector3D( le::Vector3D_t( vec3d.x, vec3d.y, vec3d.z ) );
-				break;
-			}
-			case le::SPT_VECTOR_4D:
-			{
-				LMTVector4D		vec4d = parameter.GetValueVector4D();
-				shaderParameter->SetValueVector4D( le::Vector4D_t( vec4d.x, vec4d.y, vec4d.z, vec4d.w ) );
-				break;
-			}
-			}
-
-			material->AddParameter( shaderParameter );
-		}
-
-	// Getting proxes
-	const std::vector< LMTProxy >&			proxes = lmtDoc.GetProxes();
-	if ( !proxes.empty() )
-		for ( le::UInt32_t index = 0, count = proxes.size(); index < count; ++index )
-		{
-			const LMTProxy&				lmtProxy = proxes[ index ];
-			auto&						lmtProxyParameters = lmtProxy.GetParameters();
-			le::IMaterialProxy*			materialProxy = static_cast< le::MaterialProxyFactory* >( MaterialSystem->GetMaterialProxyFactory() )->Create( lmtProxy.GetName().c_str() );
-			if ( !materialProxy )		continue;
-
-			for ( le::UInt32_t indexParameter = 0, countParameters = lmtProxyParameters.size(); indexParameter < countParameters; ++indexParameter )
-			{
-				const LMTProxyParameter&		lmtProxyParameter = lmtProxyParameters[ indexParameter ];
-				le::MaterialProxyVar*			proxyParameter = new le::MaterialProxyVar();
-
-				le::MATERIAL_PROXY_VAR_TYPE		proxyParameterType = le::MPVT_NONE;
-				switch ( lmtProxyParameter.GetType() )
-				{
-				case LMTProxyParameter::PT_BOOL:				proxyParameterType = le::MPVT_BOOL;					break;
-				case LMTProxyParameter::PT_INT:					proxyParameterType = le::MPVT_INT;					break;
-				case LMTProxyParameter::PT_FLOAT:				proxyParameterType = le::MPVT_FLOAT;				break;
-				case LMTProxyParameter::PT_SHADER_PARAMETER:	proxyParameterType = le::MPVT_SHADER_PARAMETER;		break;
-				case LMTProxyParameter::PT_VECTOR_2D:			proxyParameterType = le::MPVT_VECTOR_2D;			break;
-				case LMTProxyParameter::PT_VECTOR_3D:			proxyParameterType = le::MPVT_VECTOR_3D;			break;
-				case LMTProxyParameter::PT_VECTOR_4D:			proxyParameterType = le::MPVT_VECTOR_4D;			break;
-				}
-
-				proxyParameter->SetName( lmtProxyParameter.GetName().c_str() );
-
-				switch ( proxyParameterType )
-				{
-				case le::MPVT_BOOL:					proxyParameter->SetValueBool( lmtProxyParameter.GetValueBool() );		break;
-				case le::MPVT_INT:					proxyParameter->SetValueInt( lmtProxyParameter.GetValueInt() );			break;
-				case le::MPVT_FLOAT:				proxyParameter->SetValueFloat( lmtProxyParameter.GetValueFloat() );		break;
-				case le::MPVT_SHADER_PARAMETER:
-				{
-					std::string					nameShaderParameter = lmtProxyParameter.GetValueShaderParameter();
-					le::IShaderParameter*		parameter = material->FindParameter( nameShaderParameter.c_str() );
-					if ( !parameter )
-					{
-						delete proxyParameter;
-						continue;
-					}
-
-					proxyParameter->SetValueShaderParameter( parameter );
-					break;
-				}
-				case le::MPVT_VECTOR_2D:
-				{
-					LMTVector2D			vec2d = lmtProxyParameter.GetValueVector2D();
-					proxyParameter->SetValueVector2D( le::Vector2D_t( vec2d.x, vec2d.y ) );
-					break;
-				}
-				case le::MPVT_VECTOR_3D:
-				{
-					LMTVector3D			vec3d = lmtProxyParameter.GetValueVector3D();
-					proxyParameter->SetValueVector3D( le::Vector3D_t( vec3d.x, vec3d.y, vec3d.z ) );
-					break;
-				}
-				case le::MPVT_VECTOR_4D:
-				{
-					LMTVector4D			vec4d = lmtProxyParameter.GetValueVector4D();
-					proxyParameter->SetValueVector4D( le::Vector4D_t( vec4d.x, vec4d.y, vec4d.z, vec4d.w ) );
-					break;
-				}
-				}
-
-				materialProxy->SetVar( proxyParameter );
-			}
-
-			material->AddProxy( materialProxy );
-		}
-
-	return material;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Загрузить меш
-// ------------------------------------------------------------------------------------ //
-le::IMesh* LE_LoadMesh( const char* Path, le::IResourceSystem* ResourceSystem, le::IFactory* StudioRenderFactory )
-{
-	MDLDoc				mdlDoc;
-	if ( !mdlDoc.Load( Path ) )		return nullptr;
-
-	// Getting all data
-	auto&				verteces = mdlDoc.GetVerteces();
-	auto&				vertexIndeces = mdlDoc.GetVertexIndeces();
-	auto&				materialPaths = mdlDoc.GetMaterials();
-	auto&				surfaces = mdlDoc.GetSurfaces();
-	MDLVector3D			minXYZ = mdlDoc.GetMinXYZ();
-	MDLVector3D			maxXYZ = mdlDoc.GetMaxXYZ();
-
-	// Loading materials
-	std::vector< le::IMaterial* >		materials;
-	for ( le::UInt32_t index = 0, count = materialPaths.size(); index < count; ++index )
-	{
-		le::IMaterial*			material = ResourceSystem->LoadMaterial( materialPaths[ index ].c_str(), materialPaths[ index ].c_str() );
-		if ( !material ) continue;
-
-		materials.push_back( material );
-	}
-
-	// Convert MDLSurface to le::MeshSurface
-	std::vector< le::MeshSurface >			meshSurfaces;
-	for ( le::UInt32_t index = 0, count = surfaces.size(); index < count; ++index )
-	{
-		const MDLSurface&		mdlSurface = surfaces[ index ];
-		le::MeshSurface			surface;
-		
-		surface.startVertexIndex = 0;
-		surface.lightmapID = 0;
-		surface.materialID = mdlSurface.materialId;
-		surface.startIndex = mdlSurface.startVertexIndex;
-		surface.countIndeces = mdlSurface.countVertexIndeces;
-		meshSurfaces.push_back( surface );
-	}
-		
-	le::IMesh* mesh = ( le::IMesh* ) StudioRenderFactory->Create( MESH_INTERFACE_VERSION );
-	if ( !mesh )				return nullptr;
-
-	// Create descriptor format verteces
-	std::vector< le::StudioVertexElement >			vertexElements =
-	{
-		{ 3, le::VET_FLOAT },
-		{ 3, le::VET_FLOAT },
-		{ 2, le::VET_FLOAT },
-		{ 3, le::VET_FLOAT },
-		{ 3, le::VET_FLOAT }
-	};
-
-	// Creating mesh descriptor and loading to gpu
-	le::MeshDescriptor				meshDescriptor;
-	meshDescriptor.countIndeces = vertexIndeces.size();
-	meshDescriptor.countMaterials = materials.size();
-	meshDescriptor.countLightmaps = 0;
-	meshDescriptor.countSurfaces = meshSurfaces.size();
-	meshDescriptor.sizeVerteces = verteces.size() * sizeof( MDLVertex );
-
-	meshDescriptor.indeces = ( le::UInt32_t* ) vertexIndeces.data();
-	meshDescriptor.materials = materials.data();
-	meshDescriptor.lightmaps = nullptr;
-	meshDescriptor.surfaces = meshSurfaces.data();
-	meshDescriptor.verteces = verteces.data();
-
-	meshDescriptor.min = le::Vector3D_t( minXYZ.x, minXYZ.y, minXYZ.z );
-	meshDescriptor.max = le::Vector3D_t( maxXYZ.x, maxXYZ.y, maxXYZ.z );
-	meshDescriptor.primitiveType = le::PT_TRIANGLES;
-	meshDescriptor.countVertexElements = vertexElements.size();
-	meshDescriptor.vertexElements = vertexElements.data();
-
-	// Loading mesh to gpu
-	mesh->Create( meshDescriptor );
-	if ( !mesh->IsCreated() )
-	{
-		StudioRenderFactory->Delete( mesh );
-		return nullptr;
-	}
-
-	return mesh;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Load font
-// ------------------------------------------------------------------------------------ //
-le::IFont* LE_LoadFont( const char* Path )
-{
-	le::FontFreeType*			fontFreeType = new le::FontFreeType();
-	if ( !fontFreeType->Load( Path ) )
-	{
-		delete fontFreeType;
-		return nullptr;
-	}
-
-	return fontFreeType;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Загрузить уровень
-// ------------------------------------------------------------------------------------ //
-le::ILevel* LE_LoadLevel( const char* Path, le::IFactory* GameFactory )
-{
-	le::Level* level = new le::Level();
-	if ( !level->Load( Path, GameFactory ) )
-	{
-		delete level;
-		return nullptr;
-	}
-
-	return level;
-};
-
-// ------------------------------------------------------------------------------------ //
-// Loading script
-// ------------------------------------------------------------------------------------ //
-le::IScript* LE_LoadScript( const char* Path, le::UInt32_t CountFunctions, le::ScriptDescriptor::Symbol* Functions, le::UInt32_t CountVars, le::ScriptDescriptor::Symbol* Vars, le::IFactory* ScriptSystemFactory )
-{
-	std::ifstream			file( Path );
-	if ( !file.is_open() )	return nullptr;
-
-	std::string			code;
-	std::getline( file, code, '\0' );
-	if ( code.empty() )		return nullptr;
-
-	le::IScript*		script = ( le::IScript* ) ScriptSystemFactory->Create( SCRIPT_INTERFACE_VERSION );
-	if ( !script )			return nullptr;
-
-	le::ScriptDescriptor		scriptDescriptor;
-	scriptDescriptor.code = code.c_str();
-	scriptDescriptor.countFunctions = CountFunctions;
-	scriptDescriptor.functions = Functions;
-	scriptDescriptor.countVars = CountVars;
-	scriptDescriptor.vars = Vars;
-
-	if ( !script->Load( scriptDescriptor ) )
-	{
-		script->Release();
-		return nullptr;
-	}
-
-	return script;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Loading collider
-// ------------------------------------------------------------------------------------ //
-le::IPhysicsModel* LE_LoadPhysicsModel( const char* Path, le::IFactory* PhysicsSystemFactory )
-{
-	PHYDoc			phyDoc;
-	if ( !phyDoc.Load( Path ) )		return nullptr;
-
-	auto&					verteces = phyDoc.GetVerteces();
-	auto&					vertexIndeces = phyDoc.GetVertexIndeces();
-	const PHYVector3D&		inertia = phyDoc.GetInertia();
-
-	// Creating physics models
-	le::IPhysicsModel*		physicsModel = ( le::IPhysicsModel* ) PhysicsSystemFactory->Create( PHYSICSMODEL_INTERFACE_VERSION );
-	if ( !physicsModel )	return nullptr;
-
-	physicsModel->Initialize( ( le::Vector3D_t* ) verteces.data(), verteces.size(), ( le::UInt32_t* ) vertexIndeces.data(), vertexIndeces.size(), phyDoc.IsStatic() );
-	physicsModel->SetMasa( phyDoc.GetMasa() );
-	physicsModel->SetInertia( le::Vector3D_t( inertia.x, inertia.y, inertia.z ) );
-
-	return physicsModel;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Loading gpu program
-// ------------------------------------------------------------------------------------ //
-le::IGPUProgram* LE_LoadGPUProgram( const char* Directory, const char* Path, le::UInt32_t CountDefines, const char** Defines, le::IFactory* StudioRenderFactory )
-{
-	std::ifstream				file( Path );
-	if ( !file.is_open() )		return nullptr;
-
-	std::string					stringBuffer;
-	std::getline( file, stringBuffer, '\0' );
-
-	rapidjson::Document			document;
-	document.Parse( stringBuffer.c_str() );
-	if ( document.HasParseError() )				return nullptr;
-
-	std::string				vertexShader;
-	std::string				pixelShader;
-
-	// Reading all path to shaders
-	for ( auto itRoot = document.MemberBegin(), itRootEnd = document.MemberEnd(); itRoot != itRootEnd; ++itRoot )
-	{
-		// Vertex shader
-		if ( strcmp( itRoot->name.GetString(), "vertex" ) == 0 && itRoot->value.IsString() )
-			vertexShader = itRoot->value.GetString();
-
-		// Pixel shader
-		else if ( strcmp( itRoot->name.GetString(), "pixel" ) == 0 && itRoot->value.IsString() )
-			pixelShader = itRoot->value.GetString();
-	}
-
-	// Loading vertex shader
-	file.close();
-	file.open( std::string( Directory ) + "/" + vertexShader );
-	if ( !file.is_open() )			return nullptr;
-
-	vertexShader.clear();
-	std::getline( file, vertexShader, '\0' );
-
-	// Loading pixel shader
-	file.close();
-	file.open( std::string( Directory ) + "/" + pixelShader );
-	if ( !file.is_open() )			return nullptr;
-
-	pixelShader.clear();
-	std::getline( file, pixelShader, '\0' );
-
-	// Creating gpu program
-	le::IGPUProgram*			gpuProgram = ( le::IGPUProgram* ) StudioRenderFactory->Create( GPUPROGRAM_INTERFACE_VERSION );
-	if ( !gpuProgram )			return nullptr;
-
-	le::GPUProgramDescriptor		gpuProgramDescriptor;
-	gpuProgramDescriptor.vertexShaderSource = vertexShader.c_str();
-	gpuProgramDescriptor.fragmentShaderSource = pixelShader.c_str();
-	gpuProgramDescriptor.geometryShaderSource = nullptr;
-
-	if ( !gpuProgram->Compile( gpuProgramDescriptor, CountDefines, Defines ) )
-		return nullptr;
-
-	return gpuProgram;
-}
-
-struct SoundOGGFile
-{
-	std::ifstream		file;
-};
-
-// ------------------------------------------------------------------------------------ //
-// Loading sound buffer
-// ------------------------------------------------------------------------------------ //
-le::ISoundBuffer* LE_LoadSoundBuffer( const char* Path, le::IFactory* AudioSystemFactory )
-{
-	OggVorbis_File		oggVorbisFile;
-	if ( ov_fopen( Path, &oggVorbisFile ) < 0 )			return nullptr;
-
-	vorbis_info*		vorbisInfo = ov_info( &oggVorbisFile, -1 );
-
-	le::UInt32_t		sizeData = ov_pcm_total( &oggVorbisFile, -1 ) * vorbisInfo->channels * 2;
-	le::UInt16_t*		data = ( le::UInt16_t* ) malloc( sizeData );
-
-	le::UInt32_t		offset = 0;
-	le::UInt32_t		size = 0;
-	le::UInt32_t		sel = 0;
-	
-	do
-	{
-		size = ov_read( &oggVorbisFile, ( char* ) data + offset, 4096, 0, 2, 1, ( int* ) &sel );
-		offset += size;
-	}
-	while ( size != 0 );
-
-	le::ISoundBuffer*			soundBuffer = ( le::ISoundBuffer* ) AudioSystemFactory->Create( SOUNDBUFFER_INTERFACE_VERSION );
-	soundBuffer->IncrementReference();
-	soundBuffer->Create();
-	soundBuffer->Append( vorbisInfo->channels == 1 ? le::SF_MONO16 : le::SF_STEREO16, data, sizeData, vorbisInfo->rate );
-
-	free( data );
-	return soundBuffer;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Зарегестрировать загрузчик картинок
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterLoader_Image( const char* Format, LoadImageFn_t LoadImage )
-{
-	LIFEENGINE_ASSERT( Format );
-	LIFEENGINE_ASSERT( LoadImage );
-
-	g_consoleSystem->PrintInfo( "Loader image for format [%s] registered", Format );
-	loaderImages[ Format ] = LoadImage;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Зарегестрировать загрузчик текстур
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterLoader_Texture( const char* Format, LoadTextureFn_t LoadTexture )
-{
-	LIFEENGINE_ASSERT( Format );
-	LIFEENGINE_ASSERT( LoadTexture );
-
-	g_consoleSystem->PrintInfo( "Loader texture for format [%s] registered", Format );
-	loaderTextures[ Format ] = LoadTexture;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Зарегестрировать загрузчик материалов
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterLoader_Material( const char* Format, LoadMaterialFn_t LoadMaterial )
-{
-	LIFEENGINE_ASSERT( Format );
-	LIFEENGINE_ASSERT( LoadMaterial );
-
-	g_consoleSystem->PrintInfo( "Loader material for format [%s] registered", Format );
-	loaderMaterials[ Format ] = LoadMaterial;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Зарегестрировать загрузчик мешей
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterLoader_Mesh( const char* Format, LoadMeshFn_t LoadMesh )
-{
-	LIFEENGINE_ASSERT( Format );
-	LIFEENGINE_ASSERT( LoadMesh );
-
-	g_consoleSystem->PrintInfo( "Loader mesh for format [%s] registered", Format );
-	loaderMeshes[ Format ] = LoadMesh;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Зарегестрировать загрузчик уровней
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterLoader_Level( const char* Format, LoadLevelFn_t LoadLevel )
-{
-	LIFEENGINE_ASSERT( Format );
-	LIFEENGINE_ASSERT( LoadLevel );
-
-	g_consoleSystem->PrintInfo( "Loader level for format [%s] registered", Format );
-	loaderLevels[ Format ] = LoadLevel;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Register loader fonts
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterLoader_Font( const char* Format, LoadFontFn_t LoadFont )
-{
-	LIFEENGINE_ASSERT( Format );
-	LIFEENGINE_ASSERT( LoadFont );
-
-	g_consoleSystem->PrintInfo( "Loader font for format [%s] registered", Format );
-	loaderFonts[ Format ] = LoadFont;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Разрегестрировать загрузчик картинок
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnregisterLoader_Image( const char* Format )
-{
-	LIFEENGINE_ASSERT( Format );
-
-	auto		it = loaderImages.find( Format );
-	if ( it == loaderImages.end() ) return;
-
-	loaderImages.erase( it );
-	g_consoleSystem->PrintInfo( "Loader image for format [%s] unregistered", Format );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Разрегестрировать загрузчик текстур
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnregisterLoader_Texture( const char* Format )
-{
-	LIFEENGINE_ASSERT( Format );
-
-	auto		it = loaderTextures.find( Format );
-	if ( it == loaderTextures.end() ) return;
-
-	loaderTextures.erase( it );
-	g_consoleSystem->PrintInfo( "Loader texture for format [%s] unregistered", Format );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Разрегестрировать загрузчик материалов
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnregisterLoader_Material( const char* Format )
-{
-	LIFEENGINE_ASSERT( Format );
-
-	auto		it = loaderMaterials.find( Format );
-	if ( it == loaderMaterials.end() ) return;
-
-	loaderMaterials.erase( it );
-	g_consoleSystem->PrintInfo( "Loader material for format [%s] unregistered", Format );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Разрегестрировать загрузчик мешей
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnregisterLoader_Mesh( const char* Format )
-{
-	LIFEENGINE_ASSERT( Format );
-
-	auto		it = loaderMeshes.find( Format );
-	if ( it == loaderMeshes.end() ) return;
-
-	loaderMeshes.erase( it );
-	g_consoleSystem->PrintInfo( "Loader mesh for format [%s] unregistered", Format );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Разрегестрировать загрузчик уровней
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnregisterLoader_Level( const char* Format )
-{
-	LIFEENGINE_ASSERT( Format );
-
-	auto		it = loaderLevels.find( Format );
-	if ( it == loaderLevels.end() ) return;
-
-	loaderLevels.erase( it );
-	g_consoleSystem->PrintInfo( "Loader level for format [%s] unregistered", Format );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Unregister loader font
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnregisterLoader_Font( const char* Format )
-{
-	LIFEENGINE_ASSERT( Format );
-
-	auto		it = loaderFonts.find( Format );
-	if ( it == loaderFonts.end() ) return;
-
-	loaderFonts.erase( it );
-	g_consoleSystem->PrintInfo( "Loader font for format [%s] unregistered", Format );
-}
 
 // ------------------------------------------------------------------------------------ //
 // Загрузить картинку
@@ -749,7 +53,7 @@ le::Image le::ResourceSystem::LoadImage( const char* Path, bool& IsError, bool I
 		Image				image;
 		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
 		{
-			parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), image, IsError, IsFlipVertical, IsSwitchRedAndBlueChannels );
+			parser->second->Read( std::string( paths[ index ] + "/" + Path ).c_str(), image, IsError, IsFlipVertical, IsSwitchRedAndBlueChannels );
 			if ( image.data )
 			{
 				g_consoleSystem->PrintInfo( "Image founded in [%s]", paths[ index ].c_str() );
@@ -793,7 +97,7 @@ le::ITexture* le::ResourceSystem::LoadTexture( const char* Name, const char* Pat
 		ITexture*			texture = nullptr;
 		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
 		{
-			texture = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), studioRenderFactory );
+			texture = parser->second->Read( std::string( paths[ index ] + "/" + Path ).c_str(), studioRenderFactory );
 			if ( texture )
 			{
 				g_consoleSystem->PrintInfo( "Texture founded in [%s]", paths[ index ].c_str() );
@@ -841,7 +145,7 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
 		IMaterial*			material = nullptr;
 		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
 		{
-			material = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), this, g_materialSystem, engineFactory );
+			material = parser->second->Read( std::string( paths[ index ] + "/" + Path ).c_str(), this, g_materialSystem, engineFactory );
 			if ( material )
 			{
 				g_consoleSystem->PrintInfo( "Material founded in [%s]", paths[ index ].c_str() );
@@ -889,7 +193,7 @@ le::IMesh* le::ResourceSystem::LoadMesh( const char* Name, const char* Path )
 		IMesh*			mesh = nullptr;
 		for ( UInt32_t index = 0; index < paths.size(); ++index )
 		{
-			mesh = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), this, studioRenderFactory );
+			mesh = parser->second->Read( std::string( paths[ index ] + "/" + Path ).c_str(), this, studioRenderFactory );
 			if ( mesh )
 			{
 				g_consoleSystem->PrintInfo( "Mesh founded in [%s]", paths[ index ].c_str() );
@@ -937,7 +241,7 @@ le::ILevel* le::ResourceSystem::LoadLevel( const char* Name, const char* Path, I
 		ILevel*			level = nullptr;
 		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
 		{
-			level = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), GameFactory );
+			level = parser->second->Read( std::string( paths[ index ] + "/" + Path ).c_str(), GameFactory );
 			if ( level )
 			{
 				g_consoleSystem->PrintInfo( "Level founded in [%s]", paths[ index ].c_str() );
@@ -983,7 +287,7 @@ le::IFont* le::ResourceSystem::LoadFont( const char* Name, const char* Path )
 		IFont*			font = nullptr;
 		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
 		{
-			font = parser->second( std::string( paths[ index ] + "/" + Path ).c_str() );
+			font = parser->second->Read( std::string( paths[ index ] + "/" + Path ).c_str() );
 			if ( font )
 			{
 				g_consoleSystem->PrintInfo( "Font founded in [%s]", paths[ index ].c_str() );
@@ -1289,7 +593,7 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 {
 	try
 	{
-		IStudioRender* studioRender = Engine->GetStudioRender();
+		IStudioRender*			studioRender = Engine->GetStudioRender();
 		if ( !studioRender )	throw std::runtime_error( "Resource system requared studiorender" );
 
 		studioRenderFactory = studioRender->GetFactory();
@@ -1297,23 +601,21 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 		audioSystemFactory = Engine->GetAudioSystem()->GetFactory();
 		engineFactory = Engine->GetFactory();
 
-		RegisterLoader_Image( "png", LE_LoadImage );
-		RegisterLoader_Image( "jpg", LE_LoadImage );
-		RegisterLoader_Image( "tga", LE_LoadImage );
-		RegisterLoader_Image( "ico", LE_LoadImage );
-		RegisterLoader_Texture( "png", LE_LoadTexture );
-		RegisterLoader_Texture( "jpg", LE_LoadTexture );
-		RegisterLoader_Texture( "tga", LE_LoadTexture );
-		RegisterLoader_Material( "lmt", LE_LoadMaterial );
-		RegisterLoader_Mesh( "mdl", LE_LoadMesh );
-		RegisterLoader_Level( "bsp", LE_LoadLevel );
-		RegisterLoader_Font( "ttf", LE_LoadFont );
-		RegisterLoader_Script( "c", LE_LoadScript );
-		RegisterLoader_PhysicsModel( "phy", LE_LoadPhysicsModel );
-		RegisterLoader_GPUProgram( "shader", LE_LoadGPUProgram );
-		RegisterLoader_SoundBuffer( "ogg", LE_LoadSoundBuffer );
+		if ( !parserFontFreeType.InitializeFreeType() )
+			throw std::runtime_error( "Failed initialize freetype library" );
+
+		RegisterLoader( &parserFontFreeType );
+		RegisterLoader( &parserGPUProgramShader );
+		RegisterLoader( &parserImageFreeImage );
+		RegisterLoader( &parserLevelBSP );
+		RegisterLoader( &parserMaterialLMT );
+		RegisterLoader( &parserMeshMDL );
+		RegisterLoader( &parserPhysicsModelPHY );
+		RegisterLoader( &parserScriptC );
+		RegisterLoader( &parserTextureFreeImage );
+		RegisterLoader( &parserSoundBufferOGG );
 	}
-	catch ( std::exception & Exception )
+	catch ( std::exception& Exception )
 	{
 		g_consoleSystem->PrintError( Exception.what() );
 		return false;
@@ -1392,32 +694,6 @@ std::string le::ResourceSystem::GetFormatFile( const std::string& Route )
 // ------------------------------------------------------------------------------------ //
 // Деструктор
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterLoader_Script( const char* Format, LoadScriptFn_t LoadScript )
-{
-	LIFEENGINE_ASSERT( Format );
-	LIFEENGINE_ASSERT( LoadScript );
-
-	g_consoleSystem->PrintInfo( "Loader script for format [%s] registered", Format );
-	loaderScripts[ Format ] = LoadScript;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Деструктор
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnregisterLoader_Script( const char* Format )
-{
-	LIFEENGINE_ASSERT( Format );
-
-	auto		it = loaderScripts.find( Format );
-	if ( it == loaderScripts.end() ) return;
-
-	loaderScripts.erase( it );
-	g_consoleSystem->PrintInfo( "Loader script for format [%s] unregistered", Format );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Деструктор
-// ------------------------------------------------------------------------------------ //
 le::IScript* le::ResourceSystem::LoadScript( const char* Name, const char* Path, UInt32_t CountFunctions, ScriptDescriptor::Symbol* Functions, UInt32_t CountVars, ScriptDescriptor::Symbol* Vars )
 {
 	LIFEENGINE_ASSERT( Name );
@@ -1441,7 +717,7 @@ le::IScript* le::ResourceSystem::LoadScript( const char* Name, const char* Path,
 		IScript*			script = nullptr;
 		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
 		{
-			script = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), CountFunctions, Functions, CountVars, Vars, scriptSystemFactory );
+			script = parser->second->Read( std::string( paths[ index ] + "/" + Path ).c_str(), CountFunctions, Functions, CountVars, Vars, scriptSystemFactory );
 			if ( script )
 			{
 				g_consoleSystem->PrintInfo( "Script founded in [%s]", paths[ index ].c_str() );
@@ -1510,84 +786,6 @@ le::IScript* le::ResourceSystem::GetScript( const char* Name ) const
 	if ( it != scripts.end() )		return it->second;
 
 	return nullptr;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Register loader for physics model
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterLoader_PhysicsModel( const char *Format, LoadPhysicsModelFn_t LoadPhysicsModel )
-{
-	LIFEENGINE_ASSERT( Format );
-	LIFEENGINE_ASSERT( LoadPhysicsModel );
-
-	g_consoleSystem->PrintInfo( "Loader physics model for format [%s] registered", Format );
-	loaderPhysicsModels[ Format ] = LoadPhysicsModel;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Rigister loader gpu program
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterLoader_GPUProgram( const char* Format, LoadGPUProgramFn_t LoadGPUProgram )
-{
-	LIFEENGINE_ASSERT( Format );
-	LIFEENGINE_ASSERT( LoadGPUProgram );
-
-	g_consoleSystem->PrintInfo( "Loader gpu program for format [%s] registered", Format );
-	loaderGPUProgram[ Format ] = LoadGPUProgram;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Register loader sound buffer
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterLoader_SoundBuffer( const char* Format, LoadSoundBufferFn_t LoadSoundBuffer )
-{
-	LIFEENGINE_ASSERT( Format );
-	LIFEENGINE_ASSERT( LoadSoundBuffer );
-
-	g_consoleSystem->PrintInfo( "Loader sound buffer for format [%s] registered", Format );
-	loaderSoundBuffers[ Format ] = LoadSoundBuffer;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Unregister loader for physics model
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnregisterLoader_PhysicsModel( const char *Format )
-{
-	LIFEENGINE_ASSERT( Format );
-
-	auto		it = loaderPhysicsModels.find( Format );
-	if ( it == loaderPhysicsModels.end() ) return;
-
-	loaderPhysicsModels.erase( it );
-	g_consoleSystem->PrintInfo( "Loader physics model for format [%s] unregistered", Format );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Unregister loader gpu program
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnregisterLoader_GPUProgram( const char* Format )
-{
-	LIFEENGINE_ASSERT( Format );
-
-	auto		it = loaderGPUProgram.find( Format );
-	if ( it == loaderGPUProgram.end() ) return;
-
-	loaderGPUProgram.erase( it );
-	g_consoleSystem->PrintInfo( "Loader gpu program for format [%s] unregistered", Format );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Unregister loader sound buffer
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnregisterLoader_SoundBuffer( const char* Format )
-{
-	LIFEENGINE_ASSERT( Format );
-
-	auto		it = loaderSoundBuffers.find( Format );
-	if ( it == loaderSoundBuffers.end() ) return;
-
-	loaderSoundBuffers.erase( it );
-	g_consoleSystem->PrintInfo( "Loader sound buffer for format [%s] unregistered", Format );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1692,7 +890,7 @@ le::IPhysicsModel* le::ResourceSystem::LoadPhysicsModel( const char *Name, const
 		le::IPhysicsModel*			physicsModel = nullptr;
 		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
 		{
-			physicsModel = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), g_physicsSystemFactory );
+			physicsModel = parser->second->Read( std::string( paths[ index ] + "/" + Path ).c_str(), g_physicsSystemFactory );
 			if ( physicsModel )
 			{
 				g_consoleSystem->PrintInfo( "Physics model founded in [%s]", paths[ index ].c_str() );
@@ -1750,7 +948,7 @@ le::IGPUProgram* le::ResourceSystem::LoadGPUProgram( const char* Name, const cha
 		IGPUProgram*			gpuProgram = nullptr;
 		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
 		{
-			gpuProgram = parser->second( paths[ index ].c_str(), std::string( paths[ index ] + "/" + Path ).c_str(), CountDefines, Defines, studioRenderFactory );
+			gpuProgram = parser->second->Read( paths[ index ].c_str(), std::string( paths[ index ] + "/" + Path ).c_str(), CountDefines, Defines, studioRenderFactory );
 			if ( gpuProgram )
 			{
 				g_consoleSystem->PrintInfo( "GPU program founded in [%s]", paths[ index ].c_str() );
@@ -1795,8 +993,8 @@ le::ISoundBuffer* le::ResourceSystem::LoadSoundBuffer( const char* Name, const c
 
 		le::ISoundBuffer*		soundBuffer = nullptr;
 		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			soundBuffer = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), audioSystemFactory );
+		{			
+			soundBuffer = parser->second->Read( std::string( paths[ index ] + "/" + Path ).c_str(), audioSystemFactory );
 			if ( soundBuffer )
 			{
 				g_consoleSystem->PrintInfo( "Sound buffer founded in [%s]", paths[ index ].c_str() );
@@ -1946,4 +1144,227 @@ const char* le::ResourceSystem::GetPath( UInt32_t Index ) const
 {
 	if ( Index >= paths.size() )		return "";
 	return paths[ Index ].c_str();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( IParserImage* ParserImage )
+{
+	if ( !ParserImage )		return;
+
+	const char**		extensions = ParserImage->GetFileExtensions();
+	UInt32_t			countExtensions = ParserImage->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser image not registered, supported extensions not founded" );
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderImages[ extensions[ index ] ] = ParserImage;
+
+	g_consoleSystem->PrintInfo( "Parser image registered. Name: %s, Version: %s, Author: %s", ParserImage->GetName(), ParserImage->GetVersion(), ParserImage->GetAuthor() );
+
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( IParserTexture* ParserTexture )
+{
+	if ( !ParserTexture )		return;
+
+	const char**		extensions = ParserTexture->GetFileExtensions();
+	UInt32_t			countExtensions = ParserTexture->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser texture not registered, supported extensions not founded" );
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderTextures[ extensions[ index ] ] = ParserTexture;
+
+	g_consoleSystem->PrintInfo( "Parser texture registered. Name: %s, Version: %s, Author: %s", ParserTexture->GetName(), ParserTexture->GetVersion(), ParserTexture->GetAuthor() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( IParserMaterial* ParserMaterial )
+{
+	if ( !ParserMaterial )		return;
+
+	const char**		extensions = ParserMaterial->GetFileExtensions();
+	UInt32_t			countExtensions = ParserMaterial->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser material not registered, supported extensions not founded" );
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderMaterials[ extensions[ index ] ] = ParserMaterial;
+
+	g_consoleSystem->PrintInfo( "Parser material registered. Name: %s, Version: %s, Author: %s", ParserMaterial->GetName(), ParserMaterial->GetVersion(), ParserMaterial->GetAuthor() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( IParserMesh* ParserMesh )
+{
+	if ( !ParserMesh )		return;
+
+	const char**		extensions = ParserMesh->GetFileExtensions();
+	UInt32_t			countExtensions = ParserMesh->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser mesh not registered, supported extensions not founded" );
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderMeshes[ extensions[ index ] ] = ParserMesh;
+
+	g_consoleSystem->PrintInfo( "Parser mesh registered. Name: %s, Version: %s, Author: %s", ParserMesh->GetName(), ParserMesh->GetVersion(), ParserMesh->GetAuthor() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( IParserLevel* ParserLevel )
+{
+	if ( !ParserLevel )		return;
+
+	const char**		extensions = ParserLevel->GetFileExtensions();
+	UInt32_t			countExtensions = ParserLevel->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser level not registered, supported extensions not founded" );
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderLevels[ extensions[ index ] ] = ParserLevel;
+
+	g_consoleSystem->PrintInfo( "Parser level registered. Name: %s, Version: %s, Author: %s", ParserLevel->GetName(), ParserLevel->GetVersion(), ParserLevel->GetAuthor() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( IParserFont* ParserFont )
+{
+	if ( !ParserFont )		return;
+
+	const char**		extensions = ParserFont->GetFileExtensions();
+	UInt32_t			countExtensions = ParserFont->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser font not registered, supported extensions not founded" );
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderFonts[ extensions[ index ] ] = ParserFont;
+
+	g_consoleSystem->PrintInfo( "Parser font registered. Name: %s, Version: %s, Author: %s", ParserFont->GetName(), ParserFont->GetVersion(), ParserFont->GetAuthor() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( IParserScript* ParserScript )
+{
+	if ( !ParserScript )		return;
+
+	const char**		extensions = ParserScript->GetFileExtensions();
+	UInt32_t			countExtensions = ParserScript->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser script not registered, supported extensions not founded" );
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderScripts[ extensions[ index ] ] = ParserScript;
+
+	g_consoleSystem->PrintInfo( "Parser script registered. Name: %s, Version: %s, Author: %s", ParserScript->GetName(), ParserScript->GetVersion(), ParserScript->GetAuthor() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( IParserPhysicsModel* ParserPhysicsModel )
+{
+	if ( !ParserPhysicsModel )		return;
+
+	const char**		extensions = ParserPhysicsModel->GetFileExtensions();
+	UInt32_t			countExtensions = ParserPhysicsModel->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser physics model not registered, supported extensions not founded" );
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderPhysicsModels[ extensions[ index ] ] = ParserPhysicsModel;
+
+	g_consoleSystem->PrintInfo( "Parser physics model registered. Name: %s, Version: %s, Author: %s", ParserPhysicsModel->GetName(), ParserPhysicsModel->GetVersion(), ParserPhysicsModel->GetAuthor() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( IParserGPUProgram* ParserGPUProgram )
+{
+	if ( !ParserGPUProgram )		return;
+
+	const char**		extensions = ParserGPUProgram->GetFileExtensions();
+	UInt32_t			countExtensions = ParserGPUProgram->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser GPU program not registered, supported extensions not founded" );
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderGPUProgram[ extensions[ index ] ] = ParserGPUProgram;
+
+	g_consoleSystem->PrintInfo( "Parser GPU program registered. Name: %s, Version: %s, Author: %s", ParserGPUProgram->GetName(), ParserGPUProgram->GetVersion(), ParserGPUProgram->GetAuthor() );
+}
+
+#include "engine/iparsersoundbuffer.h"
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( IParserSoundBuffer* ParserSoundBuffer )
+{
+	if ( !ParserSoundBuffer )		return;
+
+	const char**		extensions = ParserSoundBuffer->GetFileExtensions();
+	UInt32_t			countExtensions = ParserSoundBuffer->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser sound buffer not registered, supported extensions not founded" );
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderSoundBuffers[ extensions[ index ] ] = ParserSoundBuffer;
+
+	g_consoleSystem->PrintInfo( "Parser sound buffer registered. Name: %s, Version: %s, Author: %s", ParserSoundBuffer->GetName(), ParserSoundBuffer->GetVersion(), ParserSoundBuffer->GetAuthor() );
 }

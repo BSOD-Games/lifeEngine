@@ -27,7 +27,6 @@
 #include "engine/concmd.h"
 #include "engine/buildnum.h"
 #include "engine/resourcesystem.h"
-#include "engine/fontfreetype.h"
 #include "studiorender/istudiorenderinternal.h"
 #include "studiorender/studiorenderviewport.h"
 #include "physics/iphysicssysteminternal.h"
@@ -145,8 +144,6 @@ le::Engine::~Engine()
 	if ( cmd_Exit )			consoleSystem.UnregisterCommand( cmd_Exit->GetName() );
 	if ( cmd_Version )		consoleSystem.UnregisterCommand( cmd_Version->GetName() );
 	if ( cvar_phyDebug )	consoleSystem.UnregisterVar( cvar_phyDebug->GetName() );
-
-	FontFreeType::UninitializeFreeType();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -757,9 +754,6 @@ bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile )
 		// Initialize audio
 		if ( !audioSystem )								throw std::runtime_error( "Audio system not loaded" );
 		else if ( !audioSystem->Initialize( this ) )	throw std::runtime_error( "Fail initialize audio system" );
-
-		// Initialize fonts
-		if ( !FontFreeType::InitializeFreeType() )		throw std::runtime_error( "Fail initialize freetype library" );
 
 		// Initialize script system
 		if ( !scriptSystem.Initialize( this ) )			throw std::runtime_error( "Fail initialize script system" );

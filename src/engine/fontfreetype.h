@@ -51,6 +51,7 @@ namespace le
         {
             return ftFace;
         }
+        static void                     GetFreeTypeVersion( UInt32_t& Major, UInt32_t& Minor, UInt32_t& Path );
 
     private:
 
@@ -75,8 +76,7 @@ namespace le
             ITexture*                                   texture;
             std::vector< Row >                          rows;
             std::unordered_map< UInt32_t, Glyph >       glyphs;
-        };
-        
+        };       
 
         //---------------------------------------------------------------------//
 
