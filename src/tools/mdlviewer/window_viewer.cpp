@@ -31,6 +31,9 @@
 #include "engine/consolesystem.h"
 #include "mesh.h"
 
+#include "window_importsettings.h"
+#include "window_convertphy.h"
+
 #include "common/gameinfo.h"
 
 // ------------------------------------------------------------------------------------ //
@@ -55,7 +58,7 @@ Window_Viewer::Window_Viewer( const GameDescriptor& GameDescriptor, QWidget* Par
 
 	model = ( le::IModel* ) EngineAPI::GetInstance()->GetEngine()->GetFactory()->Create( MODEL_INTERFACE_VERSION );
 	if ( !model )	Error_Critical( "Interface le::IModel Version [" MODEL_INTERFACE_VERSION "] not found in core" );
-	scene.AddModel(model);
+	scene.AddModel( model );
 
 	qDebug() << "Loaded model";
 
@@ -74,7 +77,7 @@ Window_Viewer::Window_Viewer( const GameDescriptor& GameDescriptor, QWidget* Par
 	camera->IncrementReference();
 	camera->InitProjection_Perspective( 75.f, ( float ) ui->widget_viewport->width() / ui->widget_viewport->height(), 0.1f, 5500.f );
 	camera->SetPosition( le::Vector3D_t( 0.f, 0.f, 150.f ) );
-	scene.SetCamera( camera );	
+	scene.SetCamera( camera );
 
 	qDebug() << "Loaded camera";
 
@@ -96,9 +99,9 @@ Window_Viewer::~Window_Viewer()
 // ------------------------------------------------------------------------------------ //
 void Window_Viewer::on_actionOpen_triggered()
 {
-	QString path = QFileDialog::getOpenFileName( this, "Choose model file", 
-												 EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)" );
-	if ( path.isEmpty() ) return;	
+	QString path = QFileDialog::getOpenFileName( this, "Choose model file",
+		EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)" );
+	if ( path.isEmpty() ) return;
 
 	mesh.Load( path );
 	model->SetMesh( mesh.GetMesh() );
@@ -112,8 +115,8 @@ void Window_Viewer::on_actionOpen_triggered()
 
 	for ( le::UInt32_t index = 0, count = paths.size(); index < count; ++index )
 	{
-		std::size_t found = paths[ index ].find_last_of( "/\\" );
-		fileName = paths[ index ].substr( found + 1 );
+		std::size_t found = paths [ index ].find_last_of( "/\\" );
+		fileName = paths [ index ].substr( found + 1 );
 		ui->listWidget_materials->addItem( ( QString ) fileName.c_str() );
 	}
 
@@ -140,12 +143,32 @@ void Window_Viewer::on_actionSave_triggered()
 // ------------------------------------------------------------------------------------ //
 void Window_Viewer::on_actionSave_As_triggered()
 {
-	QMessageBox::QMessageBox::Button result = 
+	QMessageBox::QMessageBox::Button result =
 		QMessageBox::information( this, "Info", "Do you want save this model?", QMessageBox::Button::Ok, QMessageBox::Button::Cancel );
 
 	if ( result == QMessageBox::Button::Ok )
 		mesh.SaveAs( QFileDialog::getSaveFileName( this, "Save model as",
-					 EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)" ) );
+			EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)" ) );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: import model
+// ------------------------------------------------------------------------------------ //
+void Window_Viewer::on_actionImport_triggered()
+{
+	Window_ImportSettings		windowImport;
+
+	windowImport.exec();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: convert to phy
+// ------------------------------------------------------------------------------------ //
+void Window_Viewer::on_actionConvert_to_PHY_triggered()
+{
+	Window_ConvertPHY		windowConvert;
+
+	windowConvert.exec();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -157,7 +180,7 @@ void Window_Viewer::on_listWidget_materials_itemSelectionChanged()
 		return;
 
 	std::vector<std::string> paths = mesh.GetMaterialPaths();
-	ui->lineEdit_pathMaterial->setText( paths[ ui->listWidget_materials->currentRow() ].c_str() );
+	ui->lineEdit_pathMaterial->setText( paths [ ui->listWidget_materials->currentRow() ].c_str() );
 	ui->toolButton_pathMaterial->setDisabled( false );
 }
 
@@ -168,7 +191,7 @@ void Window_Viewer::on_toolButton_pathMaterial_clicked()
 {
 	QDir dir = EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir;
 	QString path = dir.relativeFilePath( QFileDialog::getOpenFileName( this, "Choose material file",
-										 EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Material file (*.lmt)" ) );
+		EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Material file (*.lmt)" ) );
 
 	if ( path.isEmpty() ) return;
 
@@ -180,10 +203,21 @@ void Window_Viewer::on_toolButton_pathMaterial_clicked()
 	std::string fileName = "";
 	for ( le::UInt32_t index = 0, count = paths.size(); index < count; ++index )
 	{
-		std::size_t found = paths[ index ].find_last_of( "/\\" );
-		fileName = paths[ index ].substr( found + 1 );
+		std::size_t found = paths [ index ].find_last_of( "/\\" );
+		fileName = paths [ index ].substr( found + 1 );
 		ui->listWidget_materials->addItem( ( QString ) fileName.c_str() );
 	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: clicked on check box wireframe
+// ------------------------------------------------------------------------------------ //
+void Window_Viewer::on_checkBox_wireframe_clicked()
+{
+	if( ui->checkBox_wireframe->checkState() == Qt::CheckState::Checked )
+		EngineAPI::GetInstance()->GetConsoleSystem()->Exec( "r_wireframe 1" );
+	else
+		EngineAPI::GetInstance()->GetConsoleSystem()->Exec( "r_wireframe 0" );
 }
 
 // ------------------------------------------------------------------------------------ //

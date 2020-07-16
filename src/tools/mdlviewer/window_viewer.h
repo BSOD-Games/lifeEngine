@@ -40,8 +40,11 @@ private slots:
 	void			on_actionOpen_triggered();
 	void			on_actionSave_triggered();
 	void			on_actionSave_As_triggered();
+	void			on_actionImport_triggered();
+	void			on_actionConvert_to_PHY_triggered();
 	void			on_listWidget_materials_itemSelectionChanged();
 	void			on_toolButton_pathMaterial_clicked();
+	void			on_checkBox_wireframe_clicked();
 
 private:
 	void			UpdateCameraPosition();
