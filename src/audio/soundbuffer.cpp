@@ -76,15 +76,6 @@ void le::SoundBuffer::Create()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Append streem
-// ------------------------------------------------------------------------------------ //
-void le::SoundBuffer::Append( IParserSoundBuffer* ParserSoundBuffer )
-{
-	g_consoleSystem->PrintWarning( " le::SoundBuffer::Append( IParserSoundBuffer* ) - not implemented" );
-	ParserSoundBuffer->Release();
-}
-
-// ------------------------------------------------------------------------------------ //
 // Append
 // ------------------------------------------------------------------------------------ //
 void le::SoundBuffer::Append( SAMPLE_FORMAT SampleFormat, const Byte_t* Samples, UInt32_t SamplesSize, UInt32_t SampleRate )

@@ -41,6 +41,7 @@ namespace le
 	class IPhysicsModel;
 	class IGPUProgram;
 	class ISoundBuffer;
+	class IStreamSound;
 
 	typedef IParserImage*			( *CreateParserImageFn_t )();
 	typedef IParserTexture*			( *CreateParserTextureFn_t )( );
@@ -80,7 +81,7 @@ namespace le
 		virtual IPhysicsModel*			LoadPhysicsModel( const char* Name, const char* Path ) = 0;
 		virtual IGPUProgram*			LoadGPUProgram( const char* Name, const char* Path, UInt32_t Flags = 0, UInt32_t CountDefines = 0, const char** Defines = nullptr ) = 0;
 		virtual ISoundBuffer*			LoadSoundBuffer( const char* Name, const char* Path ) = 0;
-		virtual ISoundBuffer*			OpenSoundBuffer( const char* Name, const char* Path ) = 0;
+		virtual IStreamSound*			OpenStreamSound( const char* Path ) = 0;
 		virtual void					UnloadImage( Image& Image ) = 0;
 		virtual void					UnloadTexture( const char* Name ) = 0;
 		virtual void					UnloadMaterial( const char* Name ) = 0;

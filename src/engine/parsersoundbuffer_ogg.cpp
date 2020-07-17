@@ -141,7 +141,7 @@ void le::ParserSoundBufferOGG::Seek( UInt64_t SampleOffset )
 // ------------------------------------------------------------------------------------ //
 // Read
 // ------------------------------------------------------------------------------------ //
-le::UInt64_t le::ParserSoundBufferOGG::Read( Byte_t * Samples, UInt64_t MaxSize )
+le::UInt64_t le::ParserSoundBufferOGG::Read( Byte_t* Samples, UInt64_t MaxSize )
 {
 	if ( !IsOpened() || !Samples )		return 0;
 
@@ -157,6 +157,7 @@ le::UInt64_t le::ParserSoundBufferOGG::Read( Byte_t * Samples, UInt64_t MaxSize 
 			long		samplesRead = bytesRead / sizeof( Byte_t );
 			size += samplesRead;
 			Samples += samplesRead;
+			sampleOffset += samplesRead;
 		}
 		else
 		{

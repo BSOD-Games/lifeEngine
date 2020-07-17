@@ -25,6 +25,7 @@
 #include "physics/iphysicsmodel.h"
 #include "audio/iaudiosystem.h"
 #include "audio/isoundbuffer.h"
+#include "audio/istreamsound.h"
 
 #include "global.h"
 #include "materialsystem.h"
@@ -1047,7 +1048,7 @@ le::ISoundBuffer* le::ResourceSystem::LoadSoundBuffer( const char* Name, const c
 			soundBuffer = ( le::ISoundBuffer* ) audioSystemFactory->Create( SOUNDBUFFER_INTERFACE_VERSION );
 			if ( !soundBuffer )
 			{
-				g_consoleSystem->PrintError( "Interface le::ISoundBuffer [%s] not founded in audio system" );
+				g_consoleSystem->PrintError( "Interface le::ISoundBuffer [%s] not founded in audio system", SOUNDBUFFER_INTERFACE_VERSION );
 
 				free( data );
 				parserSoundBuffer->Release();
@@ -1076,19 +1077,17 @@ le::ISoundBuffer* le::ResourceSystem::LoadSoundBuffer( const char* Name, const c
 }
 
 // ------------------------------------------------------------------------------------ //
-// Open sound buffer
+// Open stream sound
 // ------------------------------------------------------------------------------------ //
-le::ISoundBuffer* le::ResourceSystem::OpenSoundBuffer( const char* Name, const char* Path )
+le::IStreamSound* le::ResourceSystem::OpenStreamSound( const char* Path )
 {
-	LIFEENGINE_ASSERT( Name );
 	LIFEENGINE_ASSERT( Path );
 
 	try
 	{
-		if ( soundBuffers.find( Name ) != soundBuffers.end() )		return soundBuffers[ Name ];
-		if ( loaderSoundBuffers.empty() )							throw std::runtime_error( "No sound buffer loaders" );
+		if ( loaderSoundBuffers.empty() )		throw std::runtime_error( "No sound buffer loaders" );
 
-		g_consoleSystem->PrintInfo( "Opening sound buffer [%s] with name [%s]", Path, Name );
+		g_consoleSystem->PrintInfo( "Opening stream sound [%s]", Path );
 
 		std::string			format = GetFormatFile( Path );
 		if ( format.empty() )								throw std::runtime_error( "In sound buffer format not found" );
@@ -1096,7 +1095,7 @@ le::ISoundBuffer* le::ResourceSystem::OpenSoundBuffer( const char* Name, const c
 		auto				parser = loaderSoundBuffers.find( format );
 		if ( parser == loaderSoundBuffers.end() )			throw std::runtime_error( "Loader for format sound buffer not found" );
 
-		le::ISoundBuffer*		soundBuffer = nullptr;
+		le::IStreamSound*		streamSound = nullptr;
 		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
 		{
 			IParserSoundBuffer*			parserSoundBuffer = parser->second();
@@ -1106,29 +1105,27 @@ le::ISoundBuffer* le::ResourceSystem::OpenSoundBuffer( const char* Name, const c
 				continue;
 			}
 
-			soundBuffer = ( le::ISoundBuffer* ) audioSystemFactory->Create( SOUNDBUFFER_INTERFACE_VERSION );
-			if ( !soundBuffer )
+			streamSound = ( le::IStreamSound* ) audioSystemFactory->Create( STREAMSOUND_INTERFACE_VERSION );
+			if ( !streamSound )
 			{
-				g_consoleSystem->PrintError( "Interface le::ISoundBuffer [%s] not founded in audio system" );
+				g_consoleSystem->PrintError( "Interface le::IStreamSound [%s] not founded in audio system", STREAMSOUND_INTERFACE_VERSION );
 				
 				parserSoundBuffer->Release();
 				return nullptr;
 			}
 
-			soundBuffer->Create();
-			soundBuffer->Append( parserSoundBuffer );
+			streamSound->Create();
+			streamSound->Open( parserSoundBuffer );
 		}
 
-		if ( !soundBuffer )		throw std::runtime_error( "Fail opening sound buffer" );
-		soundBuffer->IncrementReference();
-		soundBuffers.insert( std::make_pair( Name, soundBuffer ) );
-		g_consoleSystem->PrintInfo( "Opened sound buffer [%s]", Name );
+		if ( !streamSound )		throw std::runtime_error( "Fail opening stream sound" );
+		g_consoleSystem->PrintInfo( "Opened stream sound" );
 
-		return soundBuffer;
+		return streamSound;
 	}
 	catch ( std::exception& Exception )
 	{
-		g_consoleSystem->PrintError( "Sound buffer [%s] not opened: %s", Path, Exception.what() );
+		g_consoleSystem->PrintError( "Stream sound [%s] not opened: %s", Path, Exception.what() );
 		return nullptr;
 	}
 }

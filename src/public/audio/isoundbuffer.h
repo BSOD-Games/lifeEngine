@@ -20,8 +20,6 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class IParserSoundBuffer;
-
 	enum SAMPLE_FORMAT
 	{
 		SF_MONO8,
@@ -37,7 +35,6 @@ namespace le
 	public:
 		virtual ~ISoundBuffer() {}
 		virtual void				Create() = 0;
-		virtual void				Append( IParserSoundBuffer* ParserSoundBuffer ) = 0;
 		virtual void				Append( SAMPLE_FORMAT SampleFormat, const Byte_t* Samples, UInt32_t SamplesSize, UInt32_t SampleRate ) = 0;
 		virtual void				Delete() = 0;
 

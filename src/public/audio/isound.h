@@ -12,6 +12,8 @@
 #define ISOUND_H
 
 #include "common/types.h"
+#include "engine/ireferenceobject.h"
+#include "audio/soundstatus.h"
 
 //---------------------------------------------------------------------//
 
@@ -19,20 +21,11 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	enum SOUND_STATUS
-	{
-		SS_PLAYING,
-		SS_PAUSED,
-		SS_STOPED
-	};
-
-	//---------------------------------------------------------------------//
-
 	class ISoundBuffer;
 
 	//---------------------------------------------------------------------//
 
-	class ISound
+	class ISound : public IReferenceObject
 	{
 	public:
 		virtual ~ISound() {}

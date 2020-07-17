@@ -26,6 +26,12 @@ namespace le
 	class Sound : public ISound
 	{
 	public:
+		// IReferenceObject
+		virtual void				IncrementReference();
+		virtual void				DecrementReference();
+		virtual void				Release();
+		virtual UInt32_t			GetCountReferences() const;
+
 		// ISound
 		virtual void				Create();
 		virtual void				Delete();
@@ -57,8 +63,9 @@ namespace le
 		~Sound();
 
 	private:
+		UInt32_t				countReferences;
 		UInt32_t				handle;
-		SoundBuffer*			soundBuffer;
+		SoundBuffer*			soundBuffer;		
 	};
 
 	//---------------------------------------------------------------------//
