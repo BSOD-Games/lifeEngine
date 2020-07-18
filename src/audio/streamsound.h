@@ -67,9 +67,16 @@ namespace le
 
 		//---------------------------------------------------------------------//
 
+		enum
+		{
+			NoLoop = -1,
+			BufferCount = 3,
+			BufferRetries = 2
+		};
+
 		struct Chunk
 		{
-			const Byte_t*		samples;     
+			const Byte_t*		samples;
 			UInt32_t			sampleCount;
 		};
 
@@ -78,7 +85,7 @@ namespace le
 		void					StreamData();
 		bool					FillQueue();
 		void					ClearQueue();
-		bool					FillAndPushBuffer( UInt32_t BufferNum, bool ImmediateLoop );
+		bool					FillAndPushBuffer( UInt32_t BufferIndex, bool ImmediateLoop = false );
 
 		bool					GetData( Chunk& Data );
 
@@ -86,16 +93,14 @@ namespace le
 		bool					isLoop;
 		UInt32_t				countReferences;
 		UInt32_t				handle;
-		UInt32_t				sampleRate;
 		UInt32_t				sampleFormat;
-		UInt32_t				buffers[ 3 ];
-		Int16_t					bufferSeeks[ 3 ];
-		UInt64_t				samplesProcessed;
-		SOUND_STATUS			threadStartState;
-		IParserSoundBuffer*		parserSoundBuffer;
+		UInt32_t				sampleRate;
+		UInt32_t				buffers[ BufferCount ];
+		SOUND_STATUS			threadState;
 
-		std::thread*			threadStreamSamples;
-		std::mutex				mutexStreamSamples;
+		IParserSoundBuffer*		parserSoundBuffer;
+		mutable std::mutex		mutexStreamData;
+		std::thread*			threadStreamData;
 		std::vector< Byte_t >	samples;
 	};
 

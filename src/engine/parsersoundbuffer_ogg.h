@@ -47,6 +47,7 @@ namespace le
 
 		virtual bool				IsOpened() const;
 		virtual UInt64_t			GetSampleCount() const;
+		virtual UInt32_t			GetChannelCount() const;
 		virtual UInt32_t			GetSampleRate() const;
 		virtual UInt64_t			GetSampleOffset() const;
 		virtual SAMPLE_FORMAT		GetSampleFormat() const;

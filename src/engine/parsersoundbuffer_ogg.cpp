@@ -91,9 +91,22 @@ le::ParserSoundBufferOGG::~ParserSoundBufferOGG()
 bool le::ParserSoundBufferOGG::Open( const char* Path )
 {
 	oggVorbisFile = new OggVorbis_File();
-	if ( ov_fopen( Path, oggVorbisFile ) < 0 )
-	{
-		g_consoleSystem->PrintError( "Failed open sound buffer" );
+	int		error = ov_fopen( Path, oggVorbisFile );
+	
+	if ( error < 0 )
+	{		
+		std::string					strError = "unknow error";
+		switch ( error )
+		{
+		case OV_FALSE:				strError = "not found";															break;
+		case OV_EREAD:				strError = "a read from media returned an error";								break;
+		case OV_ENOTVORBIS:			strError = "bitstream does not contain any Vorbis data";						break;
+		case OV_EVERSION:			strError = "vorbis version mismatch";											break;
+		case OV_EBADHEADER:			strError = "invalid Vorbis bitstream header";									break;
+		case OV_EFAULT:				strError = "internal logic fault; indicates a bug or heap/stack corruption";	break;
+		}
+
+		g_consoleSystem->PrintError( "Failed open sound buffer: %s", strError.c_str() );
 
 		Close();
 		return false;
@@ -183,6 +196,15 @@ bool le::ParserSoundBufferOGG::IsOpened() const
 le::UInt64_t le::ParserSoundBufferOGG::GetSampleCount() const
 {
 	return sampleCount;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get channel count
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::ParserSoundBufferOGG::GetChannelCount() const
+{
+	if ( !IsOpened() ) return 0;
+	return vorbisInfo->channels;
 }
 
 // ------------------------------------------------------------------------------------ //
