@@ -74,7 +74,11 @@ namespace le
 		StudioRender();
 		~StudioRender();
 
+<<<<<<< HEAD
 		inline const RenderContext& GetRenderContext() const
+=======
+		inline const RenderContext&								GetRenderContext() const
+>>>>>>> remotes/origin/dev
 		{
 			return renderContext;
 		}

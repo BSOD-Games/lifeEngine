@@ -106,14 +106,14 @@ void le::Camera::Rotate( const Vector3D_t& FactorRotate )
 // ------------------------------------------------------------------------------------ //
 // Повернуть камеру мышкой
 // ------------------------------------------------------------------------------------ //
-void le::Camera::RotateByMouse( const Vector2D_t& MouseOffset, float MouseSensitivit, bool ConstrainYaw )
+void le::Camera::RotateByMouse( const Vector2D_t& MouseOffset, float MouseSensitivity, bool ConstrainYaw )
 {   
 	// 1.5708 радиан = 90 градусов
 	// 6.28319 радиан = 360 градусов
 
 	if ( MouseOffset.x != 0 )
 	{
-        eulerRotation.y += glm::radians( MouseOffset.x * MouseSensitivit );
+        eulerRotation.y += glm::radians( MouseOffset.x * MouseSensitivity );
 
 		if ( eulerRotation.x < -6.28319f || eulerRotation.x > 6.28319f )
 			eulerRotation.x = 0.f;
@@ -121,13 +121,13 @@ void le::Camera::RotateByMouse( const Vector2D_t& MouseOffset, float MouseSensit
 
 	if ( MouseOffset.y != 0 )
 	{
-        eulerRotation.x += glm::radians( MouseOffset.y * MouseSensitivit );
+        eulerRotation.x += glm::radians( MouseOffset.y * MouseSensitivity );
 
 		if ( ConstrainYaw )
 		{
 			if ( eulerRotation.x > 1.5708f )
 				eulerRotation.x = 1.5708f;
-
+			
 			if ( eulerRotation.x < -1.5708f )
 				eulerRotation.x = -1.5708f;
 		}

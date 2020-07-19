@@ -14,14 +14,17 @@
 #include <string>
 #include <vector>
 
+#include "engine/imodel.h"
 #include "studiorender/imesh.h"
+#include "scene.h"
+#include "errors.h"
 #include "ui_window_viewer.h"
 
-class Mesh
+class Model
 {
 public:
-	Mesh();
-	~Mesh();
+	Model();
+	~Model();
 
 	bool						Load( const QString& Path );
 	bool						LoadMaterial(	const QString& Path, le::UInt32_t Index	);
@@ -30,11 +33,16 @@ public:
 	void						Clear();
 
 	le::IMesh*					GetMesh();
-	std::vector<std::string>	GetMaterialPaths();
+	std::vector<std::string>	GetMaterialPaths();			
+	void						RotateByMouse( QMouseEvent* Event );
 
 private:
 	le::IMesh*					mesh;
+	le::IModel*					model;
 	MDLDoc						mdlDoc;
 	std::string					path;
+	le::Vector3D_t				eulerRotation;
+	le::Quaternion_t			quatRotation;
+
 };
 

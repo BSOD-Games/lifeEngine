@@ -28,9 +28,9 @@ namespace le
 
 		enum TEXTURE_TYPE
 		{
-			TT_POSITION,
 			TT_ALBEDO,
-			TT_NORMAL
+			TT_NORMAL,
+			TT_EMISSION
 		};
 
 		//---------------------------------------------------------------------//
@@ -52,6 +52,7 @@ namespace le
 		void							Delete();
 		void							Bind( BIND_TYPE BindType );
 		void							Unbind();
+		void							ShowBuffer( TEXTURE_TYPE TextureType );
 		void							ShowBuffers();
 		void							ShowFinalFrame();
 		void							CopyDepthBufferToDefaultBuffer();

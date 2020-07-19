@@ -39,7 +39,26 @@ public:
 	void			Clear();
 
 private:
-	void			ProcessNode( aiNode* Node, const aiScene* Scene, std::unordered_map<le::UInt32_t, std::vector< aiMesh* > >& Meshes );
+
+	//---------------------------------------------------------------------//
+
+	struct AIMesh
+	{
+		AIMesh() 
+		{}
+
+		AIMesh( const aiMatrix4x4& Transformation, aiMesh* Mesh ) :
+			transformation( Transformation ),
+			mesh( Mesh )
+		{}
+
+		aiMatrix4x4			transformation;
+		aiMesh*				mesh;
+	};
+
+	//---------------------------------------------------------------------//
+
+	void			ProcessNode( aiNode* Node, const aiScene* Scene, std::unordered_map<le::UInt32_t, std::vector<AIMesh>>& Meshes );
 
 	bool							isLoaded;
 	std::vector< MDLVertex >		verteces;

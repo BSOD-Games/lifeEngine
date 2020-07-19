@@ -4,8 +4,11 @@ cmake_minimum_required( VERSION 3.7 )
 #   --- Задаем переменные ---
 #
 
-file( GLOB SOURCE_FILES "*.h" "*.cpp" "../public/studiorender/*.h"
-						"shaders/*.h" "shaders/*.cpp" ) 
+file( GLOB SOURCE_FILES "*.h" "*.cpp" ) 
+file( GLOB PUBLIC_FILES "../public/studiorender/*.h" )
+file( GLOB SHADERS_FILES "shaders/*.h" "shaders/*.cpp" )
+file( GLOB PRIVATE_FILES "../private/studiorender/*.h" )
+
 set( MODULE_NAME studiorender )
 
 set( GLEW_PATH ${EXTLIBS_DIR}/GLEW CACHE PATH "Path to GLEW" )
@@ -49,16 +52,21 @@ add_definitions( -DLIFEENGINE_EXPORT )
 #   --- Настройки проекта ---
 #
 
+source_group( "Public Files" FILES ${PUBLIC_FILES} )
+source_group( "Shaders Files" FILES ${SHADERS_FILES} )
+source_group( "Private Files" FILES ${PRIVATE_FILES} )
+
 configure_file( ${PATHS_H}.in ${PATHS_H} )
-add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${ICON} )
+add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${PUBLIC_FILES} ${PRIVATE_FILES} ${SHADERS_FILES} ${ICON} )
 
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
 install( DIRECTORY "shaders/shaders" DESTINATION ${BUILD_DIR}/engine )
 
+set_target_properties (${MODULE_NAME} PROPERTIES FOLDER Engine )
 set_target_properties( ${MODULE_NAME} PROPERTIES PREFIX "" )
 include_directories( ../public )
+include_directories( ../private )
 include_directories( ../ )
-include_directories( ./ )
 
 #
 #   --- Ищим и подключаем зависимости ---

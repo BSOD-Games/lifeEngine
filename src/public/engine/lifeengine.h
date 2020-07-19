@@ -21,6 +21,7 @@ namespace le
     class IStudioRender;
     class IGame;
     class IPhysicsSystem;
+    class IAudioSystem;
 
     //---------------------------------------------------------------------//
 
@@ -28,13 +29,15 @@ namespace le
     typedef		void*						WindowHandle_t;
     typedef		IEngine*					( *LE_CreateEngineFn_t )();
     typedef		void						( *LE_DeleteEngineFn_t )( IEngine* Engine );
-    typedef		IStudioRender*				( *LE_CreateStudioRenderFn_t )( );
+    typedef		IStudioRender*				( *LE_CreateStudioRenderFn_t )();
     typedef		void						( *LE_DeleteStudioRenderFn_t )( IStudioRender* StudioRender );
-    typedef		IGame*						( *LE_CreateGameFn_t )( );
+    typedef		IGame*						( *LE_CreateGameFn_t )();
     typedef		void						( *LE_DeleteGameFn_t )( IGame* Game );
     typedef		void						( *LE_SetCriticalErrorFn_t )( CriticalErrorFn_t CriticalError );
-    typedef     IPhysicsSystem*             ( *LE_CreatePhysicsSystemFn_t )( );
+    typedef     IPhysicsSystem*             ( *LE_CreatePhysicsSystemFn_t )();
     typedef     void                        ( *LE_DeletePhysicsSystemFn_t )( IPhysicsSystem* PhysicsSystem );
+    typedef     IAudioSystem*               ( *LE_CreateAudioSystemFn_t )();
+    typedef     void                        ( *LE_DeleteAudioSystemFn_t )( IAudioSystem* AudioSystem );
 
     //---------------------------------------------------------------------//
 
@@ -95,6 +98,12 @@ namespace le
     namespace le { class IPhysicsSystem; } \
     LIFEENGINE_API le::IPhysicsSystem* LE_CreatePhysicsSystem() { return new PhysicsSystemClass(); } \
     LIFEENGINE_API void LE_DeletePhysicsSystem( le::IPhysicsSystem* Object ) { delete static_cast<PhysicsSystemClass*>( Object ); } \
+    LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
+
+#	define LIFEENGINE_AUDIOSYSTEM_API( AudioSystemClass ) \
+    namespace le { class IAudioSystem; } \
+    LIFEENGINE_API le::IAudioSystem* LE_CreateAudioSystem() { return new AudioSystemClass(); } \
+    LIFEENGINE_API void LE_DeleteAudioSystem( le::IAudioSystem* Object ) { delete static_cast<AudioSystemClass*>( Object ); } \
     LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
 
 //---------------------------------------------------------------------//

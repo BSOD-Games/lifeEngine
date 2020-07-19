@@ -64,6 +64,14 @@ bool le::UnlitGeneric::Initialize( UInt32_t CountParams, IShaderParameter** Shad
 				specularMap = shaderParameter->GetValueTexture();
 				specularMap->IncrementReference();
 			}
+			else if ( !( flags & SF_ALPHA_MAP ) && strcmp( shaderParameter->GetName(), "alphamap" ) == 0 )
+			{
+				flags |= SF_ALPHA_MAP;
+				defines.push_back( "ALPHA_MAP" );
+
+				alphamap = shaderParameter->GetValueTexture();
+				alphamap->IncrementReference();
+			}
 			break;
 
 		case SPT_COLOR:
@@ -85,6 +93,7 @@ bool le::UnlitGeneric::Initialize( UInt32_t CountParams, IShaderParameter** Shad
 	gpuProgram->SetUniform( "basetexture", 0 );
 	if ( normalMap ) 		gpuProgram->SetUniform( "normalmap", 1 );
 	if ( specularMap ) 		gpuProgram->SetUniform( "specularmap", 2 );
+	if ( alphamap ) 		gpuProgram->SetUniform( "alphamap", 3 );
 	gpuProgram->Unbind();
 
 	return true;
@@ -116,6 +125,7 @@ void le::UnlitGeneric::OnDrawStaticModel( const Matrix4x4_t& Transformation, ICa
 	if ( baseTexture )			baseTexture->Bind( 0 );
 	if ( normalMap )			normalMap->Bind( 1 );
 	if ( specularMap )			specularMap->Bind( 2 );
+	if ( alphamap )				alphamap->Bind( 3 );
 
 	gpuProgram->Bind();
 	gpuProgram->SetUniform( "color", color );
@@ -147,6 +157,7 @@ le::UnlitGeneric::UnlitGeneric() :
 	baseTexture( nullptr ),
 	normalMap( nullptr ),
 	specularMap( nullptr ),
+	alphamap( nullptr ),
 	color( 1.f, 1.f, 1.f )
 {}
 
@@ -193,6 +204,16 @@ void le::UnlitGeneric::ClearParameters()
 		specularMap = nullptr;
 	}
 
+	if ( alphamap )
+	{
+		if ( alphamap->GetCountReferences() <= 1 )
+			alphamap->Release();
+		else
+			alphamap->DecrementReference();
+
+		alphamap = nullptr;
+	}
+
 	flags = SF_NONE;
 	color = Vector3D_t( 1.f, 1.f, 1.f );
 }
@@ -207,6 +228,7 @@ le::ShaderDescriptor le::UnlitGeneric::GetDescriptor()
 		{ "basetexture", SPT_TEXTURE },
 		{ "normalmap", SPT_TEXTURE },
 		{ "specularmap", SPT_TEXTURE },
+		{ "alphamap", SPT_TEXTURE },
 		{ "color", SPT_COLOR }
 	};
 
@@ -231,5 +253,6 @@ bool le::UnlitGeneric::IsEuqal( IShader* Shader ) const
 		color == shader->color &&
 		baseTexture == shader->baseTexture &&
 		normalMap == shader->normalMap &&
-		specularMap == shader->specularMap;
+		specularMap == shader->specularMap &&
+		alphamap == shader->alphamap;
 }

@@ -35,9 +35,17 @@ uniform vec3			color;
 #ifdef SPECULAR_MAP
     uniform sampler2D		specularmap;
 #endif
+#ifdef ALPHA_MAP
+    uniform sampler2D		alphamap;
+#endif
 
 void main()
 {
+#ifdef ALPHA_MAP
+	float		alpha = texture2D( alphamap, texCoords ).r;
+	if ( alpha < 0.001f ) 		discard;
+#endif
+
 #ifdef BASETEXTURE
 	vec3		fragColor = texture2D( basetexture, texCoords ).rgb * color.rgb;
 #else

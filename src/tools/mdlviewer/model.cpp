@@ -1,4 +1,4 @@
-#include "mesh.h"
+#include "model.h"
 #include "engineapi.h"
 #include "common/shaderparaminfo.h"
 #include "common/meshsurface.h"
@@ -13,11 +13,10 @@
 #include <qfiledialog.h>
 #include <qdebug.h>
 
-
 //-----------------------------------------------------------------
 // Load model
 //-----------------------------------------------------------------
-bool Mesh::Load( const QString& Path )
+bool Model::Load( const QString& Path )
 {
 	// Clear mesh, mdlDoc and path
 	if ( mesh )						Clear();
@@ -37,7 +36,7 @@ bool Mesh::Load( const QString& Path )
 	std::vector< le::IMaterial* >		materials;
 	for ( le::UInt32_t index = 0, count = materialPaths.size(); index < count; ++index )
 	{
-		le::IMaterial* material = EngineAPI::GetInstance()->GetResourceSystem()->LoadMaterial( materialPaths[ index ].c_str(), materialPaths[ index ].c_str() );
+		le::IMaterial* material = EngineAPI::GetInstance()->GetResourceSystem()->LoadMaterial( materialPaths [ index ].c_str(), materialPaths [ index ].c_str() );
 		if ( !material ) continue;
 
 		materials.push_back( material );
@@ -47,7 +46,7 @@ bool Mesh::Load( const QString& Path )
 	std::vector< le::MeshSurface >			meshSurfaces;
 	for ( le::UInt32_t index = 0, count = surfaces.size(); index < count; ++index )
 	{
-		const MDLSurface& mdlSurface = surfaces[ index ];
+		const MDLSurface& mdlSurface = surfaces [ index ];
 		le::MeshSurface			surface;
 
 		surface.startVertexIndex = 0;
@@ -103,6 +102,8 @@ bool Mesh::Load( const QString& Path )
 		return false;
 	}
 
+	model->SetMesh( mesh );
+
 	path = Path.toStdString();
 
 	qDebug() << "End Load";
@@ -112,7 +113,7 @@ bool Mesh::Load( const QString& Path )
 //-----------------------------------------------------------------
 // Load material
 //-----------------------------------------------------------------
-bool Mesh::LoadMaterial( const QString& Path, le::UInt32_t Index )
+bool Model::LoadMaterial( const QString& Path, le::UInt32_t Index )
 {
 	le::IMaterial* material = EngineAPI::GetInstance()->GetResourceSystem()->LoadMaterial( Path.toStdString().c_str(), Path.toStdString().c_str() );
 
@@ -127,7 +128,7 @@ bool Mesh::LoadMaterial( const QString& Path, le::UInt32_t Index )
 //-----------------------------------------------------------------
 // Save model
 //-----------------------------------------------------------------
-bool Mesh::Save()
+bool Model::Save()
 {
 	if ( mdlDoc.Save( path ) )
 		return true;
@@ -138,7 +139,7 @@ bool Mesh::Save()
 //-----------------------------------------------------------------
 // Save model as
 //-----------------------------------------------------------------
-bool Mesh::SaveAs( const QString& Path )
+bool Model::SaveAs( const QString& Path )
 {
 	if ( mdlDoc.Save( Path.toStdString() ) )
 	{
@@ -149,7 +150,10 @@ bool Mesh::SaveAs( const QString& Path )
 	return false;
 }
 
-void Mesh::Clear()
+//-----------------------------------------------------------------
+// Delete meshes
+//-----------------------------------------------------------------
+void Model::Clear()
 {
 	if ( mesh->GetCountReferences() <= 0 )
 	{
@@ -167,25 +171,46 @@ void Mesh::Clear()
 	}
 }
 
-le::IMesh* Mesh::GetMesh()
+//-----------------------------------------------------------------
+// Get mesh
+//-----------------------------------------------------------------
+le::IMesh* Model::GetMesh()
 {
 	if ( !mesh ) return nullptr;
 
-	qDebug() << "Mesh isn`t nullptr";
 	return mesh;
 }
 
-std::vector<std::string> Mesh::GetMaterialPaths()
+//-----------------------------------------------------------------
+// Get material paths
+//-----------------------------------------------------------------
+std::vector<std::string> Model::GetMaterialPaths()
 {
 	if ( mdlDoc.GetCountMaterials() == 0 ) return std::vector<std::string>();
 
 	return mdlDoc.GetMaterials();
 }
 
-Mesh::Mesh()
+//-----------------------------------------------------------------
+// Rotate model by mouse
+//-----------------------------------------------------------------
+void Model::RotateByMouse( QMouseEvent* Event )
 {
-	mesh = nullptr;
+
 }
 
-Mesh::~Mesh()
+//-----------------------------------------------------------------
+// Constructor
+//-----------------------------------------------------------------
+Model::Model() :
+	mesh( nullptr )
+{
+	model = ( le::IModel* ) EngineAPI::GetInstance()->GetEngine()->GetFactory()->Create( MODEL_INTERFACE_VERSION );
+	if ( !model )	Error_Critical( "Interface le::IModel Version [" MODEL_INTERFACE_VERSION "] not found in core" );
+
+	model->SetMesh( mesh );
+	Scene::GetInstance()->AddModel( model );
+}
+
+Model::~Model()
 {}

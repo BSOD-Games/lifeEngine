@@ -44,6 +44,8 @@ qt5_add_resources ( RCC_SOURCES ${RESOURCES} )
 
 configure_file( ${PATHS_H}.in ${PATHS_H} )
 add_executable( ${MODULE_NAME} WIN32 ${SOURCE_FILES} ${RCC_SOURCES} ${UI_HEADERS} ${FORMS_FILES} ${RESOURCE} )
+set_target_properties (${MODULE_NAME} PROPERTIES FOLDER Tools )
+
 target_link_libraries( ${MODULE_NAME} lmtloader )
 target_link_libraries( ${MODULE_NAME} Qt5::Widgets Qt5::Core ${CMAKE_DL_LIBS} )
 
@@ -55,4 +57,5 @@ install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
 
 include_directories( ../lmtloader )
 include_directories( ../../public )
+include_directories( ../../private )
 include_directories( ../../ )

@@ -27,6 +27,8 @@ Window_ImportSettings::Window_ImportSettings( QWidget* Parent ) :
 // ------------------------------------------------------------------------------------ //
 Window_ImportSettings::~Window_ImportSettings()
 {
+	inputPath.clear();
+	outputPath.clear();
 	delete ui;
 }
 

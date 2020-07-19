@@ -3,6 +3,7 @@ project( lifeEngine )
 
 include( ${CMAKE_ROOT}/Modules/ExternalProject.cmake )
 find_package( Git REQUIRED )	
+set_property( GLOBAL PROPERTY USE_FOLDERS ON )
 
 #
 #   --- Название проектов ---
@@ -12,11 +13,13 @@ set( PROJECT_LAUNCHER launcher )
 set( PROJECT_ENGINE engine )
 set( PROJECT_STUDIORENDER studiorender )
 set( PROJECT_PHYSICS physics )
+set( PROJECT_AUDIO audio )
 set( PROJECT_LMDL tools/lmdl )
 set( PROJECT_MATERIALS_EDITOR tools/lmteditor ) 
 set( PROJECT_MODEL_VIEWER tools/mdlviewer )
 set( PROJECT_LMTLOADER tools/lmtloader )
 set( PROJECT_MDLLOADER tools/mdlloader )
+set( PROJECT_PHYLOADER tools/phyloader )
 
 #
 #   --- Настройки сборки и пути к каталогам ---
@@ -59,6 +62,7 @@ option( BUILD_LAUNCHER "Build launcher engine" OFF )
 option( BUILD_ENGINE "Build engine" OFF )
 option( BUILD_STUDIORENDER "Build studiorender" OFF )
 option( BUILD_PHYSICS "Build physics" OFF )
+option( BUILD_AUDIO "Build audio" OFF )
 option( BUILD_CONVERTER_MODELS "Build converter models" OFF )
 option( BUILD_MATERIALS_EDITOR "Build materials editor" OFF )
 option( BUILD_MODEL_VIEWER "Build model viewer" OFF )
@@ -103,6 +107,10 @@ if ( BUILD_PHYSICS )
 	add_subdirectory( ${PROJECT_PHYSICS} )
 endif()
 
+if ( BUILD_AUDIO )
+	add_subdirectory( ${PROJECT_AUDIO} )
+endif()
+
 if ( BUILD_CONVERTER_MODELS )
 	add_subdirectory( ${PROJECT_LMDL} )
 endif()
@@ -117,3 +125,4 @@ endif()
 
 add_subdirectory( ${PROJECT_LMTLOADER} )
 add_subdirectory( ${PROJECT_MDLLOADER} )
+add_subdirectory( ${PROJECT_PHYLOADER} )

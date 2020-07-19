@@ -11,112 +11,29 @@
 #include <exception>
 #include <fstream>
 #include <algorithm>
-#include <FreeImage.h>
-#include <rapidjson/rapidjson.h>
-#include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
 
-#include "common/image.h"
-#include "common/meshsurface.h"
-#include "common/meshdescriptor.h"
 #include "engine/lifeengine.h"
-#include "engine/engine.h"
-#include "engine/imaterialproxy.h"
-#include "engine/materialproxyvar.h"
-#include "engine/script.h"
-#include "physics/iphysicsmodel.h"
+#include "engine/iengine.h"
+#include "engine/ifont.h"
+#include "engine/imaterial.h"
+#include "engine/iscript.h"
+#include "engine/ilevel.h"
 #include "studiorender/istudiorender.h"
+#include "studiorender/igpuprogram.h"
 #include "studiorender/itexture.h"
 #include "studiorender/imesh.h"
-#include "studiorender/studiovertexelement.h"
-#include "studiorender/studiorendersampler.h"
-#include "studiorender/igpuprogram.h"
+#include "physics/iphysicsmodel.h"
+#include "audio/iaudiosystem.h"
+#include "audio/isoundbuffer.h"
+#include "audio/istreamsoundinternal.h"
 
 #include "global.h"
-#include "mdldoc.h"
-#include "lmtdoc.h"
+#include "materialsystem.h"
+#include "scriptsystem.h"
 #include "consolesystem.h"
 #include "resourcesystem.h"
-#include "level.h"
-#include "fontfreetype.h"
-#include "material.h"
-#include "shaderparameter.h"
-#include "materialproxyfactory.h"
-#include "materialsystem.h"
 
-#define PHY_ID			"LPHY"
-#define PHY_VERSION		1
-
-enum PHY_LUMPS
-{
-	PL_VERTECES,
-	PL_INDECES,
-	PL_MAX_LUMPS
-};
-
-struct PHYHeader
-{
-	char				strId[ 4 ]; // Always 'LPHY'
-	le::UInt32_t		version;
-};
-
-struct PHYLump
-{
-	le::UInt32_t		offset;
-	le::UInt32_t		length;
-};
-
-// ------------------------------------------------------------------------------------ //
-// Загрузить изображение
-// ------------------------------------------------------------------------------------ //
-void LE_LoadImage( const char* Path, le::Image& Image, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels )
-{
-	IsError = false;
-	FREE_IMAGE_FORMAT		imageFormat = FIF_UNKNOWN;
-	imageFormat = FreeImage_GetFileType( Path, 0 );
-
-	if ( imageFormat == FIF_UNKNOWN )
-		imageFormat = FreeImage_GetFIFFromFilename( Path );
-
-	FIBITMAP* bitmap = FreeImage_Load( imageFormat, Path, 0 );
-	if ( !bitmap )
-	{
-		IsError = true;
-		return;
-	}
-
-	if ( IsFlipVertical )				FreeImage_FlipVertical( bitmap );
-	if ( IsSwitchRedAndBlueChannels )
-	{
-		auto		red = FreeImage_GetChannel( bitmap, FREE_IMAGE_COLOR_CHANNEL::FICC_RED );
-		auto		blue = FreeImage_GetChannel( bitmap, FREE_IMAGE_COLOR_CHANNEL::FICC_BLUE );
-
-		FreeImage_SetChannel( bitmap, blue, FREE_IMAGE_COLOR_CHANNEL::FICC_RED );
-		FreeImage_SetChannel( bitmap, red, FREE_IMAGE_COLOR_CHANNEL::FICC_BLUE );
-
-		FreeImage_Unload( red );
-		FreeImage_Unload( blue );
-	}
-
-	le::UInt8_t* tempData = FreeImage_GetBits( bitmap );
-	Image.width = FreeImage_GetWidth( bitmap );
-	Image.height = FreeImage_GetHeight( bitmap );
-	Image.depth = FreeImage_GetBPP( bitmap );
-	Image.pitch = FreeImage_GetPitch( bitmap );
-
-	Image.data = ( le::UInt8_t* ) malloc( Image.pitch * Image.height );
-	memcpy( Image.data, tempData, Image.pitch * Image.height );
-
-	Image.rMask = 0x00ff0000;
-	Image.gMask = 0x0000ff00;
-	Image.bMask = 0x000000ff;
-	Image.aMask = ( Image.depth == 24 ) ? 0 : 0xff000000;
-
-	FreeImage_Unload( bitmap );
-	return;
-}
-
+<<<<<<< HEAD
 // ------------------------------------------------------------------------------------ //
 // Загрузить текстуру
 // ------------------------------------------------------------------------------------ //
@@ -730,6 +647,19 @@ void le::ResourceSystem::UnregisterLoader_Font( const char* Format )
 	loaderFonts.erase( it );
 	g_consoleSystem->PrintInfo( "Loader font for format [%s] unregistered", Format );
 }
+=======
+// Parsers
+#include "parsergpuprogram_shader.h"
+#include "parserfont_freetype.h"
+#include "parserimage_freeimage.h"
+#include "parserlevel_bsp.h"
+#include "parsermaterial_lmt.h"
+#include "parsermesh_mdl.h"
+#include "parserphysicsmodel_phy.h"
+#include "parserscript_c.h"
+#include "parsertexture_freeimage.h"
+#include "parsersoundbuffer_ogg.h"
+>>>>>>> remotes/origin/dev
 
 // ------------------------------------------------------------------------------------ //
 // Загрузить картинку
@@ -742,6 +672,7 @@ le::Image le::ResourceSystem::LoadImage( const char* Path, bool& IsError, bool I
 	try
 	{
 		if ( loaderImages.empty() )					throw std::runtime_error( "No image loaders" );
+		g_consoleSystem->PrintInfo( "Loading image [%s]", Path );
 
 		std::string			format = GetFormatFile( Path );
 		if ( format.empty() )						throw std::runtime_error( "In image format not found" );
@@ -750,20 +681,18 @@ le::Image le::ResourceSystem::LoadImage( const char* Path, bool& IsError, bool I
 		if ( parser == loaderImages.end() )			throw std::runtime_error( "Loader for format image not found" );
 
 		Image				image;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), image, IsError, IsFlipVertical, IsSwitchRedAndBlueChannels );
-			if ( image.data )
-			{
-				g_consoleSystem->PrintInfo( "Image founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+		IParserImage*		parserImage = parser->second();
 
+		for ( UInt32_t index = 0, count = paths.size(); !image.data && index < count; ++index )
+			parserImage->Read( std::string( paths[ index ] + "/" + Path ).c_str(), image, IsError, IsFlipVertical, IsSwitchRedAndBlueChannels );
+
+		parserImage->Release();
 		if ( IsError )								throw std::runtime_error( "Fail loading image" );
+		
+		g_consoleSystem->PrintInfo( "Loaded image [%s]", Path );
 		return image;
 	}
-	catch ( std::exception & Exception )
+	catch ( std::exception& Exception )
 	{
 		g_consoleSystem->PrintError( "Image [%s] not loaded: %s", Path, Exception.what() );
 		return Image();
@@ -794,17 +723,14 @@ le::ITexture* le::ResourceSystem::LoadTexture( const char* Name, const char* Pat
 		if ( parser == loaderTextures.end() )		throw std::runtime_error( "Loader for format texture not found" );
 
 		ITexture*			texture = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			texture = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), studioRenderFactory );
-			if ( texture )
-			{
-				g_consoleSystem->PrintInfo( "Texture founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+		IParserTexture*		parserTexture = parser->second();
 
+		for ( UInt32_t index = 0, count = paths.size(); !texture && index < count; ++index )
+			texture = parserTexture->Read( std::string( paths[ index ] + "/" + Path ).c_str(), studioRenderFactory );
+
+		parserTexture->Release();
 		if ( !texture )								throw std::runtime_error( "Fail loading texture" );
+		
 		texture->IncrementReference();
 		textures.insert( std::make_pair( Name, texture ) );
 		g_consoleSystem->PrintInfo( "Loaded texture [%s]", Name );
@@ -842,17 +768,14 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
 		if ( parser == loaderMaterials.end() )		throw std::runtime_error( "Loader for format material not found" );
 
 		IMaterial*			material = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			material = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), this, g_materialSystem, engineFactory );
-			if ( material )
-			{
-				g_consoleSystem->PrintInfo( "Material founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+		IParserMaterial*	parserMaterial = parser->second();
 
+		for ( UInt32_t index = 0, count = paths.size(); !material && index < count; ++index )
+			material = parserMaterial->Read( std::string( paths[ index ] + "/" + Path ).c_str(), this, g_materialSystem, engineFactory );
+
+		parserMaterial->Release();
 		if ( !material )	throw std::runtime_error( "Fail loading material" );
+		
 		material->IncrementReference();
 		materials.insert( std::make_pair( Name, material ) );
 		g_consoleSystem->PrintInfo( "Loaded material [%s]", Name );
@@ -890,17 +813,14 @@ le::IMesh* le::ResourceSystem::LoadMesh( const char* Name, const char* Path )
 		if ( parser == loaderMeshes.end() )		throw std::runtime_error( "Loader for format mesh not found" );
 
 		IMesh*			mesh = nullptr;
-		for ( UInt32_t index = 0; index < paths.size(); ++index )
-		{
-			mesh = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), this, studioRenderFactory );
-			if ( mesh )
-			{
-				g_consoleSystem->PrintInfo( "Mesh founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+		IParserMesh*	parserMesh = parser->second();
 
+		for ( UInt32_t index = 0, count = paths.size(); !mesh && index < count; ++index )
+			mesh = parserMesh->Read( std::string( paths[ index ] + "/" + Path ).c_str(), this, studioRenderFactory );
+
+		parserMesh->Release();
 		if ( !mesh )							throw std::runtime_error( "Fail loading mesh" );
+		
 		mesh->IncrementReference();
 		meshes.insert( std::make_pair( Name, mesh ) );
 		g_consoleSystem->PrintInfo( "Loaded mesh [%s]", Name );
@@ -938,17 +858,14 @@ le::ILevel* le::ResourceSystem::LoadLevel( const char* Name, const char* Path, I
 		if ( parser == loaderLevels.end() )		throw std::runtime_error( "Loader for format level not found" );
 
 		ILevel*			level = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			level = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), GameFactory );
-			if ( level )
-			{
-				g_consoleSystem->PrintInfo( "Level founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+		IParserLevel*	parserLevel = parser->second();
 
+		for ( UInt32_t index = 0, count = paths.size(); !level && index < count; ++index )
+			level = parserLevel->Read( std::string( paths[ index ] + "/" + Path ).c_str(), GameFactory );	
+
+		parserLevel->Release();
 		if ( !level )							throw std::runtime_error( "Fail loading level" );
+		
 		level->IncrementReference();
 		levels.insert( std::make_pair( Name, level ) );
 		g_consoleSystem->PrintInfo( "Loaded level [%s]", Name );
@@ -984,17 +901,14 @@ le::IFont* le::ResourceSystem::LoadFont( const char* Name, const char* Path )
 		if ( parser == loaderFonts.end() )		throw std::runtime_error( "Loader for format font not found" );
 
 		IFont*			font = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			font = parser->second( std::string( paths[ index ] + "/" + Path ).c_str() );
-			if ( font )
-			{
-				g_consoleSystem->PrintInfo( "Font founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+		IParserFont*	parserFont = parser->second();
 
+		for ( UInt32_t index = 0, count = paths.size(); !font && index < count; ++index )
+			font = parserFont->Read( std::string( paths[ index ] + "/" + Path ).c_str() );
+
+		parserFont->Release();
 		if ( !font )							throw std::runtime_error( "Fail loading font" );
+		
 		font->IncrementReference();
 		fonts.insert( std::make_pair( Name, font ) );
 		g_consoleSystem->PrintInfo( "Loaded font [%s]", Name );
@@ -1218,6 +1132,7 @@ void le::ResourceSystem::UnloadAll()
 	UnloadTextures();
 	UnloadPhysicsModels();
 	UnloadGPUPrograms();
+	UnloadSoundBuffers();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1291,28 +1206,29 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 {
 	try
 	{
-		IStudioRender* studioRender = Engine->GetStudioRender();
+		IStudioRender*			studioRender = Engine->GetStudioRender();
 		if ( !studioRender )	throw std::runtime_error( "Resource system requared studiorender" );
 
 		studioRenderFactory = studioRender->GetFactory();
 		scriptSystemFactory = g_scriptSystem->GetFactory();
+		audioSystemFactory = Engine->GetAudioSystem()->GetFactory();
 		engineFactory = Engine->GetFactory();
 
-		RegisterLoader_Image( "png", LE_LoadImage );
-		RegisterLoader_Image( "jpg", LE_LoadImage );
-		RegisterLoader_Image( "tga", LE_LoadImage );
-		RegisterLoader_Texture( "png", LE_LoadTexture );
-		RegisterLoader_Texture( "jpg", LE_LoadTexture );
-		RegisterLoader_Texture( "tga", LE_LoadTexture );
-		RegisterLoader_Material( "lmt", LE_LoadMaterial );
-		RegisterLoader_Mesh( "mdl", LE_LoadMesh );
-		RegisterLoader_Level( "bsp", LE_LoadLevel );
-		RegisterLoader_Font( "ttf", LE_LoadFont );
-		RegisterLoader_Script( "c", LE_LoadScript );
-		RegisterLoader_PhysicsModel( "phy", LE_LoadPhysicsModel );
-		RegisterLoader_GPUProgram( "shader", LE_LoadGPUProgram );
+		if ( !ParserFontFreeType::InitializeFreeType() )
+			throw std::runtime_error( "Failed initialize freetype library" );
+
+		RegisterLoader( []() -> IParserImage* { return new ParserImageFreeImage(); } );
+		RegisterLoader( []() -> IParserFont* { return new ParserFontFreeType(); } );
+		RegisterLoader( []() -> IParserGPUProgram* { return new ParserGPUProgramShader(); } );
+		RegisterLoader( []() -> IParserLevel* { return new ParserLevelBSP(); } );
+		RegisterLoader( []() -> IParserMaterial* { return new ParserMaterialLMT(); } );
+		RegisterLoader( []() -> IParserMesh* { return new ParserMeshMDL(); } );
+		RegisterLoader( []() -> IParserPhysicsModel* { return new ParserPhysicsModelPHY(); } );
+		RegisterLoader( []() -> IParserScript* { return new ParserScriptC(); } );
+		RegisterLoader( []() -> IParserTexture* { return new ParserTextureFreeImage(); } );
+		RegisterLoader( []() -> IParserSoundBuffer* { return new ParserSoundBufferOGG(); } );
 	}
-	catch ( std::exception & Exception )
+	catch ( std::exception& Exception )
 	{
 		g_consoleSystem->PrintError( Exception.what() );
 		return false;
@@ -1391,32 +1307,6 @@ std::string le::ResourceSystem::GetFormatFile( const std::string& Route )
 // ------------------------------------------------------------------------------------ //
 // Деструктор
 // ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterLoader_Script( const char* Format, LoadScriptFn_t LoadScript )
-{
-	LIFEENGINE_ASSERT( Format );
-	LIFEENGINE_ASSERT( LoadScript );
-
-	g_consoleSystem->PrintInfo( "Loader script for format [%s] registered", Format );
-	loaderScripts[ Format ] = LoadScript;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Деструктор
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnregisterLoader_Script( const char* Format )
-{
-	LIFEENGINE_ASSERT( Format );
-
-	auto		it = loaderScripts.find( Format );
-	if ( it == loaderScripts.end() ) return;
-
-	loaderScripts.erase( it );
-	g_consoleSystem->PrintInfo( "Loader script for format [%s] unregistered", Format );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Деструктор
-// ------------------------------------------------------------------------------------ //
 le::IScript* le::ResourceSystem::LoadScript( const char* Name, const char* Path, UInt32_t CountFunctions, ScriptDescriptor::Symbol* Functions, UInt32_t CountVars, ScriptDescriptor::Symbol* Vars )
 {
 	LIFEENGINE_ASSERT( Name );
@@ -1438,17 +1328,14 @@ le::IScript* le::ResourceSystem::LoadScript( const char* Name, const char* Path,
 		if ( parser == loaderScripts.end() )		throw std::runtime_error( "Loader for format script not found" );
 
 		IScript*			script = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			script = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), CountFunctions, Functions, CountVars, Vars, scriptSystemFactory );
-			if ( script )
-			{
-				g_consoleSystem->PrintInfo( "Script founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+		IParserScript*		parserScript = parser->second();
 
+		for ( UInt32_t index = 0, count = paths.size(); !script && index < count; ++index )
+			script = parserScript->Read( std::string( paths[ index ] + "/" + Path ).c_str(), CountFunctions, Functions, CountVars, Vars, scriptSystemFactory );
+
+		parserScript->Release();
 		if ( !script )							throw std::runtime_error( "Fail loading script" );
+		
 		script->IncrementReference();
 		scripts.insert( std::make_pair( Name, script ) );
 		g_consoleSystem->PrintInfo( "Loaded script [%s]", Name );
@@ -1509,58 +1396,6 @@ le::IScript* le::ResourceSystem::GetScript( const char* Name ) const
 	if ( it != scripts.end() )		return it->second;
 
 	return nullptr;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Register loader for physics model
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterLoader_PhysicsModel( const char *Format, LoadPhysicsModelFn_t LoadPhysicsModel )
-{
-	LIFEENGINE_ASSERT( Format );
-	LIFEENGINE_ASSERT( LoadPhysicsModel );
-
-	g_consoleSystem->PrintInfo( "Loader physics model for format [%s] registered", Format );
-	loaderPhysicsModels[ Format ] = LoadPhysicsModel;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Rigister loader gpu program
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterLoader_GPUProgram( const char* Format, LoadGPUProgramFn_t LoadGPUProgram )
-{
-	LIFEENGINE_ASSERT( Format );
-	LIFEENGINE_ASSERT( LoadGPUProgram );
-
-	g_consoleSystem->PrintInfo( "Loader gpu program for format [%s] registered", Format );
-	loaderGPUProgram[ Format ] = LoadGPUProgram;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Unregister loader for physics model
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnregisterLoader_PhysicsModel( const char *Format )
-{
-	LIFEENGINE_ASSERT( Format );
-
-	auto		it = loaderPhysicsModels.find( Format );
-	if ( it == loaderPhysicsModels.end() ) return;
-
-	loaderPhysicsModels.erase( it );
-	g_consoleSystem->PrintInfo( "Loader physics model for format [%s] unregistered", Format );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Unregister loader gpu program
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnregisterLoader_GPUProgram( const char* Format )
-{
-	LIFEENGINE_ASSERT( Format );
-
-	auto		it = loaderGPUProgram.find( Format );
-	if ( it == loaderGPUProgram.end() ) return;
-
-	loaderGPUProgram.erase( it );
-	g_consoleSystem->PrintInfo( "Loader gpu program for format [%s] unregistered", Format );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1626,6 +1461,22 @@ void le::ResourceSystem::UnloadGPUProgram( const char* Name )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Unload sound buffer
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadSoundBuffer( const char* Name )
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto				it = soundBuffers.find( Name );
+	if ( it == soundBuffers.end() || it->second->GetCountReferences() > 1 )		return;
+
+	it->second->Release();
+	soundBuffers.erase( it );
+
+	g_consoleSystem->PrintInfo( "Unloaded sound buffer [%s]", Name );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Load physics model
 // ------------------------------------------------------------------------------------ //
 le::IPhysicsModel* le::ResourceSystem::LoadPhysicsModel( const char *Name, const char *Path )
@@ -1647,17 +1498,14 @@ le::IPhysicsModel* le::ResourceSystem::LoadPhysicsModel( const char *Name, const
 		if ( parser == loaderPhysicsModels.end() )			throw std::runtime_error( "Loader for format physics model not found" );
 
 		le::IPhysicsModel*			physicsModel = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			physicsModel = parser->second( std::string( paths[ index ] + "/" + Path ).c_str(), g_physicsSystemFactory );
-			if ( physicsModel )
-			{
-				g_consoleSystem->PrintInfo( "Physics model founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+		IParserPhysicsModel*		parserPhysicsModel = parser->second();
 
+		for ( UInt32_t index = 0, count = paths.size(); !physicsModel && index < count; ++index )
+			physicsModel = parserPhysicsModel->Read( std::string( paths[ index ] + "/" + Path ).c_str(), g_physicsSystemFactory );
+
+		parserPhysicsModel->Release();
 		if ( !physicsModel )		throw std::runtime_error( "Fail loading physics model" );
+		
 		physicsModel->IncrementReference();
 		physicsModels.insert( std::make_pair( Name, physicsModel ) );
 		g_consoleSystem->PrintInfo( "Loaded collider [%s]", Name );
@@ -1705,27 +1553,194 @@ le::IGPUProgram* le::ResourceSystem::LoadGPUProgram( const char* Name, const cha
 		if ( parser == loaderGPUProgram.end() )		throw std::runtime_error( "Loader for format gpu program not found" );
 
 		IGPUProgram*			gpuProgram = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			gpuProgram = parser->second( paths[ index ].c_str(), std::string( paths[ index ] + "/" + Path ).c_str(), CountDefines, Defines, studioRenderFactory );
-			if ( gpuProgram )
-			{
-				g_consoleSystem->PrintInfo( "GPU program founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+		IParserGPUProgram*		parserGPUProgram = parser->second();
 
+		for ( UInt32_t index = 0, count = paths.size(); !gpuProgram && index < count; ++index )		
+			gpuProgram = parserGPUProgram->Read( paths[ index ].c_str(), std::string( paths[ index ] + "/" + Path ).c_str(), CountDefines, Defines, studioRenderFactory );
+
+		parserGPUProgram->Release();
 		if ( !gpuProgram )							throw std::runtime_error( "Fail loading gpu program" );
+		
 		gpuProgram->IncrementReference();
 		gpuPrograms[ Name ][ Flags ] = gpuProgram;
 		g_consoleSystem->PrintInfo( "Loaded gpu program [%s] with flags [%i]", Name, Flags );
 
 		return gpuProgram;
 	}
-	catch ( std::exception & Exception )
+	catch ( std::exception& Exception )
 	{
 		g_consoleSystem->PrintError( "Gpu program [%s] with flags [%i] not loaded: %s", Path, Flags, Exception.what() );
 		return nullptr;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Load sound buffer
+// ------------------------------------------------------------------------------------ //
+le::ISoundBuffer* le::ResourceSystem::LoadSoundBuffer( const char* Name, const char* Path )
+{
+	LIFEENGINE_ASSERT( Name );
+	LIFEENGINE_ASSERT( Path );
+
+	try
+	{
+		if ( soundBuffers.find( Name ) != soundBuffers.end() )		return soundBuffers[ Name ];
+		if ( loaderSoundBuffers.empty() )							throw std::runtime_error( "No sound buffer loaders" );
+
+		g_consoleSystem->PrintInfo( "Loading sound buffer [%s] with name [%s]", Path, Name );
+
+		std::string			format = GetFormatFile( Path );
+		if ( format.empty() )								throw std::runtime_error( "In sound buffer format not found" );
+
+		auto				parser = loaderSoundBuffers.find( format );
+		if ( parser == loaderSoundBuffers.end() )			throw std::runtime_error( "Loader for format sound buffer not found" );
+
+		le::ISoundBuffer*		soundBuffer = nullptr;
+		IParserSoundBuffer*		parserSoundBuffer = parser->second();
+
+		for ( UInt32_t index = 0, count = paths.size(); !soundBuffer && index < count; ++index )
+		{				
+			if ( !parserSoundBuffer->Open( std::string( paths[ index ] + "/" + Path ).c_str() ) )
+				continue;
+
+			UInt32_t					sizeData = parserSoundBuffer->GetSampleCount();
+			Byte_t*						data = ( Byte_t* ) malloc( sizeData );		
+			if ( parserSoundBuffer->Read( data, sizeData ) == 0 )
+			{
+				free( data );
+				continue;
+			}
+
+			soundBuffer = ( le::ISoundBuffer* ) audioSystemFactory->Create( SOUNDBUFFER_INTERFACE_VERSION );
+			if ( !soundBuffer )
+			{
+				free( data );
+				parserSoundBuffer->Release();
+				
+				throw std::runtime_error( "Interface le::ISoundBuffer [" SOUNDBUFFER_INTERFACE_VERSION "] not founded in audio system" );
+			}
+			
+			soundBuffer->Create();
+			soundBuffer->Append( parserSoundBuffer->GetSampleFormat(), data, sizeData, parserSoundBuffer->GetSampleRate() );
+			
+			free( data );
+		}
+
+		parserSoundBuffer->Release();
+		if ( !soundBuffer )		throw std::runtime_error( "Fail loading sound buffer" );		
+		
+		soundBuffer->IncrementReference();
+		soundBuffers.insert( std::make_pair( Name, soundBuffer ) );	
+		g_consoleSystem->PrintInfo( "Loaded sound buffer [%s]", Name );
+		
+		return soundBuffer;
+	}
+	catch ( std::exception& Exception )
+	{
+		g_consoleSystem->PrintError( "Sound buffer [%s] not loaded: %s", Path, Exception.what() );
+		return nullptr;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Open stream sound
+// ------------------------------------------------------------------------------------ //
+le::IStreamSound* le::ResourceSystem::OpenStreamSound( const char* Path )
+{
+	LIFEENGINE_ASSERT( Path );
+
+	try
+	{
+		if ( loaderSoundBuffers.empty() )		throw std::runtime_error( "No sound buffer loaders" );
+
+		g_consoleSystem->PrintInfo( "Opening stream sound [%s]", Path );
+
+		std::string			format = GetFormatFile( Path );
+		if ( format.empty() )								throw std::runtime_error( "In sound buffer format not found" );
+
+		auto				parser = loaderSoundBuffers.find( format );
+		if ( parser == loaderSoundBuffers.end() )			throw std::runtime_error( "Loader for format sound buffer not found" );
+
+		IStreamSoundInternal*		streamSound = nullptr;
+		IParserSoundBuffer*			parserSoundBuffer = parser->second();
+
+		for ( UInt32_t index = 0, count = paths.size(); !streamSound && index < count; ++index )
+		{		
+			if ( !parserSoundBuffer->Open( std::string( paths[ index ] + "/" + Path ).c_str() ) )
+				continue;
+
+			streamSound = ( IStreamSoundInternal* ) audioSystemFactory->Create( STREAMSOUND_INTERFACE_VERSION );
+			if ( !streamSound )
+			{
+				parserSoundBuffer->Release();
+				throw std::runtime_error( "interface le::IStreamSound [" STREAMSOUND_INTERFACE_VERSION "] not founded in audio system" );
+			}
+
+			streamSound->Create();
+			streamSound->Open( parserSoundBuffer );
+		}
+
+		if ( !streamSound )
+		{
+			parserSoundBuffer->Release();
+			throw std::runtime_error( "Fail opening stream sound" );
+		}
+
+		g_consoleSystem->PrintInfo( "Opened stream sound" );
+		return streamSound;
+	}
+	catch ( std::exception& Exception )
+	{
+		g_consoleSystem->PrintError( "Stream sound [%s] not opened: %s", Path, Exception.what() );
+		return nullptr;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Open stream sound in allrady created IStreamSound
+// ------------------------------------------------------------------------------------ //
+bool le::ResourceSystem::OpenStreamSound( const char* Path, IStreamSound* StreamSound )
+{
+	LIFEENGINE_ASSERT( Path );
+	LIFEENGINE_ASSERT( StreamSound );
+
+	try
+	{
+		if ( loaderSoundBuffers.empty() )		throw std::runtime_error( "No sound buffer loaders" );
+
+		g_consoleSystem->PrintInfo( "Opening stream sound [%s]", Path );
+
+		std::string			format = GetFormatFile( Path );
+		if ( format.empty() )								throw std::runtime_error( "In sound buffer format not found" );
+
+		auto				parser = loaderSoundBuffers.find( format );
+		if ( parser == loaderSoundBuffers.end() )			throw std::runtime_error( "Loader for format sound buffer not found" );
+
+		bool					isSuccess = false;
+		IParserSoundBuffer*		parserSoundBuffer = parser->second();
+		
+		for ( UInt32_t index = 0, count = paths.size(); !isSuccess && index < count; ++index )
+		{		
+			if ( !parserSoundBuffer->Open( std::string( paths[ index ] + "/" + Path ).c_str() ) )
+				continue;
+
+			static_cast< IStreamSoundInternal* >( StreamSound )->Open( parserSoundBuffer );
+			isSuccess = true;
+		}
+
+		if ( !isSuccess )
+		{
+			parserSoundBuffer->Release();
+			throw std::runtime_error( "Fail opening stream sound" );
+		}
+
+		g_consoleSystem->PrintInfo( "Opened stream sound" );
+		return isSuccess;
+	}
+	catch ( std::exception& Exception )
+	{
+		g_consoleSystem->PrintError( "Stream sound [%s] not opened: %s", Path, Exception.what() );
+		return false;
 	}
 }
 
@@ -1781,6 +1796,26 @@ void le::ResourceSystem::UnloadGPUPrograms()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Unload sound buffers
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::UnloadSoundBuffers()
+{
+	if ( soundBuffers.empty() ) return;
+
+	for ( auto it = soundBuffers.begin(), itEnd = soundBuffers.end(); it != itEnd; )
+		if ( it->second->GetCountReferences() <= 1 )
+		{
+			it->second->Release();
+
+			g_consoleSystem->PrintInfo( "Unloaded sound buffer [%s]", it->first.c_str() );
+			it = soundBuffers.erase( it );
+			itEnd = soundBuffers.end();
+		}
+		else
+			++it;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Get physics model
 // ------------------------------------------------------------------------------------ //
 le::IPhysicsModel* le::ResourceSystem::GetPhysicsModel( const char* Name ) const
@@ -1810,6 +1845,19 @@ le::IGPUProgram* le::ResourceSystem::GetGPUProgram( const char* Name, UInt32_t F
 }
 
 // ------------------------------------------------------------------------------------ //
+// Get sound buffer
+// ------------------------------------------------------------------------------------ //
+le::ISoundBuffer* le::ResourceSystem::GetSoundBuffer( const char* Name ) const
+{
+	LIFEENGINE_ASSERT( Name );
+
+	auto	it = soundBuffers.find( Name );
+	if ( it != soundBuffers.end() )		return it->second;
+
+	return nullptr;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Get count paths
 // ------------------------------------------------------------------------------------ //
 le::UInt32_t le::ResourceSystem::GetCountPaths() const
@@ -1824,4 +1872,254 @@ const char* le::ResourceSystem::GetPath( UInt32_t Index ) const
 {
 	if ( Index >= paths.size() )		return "";
 	return paths[ Index ].c_str();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( CreateParserImageFn_t CreateParserImage )
+{
+	if ( !CreateParserImage )		return;
+
+	IParserImage*		parserImage = CreateParserImage();
+	const char**		extensions = parserImage->GetFileExtensions();
+	UInt32_t			countExtensions = parserImage->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser image not registered, supported extensions not founded" );
+		parserImage->Release();
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderImages[ extensions[ index ] ] = CreateParserImage;
+
+	g_consoleSystem->PrintInfo( "Parser image registered. Name: %s, Version: %s, Author: %s", parserImage->GetName(), parserImage->GetVersion(), parserImage->GetAuthor() );
+	parserImage->Release();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( CreateParserTextureFn_t CreateParserTexture )
+{
+	if ( !CreateParserTexture )		return;
+
+	IParserTexture*		parserTexture = CreateParserTexture();
+	const char**		extensions = parserTexture->GetFileExtensions();
+	UInt32_t			countExtensions = parserTexture->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser texture not registered, supported extensions not founded" );
+		parserTexture->Release();
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderTextures[ extensions[ index ] ] = CreateParserTexture;
+
+	g_consoleSystem->PrintInfo( "Parser texture registered. Name: %s, Version: %s, Author: %s", parserTexture->GetName(), parserTexture->GetVersion(), parserTexture->GetAuthor() );
+	parserTexture->Release();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( CreateParserMaterialFn_t CreateParserMaterial )
+{
+	if ( !CreateParserMaterial )		return;
+
+	IParserMaterial*	parserMaterial = CreateParserMaterial();
+	const char**		extensions = parserMaterial->GetFileExtensions();
+	UInt32_t			countExtensions = parserMaterial->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser material not registered, supported extensions not founded" );
+		parserMaterial->Release();
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderMaterials[ extensions[ index ] ] = CreateParserMaterial;
+
+	g_consoleSystem->PrintInfo( "Parser material registered. Name: %s, Version: %s, Author: %s", parserMaterial->GetName(), parserMaterial->GetVersion(), parserMaterial->GetAuthor() );
+	parserMaterial->Release();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( CreateParserMeshFn_t CreateParserMesh )
+{
+	if ( !CreateParserMesh )		return;
+
+	IParserMesh*		parserMesh = CreateParserMesh();
+	const char**		extensions = parserMesh->GetFileExtensions();
+	UInt32_t			countExtensions = parserMesh->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser mesh not registered, supported extensions not founded" );
+		parserMesh->Release();
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderMeshes[ extensions[ index ] ] = CreateParserMesh;
+
+	g_consoleSystem->PrintInfo( "Parser mesh registered. Name: %s, Version: %s, Author: %s", parserMesh->GetName(), parserMesh->GetVersion(), parserMesh->GetAuthor() );
+	parserMesh->Release();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( CreateParserLevelFn_t CreateParserLevel )
+{
+	if ( !CreateParserLevel )		return;
+
+	IParserLevel*		parserLevel = CreateParserLevel();
+	const char**		extensions = parserLevel->GetFileExtensions();
+	UInt32_t			countExtensions = parserLevel->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser level not registered, supported extensions not founded" );
+		parserLevel->Release();
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderLevels[ extensions[ index ] ] = CreateParserLevel;
+
+	g_consoleSystem->PrintInfo( "Parser level registered. Name: %s, Version: %s, Author: %s", parserLevel->GetName(), parserLevel->GetVersion(), parserLevel->GetAuthor() );
+	parserLevel->Release();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( CreateParserFontFn_t CreateParserFont )
+{
+	if ( !CreateParserFont )		return;
+
+	IParserFont*		parseFont = CreateParserFont();
+	const char**		extensions = parseFont->GetFileExtensions();
+	UInt32_t			countExtensions = parseFont->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser font not registered, supported extensions not founded" );
+		parseFont->Release();
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderFonts[ extensions[ index ] ] = CreateParserFont;
+
+	g_consoleSystem->PrintInfo( "Parser font registered. Name: %s, Version: %s, Author: %s", parseFont->GetName(), parseFont->GetVersion(), parseFont->GetAuthor() );
+	parseFont->Release();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( CreateParserScriptFn_t CreateParserScript )
+{
+	if ( !CreateParserScript )		return;
+
+	IParserScript*		parserScript = CreateParserScript();
+	const char**		extensions = parserScript->GetFileExtensions();
+	UInt32_t			countExtensions = parserScript->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser script not registered, supported extensions not founded" );
+		parserScript->Release();
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderScripts[ extensions[ index ] ] = CreateParserScript;
+
+	g_consoleSystem->PrintInfo( "Parser script registered. Name: %s, Version: %s, Author: %s", parserScript->GetName(), parserScript->GetVersion(), parserScript->GetAuthor() );
+	parserScript->Release();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( CreateParserPhysicsModelFn_t CreateParserPhysicsModel )
+{
+	if ( !CreateParserPhysicsModel )		return;
+
+	IParserPhysicsModel*		parserPhysicsModel = CreateParserPhysicsModel();
+	const char**				extensions = parserPhysicsModel->GetFileExtensions();
+	UInt32_t					countExtensions = parserPhysicsModel->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser physics model not registered, supported extensions not founded" );
+		parserPhysicsModel->Release();
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderPhysicsModels[ extensions[ index ] ] = CreateParserPhysicsModel;
+
+	g_consoleSystem->PrintInfo( "Parser physics model registered. Name: %s, Version: %s, Author: %s", parserPhysicsModel->GetName(), parserPhysicsModel->GetVersion(), parserPhysicsModel->GetAuthor() );
+	parserPhysicsModel->Release();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( CreateParserGPUProgramFn_t CreateParserGPUProgram )
+{
+	if ( !CreateParserGPUProgram )		return;
+
+	IParserGPUProgram*		parserGPUProgram = CreateParserGPUProgram();
+	const char**			extensions = parserGPUProgram->GetFileExtensions();
+	UInt32_t				countExtensions = parserGPUProgram->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser GPU program not registered, supported extensions not founded" );
+		parserGPUProgram->Release();
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderGPUProgram[ extensions[ index ] ] = CreateParserGPUProgram;
+
+	g_consoleSystem->PrintInfo( "Parser GPU program registered. Name: %s, Version: %s, Author: %s", parserGPUProgram->GetName(), parserGPUProgram->GetVersion(), parserGPUProgram->GetAuthor() );
+	parserGPUProgram->Release();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Register loader
+// ------------------------------------------------------------------------------------ //
+void le::ResourceSystem::RegisterLoader( CreateParserSoundBufferFn_t CreateParserSoundBuffer )
+{
+	if ( !CreateParserSoundBuffer )		return;
+
+	IParserSoundBuffer*		parserSoundBuffer = CreateParserSoundBuffer();
+	const char**			extensions = parserSoundBuffer->GetFileExtensions();
+	UInt32_t				countExtensions = parserSoundBuffer->GetCountFileExtensions();
+
+	if ( countExtensions <= 0 || !extensions )
+	{
+		g_consoleSystem->PrintError( "Parser sound buffer not registered, supported extensions not founded" );
+		parserSoundBuffer->Release();
+		return;
+	}
+
+	for ( UInt32_t index = 0; index < countExtensions; ++index )
+		loaderSoundBuffers[ extensions[ index ] ] = CreateParserSoundBuffer;
+
+	g_consoleSystem->PrintInfo( "Parser sound buffer registered. Name: %s, Version: %s, Author: %s", parserSoundBuffer->GetName(), parserSoundBuffer->GetVersion(), parserSoundBuffer->GetAuthor() );
+	parserSoundBuffer->Release();
 }

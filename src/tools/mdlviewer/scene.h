@@ -18,6 +18,7 @@
 #include "engine/imodel.h"
 #include "studiorender/idirectionallight.h"
 #include "studiorender/istudiorender.h"
+#include "widget_viewport.h"
 
 #include "tsingleton.h"
 
@@ -37,19 +38,27 @@ public:
 	void				AddModel( le::IModel* Model );
 	void				AddLight( le::IDirectionalLight* Light );
 
-	inline void			SetStudioRender( le::IStudioRender* StudioRender )		{ studioRender = StudioRender; }
+	inline void			SetStudioRender( le::IStudioRender* StudioRender ) { studioRender = StudioRender; }
 	void				SetCamera( le::ICamera* Camera );
+	void				EnableGround( bool IsEnable );
+	void				EnableRotate( bool IsEnable );
+
+	bool				GetIsGround();
+	bool				GetIsRotate();
 
 private slots:
 	void				Update();
 
 private:
-	QTimer								timerUpdate;
+	QTimer									timerUpdate;
 
-	le::ICamera*							camera;
-	le::IStudioRender*						studioRender;
+	le::ICamera* camera;
+	le::IStudioRender* studioRender;
 	std::list< le::IModel* >				models;
 	std::list< le::IDirectionalLight* >		lights;
+
+	bool									isGround = false;
+	bool									isRotate = false;
 };
 
 //---------------------------------------------------------------------//

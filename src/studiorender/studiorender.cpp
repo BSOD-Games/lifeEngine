@@ -311,16 +311,25 @@ void le::StudioRender::Present()
 {
 	if ( !renderContext.IsCreated() ) return;
 
-	// Геометрический проход Deffered Shading'a
-	glEnable( GL_POLYGON_OFFSET_FILL );
-	Render_GeometryPass();
-	glDisable( GL_POLYGON_OFFSET_FILL );
+	// If enebled wireframe mode - draw the scene and display the ALBEDO buffer without lighting
+	if ( r_wireframe->GetValueBool() )
+	{
+		Render_GeometryPass();
+		gbuffer.ShowBuffer( GBuffer::TT_ALBEDO );
+	}
+	else
+	{
+		// Геометрический проход Deffered Shading'a
+		glEnable( GL_POLYGON_OFFSET_FILL );
+		Render_GeometryPass();
+		glDisable( GL_POLYGON_OFFSET_FILL );
 
-	// Проход освещения
-	Render_LightPass();
+		// Проход освещения
+		Render_LightPass();
 
-	// Показать финальный кадр
-	Render_FinalPass();
+		// Показать финальный кадр
+		Render_FinalPass();
+	}
 
 	// Render debug lines and points
 	if ( isNeedRenderDebugPrimitives )
@@ -763,7 +772,11 @@ void le::StudioRender::SubmitModel( IModel* Model, UInt32_t StartSurface, UInt32
 {
 	if ( !Model )			return;
 
+<<<<<<< HEAD
 	Mesh* mesh = ( Mesh* ) Model->GetMesh();
+=======
+	Mesh*			mesh = ( Mesh* ) Model->GetMesh();
+>>>>>>> remotes/origin/dev
 	if ( !mesh || !mesh->IsCreated() )		return;
 
 	MeshSurface* surfaces = mesh->GetSurfaces();

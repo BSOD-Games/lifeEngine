@@ -68,16 +68,21 @@ void PrintUsage()
 {
 	std::cout << "-------------------------\n"
 			  << "lifeEngine Model " << LMDL_VERSION_MAJOR << "." << LMDL_VERSION_MINOR << "." << LMDL_VERSION_PATCH << " (build " << ComputeBuildNumber( GOLD_DATE ) << ") by Egor Pogulyaka\n"
-			  << "Converter models to LMD format\n"
+			  << "Converter models to MDL format\n"
 			  << "-------------------------\n\n"
 			  << "Usage: lmdl -s <pathToSource> -o <pathToOutput> [other parameters]\n"
-			  << "Output: model in format LMD (lifeEngine Model)\n"
-			  << "Example: lmdl -m materials/axe -o axe -s axe.fbx\n\n"
+			  << "Output: model in format MDL (lifeEngine Model)\n"
+			  << "Example: lmdl -mesh -matdir materials/axe -o axe -s axe.fbx\n\n"
 			  << "-h | -help\t->\tshow this message\n"
 			  << "-s | -source\t->\tpath to source file\n"
-			  << "-o | -output\t->\tpath to output file\n"
-			  << "-m | -mat\t->\tpath to materials (relative to the game directory)\n"
-			  << "-c | -collision\t->\tpath to collision mesh\n"
+			  << "-o | -outputdir\t->\tpath to output directory\n"
+			  << "-matdir\t->\tpath to materials (relative to the game directory)\n"
+			  << "-c | -collision\t->\set convert type: collision mesh\n"
+			  << "-m | -mesh\t->\tset convert type: mesh. This is default type\n"
+			  << "-masa\t->\tset masa for collision mesh\n"
+			  << "-i | -inertia\t->\tset inertia for collision mesh. ex: -inertia 0 10 0\n"
+			  << "-ghs | -genhullshape\t->\tgenerate hull shape for collision mesh\n"
+			  << "-static\t->\tset static collision mesh\n"
 			  << "-------------------------\n\n"
 			  << "Supported formats:\n"
 			  << "-------------------------\n";
@@ -101,40 +106,124 @@ void ParseArgs( int argc, char** argv )
 	for ( le::UInt32_t index = 1; index < argc; ++index )
 	{
 		// Help info
-		if ( strstr( argv[ index ], "-h" ) || strstr( argv[ index ], "-help" ) )
+		if ( !strcmp( argv[ index ], "-h" ) || !strcmp( argv[ index ], "-help" ) )
 		{
 			PrintUsage();
 			exit( 0 );
 		}
 
-		// Set output file
-		else if ( ( strstr( argv[ index ], "-o" ) || strstr( argv[ index ], "-output" ) ) && index + 1 < argc )
+		// Set convert type: mesh
+		else if ( !strcmp( argv[ index ], "-m" ) || !strcmp( argv[ index ], "-mesh" ) )
 		{
-			g_outputFile = argv[ index + 1 ];
+			g_convertType = CT_MESH;
+		}
+
+		// Set convert type: collision
+		else if ( !strcmp( argv[ index ], "-c" ) || !strcmp( argv[ index ], "-collision" ) )
+		{
+			g_convertType = CT_COLLISION;
+		}
+
+		// Set output directory
+		else if ( ( !strcmp( argv[ index ], "-o" ) || !strcmp( argv[ index ], "-outputdir" ) ) && index + 1 < argc )
+		{
+			g_outputDir = argv[ index + 1 ];
 			++index;
 		}
 
 		// Set source file
-		else if ( ( strstr( argv[ index ], "-s" ) || strstr( argv[ index ], "-source" ) ) && index + 1 < argc )
+		else if ( ( !strcmp( argv[ index ], "-s" ) || !strcmp( argv[ index ], "-source" ) ) && index + 1 < argc )
 		{
 			g_sourceFile = argv[ index + 1 ];
 			++index;
 		}
-
+		
 		// Set directory with materials
-		else if ( ( strstr( argv[ index ], "-m" ) || strstr( argv[ index ], "-mat" ) ) && index + 1 < argc )
+		else if ( !strcmp( argv[ index ], "-matdir" ) && index + 1 < argc )
 		{
 			g_materialsDir = argv[ index + 1 ];
 			++index;
 		}
 
-		// Set collision file
-		else if ( ( strstr( argv[ index ], "-c" ) || strstr( argv[ index ], "-collision" ) ) && index + 1 < argc )
+		// Set mass for collision mesh
+		else if ( !strcmp( argv[ index ], "-masa" ) && index + 1 < argc )
 		{
-			g_collisionFile = argv[ index + 1 ];
+			g_masa = atof( argv[ index + 1 ] );
 			++index;
 		}
+
+		// Set inertia for collision mesh
+		else if ( ( !strcmp( argv[ index ], "-i" ) || !strcmp( argv[ index ], "-inertia" ) ) && index + 3 < argc )
+		{
+			g_inertia.x = atof( argv[ index + 1 ] );
+			g_inertia.y = atof( argv[ index + 2 ] );
+			g_inertia.z = atof( argv[ index + 3 ] );
+			index += 3;
+		}
+
+		// Is need generate hull shape
+		else if ( !strcmp( argv[ index ], "-ghs" ) || !strcmp( argv[ index ], "-genhullshape" ) )
+		{
+			g_isGenHullShape = true;
+		}
+
+		// Set static collision mesh
+		else if ( !strcmp( argv[ index ], "-static" ) )
+		{
+			g_isStaticCollision = true;
+		}
 	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get file name
+// ------------------------------------------------------------------------------------ //
+std::string GetFileName( const std::string& FilePath )
+{
+	std::string			fileName = FilePath;
+	
+	std::size_t			indexLastLSlash = fileName.find_last_of( '\\' );	
+	if ( indexLastLSlash != std::string::npos )		
+		fileName.erase( 0, indexLastLSlash );
+	else
+	{
+		std::size_t			indexLastRSlash = fileName.find_last_of( '/' );			
+		if ( indexLastRSlash != std::string::npos )			
+			fileName.erase( 0, indexLastLSlash );
+	}
+
+	std::size_t			indexLastDot = fileName.find_last_of( '.' );
+	if ( indexLastDot != std::string::npos )
+		fileName.erase( indexLastDot, fileName.size() );
+
+	return fileName;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get output directory
+// ------------------------------------------------------------------------------------ //
+std::string GetFileDirectory( const std::string& FilePath )
+{
+	bool				isCurrentDir = true;
+	std::string			fileDir = FilePath;
+	
+	std::size_t			indexLastLSlash = fileDir.find_last_of( '\\' );
+	if ( indexLastLSlash != std::string::npos )
+	{
+		fileDir.erase( indexLastLSlash, fileDir.size() );
+		isCurrentDir = false;
+	}
+	else
+	{
+		std::size_t			indexLastRSlash = fileDir.find_last_of( '/' );	
+		if ( indexLastRSlash != std::string::npos )
+		{
+			fileDir.erase( indexLastRSlash, g_outputDir.size() );
+			isCurrentDir = false;
+		}
+	}
+
+	return isCurrentDir ? "" : fileDir;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -150,30 +239,38 @@ int main( int argc, char** argv )
 		try
 		{
 			if ( g_sourceFile.empty() )			throw std::runtime_error( "Source file not set. Use argument -s <path>" );
-			if ( g_outputFile.empty() )			throw std::runtime_error( "Output file not set. Use argument -o <path>" );
-			if ( g_materialsDir.empty() )
-			{
-				std::cout << "Warning: material directory not set, set by default directory: materials. Use -m <name_dir> for set this dir\n";
-				g_materialsDir = "materials/";
-			}
+			if ( g_outputDir.empty() )			g_outputDir = GetFileDirectory( g_sourceFile );
 
-			if ( !g_sourceFile.empty() )
+			// Getting file name
+			std::string			fileName = GetFileName( g_sourceFile );
+
+			switch ( g_convertType )
+			{
+			case CT_MESH:
 			{
 				std::cout << "Model: " << g_sourceFile << std::endl;
 
+				if ( g_materialsDir.empty() )
+				{
+					std::cout << "Warning: material directory not set, set by default directory: materials. Use -matdir <name_dir> for set this dir\n";
+					g_materialsDir = "materials/";
+				}
+
 				Mesh		mesh;
 				mesh.Load( g_sourceFile );
-				mesh.Save( g_outputFile );
+				mesh.Save( !g_outputDir.empty() ? g_outputDir + "/" + fileName : fileName );
+				break;
 			}
 
-			if ( !g_collisionFile.empty() )
+			case CT_COLLISION:
 			{
-				std::cout << "\nCollision: " << g_collisionFile << std::endl;
+				std::cout << "Collision: " << g_sourceFile << std::endl;
 
 				Collision		collision;
-				collision.Load( g_collisionFile );
-				collision.Save( g_outputFile );
-
+				collision.Load( g_sourceFile );
+				collision.Save( !g_outputDir.empty() ? g_outputDir + "/" + fileName : fileName );
+				break;
+			}
 			}
 		}
 		catch ( const std::exception& Exception )

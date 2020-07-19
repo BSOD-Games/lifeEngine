@@ -22,26 +22,37 @@ namespace le
 
 	struct Image;
 	class IFactory;
+	class IParserFont;
+	class IParserGPUProgram;
+	class IParserImage;
+	class IParserLevel;
+	class IParserMaterial;
+	class IParserMesh;
+	class IParserPhysicsModel;
+	class IParserScript;
+	class IParserSoundBuffer;
+	class IParserTexture;
 	class ITexture;
 	class IMaterial;
 	class IMesh;
 	class ILevel;
 	class IFont;
-	class IResourceSystem;
-	class IMaterialSystem;
 	class IScript;
 	class IPhysicsModel;
 	class IGPUProgram;
+	class ISoundBuffer;
+	class IStreamSound;
 
-	typedef		void				( *LoadImageFn_t )( const char* Path, Image& Image, bool& IsError, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels );
-	typedef		ITexture*			( *LoadTextureFn_t )( const char* Path, IFactory* StudioRenderFactory );
-	typedef		IMaterial*			( *LoadMaterialFn_t )( const char* Path, IResourceSystem* ResourceSystem, IMaterialSystem* MaterialSystem, IFactory* EngineFactory );
-	typedef		IMesh*				( *LoadMeshFn_t )( const char* Path, IResourceSystem* ResourceSystem, IFactory* StudioRenderFactory );
-	typedef		ILevel*				( *LoadLevelFn_t )( const char* Path, IFactory* GameFactory );
-	typedef		IFont*				( *LoadFontFn_t )( const char* Path );
-	typedef		IScript*			( *LoadScriptFn_t )( const char* Path, UInt32_t CountFunctions, ScriptDescriptor::Symbol* Functions, UInt32_t CountVars, ScriptDescriptor::Symbol* Vars, IFactory* ScriptSystemFactory );
-	typedef		IPhysicsModel*		( *LoadPhysicsModelFn_t )( const char* Path, IFactory* PhysicsSystemFactory );
-	typedef		IGPUProgram*		( *LoadGPUProgramFn_t )( const char* Directory, const char* Path, UInt32_t CountDefines, const char** Defines, IFactory* StudioRenderFactory );
+	typedef IParserImage*			( *CreateParserImageFn_t )();
+	typedef IParserTexture*			( *CreateParserTextureFn_t )( );
+	typedef IParserMaterial*		( *CreateParserMaterialFn_t )( );
+	typedef IParserMesh*			( *CreateParserMeshFn_t )( );
+	typedef IParserLevel*			( *CreateParserLevelFn_t )( );
+	typedef IParserFont*			( *CreateParserFontFn_t )( );
+	typedef IParserScript*			( *CreateParserScriptFn_t )( );
+	typedef IParserPhysicsModel*	( *CreateParserPhysicsModelFn_t )( );
+	typedef IParserGPUProgram*		( *CreateParserGPUProgramFn_t )( );
+	typedef IParserSoundBuffer*		( *CreateParserSoundBufferFn_t )( );
 
 	//---------------------------------------------------------------------//
 
@@ -49,24 +60,16 @@ namespace le
 	{
 	public:
 		virtual ~IResourceSystem() {}
-		virtual void					RegisterLoader_Image( const char* Format, LoadImageFn_t LoadImage ) = 0;
-		virtual void					RegisterLoader_Texture( const char* Format, LoadTextureFn_t LoadTexture ) = 0;
-		virtual void					RegisterLoader_Material( const char* Format, LoadMaterialFn_t LoadMaterial ) = 0;
-		virtual void					RegisterLoader_Mesh( const char* Format, LoadMeshFn_t LoadMesh ) = 0;
-		virtual void					RegisterLoader_Level( const char* Format, LoadLevelFn_t LoadLevel ) = 0;
-		virtual void					RegisterLoader_Font( const char* Format, LoadFontFn_t LoadFont ) = 0;
-		virtual void					RegisterLoader_Script( const char* Format, LoadScriptFn_t LoadScript ) = 0;
-		virtual void					RegisterLoader_PhysicsModel( const char* Format, LoadPhysicsModelFn_t LoadPhysicsModel ) = 0;
-		virtual void					RegisterLoader_GPUProgram( const char* Format, LoadGPUProgramFn_t LoadGPUProgram ) = 0;
-		virtual void					UnregisterLoader_Image( const char* Format ) = 0;
-		virtual void					UnregisterLoader_Texture( const char* Format ) = 0;
-		virtual void					UnregisterLoader_Material( const char* Format ) = 0;
-		virtual void					UnregisterLoader_Mesh( const char* Format ) = 0;
-		virtual void					UnregisterLoader_Level( const char* Format ) = 0;
-		virtual void					UnregisterLoader_Font( const char* Format ) = 0;
-		virtual void					UnregisterLoader_Script( const char* Format ) = 0;
-		virtual void					UnregisterLoader_PhysicsModel( const char* Format ) = 0;
-		virtual void					UnregisterLoader_GPUProgram( const char* Format ) = 0;
+		virtual void					RegisterLoader( CreateParserImageFn_t CreateParserImage ) = 0;
+		virtual void					RegisterLoader( CreateParserTextureFn_t CreateParserTexture ) = 0;
+		virtual void					RegisterLoader( CreateParserMaterialFn_t CreateParserMaterial ) = 0;
+		virtual void					RegisterLoader( CreateParserMeshFn_t CreateParserMesh ) = 0;
+		virtual void					RegisterLoader( CreateParserLevelFn_t CreateParserLevel ) = 0;
+		virtual void					RegisterLoader( CreateParserFontFn_t CreateParserFont ) = 0;
+		virtual void					RegisterLoader( CreateParserScriptFn_t CreateParserScript ) = 0;
+		virtual void					RegisterLoader( CreateParserPhysicsModelFn_t CreateParserPhysicsModel ) = 0;
+		virtual void					RegisterLoader( CreateParserGPUProgramFn_t CreateParserGPUProgram ) = 0;
+		virtual void					RegisterLoader( CreateParserSoundBufferFn_t CreateParserSoundBuffer ) = 0;
 
 		virtual Image					LoadImage( const char* Path, bool& IsError, bool IsFlipVertical = false, bool IsSwitchRedAndBlueChannels = false ) = 0;
 		virtual ITexture*				LoadTexture( const char* Name, const char* Path ) = 0;
@@ -77,6 +80,9 @@ namespace le
 		virtual IScript*				LoadScript( const char* Name, const char* Path, UInt32_t CountFunctions = 0, ScriptDescriptor::Symbol* Functions = nullptr, UInt32_t CountVars = 0, ScriptDescriptor::Symbol* Vars = nullptr ) = 0;
 		virtual IPhysicsModel*			LoadPhysicsModel( const char* Name, const char* Path ) = 0;
 		virtual IGPUProgram*			LoadGPUProgram( const char* Name, const char* Path, UInt32_t Flags = 0, UInt32_t CountDefines = 0, const char** Defines = nullptr ) = 0;
+		virtual ISoundBuffer*			LoadSoundBuffer( const char* Name, const char* Path ) = 0;
+		virtual IStreamSound*			OpenStreamSound( const char* Path ) = 0;
+		virtual bool					OpenStreamSound( const char* Path, IStreamSound* StreamSound ) = 0;
 		virtual void					UnloadImage( Image& Image ) = 0;
 		virtual void					UnloadTexture( const char* Name ) = 0;
 		virtual void					UnloadMaterial( const char* Name ) = 0;
@@ -87,14 +93,16 @@ namespace le
 		virtual void					UnloadPhysicsModel( const char* Name ) = 0;
 		virtual void					UnloadGPUProgram( const char* Name, UInt32_t Flags ) = 0;
 		virtual void					UnloadGPUProgram( const char* Name ) = 0;
+		virtual void					UnloadSoundBuffer( const char* Name ) = 0;
 		virtual void					UnloadTextures() = 0;
 		virtual void					UnloadMaterials() = 0;
 		virtual void					UnloadMeshes() = 0;
 		virtual void					UnloadLevels() = 0;
 		virtual void					UnloadFonts() = 0;
 		virtual void					UnloadScripts() = 0;
-		virtual void					UnloadPhysicsModels() = 0;		
+		virtual void					UnloadPhysicsModels() = 0;
 		virtual void					UnloadGPUPrograms() = 0;
+		virtual void					UnloadSoundBuffers() = 0;
 		virtual void					UnloadAll() = 0;
 
 		virtual ITexture*				GetTexture( const char* Name ) const = 0;
@@ -105,6 +113,7 @@ namespace le
 		virtual IScript*				GetScript( const char* Name ) const = 0;
 		virtual IPhysicsModel*			GetPhysicsModel( const char* Name ) const = 0;
 		virtual IGPUProgram*			GetGPUProgram( const char* Name, UInt32_t Flags = 0 ) const = 0;
+		virtual ISoundBuffer*			GetSoundBuffer( const char* Name ) const = 0;
 	};
 
 	//---------------------------------------------------------------------//

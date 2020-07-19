@@ -15,13 +15,12 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/material.h>
+#include <LinearMath/btConvexHull.h>
 
 #include "common/types.h"
 #include "global.h"
 #include "collision.h"
-
-#define PHY_ID			"LPHY"
-#define PHY_VERSION		1
+#include "phydoc.h"
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
@@ -56,18 +55,18 @@ void Collision::Load( const std::string& Path )
 	if ( !scene )			throw std::runtime_error( import.GetErrorString() );
 	if ( isLoaded )			Clear();
 
-	std::unordered_map<le::UInt32_t, std::vector<aiMesh*>>			meshes;
+	std::unordered_map<le::UInt32_t, std::vector<AIMesh>>			meshes;
 	ProcessNode( scene->mRootNode, scene, meshes );
 	if ( meshes.empty() )	throw std::runtime_error( "In file not found meshes" );
 
 	// Getting array verteces and indeces from collision mesh
-	PHYVertex					vertex;
-	std::vector<PHYVertex>		vertexBuffer;
+	PHYVector3D						vertex;
+	std::vector< PHYVector3D >		vertexBuffer;
 
 	for ( auto itRoot = meshes.begin(), itRootEnd = meshes.end(); itRoot != itRootEnd; ++itRoot )
 		for ( auto itMesh = itRoot->second.begin(), itMeshEnd = itRoot->second.end(); itMesh != itMeshEnd; ++itMesh )
 		{
-			aiMesh*			mesh = *itMesh;
+			aiMesh*			mesh = ( *itMesh ).mesh;
 
 			// Prepare the vertex buffer.
 			// If the vertices of the mesh do not fit into the buffer, then
@@ -78,10 +77,10 @@ void Collision::Load( const std::string& Path )
 			// Read all verteces
 			for ( le::UInt32_t index = 0; index < mesh->mNumVertices; ++index )
 			{
-				aiVector3D		tempVector = mesh->mVertices[ index ];
-				vertex.position[ 0 ] = tempVector.x;
-				vertex.position[ 1 ] = tempVector.y;
-				vertex.position[ 2 ] = tempVector.z;
+				aiVector3D		tempVector = ( *itMesh ).transformation * mesh->mVertices[ index ];
+				vertex.x = tempVector.x;
+				vertex.y = tempVector.y;
+				vertex.z = tempVector.z;
 
 				vertexBuffer[ index ] = vertex;
 			}
@@ -114,6 +113,43 @@ void Collision::Load( const std::string& Path )
 	isLoaded = true;
 
 	std::cout << "Collision mesh loaded\n";
+
+	// Is nedd generate hull shape
+	if ( g_isGenHullShape )
+	{
+		std::cout << "Generate hull shape\n";
+
+		// Convert PHYVector3D to btVector3
+		std::vector< btVector3 >		btVectors;
+		for ( le::UInt32_t index = 0, count = indices.size(); index < count; ++index )
+			btVectors.push_back( btVector3( verteces[ indices[ index ] ].x, verteces[ indices[ index ] ].y, verteces[ indices[ index ] ].z ) );
+
+		HullLibrary		hullLibrary;
+		HullResult		hullResult;
+		HullDesc		hullDesc( QF_TRIANGLES, btVectors.size(), btVectors.data() );
+		
+		if ( hullLibrary.CreateConvexHull( hullDesc, hullResult ) != QE_OK )
+		{
+			std::cout << "Failed generate hull shape\n";
+			return;
+		}
+		
+		// Change array verteces and indeces
+		verteces.clear();
+		indices.clear();
+
+		for ( le::UInt32_t index = 0; index < hullResult.mNumOutputVertices; ++index )
+		{
+			const btVector3&			vector = hullResult.m_OutputVertices[ index ];
+			verteces.push_back( PHYVector3D( vector.getX(), vector.getY(), vector.getZ() ) );
+		}
+
+		for ( le::UInt32_t index = 0; index < hullResult.mNumIndices; ++index )
+			indices.push_back( hullResult.m_Indices[ index ] );
+
+		hullLibrary.ReleaseResult( hullResult );
+		std::cout << "Generated hull shape\n";
+	}
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -122,30 +158,15 @@ void Collision::Load( const std::string& Path )
 void Collision::Save( const std::string& Path )
 {
 	if ( !isLoaded )					throw std::runtime_error( "Collision mesh not loaded" );
-	std::ofstream						file( Path + ".phy", std::ios::binary );
-	if ( !file.is_open() )				throw std::runtime_error( "Failed create file" );
 
-	// Write header fille
-	PHYHeader			phyHeader;
-	memcpy( phyHeader.strId, PHY_ID, sizeof( char ) * 4 );
-	phyHeader.version = PHY_VERSION;
-	file.write( ( char* ) &phyHeader, sizeof( PHYHeader ) );
+	PHYDoc			phyDoc;
+	phyDoc.SetStatic( g_isStaticCollision );
+	phyDoc.SetMasa( g_masa );
+	phyDoc.SetInertia( PHYVector3D( g_inertia.x, g_inertia.y, g_inertia.z ) );
+	phyDoc.SetVerteces( verteces );
+	phyDoc.SetVertexIndeces( indices );
 
-	// Write null info lumps
-	PHYLump				phyLumps[ PL_MAX_LUMPS ];
-	le::UInt32_t		offsetToLumps = file.tellp();
-	memset( phyLumps, 0, sizeof( PHYLump ) * PL_MAX_LUMPS );
-	file.write( ( char* ) &phyLumps[ 0 ], sizeof( PHYLump ) * PL_MAX_LUMPS );
-
-	// Write verteces
-	WriteVerteces( file, phyLumps[ PL_VERTECES ] );
-
-	// Write indeces
-	WriteIndeces( file, phyLumps[ PL_INDECES ] );
-
-	// Update lumps
-	UpdateLumps( file, &phyLumps[ 0 ], offsetToLumps );
-
+	if ( !phyDoc.Save( Path + ".phy" ) )	throw std::runtime_error( "Failed save collision mesh" );
 	std::cout << "Collision mesh saved\n";
 }
 
@@ -162,66 +183,24 @@ void Collision::Clear()
 // ------------------------------------------------------------------------------------ //
 // Process node
 // ------------------------------------------------------------------------------------ //
-void Collision::ProcessNode( aiNode* Node, const aiScene* Scene, std::unordered_map<le::UInt32_t, std::vector<aiMesh*> >& Meshes )
+void Collision::ProcessNode( aiNode* Node, const aiScene* Scene, std::unordered_map<le::UInt32_t, std::vector<AIMesh>>& Meshes )
 {
 	for ( le::UInt32_t index = 0; index < Node->mNumMeshes; ++index )
-		Meshes[ Scene->mMeshes[ Node->mMeshes[ index ] ]->mMaterialIndex ].push_back( Scene->mMeshes[ Node->mMeshes[ index ] ] );
+	{
+		aiMesh*			mesh = Scene->mMeshes[ Node->mMeshes[ index ] ];
+		Meshes[ mesh->mMaterialIndex ].push_back( AIMesh( Node->mTransformation, mesh ) );
+	}
 
 	for ( le::UInt32_t index = 0; index < Node->mNumChildren; ++index )
 		ProcessNode( Node->mChildren[ index ], Scene, Meshes );
 }
 
+// ----------------------------------------------------------------------------------- //
+// operator == for PHYVector3D
 // ------------------------------------------------------------------------------------ //
-// Update lump in file
-// ------------------------------------------------------------------------------------ //
-void Collision::UpdateLumps( std::ofstream& File, Collision::PHYLump* Lumps, le::UInt32_t OffsetToLumps )
+bool operator==( const PHYVector3D& Left, const PHYVector3D& Right )
 {
-	File.seekp( OffsetToLumps, std::ios::beg );
-	File.write( ( char* ) &Lumps[ 0 ], sizeof( PHYLump ) * PL_MAX_LUMPS );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Write verteces in file
-// ------------------------------------------------------------------------------------ //
-void Collision::WriteVerteces( std::ofstream& File, Collision::PHYLump& Lump )
-{
-	le::UInt32_t		countVerteces = verteces.size();
-	Lump.offset = File.tellp();
-	Lump.length = countVerteces * sizeof( PHYVertex );
-
-	File.write( ( char* ) &countVerteces, sizeof( le::UInt32_t ) );
-	File.write( ( char* ) &verteces[ 0 ], countVerteces * sizeof( PHYVertex ) );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Write indeces in file
-// ------------------------------------------------------------------------------------ //
-void Collision::WriteIndeces( std::ofstream& File, Collision::PHYLump& Lump )
-{
-	le::UInt32_t		countIndeces = indices.size();
-	Lump.offset = File.tellp();
-	Lump.length = countIndeces * sizeof( le::UInt32_t );
-
-	File.write( ( char* ) &countIndeces, sizeof( le::UInt32_t ) );
-	File.write( ( char* ) &indices[ 0 ], countIndeces * sizeof( le::UInt32_t ) );
-}
-
-//------------------------------------------------------------------------------------ //
-// Constructor
-// ------------------------------------------------------------------------------------ //
-Collision::PHYVertex::PHYVertex()
-{
-	position[ 0 ] = 0.f;
-	position[ 1 ] = 0.f;
-	position[ 2 ] = 0.f;
-}
-
-//------------------------------------------------------------------------------------ //
-// Operator ==
-// ------------------------------------------------------------------------------------ //
-bool Collision::PHYVertex::operator==( const Collision::PHYVertex& Right )
-{
-	return position[ 0 ] == Right.position[ 0 ] &&
-			position[ 1 ] == Right.position[ 1 ] &&
-			position[ 2 ] == Right.position[ 2 ];
+	return Left.x == Right.x &&
+		Left.y == Right.y &&
+		Left.z == Right.z;
 }

@@ -32,6 +32,7 @@ namespace le
 
 	class IStudioRenderInternal;
     class IPhysicsSystemInternal;
+	class IAudioSystemInternal;
 	class IConCmd;
 	class IConVar;
 
@@ -57,6 +58,16 @@ namespace le
 
     //---------------------------------------------------------------------//
 
+	struct AudioSystemDescriptor
+	{
+		void*								handle;
+		LE_CreateAudioSystemFn_t			LE_CreateAudioSystem;
+		LE_DeleteAudioSystemFn_t			LE_DeleteAudioSystem;
+		LE_SetCriticalErrorFn_t				LE_SetCriticalError;
+	};
+
+	//---------------------------------------------------------------------//
+
 	struct GameDescriptor
 	{
 		void*								handle;
@@ -80,6 +91,7 @@ namespace le
 		virtual void					StopSimulation();		
 
 		virtual bool					IsRunSimulation() const;
+		virtual bool					IsEditor() const;
 		virtual IConsoleSystem*			GetConsoleSystem() const;
 		virtual IStudioRender*			GetStudioRender() const;
 		virtual IResourceSystem*		GetResourceSystem() const;
@@ -87,16 +99,16 @@ namespace le
         virtual IMaterialSystem*		GetMaterialSystem() const;
         virtual IPhysicsSystem*         GetPhysicsSystem() const;
 		virtual IScriptSystem*			GetScriptSystem() const;
+		virtual IAudioSystem*			GetAudioSystem() const;
 		virtual IWindow*				GetWindow() const;
 		virtual IFactory*				GetFactory() const;
-		virtual float					GetDeltaTime() const;
 		virtual float					GetFixedTimeStep() const;
         virtual const GameInfo&         GetGameInfo() const;
-		virtual const Version&			GetVersion() const;
+		virtual Version					GetVersion() const;
 		virtual Configurations			GetConfigurations() const;
 
 		// IEngineInternal
-		virtual bool					Initialize( const char* EngineDirectory, const char* LogFile = "console.log" );
+		virtual bool					Initialize( const char* EngineDirectory, const char* LogFile = "console.log", bool IsEditor = false );
 		virtual bool					LoadGame( const char* DirGame, UInt32_t CountArguments = 0, const char** Arguments = nullptr );
 		virtual void					UnloadGame();
 
@@ -111,13 +123,15 @@ namespace le
 		void							UnloadModule_StudioRender();
         bool							LoadModule_PhysicsSystem( const char* PathDLL );
         void							UnloadModule_PhysicsSystem();
+		bool							LoadModule_AudioSystem( const char* PathDLL );
+		void							UnloadModule_AudioSystem();
 		bool							LoadGameInfo( const char* GameDir );
 		bool							LoadModule_Game( const char* PathDLL, UInt32_t CountArguments, const char** Arguments  );
 		void							UnloadModule_Game();
 
 		bool							isInitialized;
 		bool							isRunSimulation;
-		float							deltaTime;
+		bool							isEditor;
 
 		IConCmd*						cmd_Exit;
 		IConCmd*						cmd_Version;
@@ -133,6 +147,9 @@ namespace le
 
         IPhysicsSystemInternal*         physicSystem;
         PhysicsSystemDescriptor         physicSystemDescriptor;
+
+		IAudioSystemInternal*			audioSystem;
+		AudioSystemDescriptor			audioSystemDescriptor;
 
 		IGame*							game;
 		GameDescriptor					gameDescriptor;

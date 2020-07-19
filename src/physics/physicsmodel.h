@@ -11,6 +11,8 @@
 #ifndef PHYSICSMODEL_H
 #define PHYSICSMODEL_H
 
+#include <vector>
+
 #include "physics/iphysicsmodel.h"
 
 //---------------------------------------------------------------------//
@@ -34,21 +36,33 @@ namespace le
 		virtual UInt32_t			GetCountReferences() const;
 
 		// IPhysicsModel
-		virtual void				InitializeMesh(Vector3D_t* Verteces, UInt32_t CountVerteces, UInt32_t* Indeces, UInt32_t CountIndeces);
-		virtual void				ClearMesh();
+		virtual void				Initialize( Vector3D_t* Verteces, UInt32_t CountVerteces, UInt32_t* Indeces, UInt32_t CountIndeces, bool IsStatic = false );
+		virtual void				Clear();
 
-		virtual bool				IsInitializedMesh() const;
+		virtual void				SetMasa( float Masa );
+		virtual void				SetInertia( const le::Vector3D_t& Inertia );
+
+		virtual bool				IsStatic() const;
+		virtual bool				IsInitialized() const;
+		virtual float				GetMasa() const;
+		virtual le::Vector3D_t		GetInertia() const;
 
 		// PhysicsModel
 		PhysicsModel();
 		~PhysicsModel();
 
-		inline btConvexTriangleMeshShape*		GetMesh() const		{ return convexTriangleMesh; }
+		inline btCollisionShape*		GetShape() const		{ return shape; }
 
 	private:
+		bool							isStatic;
+		float							masa;
 		UInt32_t						countReferences;
-		btTriangleMesh*					triangleMesh;
-		btConvexTriangleMeshShape*		convexTriangleMesh;
+		Vector3D_t						inertia;
+
+		btTriangleIndexVertexArray*		mesh;
+		btCollisionShape*				shape;
+		std::vector< Vector3D_t >		verteces;
+		std::vector< UInt32_t >			indeces;
 	};
 
 	//---------------------------------------------------------------------//
