@@ -55,6 +55,7 @@ namespace le
 		virtual IGPUProgram*			LoadGPUProgram( const char* Name, const char* Path, UInt32_t Flags = 0, UInt32_t CountDefines = 0, const char** Defines = nullptr );
 		virtual ISoundBuffer*			LoadSoundBuffer( const char* Name, const char* Path );
 		virtual IStreamSound*			OpenStreamSound( const char* Path );
+		virtual bool					OpenStreamSound( const char* Path, IStreamSound* StreamSound );
 		virtual void					UnloadImage( Image& Image );
 		virtual void					UnloadTexture( const char* Name );
 		virtual void					UnloadMaterial( const char* Name );

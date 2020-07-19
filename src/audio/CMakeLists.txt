@@ -4,9 +4,9 @@
 #   --- Задаем переменные ---
 #
 
-file( GLOB SOURCE_FILES "*.h" "*.cpp"
-						 )
-file ( GLOB PUBLIC_FILES "../public/audio/*.h" )						
+file( GLOB SOURCE_FILES "*.h" "*.cpp" )
+file ( GLOB PUBLIC_FILES "../public/audio/*.h" )	
+file ( GLOB PRIVATE_FILES "../private/audio/*.h" )					
 set( MODULE_NAME audio )
 
 set( VORBIS_PATH ${EXTLIBS_DIR}/vorbis CACHE PATH "Path to Vorbis" )
@@ -30,14 +30,16 @@ add_definitions( -DLIFEENGINE_EXPORT )
 #
 
 source_group( "Public Files" FILES ${PUBLIC_FILES} )
+source_group( "Private Files" FILES ${PRIVATE_FILES} )
 
-add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${PUBLIC_FILES} ${ICON} )
+add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${PUBLIC_FILES} ${PRIVATE_FILES} ${ICON} )
 
 set_target_properties (${MODULE_NAME} PROPERTIES FOLDER Engine )
 set_target_properties( ${MODULE_NAME} PROPERTIES PREFIX "" )
 
 include_directories( ${CMAKE_BINARY_DIR}/${MODULE_NAME} )
 include_directories( ../public )
+include_directories( ../private )
 include_directories( ../ )
 
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )

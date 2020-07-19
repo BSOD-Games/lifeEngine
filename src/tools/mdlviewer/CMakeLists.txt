@@ -53,4 +53,5 @@ install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
 
 include_directories( ../mdlloader )
 include_directories( ../../public )
+include_directories( ../../private )
 include_directories( ../../ )

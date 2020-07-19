@@ -25,7 +25,7 @@
 #include "physics/iphysicsmodel.h"
 #include "audio/iaudiosystem.h"
 #include "audio/isoundbuffer.h"
-#include "audio/istreamsound.h"
+#include "audio/istreamsoundinternal.h"
 
 #include "global.h"
 #include "materialsystem.h"
@@ -56,6 +56,7 @@ le::Image le::ResourceSystem::LoadImage( const char* Path, bool& IsError, bool I
 	try
 	{
 		if ( loaderImages.empty() )					throw std::runtime_error( "No image loaders" );
+		g_consoleSystem->PrintInfo( "Loading image [%s]", Path );
 
 		std::string			format = GetFormatFile( Path );
 		if ( format.empty() )						throw std::runtime_error( "In image format not found" );
@@ -64,23 +65,18 @@ le::Image le::ResourceSystem::LoadImage( const char* Path, bool& IsError, bool I
 		if ( parser == loaderImages.end() )			throw std::runtime_error( "Loader for format image not found" );
 
 		Image				image;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			IParserImage*		parserImage = parser->second();
+		IParserImage*		parserImage = parser->second();
+
+		for ( UInt32_t index = 0, count = paths.size(); !image.data && index < count; ++index )
 			parserImage->Read( std::string( paths[ index ] + "/" + Path ).c_str(), image, IsError, IsFlipVertical, IsSwitchRedAndBlueChannels );
-			parserImage->Release();
 
-			if ( image.data )
-			{
-				g_consoleSystem->PrintInfo( "Image founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
-
+		parserImage->Release();
 		if ( IsError )								throw std::runtime_error( "Fail loading image" );
+		
+		g_consoleSystem->PrintInfo( "Loaded image [%s]", Path );
 		return image;
 	}
-	catch ( std::exception & Exception )
+	catch ( std::exception& Exception )
 	{
 		g_consoleSystem->PrintError( "Image [%s] not loaded: %s", Path, Exception.what() );
 		return Image();
@@ -111,20 +107,14 @@ le::ITexture* le::ResourceSystem::LoadTexture( const char* Name, const char* Pat
 		if ( parser == loaderTextures.end() )		throw std::runtime_error( "Loader for format texture not found" );
 
 		ITexture*			texture = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			IParserTexture*		parserTexture = parser->second();
+		IParserTexture*		parserTexture = parser->second();
+
+		for ( UInt32_t index = 0, count = paths.size(); !texture && index < count; ++index )
 			texture = parserTexture->Read( std::string( paths[ index ] + "/" + Path ).c_str(), studioRenderFactory );
-			parserTexture->Release();
 
-			if ( texture )
-			{
-				g_consoleSystem->PrintInfo( "Texture founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
-
+		parserTexture->Release();
 		if ( !texture )								throw std::runtime_error( "Fail loading texture" );
+		
 		texture->IncrementReference();
 		textures.insert( std::make_pair( Name, texture ) );
 		g_consoleSystem->PrintInfo( "Loaded texture [%s]", Name );
@@ -162,20 +152,14 @@ le::IMaterial* le::ResourceSystem::LoadMaterial( const char* Name, const char* P
 		if ( parser == loaderMaterials.end() )		throw std::runtime_error( "Loader for format material not found" );
 
 		IMaterial*			material = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			IParserMaterial*		parserMaterial = parser->second();
+		IParserMaterial*	parserMaterial = parser->second();
+
+		for ( UInt32_t index = 0, count = paths.size(); !material && index < count; ++index )
 			material = parserMaterial->Read( std::string( paths[ index ] + "/" + Path ).c_str(), this, g_materialSystem, engineFactory );
-			parserMaterial->Release();
 
-			if ( material )
-			{
-				g_consoleSystem->PrintInfo( "Material founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
-
+		parserMaterial->Release();
 		if ( !material )	throw std::runtime_error( "Fail loading material" );
+		
 		material->IncrementReference();
 		materials.insert( std::make_pair( Name, material ) );
 		g_consoleSystem->PrintInfo( "Loaded material [%s]", Name );
@@ -213,20 +197,14 @@ le::IMesh* le::ResourceSystem::LoadMesh( const char* Name, const char* Path )
 		if ( parser == loaderMeshes.end() )		throw std::runtime_error( "Loader for format mesh not found" );
 
 		IMesh*			mesh = nullptr;
-		for ( UInt32_t index = 0; index < paths.size(); ++index )
-		{
-			IParserMesh*		parserMesh = parser->second();		
+		IParserMesh*	parserMesh = parser->second();
+
+		for ( UInt32_t index = 0, count = paths.size(); !mesh && index < count; ++index )
 			mesh = parserMesh->Read( std::string( paths[ index ] + "/" + Path ).c_str(), this, studioRenderFactory );
-			parserMesh->Release();
 
-			if ( mesh )
-			{
-				g_consoleSystem->PrintInfo( "Mesh founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
-
+		parserMesh->Release();
 		if ( !mesh )							throw std::runtime_error( "Fail loading mesh" );
+		
 		mesh->IncrementReference();
 		meshes.insert( std::make_pair( Name, mesh ) );
 		g_consoleSystem->PrintInfo( "Loaded mesh [%s]", Name );
@@ -264,20 +242,14 @@ le::ILevel* le::ResourceSystem::LoadLevel( const char* Name, const char* Path, I
 		if ( parser == loaderLevels.end() )		throw std::runtime_error( "Loader for format level not found" );
 
 		ILevel*			level = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			IParserLevel*		parserLevel = parser->second();
-			level = parserLevel->Read( std::string( paths[ index ] + "/" + Path ).c_str(), GameFactory );
-			parserLevel->Release();
+		IParserLevel*	parserLevel = parser->second();
 
-			if ( level )
-			{
-				g_consoleSystem->PrintInfo( "Level founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+		for ( UInt32_t index = 0, count = paths.size(); !level && index < count; ++index )
+			level = parserLevel->Read( std::string( paths[ index ] + "/" + Path ).c_str(), GameFactory );	
 
+		parserLevel->Release();
 		if ( !level )							throw std::runtime_error( "Fail loading level" );
+		
 		level->IncrementReference();
 		levels.insert( std::make_pair( Name, level ) );
 		g_consoleSystem->PrintInfo( "Loaded level [%s]", Name );
@@ -313,20 +285,14 @@ le::IFont* le::ResourceSystem::LoadFont( const char* Name, const char* Path )
 		if ( parser == loaderFonts.end() )		throw std::runtime_error( "Loader for format font not found" );
 
 		IFont*			font = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			IParserFont*		parserFont = parser->second();
+		IParserFont*	parserFont = parser->second();
+
+		for ( UInt32_t index = 0, count = paths.size(); !font && index < count; ++index )
 			font = parserFont->Read( std::string( paths[ index ] + "/" + Path ).c_str() );
-			parserFont->Release();
 
-			if ( font )
-			{
-				g_consoleSystem->PrintInfo( "Font founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
-
+		parserFont->Release();
 		if ( !font )							throw std::runtime_error( "Fail loading font" );
+		
 		font->IncrementReference();
 		fonts.insert( std::make_pair( Name, font ) );
 		g_consoleSystem->PrintInfo( "Loaded font [%s]", Name );
@@ -746,20 +712,14 @@ le::IScript* le::ResourceSystem::LoadScript( const char* Name, const char* Path,
 		if ( parser == loaderScripts.end() )		throw std::runtime_error( "Loader for format script not found" );
 
 		IScript*			script = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			IParserScript*		parserScript = parser->second();
+		IParserScript*		parserScript = parser->second();
+
+		for ( UInt32_t index = 0, count = paths.size(); !script && index < count; ++index )
 			script = parserScript->Read( std::string( paths[ index ] + "/" + Path ).c_str(), CountFunctions, Functions, CountVars, Vars, scriptSystemFactory );
-			parserScript->Release();
 
-			if ( script )
-			{
-				g_consoleSystem->PrintInfo( "Script founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
-
+		parserScript->Release();
 		if ( !script )							throw std::runtime_error( "Fail loading script" );
+		
 		script->IncrementReference();
 		scripts.insert( std::make_pair( Name, script ) );
 		g_consoleSystem->PrintInfo( "Loaded script [%s]", Name );
@@ -922,20 +882,14 @@ le::IPhysicsModel* le::ResourceSystem::LoadPhysicsModel( const char *Name, const
 		if ( parser == loaderPhysicsModels.end() )			throw std::runtime_error( "Loader for format physics model not found" );
 
 		le::IPhysicsModel*			physicsModel = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			IParserPhysicsModel*		parserPhysicsModel = parser->second();
+		IParserPhysicsModel*		parserPhysicsModel = parser->second();
+
+		for ( UInt32_t index = 0, count = paths.size(); !physicsModel && index < count; ++index )
 			physicsModel = parserPhysicsModel->Read( std::string( paths[ index ] + "/" + Path ).c_str(), g_physicsSystemFactory );
-			parserPhysicsModel->Release();
 
-			if ( physicsModel )
-			{
-				g_consoleSystem->PrintInfo( "Physics model founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
-
+		parserPhysicsModel->Release();
 		if ( !physicsModel )		throw std::runtime_error( "Fail loading physics model" );
+		
 		physicsModel->IncrementReference();
 		physicsModels.insert( std::make_pair( Name, physicsModel ) );
 		g_consoleSystem->PrintInfo( "Loaded collider [%s]", Name );
@@ -983,27 +937,21 @@ le::IGPUProgram* le::ResourceSystem::LoadGPUProgram( const char* Name, const cha
 		if ( parser == loaderGPUProgram.end() )		throw std::runtime_error( "Loader for format gpu program not found" );
 
 		IGPUProgram*			gpuProgram = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			IParserGPUProgram*		parserGPUProgram = parser->second();
-			gpuProgram = parserGPUProgram->Read( paths[ index ].c_str(), std::string( paths[ index ] + "/" + Path ).c_str(), CountDefines, Defines, studioRenderFactory );
-			parserGPUProgram->Release();
-			
-			if ( gpuProgram )
-			{
-				g_consoleSystem->PrintInfo( "GPU program founded in [%s]", paths[ index ].c_str() );
-				break;
-			}
-		}
+		IParserGPUProgram*		parserGPUProgram = parser->second();
 
+		for ( UInt32_t index = 0, count = paths.size(); !gpuProgram && index < count; ++index )		
+			gpuProgram = parserGPUProgram->Read( paths[ index ].c_str(), std::string( paths[ index ] + "/" + Path ).c_str(), CountDefines, Defines, studioRenderFactory );
+
+		parserGPUProgram->Release();
 		if ( !gpuProgram )							throw std::runtime_error( "Fail loading gpu program" );
+		
 		gpuProgram->IncrementReference();
 		gpuPrograms[ Name ][ Flags ] = gpuProgram;
 		g_consoleSystem->PrintInfo( "Loaded gpu program [%s] with flags [%i]", Name, Flags );
 
 		return gpuProgram;
 	}
-	catch ( std::exception & Exception )
+	catch ( std::exception& Exception )
 	{
 		g_consoleSystem->PrintError( "Gpu program [%s] with flags [%i] not loaded: %s", Path, Flags, Exception.what() );
 		return nullptr;
@@ -1032,41 +980,43 @@ le::ISoundBuffer* le::ResourceSystem::LoadSoundBuffer( const char* Name, const c
 		if ( parser == loaderSoundBuffers.end() )			throw std::runtime_error( "Loader for format sound buffer not found" );
 
 		le::ISoundBuffer*		soundBuffer = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{	
-			IParserSoundBuffer*			parserSoundBuffer = parser->second();		
+		IParserSoundBuffer*		parserSoundBuffer = parser->second();
+
+		for ( UInt32_t index = 0, count = paths.size(); !soundBuffer && index < count; ++index )
+		{				
 			if ( !parserSoundBuffer->Open( std::string( paths[ index ] + "/" + Path ).c_str() ) )
-			{
-				parserSoundBuffer->Release();
 				continue;
-			}
 
 			UInt32_t					sizeData = parserSoundBuffer->GetSampleCount();
 			Byte_t*						data = ( Byte_t* ) malloc( sizeData );		
-			parserSoundBuffer->Read( data, sizeData );
+			if ( parserSoundBuffer->Read( data, sizeData ) == 0 )
+			{
+				free( data );
+				continue;
+			}
 
 			soundBuffer = ( le::ISoundBuffer* ) audioSystemFactory->Create( SOUNDBUFFER_INTERFACE_VERSION );
 			if ( !soundBuffer )
 			{
-				g_consoleSystem->PrintError( "Interface le::ISoundBuffer [%s] not founded in audio system", SOUNDBUFFER_INTERFACE_VERSION );
-
 				free( data );
 				parserSoundBuffer->Release();
-				return nullptr;
+				
+				throw std::runtime_error( "Interface le::ISoundBuffer [" SOUNDBUFFER_INTERFACE_VERSION "] not founded in audio system" );
 			}
 			
 			soundBuffer->Create();
 			soundBuffer->Append( parserSoundBuffer->GetSampleFormat(), data, sizeData, parserSoundBuffer->GetSampleRate() );
 			
 			free( data );
-			parserSoundBuffer->Release();
 		}
 
-		if ( !soundBuffer )		throw std::runtime_error( "Fail loading sound buffer" );
+		parserSoundBuffer->Release();
+		if ( !soundBuffer )		throw std::runtime_error( "Fail loading sound buffer" );		
+		
 		soundBuffer->IncrementReference();
-		soundBuffers.insert( std::make_pair( Name, soundBuffer ) );
+		soundBuffers.insert( std::make_pair( Name, soundBuffer ) );	
 		g_consoleSystem->PrintInfo( "Loaded sound buffer [%s]", Name );
-
+		
 		return soundBuffer;
 	}
 	catch ( std::exception& Exception )
@@ -1095,38 +1045,86 @@ le::IStreamSound* le::ResourceSystem::OpenStreamSound( const char* Path )
 		auto				parser = loaderSoundBuffers.find( format );
 		if ( parser == loaderSoundBuffers.end() )			throw std::runtime_error( "Loader for format sound buffer not found" );
 
-		le::IStreamSound*		streamSound = nullptr;
-		for ( UInt32_t index = 0, count = paths.size(); index < count; ++index )
-		{
-			IParserSoundBuffer*			parserSoundBuffer = parser->second();
-			if ( !parserSoundBuffer->Open( std::string( paths[ index ] + "/" + Path ).c_str() ) )
-			{
-				parserSoundBuffer->Release();
-				continue;
-			}
+		IStreamSoundInternal*		streamSound = nullptr;
+		IParserSoundBuffer*			parserSoundBuffer = parser->second();
 
-			streamSound = ( le::IStreamSound* ) audioSystemFactory->Create( STREAMSOUND_INTERFACE_VERSION );
+		for ( UInt32_t index = 0, count = paths.size(); !streamSound && index < count; ++index )
+		{		
+			if ( !parserSoundBuffer->Open( std::string( paths[ index ] + "/" + Path ).c_str() ) )
+				continue;
+
+			streamSound = ( IStreamSoundInternal* ) audioSystemFactory->Create( STREAMSOUND_INTERFACE_VERSION );
 			if ( !streamSound )
 			{
-				g_consoleSystem->PrintError( "Interface le::IStreamSound [%s] not founded in audio system", STREAMSOUND_INTERFACE_VERSION );
-				
 				parserSoundBuffer->Release();
-				return nullptr;
+				throw std::runtime_error( "interface le::IStreamSound [" STREAMSOUND_INTERFACE_VERSION "] not founded in audio system" );
 			}
 
 			streamSound->Create();
 			streamSound->Open( parserSoundBuffer );
 		}
 
-		if ( !streamSound )		throw std::runtime_error( "Fail opening stream sound" );
-		g_consoleSystem->PrintInfo( "Opened stream sound" );
+		if ( !streamSound )
+		{
+			parserSoundBuffer->Release();
+			throw std::runtime_error( "Fail opening stream sound" );
+		}
 
+		g_consoleSystem->PrintInfo( "Opened stream sound" );
 		return streamSound;
 	}
 	catch ( std::exception& Exception )
 	{
 		g_consoleSystem->PrintError( "Stream sound [%s] not opened: %s", Path, Exception.what() );
 		return nullptr;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Open stream sound in allrady created IStreamSound
+// ------------------------------------------------------------------------------------ //
+bool le::ResourceSystem::OpenStreamSound( const char* Path, IStreamSound* StreamSound )
+{
+	LIFEENGINE_ASSERT( Path );
+	LIFEENGINE_ASSERT( StreamSound );
+
+	try
+	{
+		if ( loaderSoundBuffers.empty() )		throw std::runtime_error( "No sound buffer loaders" );
+
+		g_consoleSystem->PrintInfo( "Opening stream sound [%s]", Path );
+
+		std::string			format = GetFormatFile( Path );
+		if ( format.empty() )								throw std::runtime_error( "In sound buffer format not found" );
+
+		auto				parser = loaderSoundBuffers.find( format );
+		if ( parser == loaderSoundBuffers.end() )			throw std::runtime_error( "Loader for format sound buffer not found" );
+
+		bool					isSuccess = false;
+		IParserSoundBuffer*		parserSoundBuffer = parser->second();
+		
+		for ( UInt32_t index = 0, count = paths.size(); !isSuccess && index < count; ++index )
+		{		
+			if ( !parserSoundBuffer->Open( std::string( paths[ index ] + "/" + Path ).c_str() ) )
+				continue;
+
+			static_cast< IStreamSoundInternal* >( StreamSound )->Open( parserSoundBuffer );
+			isSuccess = true;
+		}
+
+		if ( !isSuccess )
+		{
+			parserSoundBuffer->Release();
+			throw std::runtime_error( "Fail opening stream sound" );
+		}
+
+		g_consoleSystem->PrintInfo( "Opened stream sound" );
+		return isSuccess;
+	}
+	catch ( std::exception& Exception )
+	{
+		g_consoleSystem->PrintError( "Stream sound [%s] not opened: %s", Path, Exception.what() );
+		return false;
 	}
 }
 

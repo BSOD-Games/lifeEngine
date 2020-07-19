@@ -13,17 +13,12 @@
 
 #include "common/types.h"
 #include "engine/ireferenceobject.h"
-#include "audio/isound.h"
 #include "audio/soundstatus.h"
 
 //---------------------------------------------------------------------//
 
 namespace le
 {
-	//---------------------------------------------------------------------//
-
-	class IParserSoundBuffer;
-
 	//---------------------------------------------------------------------//
 
 	class IStreamSound : public IReferenceObject
@@ -35,8 +30,6 @@ namespace le
 		virtual void			Play() = 0;
 		virtual void			Pause() = 0;
 		virtual void			Stop() = 0;
-		virtual void			Open( IParserSoundBuffer* ParserSoundBuffer ) = 0;
-		virtual void			Close() = 0;
 
 		virtual void			SetLoop( bool IsLoop ) = 0;
 		virtual void			SetRelativeToListener( bool IsRelative ) = 0;

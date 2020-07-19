@@ -57,4 +57,5 @@ install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
 
 include_directories( ../lmtloader )
 include_directories( ../../public )
+include_directories( ../../private )
 include_directories( ../../ )

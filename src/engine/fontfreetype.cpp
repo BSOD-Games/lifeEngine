@@ -161,7 +161,7 @@ bool le::FontFreeType::Load( const char* Path )
     }
     catch( const std::exception& Exception )
     {
-        g_consoleSystem->PrintError( "Fail loading font [%s]: ", Path, Exception.what() );        
+        g_consoleSystem->PrintError( "Fail loading font [%s]: %s", Path, Exception.what() );        
         return false;
     }
     

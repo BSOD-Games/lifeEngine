@@ -29,6 +29,7 @@ set_target_properties (${MODULE_NAME} PROPERTIES FOLDER Engine )
 target_link_libraries( ${MODULE_NAME} ${CMAKE_DL_LIBS} )
 include_directories( ../ )
 include_directories( ../public )
+include_directories( ../private )
 
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR} )
 

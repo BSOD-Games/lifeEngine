@@ -91,6 +91,7 @@ namespace le
 		virtual void					StopSimulation();		
 
 		virtual bool					IsRunSimulation() const;
+		virtual bool					IsEditor() const;
 		virtual IConsoleSystem*			GetConsoleSystem() const;
 		virtual IStudioRender*			GetStudioRender() const;
 		virtual IResourceSystem*		GetResourceSystem() const;
@@ -101,14 +102,13 @@ namespace le
 		virtual IAudioSystem*			GetAudioSystem() const;
 		virtual IWindow*				GetWindow() const;
 		virtual IFactory*				GetFactory() const;
-		virtual float					GetDeltaTime() const;
 		virtual float					GetFixedTimeStep() const;
         virtual const GameInfo&         GetGameInfo() const;
-		virtual const Version&			GetVersion() const;
+		virtual Version					GetVersion() const;
 		virtual Configurations			GetConfigurations() const;
 
 		// IEngineInternal
-		virtual bool					Initialize( const char* EngineDirectory, const char* LogFile = "console.log" );
+		virtual bool					Initialize( const char* EngineDirectory, const char* LogFile = "console.log", bool IsEditor = false );
 		virtual bool					LoadGame( const char* DirGame, UInt32_t CountArguments = 0, const char** Arguments = nullptr );
 		virtual void					UnloadGame();
 
@@ -131,7 +131,7 @@ namespace le
 
 		bool							isInitialized;
 		bool							isRunSimulation;
-		float							deltaTime;
+		bool							isEditor;
 
 		IConCmd*						cmd_Exit;
 		IConCmd*						cmd_Version;

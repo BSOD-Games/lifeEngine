@@ -15,7 +15,7 @@
 #include <mutex>
 #include <vector>
 
-#include "audio/istreamsound.h"
+#include "audio/istreamsoundinternal.h"
 
 //---------------------------------------------------------------------//
 
@@ -23,7 +23,7 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class StreamSound : public IStreamSound
+	class StreamSound : public IStreamSoundInternal
 	{
 	public:
 		// IReferenceObject
@@ -69,7 +69,6 @@ namespace le
 
 		enum
 		{
-			NoLoop = -1,
 			BufferCount = 3,
 			BufferRetries = 2
 		};

@@ -95,6 +95,7 @@ void CMD_Version( le::UInt32_t CountArguments, const char** Arguments )
 le::Engine::Engine() :
 	isRunSimulation( false ),
 	isInitialized( false ),
+	isEditor( false ),
 	studioRender( nullptr ),
 	studioRenderDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
 	physicSystem( nullptr ),
@@ -111,8 +112,7 @@ le::Engine::Engine() :
 	cvar_windowHeight( new ConVar() ),
 	cvar_windowFullscreen( new ConVar() ),
 	cvar_mouseSensitivity( new ConVar() ),
-	cvar_rvsinc( new ConVar() ),
-	deltaTime( 0.f )
+	cvar_rvsinc( new ConVar() )
 {
 	LIFEENGINE_ASSERT( !g_engine );
 
@@ -503,6 +503,7 @@ void le::Engine::RunSimulation()
 	float                   currentTick = 0.f;
 	float                   lastTick = 0.f;
 	float                   delayFrame = 0.f;
+	float					deltaTime = 0.f;
 	Event                   event;
 	bool                    isFocus = true;
 
@@ -691,7 +692,7 @@ const le::GameInfo& le::Engine::GetGameInfo() const
 // ------------------------------------------------------------------------------------ //
 // РџРѕР»СѓС‡РёС‚СЊ РІРµСЂСЃРёСЋ РґРІРёР¶РєР°
 // ------------------------------------------------------------------------------------ //
-const le::Version& le::Engine::GetVersion() const
+le::Version le::Engine::GetVersion() const
 {
 	return Version( LIFEENGINE_VERSION, Engine_BuildNumber() );
 }
@@ -699,12 +700,14 @@ const le::Version& le::Engine::GetVersion() const
 // ------------------------------------------------------------------------------------ //
 // Initialize engine
 // ------------------------------------------------------------------------------------ //
-bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile )
+bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile, bool IsEditor )
 {
-	if ( isInitialized ) return true;
-	engineDirectory = EngineDirectory;
+	if ( isInitialized )	return true;
 	consoleSystem.PrintInfo( "Initialization lifeEngine" );
-
+	
+	engineDirectory = EngineDirectory;
+	isEditor = IsEditor;
+	
 	try
 	{
 		// Initialize console system
@@ -855,14 +858,6 @@ const char* le::Engine::GetEngineDirectory() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get delta time
-// ------------------------------------------------------------------------------------ //
-float le::Engine::GetDeltaTime() const
-{
-	return deltaTime;
-}
-
-// ------------------------------------------------------------------------------------ //
 // Get fixed time step
 // ------------------------------------------------------------------------------------ //
 float le::Engine::GetFixedTimeStep() const
@@ -876,4 +871,12 @@ float le::Engine::GetFixedTimeStep() const
 le::Configurations le::Engine::GetConfigurations() const
 {
 	return Configurations{ cvar_windowWidth, cvar_windowHeight, cvar_windowFullscreen, cvar_mouseSensitivity, cvar_rvsinc };
+}
+
+// ------------------------------------------------------------------------------------ //
+// Is editor
+// ------------------------------------------------------------------------------------ //
+bool le::Engine::IsEditor() const
+{
+	return isEditor;
 }

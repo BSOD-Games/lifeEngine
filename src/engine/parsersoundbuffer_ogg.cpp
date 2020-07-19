@@ -90,6 +90,8 @@ le::ParserSoundBufferOGG::~ParserSoundBufferOGG()
 // ------------------------------------------------------------------------------------ //
 bool le::ParserSoundBufferOGG::Open( const char* Path )
 {
+	if ( IsOpened() )		Close();
+
 	oggVorbisFile = new OggVorbis_File();
 	int		error = ov_fopen( Path, oggVorbisFile );
 	
