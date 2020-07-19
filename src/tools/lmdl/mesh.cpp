@@ -1,39 +1,4 @@
-<<<<<<< HEAD
-//////////////////////////////////////////////////////////////////////////
-//
-//			*** lifeEngine (Двигатель жизни) ***
-//				Copyright (C) 2018-2020
-//
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
-//
-//////////////////////////////////////////////////////////////////////////
 
-#include <stdexcept>
-#include <iostream>
-#include <fstream>
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-#include <assimp/material.h>
-
-#include "common/types.h"
-#include "global.h"
-#include "mesh.h"
-#include "mdldoc.h"
-
-// ------------------------------------------------------------------------------------ //
-// Constructor
-// ------------------------------------------------------------------------------------ //
-Mesh::Mesh() :
-	isLoaded( false )
-{}
-
-// ------------------------------------------------------------------------------------ //
-// Destructor
-// ------------------------------------------------------------------------------------ //
-Mesh::~Mesh()
-=======
 //////////////////////////////////////////////////////////////////////////
 //
 //			*** lifeEngine (Двигатель жизни) ***
@@ -258,7 +223,6 @@ void Mesh::ProcessNode( aiNode* Node, const aiScene* Scene, std::unordered_map<l
 // operator == for MDLVertex
 // ------------------------------------------------------------------------------------ //
 bool operator==( const MDLVertex& Left, const MDLVertex& Right )
->>>>>>> remotes/origin/dev
 {
 	Clear();
 }

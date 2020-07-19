@@ -772,11 +772,6 @@ void le::StudioRender::SubmitModel( IModel* Model, UInt32_t StartSurface, UInt32
 {
 	if ( !Model )			return;
 
-<<<<<<< HEAD
-	Mesh* mesh = ( Mesh* ) Model->GetMesh();
-=======
-	Mesh*			mesh = ( Mesh* ) Model->GetMesh();
->>>>>>> remotes/origin/dev
 	if ( !mesh || !mesh->IsCreated() )		return;
 
 	MeshSurface* surfaces = mesh->GetSurfaces();
