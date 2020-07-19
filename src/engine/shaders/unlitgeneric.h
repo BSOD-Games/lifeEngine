@@ -31,7 +31,8 @@ namespace le
 			SF_NONE = 0,
 			SF_BASETEXTURE = 1 << 0,
 			SF_NORMAL_MAP = 1 << 1,
-			SF_SPECULAR_MAP = 1 << 2
+			SF_SPECULAR_MAP = 1 << 2,
+			SF_ALPHA_MAP = 1 << 3
 		};
 
 		//---------------------------------------------------------------------//
@@ -58,6 +59,7 @@ namespace le
 		ITexture*			baseTexture;
 		ITexture*			normalMap;
 		ITexture*			specularMap;
+		ITexture*			alphamap;
 		Vector3D_t			color;
 	};
 
