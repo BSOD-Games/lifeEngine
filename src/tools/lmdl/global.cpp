@@ -12,7 +12,7 @@
 
 CONVERT_TYPE			g_convertType = CT_MESH;
 std::string				g_sourceFile;
-std::string				g_outputFile;
+std::string				g_outputDir;
 std::string				g_materialsDir;
 float					g_masa = 0.f;
 le::Vector3D_t			g_inertia = le::Vector3D_t( 0.f, 0.f, 0.f );

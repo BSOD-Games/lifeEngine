@@ -212,6 +212,20 @@ void le::GBuffer::Unbind()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Show buffer
+// ------------------------------------------------------------------------------------ //
+void le::GBuffer::ShowBuffer( TEXTURE_TYPE TextureType )
+{
+	if ( !isInitialize ) return;
+
+	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+	glBindFramebuffer( GL_READ_FRAMEBUFFER, handle_frameBuffer );
+
+	glReadBuffer( GL_COLOR_ATTACHMENT0 + TextureType );
+	glBlitFramebuffer( 0, 0, windowSize.x, windowSize.y, 0, 0, windowSize.x, windowSize.y, GL_COLOR_BUFFER_BIT, GL_LINEAR );
+}
+
+// ------------------------------------------------------------------------------------ //
 // Показать финальный кадр
 // ------------------------------------------------------------------------------------ //
 void le::GBuffer::ShowFinalFrame()

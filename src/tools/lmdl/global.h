@@ -27,7 +27,7 @@ enum CONVERT_TYPE
 
 extern CONVERT_TYPE				g_convertType;
 extern std::string				g_sourceFile;
-extern std::string				g_outputFile;
+extern std::string				g_outputDir;
 extern std::string				g_materialsDir;
 extern float					g_masa;
 extern le::Vector3D_t			g_inertia;

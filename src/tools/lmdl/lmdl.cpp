@@ -75,7 +75,7 @@ void PrintUsage()
 			  << "Example: lmdl -mesh -matdir materials/axe -o axe -s axe.fbx\n\n"
 			  << "-h | -help\t->\tshow this message\n"
 			  << "-s | -source\t->\tpath to source file\n"
-			  << "-o | -output\t->\tpath to output file\n"
+			  << "-o | -outputdir\t->\tpath to output directory\n"
 			  << "-matdir\t->\tpath to materials (relative to the game directory)\n"
 			  << "-c | -collision\t->\set convert type: collision mesh\n"
 			  << "-m | -mesh\t->\tset convert type: mesh. This is default type\n"
@@ -124,10 +124,10 @@ void ParseArgs( int argc, char** argv )
 			g_convertType = CT_COLLISION;
 		}
 
-		// Set output file
-		else if ( ( !strcmp( argv[ index ], "-o" ) || !strcmp( argv[ index ], "-output" ) ) && index + 1 < argc )
+		// Set output directory
+		else if ( ( !strcmp( argv[ index ], "-o" ) || !strcmp( argv[ index ], "-outputdir" ) ) && index + 1 < argc )
 		{
-			g_outputFile = argv[ index + 1 ];
+			g_outputDir = argv[ index + 1 ];
 			++index;
 		}
 
@@ -176,6 +176,57 @@ void ParseArgs( int argc, char** argv )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Get file name
+// ------------------------------------------------------------------------------------ //
+std::string GetFileName( const std::string& FilePath )
+{
+	std::string			fileName = FilePath;
+	
+	std::size_t			indexLastLSlash = fileName.find_last_of( '\\' );	
+	if ( indexLastLSlash != std::string::npos )		
+		fileName.erase( 0, indexLastLSlash );
+	else
+	{
+		std::size_t			indexLastRSlash = fileName.find_last_of( '/' );			
+		if ( indexLastRSlash != std::string::npos )			
+			fileName.erase( 0, indexLastLSlash );
+	}
+
+	std::size_t			indexLastDot = fileName.find_last_of( '.' );
+	if ( indexLastDot != std::string::npos )
+		fileName.erase( indexLastDot, fileName.size() );
+
+	return fileName;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get output directory
+// ------------------------------------------------------------------------------------ //
+std::string GetFileDirectory( const std::string& FilePath )
+{
+	bool				isCurrentDir = true;
+	std::string			fileDir = FilePath;
+	
+	std::size_t			indexLastLSlash = fileDir.find_last_of( '\\' );
+	if ( indexLastLSlash != std::string::npos )
+	{
+		fileDir.erase( indexLastLSlash, fileDir.size() );
+		isCurrentDir = false;
+	}
+	else
+	{
+		std::size_t			indexLastRSlash = fileDir.find_last_of( '/' );	
+		if ( indexLastRSlash != std::string::npos )
+		{
+			fileDir.erase( indexLastRSlash, g_outputDir.size() );
+			isCurrentDir = false;
+		}
+	}
+
+	return isCurrentDir ? "" : fileDir;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Main function
 // ------------------------------------------------------------------------------------ //
 int main( int argc, char** argv )
@@ -188,7 +239,10 @@ int main( int argc, char** argv )
 		try
 		{
 			if ( g_sourceFile.empty() )			throw std::runtime_error( "Source file not set. Use argument -s <path>" );
-			if ( g_outputFile.empty() )			throw std::runtime_error( "Output file not set. Use argument -o <path>" );
+			if ( g_outputDir.empty() )			g_outputDir = GetFileDirectory( g_sourceFile );
+
+			// Getting file name
+			std::string			fileName = GetFileName( g_sourceFile );
 
 			switch ( g_convertType )
 			{
@@ -204,7 +258,7 @@ int main( int argc, char** argv )
 
 				Mesh		mesh;
 				mesh.Load( g_sourceFile );
-				mesh.Save( g_outputFile );
+				mesh.Save( !g_outputDir.empty() ? g_outputDir + "/" + fileName : fileName );
 				break;
 			}
 
@@ -214,7 +268,7 @@ int main( int argc, char** argv )
 
 				Collision		collision;
 				collision.Load( g_sourceFile );
-				collision.Save( g_outputFile );
+				collision.Save( !g_outputDir.empty() ? g_outputDir + "/" + fileName : fileName );
 				break;
 			}
 			}
