@@ -48,7 +48,7 @@ Window_Viewer::Window_Viewer( const GameDescriptor& GameDescriptor, QWidget* Par
 		Error_Critical( "Failed initialize viewport" );
 
 	connect( ui->widget_viewport, SIGNAL( ResizeViewport( quint32, quint32 ) ), this, SLOT( OnResizeViewport( quint32, quint32 ) ) );
-	connect( ui->widget_viewport, SIGNAL( MouseMove( QMouseEvent* ) ), this, SLOT( OnMouseMove( QMouseEvent* ) ) );
+	connect( ui->widget_viewport, SIGNAL( MouseMove( quint32, quint32 ) ), this, SLOT( OnMouseMove( quint32, quint32 ) ) );
 
 	qDebug() << "Loading game";
 
@@ -57,18 +57,15 @@ Window_Viewer::Window_Viewer( const GameDescriptor& GameDescriptor, QWidget* Par
 
 	qDebug() << "Loaded game";
 
-	model = ( le::IModel* ) EngineAPI::GetInstance()->GetEngine()->GetFactory()->Create( MODEL_INTERFACE_VERSION );
-	if ( !model )	Error_Critical( "Interface le::IModel Version [" MODEL_INTERFACE_VERSION "] not found in core" );
-	Scene::GetInstance()->AddModel( model );
+	qDebug() << "Start mesh initialize";
 
-	qDebug() << "Loaded model";
+	qDebug() << "Mesh initialized";
 
 	directionalLight = ( le::IDirectionalLight* ) EngineAPI::GetInstance()->GetStudioRender()->GetFactory()->Create( DIRECTIONALLIGHT_INTERFACE_VERSION );
 	if ( !directionalLight )		Error_Critical( "Interface le::IDirectionalLight version[" DIRECTIONALLIGHT_INTERFACE_VERSION "] not found in studiorender" );
 
 	directionalLight->SetDirection( le::Vector3D_t( 0.f, 0.5f, 0.5f ) );
 	directionalLight->SetIntensivity( 0.5f );
-
 	Scene::GetInstance()->AddLight( directionalLight );
 
 	qDebug() << "Created directional light";
@@ -79,7 +76,6 @@ Window_Viewer::Window_Viewer( const GameDescriptor& GameDescriptor, QWidget* Par
 	camera->IncrementReference();
 	camera->InitProjection_Perspective( 75.f, ( float ) ui->widget_viewport->width() / ui->widget_viewport->height(), 0.1f, 5500.f );
 	camera->SetPosition( le::Vector3D_t( 0.f, 0.f, 150.f ) );
-
 	Scene::GetInstance()->SetCamera( camera );
 
 	qDebug() << "Loaded camera";
@@ -107,8 +103,7 @@ void Window_Viewer::on_actionOpen_triggered()
 	if ( path.isEmpty() ) return;
 
 	mesh.Load( path );
-	model->SetMesh( mesh.GetMesh() );
-	
+
 	RemoveAllMaterials();
 	UpdateCameraPosition();
 
@@ -218,7 +213,7 @@ void Window_Viewer::on_toolButton_pathMaterial_clicked()
 // ------------------------------------------------------------------------------------ //
 void Window_Viewer::on_checkBox_wireframe_clicked()
 {
-	if( ui->checkBox_wireframe->checkState() == Qt::CheckState::Checked )
+	if ( ui->checkBox_wireframe->checkState() == Qt::CheckState::Checked )
 		EngineAPI::GetInstance()->GetConsoleSystem()->Exec( "r_wireframe 1" );
 	else
 		EngineAPI::GetInstance()->GetConsoleSystem()->Exec( "r_wireframe 0" );
@@ -262,12 +257,10 @@ void Window_Viewer::OnResizeViewport( quint32 Width, quint32 Height )
 	camera->InitProjection_Perspective( 75.f, ( float ) Width / ( float ) Height, 0.1f, 5500.f );
 }
 
-// ------------------------------------------------------------------------------------ //
-// Event: move mouse on viewport
-// ------------------------------------------------------------------------------------ //
-void Window_Viewer::OnMouseMove( QMouseEvent* Event )
+void Window_Viewer::OnMouseMove( quint32 PositionX, quint32 PositionY )
 {
 	if ( !camera ) return;
 
-	mesh.RotateByMouse( Event );
+
+	mesh.RotateByMouse( le::Vector2D_t( PositionX, PositionY ), 0.15f );
 }

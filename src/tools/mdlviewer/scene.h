@@ -52,8 +52,8 @@ private slots:
 private:
 	QTimer									timerUpdate;
 
-	le::ICamera* camera;
-	le::IStudioRender* studioRender;
+	le::ICamera*							camera;
+	le::IStudioRender*						studioRender;
 	std::list< le::IModel* >				models;
 	std::list< le::IDirectionalLight* >		lights;
 

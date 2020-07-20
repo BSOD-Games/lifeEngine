@@ -8,6 +8,32 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+#include <exception>
+#include <fstream>
+#include <algorithm>
+
+#include "engine/lifeengine.h"
+#include "engine/iengine.h"
+#include "engine/ifont.h"
+#include "engine/imaterial.h"
+#include "engine/iscript.h"
+#include "engine/ilevel.h"
+#include "studiorender/istudiorender.h"
+#include "studiorender/igpuprogram.h"
+#include "studiorender/itexture.h"
+#include "studiorender/imesh.h"
+#include "physics/iphysicsmodel.h"
+#include "audio/iaudiosystem.h"
+#include "audio/isoundbuffer.h"
+#include "audio/istreamsoundinternal.h"
+
+#include "global.h"
+#include "materialsystem.h"
+#include "scriptsystem.h"
+#include "consolesystem.h"
+#include "resourcesystem.h"
+
+// Parsers
 #include "parsergpuprogram_shader.h"
 #include "parserfont_freetype.h"
 #include "parserimage_freeimage.h"

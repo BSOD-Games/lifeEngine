@@ -9,14 +9,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "scene.h"
-<<<<<<< HEAD
-#include <qdebug.h>
-=======
 #include "window_viewer.h"
 
 #include <qdebug.h>
 #include <qevent.h>
->>>>>>> 1fb5e962b285d1135187cf6785e4cf94edac1e8c
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
@@ -37,7 +33,7 @@ Scene::~Scene()
 	disconnect( &timerUpdate, &QTimer::timeout, this, &Scene::Update );
 	timerUpdate.stop();
 }
-
+#include <qdebug.h>
 // ------------------------------------------------------------------------------------ //
 // Render
 // ------------------------------------------------------------------------------------ //
@@ -49,10 +45,7 @@ void Scene::Render()
 
 	// Render models
 	for ( auto it = models.begin(), itEnd = models.end(); it != itEnd; ++it )
-	{
 		studioRender->SubmitModel( *it );
-		studioRender->SubmitDebugLine( ( *it )->GetMin(), ( *it )->GetMax(), le::Vector3D_t( 1, 1, 1 ) );
-	}
 
 	// Render lights
 	for ( auto it = lights.begin(), itEnd = lights.end(); it != itEnd; ++it )
@@ -77,8 +70,8 @@ void Scene::Render()
 // ------------------------------------------------------------------------------------ //
 void Scene::Update()
 {
-	if ( GetIsRotate() )
-		camera->Rotate( le::Vector3D_t( 0, 0, 10 ) );
+	//if ( GetIsRotate() )
+	//	camera->Rotate( le::Vector3D_t( 0, 0, 10 ) );
 }
 
 // ------------------------------------------------------------------------------------ //

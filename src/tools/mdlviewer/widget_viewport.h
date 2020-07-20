@@ -19,6 +19,7 @@
 #include "engine/iresourcesystem.h"
 #include "engine/imaterial.h"
 #include "mdldoc.h"
+#include "engine/icamera.h"
 
 
 //---------------------------------------------------------------------//
@@ -45,8 +46,7 @@ public:
 
 signals:
 	void					ResizeViewport( quint32 Width, quint32 Height );
-	void					MouseMove( QMouseEvent* Event );
-
+	void					MouseMove( quint32 PositionX, quint32 PositionY );
 private slots:
 	void					Render();
 

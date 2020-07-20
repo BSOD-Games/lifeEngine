@@ -128,10 +128,7 @@ void Widget_Viewport::showEvent( QShowEvent* Event )
 	QWidget::showEvent( Event );
 }
 
-// ------------------------------------------------------------------------------------ //
-// Mouse move event
-// ------------------------------------------------------------------------------------ //
 void Widget_Viewport::mouseMoveEvent( QMouseEvent* Event )
 {
-	emit MouseMove( Event );
+//	emit MouseMove( Event->pos().x(), Event->pos().y() );
 }

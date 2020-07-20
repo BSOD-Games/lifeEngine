@@ -47,17 +47,17 @@ private slots:
 	void			on_toolButton_pathMaterial_clicked();
 	void			on_checkBox_wireframe_clicked();
 	void			on_checkBox_ground_clicked();
-	void			OnMouseMove( QMouseEvent* Event );
+	void			OnMouseMove( quint32 PositionX, quint32 PositionY );
 
 private:
 	void			UpdateCameraPosition();
 	void			RemoveAllMaterials();
 
-
 	Ui::Window_Viewer*					ui;
 	le::ICamera*						camera;
 	le::IDirectionalLight*				directionalLight;
 	Model								mesh;
+
 };
 
 //---------------------------------------------------------------------//
