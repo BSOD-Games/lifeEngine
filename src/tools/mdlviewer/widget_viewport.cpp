@@ -78,7 +78,6 @@ bool Widget_Viewport::Initialize()
 	return isInitialize;
 }
 
-
 // ------------------------------------------------------------------------------------ //
 // Render frame
 // ------------------------------------------------------------------------------------ //
@@ -127,4 +126,9 @@ void Widget_Viewport::resizeEvent( QResizeEvent* Event )
 void Widget_Viewport::showEvent( QShowEvent* Event )
 {
 	QWidget::showEvent( Event );
+}
+
+void Widget_Viewport::mouseMoveEvent( QMouseEvent* Event )
+{
+//	emit MouseMove( Event->pos().x(), Event->pos().y() );
 }
