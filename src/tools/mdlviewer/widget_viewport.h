@@ -16,6 +16,11 @@
 
 #include "engine/icamera.h"
 #include "studiorender/istudiorenderinternal.h"
+#include "engine/iresourcesystem.h"
+#include "engine/imaterial.h"
+#include "mdldoc.h"
+#include "engine/icamera.h"
+
 
 //---------------------------------------------------------------------//
 
@@ -31,6 +36,7 @@ public:
 	virtual void					paintEvent( QPaintEvent* Event );
 	virtual void					resizeEvent( QResizeEvent* Event );
 	virtual void					showEvent( QShowEvent* Event );
+	virtual void					mouseMoveEvent( QMouseEvent* Event );
 
 	// Widget_Viewport
 	Widget_Viewport( QWidget* Parent = nullptr );
@@ -40,14 +46,16 @@ public:
 
 signals:
 	void					ResizeViewport( quint32 Width, quint32 Height );
-
+	void					MouseMove( quint32 PositionX, quint32 PositionY );
 private slots:
 	void					Render();
+
 
 private:
 	bool							isInitialize;
 	QTimer							timerUpdate;
 	le::IStudioRenderInternal*		studioRender;
+	le::ICamera*					camera;
 };
 
 //---------------------------------------------------------------------//

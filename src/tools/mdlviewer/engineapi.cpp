@@ -57,7 +57,7 @@ bool EngineAPI::Load()
 		if ( LE_SetCriticalError )			LE_SetCriticalError( Error_Critical );
 
 		engine = ( le::IEngineInternal* ) LE_CreateEngine();
-		if ( !engine->Initialize( "./", "lmdviewer.log", true ) )
+		if ( !engine->Initialize( "./", "lmdviewer.log" ) )
 			throw std::runtime_error( "Failed initialize engine" );
 
         resourceSystem = ( le::IResourceSystemInternal* ) engine->GetResourceSystem();

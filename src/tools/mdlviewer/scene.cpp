@@ -9,6 +9,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "scene.h"
+#include "window_viewer.h"
+
+#include <qdebug.h>
+#include <qevent.h>
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
@@ -29,7 +33,7 @@ Scene::~Scene()
 	disconnect( &timerUpdate, &QTimer::timeout, this, &Scene::Update );
 	timerUpdate.stop();
 }
-
+#include <qdebug.h>
 // ------------------------------------------------------------------------------------ //
 // Render
 // ------------------------------------------------------------------------------------ //
@@ -38,7 +42,7 @@ void Scene::Render()
 	if ( !studioRender ) return;
 
 	studioRender->BeginScene( camera );
-	
+
 	// Render models
 	for ( auto it = models.begin(), itEnd = models.end(); it != itEnd; ++it )
 		studioRender->SubmitModel( *it );
@@ -46,6 +50,17 @@ void Scene::Render()
 	// Render lights
 	for ( auto it = lights.begin(), itEnd = lights.end(); it != itEnd; ++it )
 		studioRender->SubmitLight( *it );
+
+	// Render ground
+	if ( isGround )
+	{
+		for ( int x = -255; x < 255; x += 20 )
+			studioRender->SubmitDebugLine( le::Vector3D_t( x, 0, 0 ), le::Vector3D_t( 255, 0, 0 ), le::Vector3D_t( 1, 1, 1 ) );
+
+		for ( int z = -255; z < 255; z += 20 )
+			studioRender->SubmitDebugLine( le::Vector3D_t( 0, 0, z ), le::Vector3D_t( 0, 0, 255 ), le::Vector3D_t( 1, 1, 1 ) );
+	}
+
 
 	studioRender->EndScene();
 }
@@ -55,8 +70,8 @@ void Scene::Render()
 // ------------------------------------------------------------------------------------ //
 void Scene::Update()
 {
-	for ( auto it = models.begin(), itEnd = models.end(); it != itEnd; ++it )
-		( *it )->Rotate( le::Vector3D_t( 0.f, 0.005f, 0.f ) );
+	//if ( GetIsRotate() )
+	//	camera->Rotate( le::Vector3D_t( 0, 0, 10 ) );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -99,6 +114,38 @@ void Scene::SetCamera( le::ICamera* Camera )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Enable or disable ground
+// ------------------------------------------------------------------------------------ //
+void Scene::EnableGround( bool IsEnable )
+{
+	isGround = IsEnable;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Enable or disable rotate
+// ------------------------------------------------------------------------------------ //
+void Scene::EnableRotate( bool IsEnable )
+{
+	isRotate = IsEnable;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get isGround
+// ------------------------------------------------------------------------------------ //
+bool Scene::GetIsGround()
+{
+	return isGround;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get isRotate
+// ------------------------------------------------------------------------------------ //
+bool Scene::GetIsRotate()
+{
+	return isRotate;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Clear scene
 // ------------------------------------------------------------------------------------ //
 void Scene::Clear()
@@ -113,14 +160,14 @@ void Scene::Clear()
 
 	for ( auto it = models.begin(), itEnd = models.end(); it != itEnd; ++it )
 	{
-		le::IModel*			model = *it;
+		le::IModel* model = *it;
 		if ( model->GetCountReferences() <= 1 )			model->Release();
 		else											model->DecrementReference();
 	}
 
 	for ( auto it = lights.begin(), itEnd = lights.end(); it != itEnd; ++it )
 	{
-		le::IDirectionalLight*			light = *it;
+		le::IDirectionalLight* light = *it;
 		if ( light->GetCountReferences() <= 1 )			light->Release();
 		else											light->DecrementReference();
 	}

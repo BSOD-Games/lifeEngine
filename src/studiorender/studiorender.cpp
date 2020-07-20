@@ -635,7 +635,9 @@ void le::StudioRender::SubmitText( IText* Text )
 {
 	if ( !Text )	return;
 
+
 	Mesh*			mesh = ( Mesh* ) Text->GetMesh();
+;
 	if ( !mesh->IsCreated() )		return;
 
 	MeshSurface*					surfaces = mesh->GetSurfaces();
@@ -727,7 +729,7 @@ void le::StudioRender::SubmitModel( IModel* Model )
 	if ( !Model )	return;
 
 	Mesh*			mesh = ( Mesh* ) Model->GetMesh();
-	if ( !mesh->IsCreated() )		return;
+	if ( !mesh || !mesh->IsCreated() )		return;
 
 	MeshSurface*							surfaces = mesh->GetSurfaces();
 	StaticModelRenderer::RenderObject		renderObject;

@@ -7,7 +7,6 @@
 // Авторы:				Егор Погуляка (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
-
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
@@ -15,19 +14,16 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/material.h>
-
 #include "common/types.h"
 #include "global.h"
 #include "mesh.h"
 #include "mdldoc.h"
-
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
 Mesh::Mesh() :
 	isLoaded( false )
 {}
-
 // ------------------------------------------------------------------------------------ //
 // Destructor
 // ------------------------------------------------------------------------------------ //
@@ -35,29 +31,23 @@ Mesh::~Mesh()
 {
 	Clear();
 }
-
 // ------------------------------------------------------------------------------------ //
 // Load mesh
 // ------------------------------------------------------------------------------------ //
 void Mesh::Load( const std::string& Path )
 {
 	std::cout << "Model loading\n";
-
 	if ( Path.empty() )		throw std::runtime_error( "Path to mesh is empty" );
-
 	// Loading mesh with help Assimp
 	Assimp::Importer		import;
 	const aiScene*			scene = import.ReadFile( Path.c_str(), aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals | aiProcess_LimitBoneWeights | aiProcess_Triangulate );
-
 	// If mesh not loaded - exit,
 	// and if mesh alredy loaded - clear
 	if ( !scene )			throw std::runtime_error( import.GetErrorString() );
 	if ( isLoaded )			Clear();
-
 	std::unordered_map<le::UInt32_t, std::vector<AIMesh>>			meshes;
 	ProcessNode( scene->mRootNode, scene, meshes );
 	if ( meshes.empty() )	throw std::runtime_error( "In file not found meshes" );
-
 	// Go through the material ID, take the mesh and write its vertices, and indices
 	// to the shared buffer
 	MDLSurface					surface;
@@ -67,17 +57,14 @@ void Mesh::Load( const std::string& Path )
 	{
 		surface.startVertexIndex = vertexIndices.size();
 		surface.materialId = materials.size();
-
 		for ( auto itMesh = itRoot->second.begin(), itMeshEnd = itRoot->second.end(); itMesh != itMeshEnd; ++itMesh )
 		{
 			aiMesh*			mesh = ( *itMesh ).mesh;
-
 			// Prepare the vertex buffer.
 			// If the vertices of the mesh do not fit into the buffer, then
 			// expand it
 			if ( vertexBuffer.size() < mesh->mNumVertices )
 				vertexBuffer.resize( vertexBuffer.size() + mesh->mNumVertices );
-
 			// Read all verteces
 			for ( le::UInt32_t index = 0; index < mesh->mNumVertices; ++index )
 			{				
@@ -85,12 +72,10 @@ void Mesh::Load( const std::string& Path )
 				vertex.position.x = tempVector.x;
 				vertex.position.y = tempVector.y;
 				vertex.position.z = tempVector.z;
-
 				tempVector =  ( aiMatrix3x3 ) ( *itMesh ).transformation * mesh->mNormals[ index ];
 				vertex.normal.x = tempVector.x;
 				vertex.normal.y = tempVector.y;
 				vertex.normal.z = tempVector.z;
-
 				if ( mesh->mTangents )
 				{
 					tempVector = ( aiMatrix3x3 ) ( *itMesh ).transformation * mesh->mTangents[ index ];
@@ -98,7 +83,6 @@ void Mesh::Load( const std::string& Path )
 					vertex.tangent.y = tempVector.y;
 					vertex.tangent.z = tempVector.z;
 				}
-
 				if ( mesh->mBitangents )
 				{
 					tempVector = ( aiMatrix3x3 ) ( *itMesh ).transformation * mesh->mBitangents[ index ];
@@ -106,27 +90,22 @@ void Mesh::Load( const std::string& Path )
 					vertex.bitangent.y = tempVector.y;
 					vertex.bitangent.z = tempVector.z;
 				}
-
 				if ( mesh->mTextureCoords[ 0 ] )
 				{
 					tempVector = mesh->mTextureCoords[ 0 ][ index ];
 					vertex.texCoords.x = tempVector.x;
 					vertex.texCoords.y = tempVector.y;
 				}
-
 				vertexBuffer[ index ] = vertex;
 			}
-
 			// Read all indeces
 			for ( le::UInt32_t index = 0; index < mesh->mNumFaces; ++index )
 			{
 				aiFace*			face = &mesh->mFaces[ index ];
-
 				for ( uint32_t indexVertex = 0; indexVertex < face->mNumIndices; ++indexVertex )
 				{
 					uint32_t		index = face->mIndices[ indexVertex ];
 					auto			it = find( verteces.begin(), verteces.end(), vertexBuffer[ index ] );
-
 					// Look for the vertex index in the shared vertex buffer,
 					// if not found, add the vertex to the buffer,
 					// and then write its index
@@ -139,21 +118,17 @@ void Mesh::Load( const std::string& Path )
 						vertexIndices.push_back( it - verteces.begin() );
 				}
 			}
-
 			// We process material
 			if ( itRoot->first < scene->mNumMaterials )
 			{
 				aiMaterial*			material = scene->mMaterials[ itRoot->first ];
-
 				aiString			tmp_nameMaterial;
 				std::string			finelName = g_materialsDir + "/";
 				material->Get( AI_MATKEY_NAME, tmp_nameMaterial );
-
 				if ( tmp_nameMaterial.length > 0 )
 					finelName += tmp_nameMaterial.C_Str();
 				else
 					finelName += std::string( "unknow" ) + std::to_string( materials.size() );
-
 				finelName += ".lmt";
 				materials.push_back( finelName );
 			}
@@ -162,18 +137,14 @@ void Mesh::Load( const std::string& Path )
 				std::cout << "Warning: material with id " << itRoot->first << " large. Surface not created\n";
 				continue;
 			}
-
 			surface.countVertexIndeces = vertexIndices.size() - surface.startVertexIndex;
 			surfaces.push_back( surface );
 		}
 	}
-
 	import.FreeScene();
 	isLoaded = true;
-
 	std::cout << "Model loaded\n";
 }
-
 // ------------------------------------------------------------------------------------ //
 // Save mesh
 // ------------------------------------------------------------------------------------ //
@@ -186,11 +157,9 @@ void Mesh::Save( const std::string& Path )
 	mdlDoc.SetVertexIndeces( vertexIndices );
 	mdlDoc.SetSurfaces( surfaces );
 	mdlDoc.SetMaterials( materials );
-
 	if ( !mdlDoc.Save( Path + ".mdl" ) )	throw std::runtime_error( "Failed save model" );
 	std::cout << "Model saved\n";
 }
-
 // ------------------------------------------------------------------------------------ //
 // Clear mesh
 // ------------------------------------------------------------------------------------ //
@@ -202,7 +171,6 @@ void Mesh::Clear()
 	surfaces.clear();
 	isLoaded = false;
 }
-
 // ----------------------------------------------------------------------------------- //
 // Process node scene in assimp
 // ------------------------------------------------------------------------------------ //
@@ -213,11 +181,9 @@ void Mesh::ProcessNode( aiNode* Node, const aiScene* Scene, std::unordered_map<l
 		aiMesh*			mesh = Scene->mMeshes[ Node->mMeshes[ index ] ];
 		Meshes[ mesh->mMaterialIndex ].push_back( AIMesh( Node->mTransformation, mesh ) );
 	}
-
 	for ( le::UInt32_t index = 0; index < Node->mNumChildren; ++index )
 		ProcessNode( Node->mChildren[ index ], Scene, Meshes );
 }
-
 // ----------------------------------------------------------------------------------- //
 // operator == for MDLVertex
 // ------------------------------------------------------------------------------------ //

@@ -12,9 +12,11 @@
 #define WINDOW_VIEWER_H
 
 #include <QMainWindow>
+#include <qevent.h>
 
 #include "scene.h"
 #include "gamedescriptor.h"
+#include "model.h"
 
 //---------------------------------------------------------------------//
 
@@ -36,10 +38,26 @@ public:
 
 private slots:
 	void			OnResizeViewport( quint32 Width, quint32 Height );
+	void			on_actionOpen_triggered();
+	void			on_actionSave_triggered();
+	void			on_actionSave_As_triggered();
+	void			on_actionImport_triggered();
+	void			on_actionConvert_to_PHY_triggered();
+	void			on_listWidget_materials_itemSelectionChanged();
+	void			on_toolButton_pathMaterial_clicked();
+	void			on_checkBox_wireframe_clicked();
+	void			on_checkBox_ground_clicked();
+	void			OnMouseMove( quint32 PositionX, quint32 PositionY );
 
 private:
-	Scene								scene;
+	void			UpdateCameraPosition();
+	void			RemoveAllMaterials();
+
 	Ui::Window_Viewer*					ui;
+	le::ICamera*						camera;
+	le::IDirectionalLight*				directionalLight;
+	Model								mesh;
+
 };
 
 //---------------------------------------------------------------------//
