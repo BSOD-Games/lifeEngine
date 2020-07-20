@@ -10,6 +10,8 @@
 
 #include <al.h>
 
+#include "global.h"
+#include "audiosystem.h"
 #include "soundbuffer.h"
 #include "sound.h"
 
@@ -42,13 +44,14 @@ void le::Sound::Delete()
 	handle = 0;
 }
 
+
 // ------------------------------------------------------------------------------------ //
 // Play
 // ------------------------------------------------------------------------------------ //
 void le::Sound::Play()
 {
-	if ( handle == 0 )		return;
-	alSourcePlay( handle );
+	if ( handle == 0 )		return;	
+	g_audioSystem->SoundPlay( this );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -57,7 +60,7 @@ void le::Sound::Play()
 void le::Sound::Pause()
 {
 	if ( handle == 0 )		return;
-	alSourcePause( handle );
+	g_audioSystem->SoundPause( this );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -66,7 +69,7 @@ void le::Sound::Pause()
 void le::Sound::Stop()
 {
 	if ( handle == 0 )		return;
-	alSourceStop( handle );
+	g_audioSystem->SoundStop( this );
 }
 
 // ------------------------------------------------------------------------------------ //

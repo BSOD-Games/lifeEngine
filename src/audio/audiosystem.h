@@ -11,6 +11,10 @@
 #ifndef AUDIOSYSTEM_H
 #define AUDIOSYSTEM_H
 
+#include <mutex>
+#include <thread>
+#include <unordered_map>
+
 #include "engine/lifeengine.h"
 #include "audio/iaudiosysteminternal.h"
 
@@ -22,6 +26,16 @@
 
 namespace le
 {
+	//---------------------------------------------------------------------//
+
+	class Sound;
+
+	struct SoundSource
+	{
+		Sound*			sound;
+		UInt64_t		samplesOffset;
+	};
+
 	//---------------------------------------------------------------------//
 
 	class AudioSystem : public IAudioSystemInternal
@@ -38,6 +52,9 @@ namespace le
 		AudioSystem();
 		~AudioSystem();
 
+		void							SoundPlay( Sound* Sound );
+		void							SoundPause( Sound* Sound );
+		void							SoundStop( Sound* Sound );
 		inline AudioDevice&				GetAudioDevice()		
 		{
 			return audioDevice;
@@ -45,12 +62,33 @@ namespace le
 		inline const AudioDevice&		GetAudioDevice() const
 		{
 			return audioDevice;
-		}
+		}		
 
 	private:
-		AudioDevice				audioDevice;
-		Listener				listener;
-		AudioSystemFactory		factory;
+
+		//---------------------------------------------------------------------//
+
+		enum
+		{
+			BufferCount = 3
+		};
+
+		//---------------------------------------------------------------------//
+
+		void							Update();
+
+		bool										isUpdating;
+		UInt32_t									openALSource;
+		UInt32_t									openALBuffers[ BufferCount ];
+		AudioDevice									audioDevice;
+		Listener									listener;
+		AudioSystemFactory							factory;
+		
+		std::mutex									mutexUpdate;
+		std::thread*								threadUpdate;
+		void*										steamAudioContext;
+
+		std::unordered_map< Sound*, SoundSource >	updateSounds;
 	};
 
 	//---------------------------------------------------------------------//

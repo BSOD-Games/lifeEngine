@@ -118,7 +118,7 @@ bool le::ParserSoundBufferOGG::Open( const char* Path )
 	channelCount = vorbisInfo->channels;
 	sampleFormat = vorbisInfo->channels == 1 ? le::SF_MONO16 : le::SF_STEREO16;
 	sampleRate = vorbisInfo->rate;
-	sampleCount = ov_pcm_total( oggVorbisFile, -1 ) * vorbisInfo->channels * 2;
+	sampleCount = ov_pcm_total( oggVorbisFile, -1 ) * vorbisInfo->channels * sizeof( Int16_t );
 
 	return true;
 }
@@ -164,15 +164,14 @@ le::UInt64_t le::ParserSoundBufferOGG::Read( Byte_t* Samples, UInt64_t MaxSize )
 	UInt64_t			size = 0;
 	while ( size < MaxSize )
 	{
-		UInt64_t		bytesToRead = ( MaxSize - size ) * sizeof( Byte_t );
+		UInt64_t		bytesToRead = MaxSize - size;
 		long			bytesRead = ov_read( oggVorbisFile, ( char* ) Samples, bytesToRead, 0, 2, 1, nullptr );
 
 		if ( bytesRead > 0 )
 		{
-			long		samplesRead = bytesRead / sizeof( Byte_t );
-			size += samplesRead;
-			Samples += samplesRead;
-			sampleOffset += samplesRead;
+			size += bytesRead;
+			Samples += bytesRead;
+			sampleOffset += bytesRead;
 		}
 		else
 		{

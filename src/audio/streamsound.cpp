@@ -182,6 +182,7 @@ void le::StreamSound::Open( IParserSoundBuffer* ParserSoundBuffer )
 		return;
 	}
 
+	// Resize the internal buffer so that it can contain 1 second of audio samples
 	samples.resize( sampleRate * parserSoundBuffer->GetChannelCount() );
 }
 

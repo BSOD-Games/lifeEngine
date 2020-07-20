@@ -48,11 +48,16 @@ namespace le
 		{
 			return handle;
 		}
+		inline UInt32_t			GetChannelCount() const
+		{
+			return channelCount;
+		}
 
 	private:
 		UInt32_t				countReferences;
 		UInt32_t				handle;
 		UInt32_t				sampleRate;
+		UInt32_t				channelCount;
 
 		std::vector< float >	samples;
 	};

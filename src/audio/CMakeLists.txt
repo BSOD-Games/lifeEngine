@@ -13,6 +13,7 @@ set( VORBIS_PATH ${EXTLIBS_DIR}/vorbis CACHE PATH "Path to Vorbis" )
 set( OGG_PATH ${EXTLIBS_DIR}/ogg CACHE PATH "Path to Ogg" )
 set( OPENAL_PATH ${EXTLIBS_DIR}/OpenAL CACHE PATH "Path to OpenAL" )
 set( GLM_PATH ${EXTLIBS_DIR} CACHE PATH "Path to GLM" )
+set( STEAMAUDIO_PATH ${EXTLIBS_DIR}/steamaudio_api CACHE PATH "Path to SteamAudio" )
 
 #   Файл ресурсов для Windows
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
@@ -62,7 +63,7 @@ else()
 endif()
 
 #---------------
-#	ogg
+#	Ogg
 
 find_package( Ogg REQUIRED )
 if ( NOT OGG_FOUND)
@@ -94,4 +95,16 @@ if ( NOT GLM_FOUND )
     return()
 else()
     include_directories( ${GLM_INCLUDE} )
+endif()
+
+#---------------
+#   SteamAudio
+
+find_package( SteamAudio REQUIRED )
+if ( NOT STEAMAUDIO_FOUND)
+    message( SEND_ERROR "Failed to find SteamAudio" )
+    return()
+else()
+    include_directories( ${STEAMAUDIO_INCLUDE} )
+    target_link_libraries( ${MODULE_NAME} ${STEAMAUDIO_LIB} )
 endif()
