@@ -35,6 +35,7 @@ public:
 	virtual void					paintEvent( QPaintEvent* Event );
 	virtual void					resizeEvent( QResizeEvent* Event );
 	virtual void					showEvent( QShowEvent* Event );
+	virtual void					mouseMoveEvent( QMouseEvent* Event );
 
 	// Widget_Viewport
 	Widget_Viewport( QWidget* Parent = nullptr );
@@ -44,6 +45,7 @@ public:
 
 signals:
 	void					ResizeViewport( quint32 Width, quint32 Height );
+	void					MouseMove( QMouseEvent* Event );
 
 private slots:
 	void					Render();
@@ -53,6 +55,7 @@ private:
 	bool							isInitialize;
 	QTimer							timerUpdate;
 	le::IStudioRenderInternal*		studioRender;
+	le::ICamera*					camera;
 };
 
 //---------------------------------------------------------------------//

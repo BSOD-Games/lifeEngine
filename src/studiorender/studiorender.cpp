@@ -43,8 +43,8 @@
 
 LIFEENGINE_STUDIORENDER_API( le::StudioRender );
 
-static le::IConVar*		r_wireframe = nullptr;
-static le::IConVar*		r_showgbuffer = nullptr;
+static le::IConVar* r_wireframe = nullptr;
+static le::IConVar* r_showgbuffer = nullptr;
 
 // ------------------------------------------------------------------------------------ //
 // Начать отрисовку сцены
@@ -260,7 +260,7 @@ void le::StudioRender::End()
 {
 	for ( UInt32_t indexScene = 0, countScenes = scenes.size(); indexScene < countScenes; ++indexScene )
 	{
-		SceneDescriptor&				sceneDescriptor = scenes[ indexScene ];
+		SceneDescriptor& sceneDescriptor = scenes[ indexScene ];
 
 		// Sort static models
 		std::sort( sceneDescriptor.staticModels.begin(), sceneDescriptor.staticModels.end(),
@@ -273,7 +273,7 @@ void le::StudioRender::End()
 
 						   return Left.lightmap < Right.lightmap;
 					   }
-					   
+
 					   return Left.material < Right.material;
 				   } );
 
@@ -282,7 +282,7 @@ void le::StudioRender::End()
 				   []( const SpriteRenderer::RenderObject& Left, const SpriteRenderer::RenderObject& Right ) -> bool
 				   {
 					   if ( Left.material->IsEuqal( Right.material ) )
-							   return Left.vertexArrayObject < Right.vertexArrayObject;
+						   return Left.vertexArrayObject < Right.vertexArrayObject;
 
 					   return Left.material < Right.material;
 				   } );
@@ -340,7 +340,7 @@ void le::StudioRender::Present()
 
 		for ( UInt32_t indexScene = 0, countScenes = scenes.size(); indexScene < countScenes; ++indexScene )
 		{
-			SceneDescriptor&				sceneDescriptor = scenes[ indexScene ];
+			SceneDescriptor& sceneDescriptor = scenes[ indexScene ];
 
 			if ( sceneDescriptor.debugLines.empty() && sceneDescriptor.debugPoints.empty() )
 				continue;
@@ -399,7 +399,7 @@ void le::StudioRender::Render_GeometryPass()
 
 	for ( UInt32_t indexScene = 0, countScenes = scenes.size(); indexScene < countScenes; ++indexScene )
 	{
-		SceneDescriptor&				sceneDescriptor = scenes[ indexScene ];
+		SceneDescriptor& sceneDescriptor = scenes[ indexScene ];
 
 		// Rendering static modeles
 		staticModelRenderer.Render( sceneDescriptor.staticModels, sceneDescriptor.camera );
@@ -428,7 +428,7 @@ void le::StudioRender::Render_LightPass()
 
 	for ( UInt32_t indexScene = 0, countScenes = scenes.size(); indexScene < countScenes; ++indexScene )
 	{
-		SceneDescriptor&				sceneDescriptor = scenes[ indexScene ];
+		SceneDescriptor& sceneDescriptor = scenes[ indexScene ];
 
 		shaderDepth.SetType( ShaderDepth::GT_SPHERE );
 		shaderLighting.SetType( ShaderLighting::LT_POINT );
@@ -437,7 +437,7 @@ void le::StudioRender::Render_LightPass()
 
 		for ( UInt32_t indexLight = 0, countLights = sceneDescriptor.pointLights.size(); indexLight < countLights; ++indexLight )
 		{
-			auto*			light = sceneDescriptor.pointLights[ indexLight ];
+			auto* light = sceneDescriptor.pointLights[ indexLight ];
 
 			OpenGLState::SetColorMask( false, false, false, false );
 			OpenGLState::EnableDepthTest( true );
@@ -469,7 +469,7 @@ void le::StudioRender::Render_LightPass()
 
 		for ( UInt32_t indexLight = 0, countLights = sceneDescriptor.spotLights.size(); indexLight < countLights; ++indexLight )
 		{
-			auto*			light = sceneDescriptor.spotLights[ indexLight ];
+			auto* light = sceneDescriptor.spotLights[ indexLight ];
 
 			OpenGLState::SetColorMask( false, false, false, false );
 			OpenGLState::EnableDepthTest( true );
@@ -505,7 +505,7 @@ void le::StudioRender::Render_LightPass()
 
 		for ( UInt32_t indexLight = 0, countLights = sceneDescriptor.directionalLights.size(); indexLight < countLights; ++indexLight )
 		{
-			auto*			light = sceneDescriptor.directionalLights[ indexLight ];
+			auto* light = sceneDescriptor.directionalLights[ indexLight ];
 
 			shaderLighting.SetLight( light );
 			shaderLighting.Bind();
@@ -532,7 +532,7 @@ void le::StudioRender::Render_FinalPass()
 	shaderPostrocess.Bind();
 
 	glDrawElements( GL_TRIANGLES, quad.GetCountIndeces(), GL_UNSIGNED_INT, ( void* ) ( quad.GetStartIndex() * sizeof( UInt32_t ) ) );
-	
+
 	OpenGLState::EnableDepthTest( true );
 	quad.Unbind();
 }
@@ -551,10 +551,10 @@ void le::StudioRender::SetVerticalSyncEnabled( bool IsEnabled )
 // ------------------------------------------------------------------------------------ //
 void le::StudioRender::SetViewport( const StudioRenderViewport& Viewport )
 {
-	if ( gbuffer.IsInitialize() )		
+	if ( gbuffer.IsInitialize() )
 		gbuffer.Resize( Vector2DInt_t( Viewport.width, Viewport.height ) );
 
-	viewport = Viewport;	
+	viewport = Viewport;
 	shaderLighting.SetType( ShaderLighting::LT_POINT );
 	shaderLighting.SetSizeViewport( Vector2D_t( viewport.width, viewport.height ) );
 
@@ -636,13 +636,13 @@ void le::StudioRender::SubmitText( IText* Text )
 	if ( !Text )	return;
 
 
-	Mesh*			mesh = ( Mesh* ) Text->GetMesh();
-;
+	Mesh* 			mesh = ( Mesh* ) Text->GetMesh();
+
 	if ( !mesh->IsCreated() )		return;
 
-	MeshSurface*					surfaces = mesh->GetSurfaces();
+	MeshSurface* surfaces = mesh->GetSurfaces();
 	TextRenderer::RenderObject		renderObject;
-	SceneDescriptor&				scene = scenes[ currentScene ];
+	SceneDescriptor& scene = scenes[ currentScene ];
 	renderObject.vertexArrayObject = ( VertexArrayObject* ) &mesh->GetVertexArrayObject();
 	renderObject.glyph = ( Texture* ) Text->GetFont()->GetTexture( Text->GetCharacterSize() );
 	renderObject.transformation = Text->GetTransformation();
@@ -664,7 +664,7 @@ void le::StudioRender::SubmitText( IText* Text )
 
 	for ( UInt32_t index = 0, countSurfaces = mesh->GetCountSurfaces(); index < countSurfaces; ++index )
 	{
-		MeshSurface&			surface = surfaces[ index ];
+		MeshSurface& surface = surfaces[ index ];
 
 		renderObject.startVertexIndex = surface.startVertexIndex;
 		renderObject.startIndex = surface.startIndex;
@@ -683,12 +683,12 @@ void le::StudioRender::SubmitSprite( ISprite* Sprite )
 {
 	if ( !Sprite )	return;
 
-	Mesh*			mesh = ( Mesh* ) Sprite->GetMesh();
+	Mesh* mesh = ( Mesh* ) Sprite->GetMesh();
 	if ( !mesh->IsCreated() )		return;
 
-	MeshSurface*						surfaces = mesh->GetSurfaces();
+	MeshSurface* surfaces = mesh->GetSurfaces();
 	SpriteRenderer::RenderObject		renderObject;
-	SceneDescriptor&					scene = scenes[ currentScene ];
+	SceneDescriptor& scene = scenes[ currentScene ];
 	renderObject.vertexArrayObject = ( VertexArrayObject* ) &mesh->GetVertexArrayObject();
 	renderObject.transformation = Sprite->GetTransformation( scene.camera );
 
@@ -709,7 +709,7 @@ void le::StudioRender::SubmitSprite( ISprite* Sprite )
 
 	for ( UInt32_t index = 0, countSurfaces = mesh->GetCountSurfaces(); index < countSurfaces; ++index )
 	{
-		MeshSurface&			surface = surfaces[ index ];
+		MeshSurface& surface = surfaces[ index ];
 
 		renderObject.startVertexIndex = surface.startVertexIndex;
 		renderObject.startIndex = surface.startIndex;
@@ -728,12 +728,12 @@ void le::StudioRender::SubmitModel( IModel* Model )
 {
 	if ( !Model )	return;
 
-	Mesh*			mesh = ( Mesh* ) Model->GetMesh();
-	if ( !mesh->IsCreated() )		return;
+	Mesh* mesh = ( Mesh* ) Model->GetMesh();
+	if ( !mesh || !mesh->IsCreated() ) return;
 
-	MeshSurface*							surfaces = mesh->GetSurfaces();
+	MeshSurface* surfaces = mesh->GetSurfaces();
 	StaticModelRenderer::RenderObject		renderObject;
-	SceneDescriptor&						scene = scenes[ currentScene ];
+	SceneDescriptor& scene = scenes[ currentScene ];
 	renderObject.vertexArrayObject = ( VertexArrayObject* ) &mesh->GetVertexArrayObject();
 	renderObject.transformation = Model->GetTransformation();
 
@@ -754,7 +754,7 @@ void le::StudioRender::SubmitModel( IModel* Model )
 
 	for ( UInt32_t index = 0, countSurfaces = mesh->GetCountSurfaces(); index < countSurfaces; ++index )
 	{
-		MeshSurface&			surface = surfaces[ index ];
+		MeshSurface& surface = surfaces[ index ];
 
 		renderObject.startVertexIndex = surface.startVertexIndex;
 		renderObject.startIndex = surface.startIndex;
@@ -774,12 +774,11 @@ void le::StudioRender::SubmitModel( IModel* Model, UInt32_t StartSurface, UInt32
 {
 	if ( !Model )			return;
 
-	Mesh*			mesh = ( Mesh* ) Model->GetMesh();
 	if ( !mesh || !mesh->IsCreated() )		return;
 
-	MeshSurface*							surfaces = mesh->GetSurfaces();
+	MeshSurface* surfaces = mesh->GetSurfaces();
 	StaticModelRenderer::RenderObject		renderObject;
-	SceneDescriptor&						scene = scenes[ currentScene ];
+	SceneDescriptor& scene = scenes[ currentScene ];
 	renderObject.vertexArrayObject = ( VertexArrayObject* ) &mesh->GetVertexArrayObject();
 	renderObject.transformation = Model->GetTransformation();
 
@@ -806,7 +805,7 @@ void le::StudioRender::SubmitModel( IModel* Model, UInt32_t StartSurface, UInt32
 
 	for ( UInt32_t index = StartSurface, countSurfaces = StartSurface + CountSurface, maxCountSurfaces = mesh->GetCountSurfaces(); index < countSurfaces && index < maxCountSurfaces; ++index )
 	{
-		MeshSurface&			surface = surfaces[ index ];
+		MeshSurface& surface = surfaces[ index ];
 
 		renderObject.startVertexIndex = surface.startVertexIndex;
 		renderObject.startIndex = surface.startIndex;

@@ -90,8 +90,8 @@ void Window_ConvertPHY::on_pushButton_Convert_clicked()
 {
 	mass = ui->doubleSpinBox_Mass->value();
 
-	if ( mass == 0 )
-		mass = 10;
+	if ( mass == 0.0f )
+		mass = 10.0f;
 
 	inertia.setX( ui->doubleSpinBox_x->value() );
 	inertia.setY( ui->doubleSpinBox_y->value() );

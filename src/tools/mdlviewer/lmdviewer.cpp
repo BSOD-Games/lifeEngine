@@ -100,12 +100,11 @@ void Application_MessageOutput( QtMsgType Type, const QMessageLogContext& Contex
 int main( int argc, char** argv )
 {
 	QApplication			application( argc, argv );
-	EngineAPI*				engineAPI = new EngineAPI();
 
 	// Loading engine
-	if ( !engineAPI->Load() )
+	if ( !EngineAPI::GetInstance()->Load() )
 	{
-		Error_Critical( engineAPI->GetErrorString().toLocal8Bit().data() );
+		Error_Critical( EngineAPI::GetInstance()->GetErrorString().toLocal8Bit().data() );
 		return 1;
 	}
 

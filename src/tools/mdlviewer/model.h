@@ -33,8 +33,8 @@ public:
 	void						Clear();
 
 	le::IMesh*					GetMesh();
-	std::vector<std::string>	GetMaterialPaths();
-	void						RotateByMouse( const le::Vector2D_t& MouseOffset, float MouseSensitivity );
+	std::vector<std::string>	GetMaterialPaths();			
+	void						RotateByMouse( QMouseEvent* Event );
 
 private:
 	le::IMesh*					mesh;

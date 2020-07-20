@@ -192,32 +192,12 @@ std::vector<std::string> Model::GetMaterialPaths()
 }
 
 //-----------------------------------------------------------------
-// Rotate model by mouse
+// TODO: Rotate model by mouse
 //-----------------------------------------------------------------
-void Model::RotateByMouse( const le::Vector2D_t& MouseOffset, float MouseSensitivity )
+void Model::RotateByMouse( QMouseEvent* Event )
 {
-	if ( MouseOffset.x != 0 )
-	{
-		eulerRotation.y += glm::radians( MouseOffset.x * MouseSensitivity );
 
-		if ( eulerRotation.x < -6.28319f || eulerRotation.x > 6.28319f )
-			eulerRotation.x = 0.f;
-	}
 
-	if ( MouseOffset.y != 0 )
-	{
-		eulerRotation.x += glm::radians( MouseOffset.y * MouseSensitivity );
-
-		if ( eulerRotation.x < -6.28319f || eulerRotation.x > 6.28319f )
-			eulerRotation.x = 0.f;
-	}
-
-	quatRotation =
-		glm::angleAxis( eulerRotation.z, glm::vec3( 0.f, 0.f, 1.f ) ) *
-		glm::angleAxis( eulerRotation.x, glm::vec3( 1.f, 0.f, 0.f ) ) *
-		glm::angleAxis( eulerRotation.y, glm::vec3( 0.f, 1.f, 0.f ) );
-
-	model->SetRotation( quatRotation );
 }
 
 //-----------------------------------------------------------------
