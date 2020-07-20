@@ -19,21 +19,35 @@ template<class T>
 class TSingleton
 {
 public:
-	TSingleton()			{}
-	virtual ~TSingleton()	{}
+	TSingleton()
+	{
+		LIFEENGINE_ASSERT( !singleton );
+		singleton = static_cast< T* >( this );
+	}
+
+	virtual ~TSingleton()
+	{
+		singleton = nullptr;
+	}
 
 	static T*			GetInstance()
 	{
-		static T*			instance = nullptr;
-		if ( !instance )	instance = new T();
-
-		return instance;
+		LIFEENGINE_ASSERT( singleton );
+		return singleton;
 	}
+
+protected:
+	static T*		singleton;
 
 private:
 	TSingleton( const TSingleton<T>& ) {}
 	TSingleton& operator=( const TSingleton<T>& ) {}
 };
+
+//-------------------------------------------------------------------------//
+
+template<class T>
+T*				TSingleton<T>::singleton = nullptr;
 
 //-------------------------------------------------------------------------//
 

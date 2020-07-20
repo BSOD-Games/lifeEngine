@@ -188,23 +188,7 @@ void Mesh::ProcessNode( aiNode* Node, const aiScene* Scene, std::unordered_map<l
 // operator == for MDLVertex
 // ------------------------------------------------------------------------------------ //
 bool operator==( const MDLVertex& Left, const MDLVertex& Right )
+>>>>>>> remotes/origin/dev
 {
-	return Left.position.x == Right.position.x &&
-		Left.position.y == Right.position.y &&
-		Left.position.z == Right.position.z &&
-
-		Left.normal.x == Right.normal.x &&
-		Left.normal.y == Right.normal.y &&
-		Left.normal.z == Right.normal.z &&
-
-		Left.texCoords.x == Right.texCoords.x &&
-		Left.texCoords.y == Right.texCoords.y &&
-
-		Left.bitangent.x == Right.bitangent.x &&
-		Left.bitangent.y == Right.bitangent.y &&
-		Left.bitangent.z == Right.bitangent.z &&
-
-		Left.tangent.x == Right.tangent.x &&
-		Left.tangent.y == Right.tangent.y &&
-		Left.tangent.z == Right.tangent.z;
+	Clear();
 }
