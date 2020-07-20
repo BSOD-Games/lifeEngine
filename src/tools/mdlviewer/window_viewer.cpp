@@ -29,7 +29,7 @@
 #include "common/meshdescriptor.h"
 #include "studiorender/studiovertexelement.h"
 #include "engine/consolesystem.h"
-#include "model.h"
+#include "mesh.h"
 
 #include "window_importsettings.h"
 #include "window_convertphy.h"
@@ -48,7 +48,6 @@ Window_Viewer::Window_Viewer( const GameDescriptor& GameDescriptor, QWidget* Par
 		Error_Critical( "Failed initialize viewport" );
 
 	connect( ui->widget_viewport, SIGNAL( ResizeViewport( quint32, quint32 ) ), this, SLOT( OnResizeViewport( quint32, quint32 ) ) );
-	connect( ui->widget_viewport, SIGNAL( MouseMove( quint32, quint32 ) ), this, SLOT( OnMouseMove( quint32, quint32 ) ) );
 
 	qDebug() << "Loading game";
 
@@ -57,16 +56,18 @@ Window_Viewer::Window_Viewer( const GameDescriptor& GameDescriptor, QWidget* Par
 
 	qDebug() << "Loaded game";
 
-	qDebug() << "Start mesh initialize";
+	model = ( le::IModel* ) EngineAPI::GetInstance()->GetEngine()->GetFactory()->Create( MODEL_INTERFACE_VERSION );
+	if ( !model )	Error_Critical( "Interface le::IModel Version [" MODEL_INTERFACE_VERSION "] not found in core" );
+	scene.AddModel( model );
 
-	qDebug() << "Mesh initialized";
+	qDebug() << "Loaded model";
 
 	directionalLight = ( le::IDirectionalLight* ) EngineAPI::GetInstance()->GetStudioRender()->GetFactory()->Create( DIRECTIONALLIGHT_INTERFACE_VERSION );
 	if ( !directionalLight )		Error_Critical( "Interface le::IDirectionalLight version[" DIRECTIONALLIGHT_INTERFACE_VERSION "] not found in studiorender" );
 
 	directionalLight->SetDirection( le::Vector3D_t( 0.f, 0.5f, 0.5f ) );
 	directionalLight->SetIntensivity( 0.5f );
-	Scene::GetInstance()->AddLight( directionalLight );
+	scene.AddLight( directionalLight );
 
 	qDebug() << "Created directional light";
 
@@ -76,7 +77,7 @@ Window_Viewer::Window_Viewer( const GameDescriptor& GameDescriptor, QWidget* Par
 	camera->IncrementReference();
 	camera->InitProjection_Perspective( 75.f, ( float ) ui->widget_viewport->width() / ui->widget_viewport->height(), 0.1f, 5500.f );
 	camera->SetPosition( le::Vector3D_t( 0.f, 0.f, 150.f ) );
-	Scene::GetInstance()->SetCamera( camera );
+	scene.SetCamera( camera );
 
 	qDebug() << "Loaded camera";
 
@@ -103,6 +104,8 @@ void Window_Viewer::on_actionOpen_triggered()
 	if ( path.isEmpty() ) return;
 
 	mesh.Load( path );
+	model->SetMesh( mesh.GetMesh() );
+	//model->SetRotation( le::Vector3D_t( 0, 0, 0 ) );
 
 	RemoveAllMaterials();
 	UpdateCameraPosition();
@@ -196,8 +199,6 @@ void Window_Viewer::on_toolButton_pathMaterial_clicked()
 	mesh.LoadMaterial( path, ui->listWidget_materials->currentRow() );
 
 	ui->listWidget_materials->clear();
-
-	//create names for material list
 	std::vector<std::string> paths = mesh.GetMaterialPaths();
 	std::string fileName = "";
 	for ( le::UInt32_t index = 0, count = paths.size(); index < count; ++index )
@@ -213,18 +214,10 @@ void Window_Viewer::on_toolButton_pathMaterial_clicked()
 // ------------------------------------------------------------------------------------ //
 void Window_Viewer::on_checkBox_wireframe_clicked()
 {
-	if ( ui->checkBox_wireframe->checkState() == Qt::CheckState::Checked )
+	if( ui->checkBox_wireframe->checkState() == Qt::CheckState::Checked )
 		EngineAPI::GetInstance()->GetConsoleSystem()->Exec( "r_wireframe 1" );
 	else
 		EngineAPI::GetInstance()->GetConsoleSystem()->Exec( "r_wireframe 0" );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Event: clicked on check box ground
-// ------------------------------------------------------------------------------------ //
-void Window_Viewer::on_checkBox_ground_clicked()
-{
-	Scene::GetInstance()->EnableGround( ui->checkBox_ground->checkState() == Qt::CheckState::Checked );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -255,12 +248,4 @@ void Window_Viewer::OnResizeViewport( quint32 Width, quint32 Height )
 {
 	if ( !camera ) return;
 	camera->InitProjection_Perspective( 75.f, ( float ) Width / ( float ) Height, 0.1f, 5500.f );
-}
-
-void Window_Viewer::OnMouseMove( quint32 PositionX, quint32 PositionY )
-{
-	if ( !camera ) return;
-
-
-	mesh.RotateByMouse( le::Vector2D_t( PositionX, PositionY ), 0.15f );
 }

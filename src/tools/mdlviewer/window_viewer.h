@@ -12,11 +12,10 @@
 #define WINDOW_VIEWER_H
 
 #include <QMainWindow>
-#include <qevent.h>
 
 #include "scene.h"
 #include "gamedescriptor.h"
-#include "model.h"
+#include "mesh.h"
 
 //---------------------------------------------------------------------//
 
@@ -46,18 +45,18 @@ private slots:
 	void			on_listWidget_materials_itemSelectionChanged();
 	void			on_toolButton_pathMaterial_clicked();
 	void			on_checkBox_wireframe_clicked();
-	void			on_checkBox_ground_clicked();
-	void			OnMouseMove( quint32 PositionX, quint32 PositionY );
 
 private:
 	void			UpdateCameraPosition();
 	void			RemoveAllMaterials();
 
+
+	Scene								scene;
 	Ui::Window_Viewer*					ui;
+	le::IModel*							model;
 	le::ICamera*						camera;
 	le::IDirectionalLight*				directionalLight;
-	Model								mesh;
-
+	Mesh								mesh;
 };
 
 //---------------------------------------------------------------------//
