@@ -54,7 +54,7 @@ bool le::AudioSystem::Initialize( IEngine* Engine )
 			default:						throw std::runtime_error( "Unknown error" );
 			}
 
-		g_consoleSystem->PrintInfo( "Steam Audio: %i.%i.%i", STEAMAUDIO_VERSION_MAJOR, STEAMAUDIO_VERSION_MINOR, STEAMAUDIO_VERSION_PATCH );
+		g_consoleSystem->PrintInfo( "SteamAudio: %i.%i.%i", STEAMAUDIO_VERSION_MAJOR, STEAMAUDIO_VERSION_MINOR, STEAMAUDIO_VERSION_PATCH );
 
 		isUpdating = true;
 		threadUpdate = new std::thread( &AudioSystem::Update, this );
@@ -97,7 +97,7 @@ le::AudioSystem::~AudioSystem()
 		threadUpdate->join();
 		delete threadUpdate;
 	}
-
+	
 	// Destroy OpenAL device
 	audioDevice.Destroy();
 	
@@ -114,25 +114,82 @@ le::AudioSystem::~AudioSystem()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Unpause all sounds
+// ------------------------------------------------------------------------------------ //
+void le::AudioSystem::UnPause()
+{
+	// Remove all sounds from pause
+	{
+		std::lock_guard< std::mutex >			lock( mutexUpdate );
+		if ( updateSounds.empty() )		return;
+
+		for ( auto it = updateSounds.begin(), itEnd = updateSounds.end(); it != itEnd; ++it )
+			it->second.isPaused = false;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Pause all sounds
+// ------------------------------------------------------------------------------------ //
+void le::AudioSystem::Pause()
+{
+	// Set on pause all sounds in updates list
+	{
+		std::lock_guard< std::mutex >			lock( mutexUpdate );
+		if ( updateSounds.empty() )		return;
+
+		for ( auto it = updateSounds.begin(), itEnd = updateSounds.end(); it != itEnd; ++it )
+			it->second.isPaused = true;
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Stop all sounds
+// ------------------------------------------------------------------------------------ //
+void le::AudioSystem::StopAllSounds()
+{
+	// Delete from updates all sounds
+	{
+		std::lock_guard< std::mutex >			lock( mutexUpdate );
+		if ( updateSounds.empty() )		return;
+
+		for ( auto it = updateSounds.begin(), itEnd = updateSounds.end(); it != itEnd; ++it )
+			if ( it->second.sound->GetCountReferences() <= 1 )
+				it->second.sound->Release();
+			else
+				it->second.sound->DecrementReference();
+	
+		updateSounds.clear();
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
 // Sound play
 // ------------------------------------------------------------------------------------ //
 void le::AudioSystem::SoundPlay( Sound* Sound )
 {	
 	if ( !Sound ) return;
 
-	// We check that the sound has not been previously added
-	// If we do not find it, add it to play 
 	{
 		std::lock_guard< std::mutex >			lock( mutexUpdate );
 		auto			it = updateSounds.find( Sound );
+		
+		// If sound alrady added to update see:
+		// if sound not paused - restart play from start
+		// if sound on pause - play next
 		if ( it != updateSounds.end() )
 		{
-			it->second.samplesOffset = 0;
+			if ( !it->second.isPaused )
+				it->second.samplesOffset = 0;
+			else
+				it->second.isPaused = false;
+
 			return;
 		}
 
+		// If sound not finded - add to update
 		Sound->IncrementReference();
-		updateSounds[ Sound ] = SoundSource{ Sound, 0 };
+		updateSounds[ Sound ] = SoundDescriptor{ false, Sound, 0 };
 	}
 }
 
@@ -142,7 +199,15 @@ void le::AudioSystem::SoundPlay( Sound* Sound )
 void le::AudioSystem::SoundPause( Sound* Sound )
 {
 	if ( !Sound ) return;
-	// TODO: Add paused sound
+
+	{
+		std::lock_guard< std::mutex >			lock( mutexUpdate );
+		auto			it = updateSounds.find( Sound );
+		if ( it == updateSounds.end() )		return;
+
+		// Set sound on pause
+		it->second.isPaused = true;
+	}
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -151,7 +216,20 @@ void le::AudioSystem::SoundPause( Sound* Sound )
 void le::AudioSystem::SoundStop( Sound* Sound )
 {
 	if ( !Sound ) return;
-	// TODO: Add stoped sound
+	
+	{
+		std::lock_guard< std::mutex >			lock( mutexUpdate );
+		auto			it = updateSounds.find( Sound );
+		if ( it == updateSounds.end() )		return;
+
+		// Remove sound from update
+		if ( it->second.sound->GetCountReferences() <= 1 )
+			it->second.sound->Release();
+		else
+			it->second.sound->DecrementReference();
+
+		updateSounds.erase( it );
+	}
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -160,11 +238,14 @@ void le::AudioSystem::SoundStop( Sound* Sound )
 void le::AudioSystem::Update()
 {
 	bool						isNeedPlay = false;
-	std::vector<float>			samplesBuffer;		// this is temp
 	
 	// Create source and buffers
 	alGenSources( 1, &openALSource );	
 	alGenBuffers( BufferCount, openALBuffers );
+
+	// Initialize queue unused buffers
+	for ( UInt32_t index = 0; index < BufferCount; ++index )
+		unusedBuffers.push( openALBuffers[ index ] );
 
 	// Initialize OpenAL source 
 	alSourcei( openALSource, AL_LOOPING, false );
@@ -188,58 +269,47 @@ void le::AudioSystem::Update()
 		isNeedPlay = false;
 
 		// Get the number of buffers ready to be reused
-		ALint			queueSize = 0;
 		ALint			processed = 0;
-		alGetSourcei( openALSource, AL_BUFFERS_QUEUED, &queueSize );
+		alGetSourcei( openALSource, AL_BUFFERS_PROCESSED, &processed );
 
-		if ( queueSize > 0 )
-			alGetSourcei( openALSource, AL_BUFFERS_PROCESSED, &processed );
-		else
-		{
-			processed = BufferCount;
-			queueSize = -1;
-		}
-		
-		// Update buffers
+		// Add processed buffers to queue
 		while ( processed-- )
-		{			
-			// Pop the first unused buffer from the queue
-			bool			isNeedPushBuffer = false;
+		{
 			ALuint			buffer = 0;
+			alSourceUnqueueBuffers( openALSource, 1, &buffer );
+			unusedBuffers.push( buffer );
+		}
 
-			// Get unused buffer from queue or from array if queue is empty
-			if ( queueSize > 0 )
-				alSourceUnqueueBuffers( openALSource, 1, &buffer );
-			else
-				buffer = openALBuffers[ processed ];
+		// Updating the buffers while there are sounds on the update
+		while ( !updateSounds.empty() && !unusedBuffers.empty() )
+		{			
+			bool			isNeedPushBuffer = false;
+			ALuint			buffer = unusedBuffers.front();
+			Chunk			chunk;
 
 			// Processing all sounds
 			{
 				std::lock_guard< std::mutex >			lock( mutexUpdate );
 				for ( auto it = updateSounds.begin(), itEnd = updateSounds.end(); it != itEnd; ++it )
 				{
-					SoundSource&		soundSource = it->second;
-					SoundBuffer*		soundBuffer = ( SoundBuffer* ) soundSource.sound->GetBuffer();
+					SoundDescriptor&				soundDescriptor = it->second;
+					if ( soundDescriptor.isPaused )				continue;
 
-					samplesBuffer.resize( ( soundBuffer->GetSampleRate() * soundBuffer->GetChannelCount() ) / 20 );
-
-					UInt32_t		toFill = samplesBuffer.size();
-					UInt64_t		currentOffset = soundSource.samplesOffset;
-					UInt64_t		sampleCount = soundBuffer->GetCountSamples();
-
-					if ( currentOffset + toFill > sampleCount )
-						toFill = sampleCount - currentOffset;
-
-					memcpy( samplesBuffer.data(), soundBuffer->GetSamples() + currentOffset, toFill * sizeof( float ) );
-					soundSource.samplesOffset += toFill;
-
-					if ( soundSource.samplesOffset >= sampleCount )
+					SoundBuffer*		soundBuffer = ( SoundBuffer* ) soundDescriptor.sound->GetBuffer();
+					bool				isExistsData = soundDescriptor.sound->GetData( chunk, soundDescriptor.samplesOffset, ( soundBuffer->GetSampleRate() * soundBuffer->GetChannelCount() ) / 20 );
+					soundDescriptor.samplesOffset += chunk.sampleCount;
+					
+					if ( !isExistsData )
 					{
-						if ( soundSource.sound->IsLooped() )
-							soundSource.samplesOffset = 0;
+						if ( soundDescriptor.sound->IsLooped() )
+							soundDescriptor.samplesOffset = 0;
 						else
 						{
-							// TODO: Add decrement referecnes in Sound
+							if ( it->second.sound->GetCountReferences() <= 1 )
+								it->second.sound->Release();
+							else
+								it->second.sound->DecrementReference();
+
 							it = updateSounds.erase( it );
 							itEnd = updateSounds.end();
 							--it;
@@ -253,9 +323,11 @@ void le::AudioSystem::Update()
 			// Fill buffer and add in queue
 			if ( isNeedPushBuffer )
 			{
-				alBufferData( buffer, AL_FORMAT_MONO_FLOAT32, samplesBuffer.data(), samplesBuffer.size() * sizeof( float ), 44100 );
-				alSourceQueueBuffers( openALSource, 1, &buffer );
 				isNeedPlay = true;
+				unusedBuffers.pop();
+
+				alBufferData( buffer, AL_FORMAT_STEREO_FLOAT32, chunk.samples, chunk.sampleCount * sizeof( float ), 44100 );
+				alSourceQueueBuffers( openALSource, 1, &buffer );							
 			}
 		}
 

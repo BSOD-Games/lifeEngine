@@ -19,6 +19,7 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
+	struct Chunk;
 	class SoundBuffer;
 
 	//---------------------------------------------------------------------//
@@ -61,6 +62,8 @@ namespace le
 		// Sound
 		Sound();
 		~Sound();
+
+		bool						GetData( Chunk& Chunk, UInt64_t Offset, UInt32_t MaxCount ) const;
 
 	private:
 		UInt32_t				countReferences;

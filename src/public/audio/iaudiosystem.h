@@ -28,6 +28,10 @@ namespace le
 	{
 	public:
 		virtual ~IAudioSystem() {}
+		virtual void				Pause() = 0;
+		virtual void				UnPause() = 0;
+		virtual void				StopAllSounds() = 0;
+
 		virtual IListener*			GetListener() const = 0;
 		virtual IFactory*			GetFactory() const = 0;
 	};

@@ -469,6 +469,10 @@ void le::Engine::UnloadModule_Game()
 {
 	if ( !game ) return;
 
+	// Stop all sounds and unloaded resources
+	audioSystem->StopAllSounds();
+	resourceSystem.UnloadAll();
+
 	if ( game && gameDescriptor.LE_DeleteGame )
 		gameDescriptor.LE_DeleteGame( game );
 
@@ -476,8 +480,7 @@ void le::Engine::UnloadModule_Game()
 	game = nullptr;
 	gameDescriptor = { nullptr, nullptr, nullptr, nullptr };
 	
-	consoleSystem.PrintInfo( "Unloaded game" );
-	resourceSystem.UnloadAll();
+	consoleSystem.PrintInfo( "Unloaded game" );	
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -521,10 +524,12 @@ void le::Engine::RunSimulation()
 
 			case Event::ET_WINDOW_FOCUS_GAINED:
 				isFocus = true;
+				audioSystem->UnPause();
 				break;
 
 			case Event::ET_WINDOW_FOCUS_LOST:
 				isFocus = false;
+				audioSystem->Pause();
 				break;
 
 			case Event::ET_KEY_PRESSED:

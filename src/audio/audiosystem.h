@@ -13,6 +13,7 @@
 
 #include <mutex>
 #include <thread>
+#include <queue>
 #include <unordered_map>
 
 #include "engine/lifeengine.h"
@@ -30,10 +31,17 @@ namespace le
 
 	class Sound;
 
-	struct SoundSource
+	struct SoundDescriptor
 	{
+		bool			isPaused;
 		Sound*			sound;
 		UInt64_t		samplesOffset;
+	};
+
+	struct Chunk
+	{
+		const float*	samples;
+		UInt32_t		sampleCount;
 	};
 
 	//---------------------------------------------------------------------//
@@ -42,6 +50,10 @@ namespace le
 	{
 	public:
 		// IAudioSystem
+		virtual void					Pause();
+		virtual void					UnPause();
+		virtual void					StopAllSounds();
+
 		virtual IListener*				GetListener() const;			
 		virtual IFactory*				GetFactory() const;	
 
@@ -77,18 +89,19 @@ namespace le
 
 		void							Update();
 
-		bool										isUpdating;
-		UInt32_t									openALSource;
-		UInt32_t									openALBuffers[ BufferCount ];
-		AudioDevice									audioDevice;
-		Listener									listener;
-		AudioSystemFactory							factory;
+		bool											isUpdating;
+		UInt32_t										openALSource;
+		UInt32_t										openALBuffers[ BufferCount ];
+		AudioDevice										audioDevice;
+		Listener										listener;
+		AudioSystemFactory								factory;
 		
-		std::mutex									mutexUpdate;
-		std::thread*								threadUpdate;
-		void*										steamAudioContext;
+		std::mutex										mutexUpdate;
+		std::thread*									threadUpdate;
+		void*											steamAudioContext;
 
-		std::unordered_map< Sound*, SoundSource >	updateSounds;
+		std::queue < UInt32_t >							unusedBuffers;
+		std::unordered_map< Sound*, SoundDescriptor >	updateSounds;
 	};
 
 	//---------------------------------------------------------------------//

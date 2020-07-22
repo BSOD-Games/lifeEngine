@@ -284,6 +284,31 @@ le::Sound::~Sound()
 }
 
 // ------------------------------------------------------------------------------------ //
+// Get data
+// ------------------------------------------------------------------------------------ //
+bool le::Sound::GetData( Chunk& Chunk, UInt64_t Offset, UInt32_t MaxCount ) const
+{
+	bool			isExistsData = true;
+	UInt32_t		toFill = MaxCount;
+	UInt64_t		currentOffset = Offset;
+	UInt64_t		sampleCount = soundBuffer->GetCountSamples();
+
+	// If we have reached the end of the array of samples, 
+	// and we require more, we cut off the amount to fill to 
+	// the maximum and say that this is the end of samples
+	if ( currentOffset + toFill > sampleCount )
+	{
+		toFill = sampleCount - currentOffset;
+		isExistsData = false;
+	}
+
+	// Filling info by chunk
+	Chunk.samples = soundBuffer->GetSamples() + currentOffset;
+	Chunk.sampleCount = toFill;
+	return isExistsData;
+}
+
+// ------------------------------------------------------------------------------------ //
 // Increment reference
 // ------------------------------------------------------------------------------------ //
 void le::Sound::IncrementReference()
