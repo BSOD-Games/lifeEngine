@@ -52,11 +52,14 @@ private slots:
 private:
 	void			UpdateCameraPosition();
 	void			RemoveAllMaterials();
+	void			closeEvent( QCloseEvent* Event );
+
 
 	Ui::Window_Viewer*					ui;
 	le::ICamera*						camera;
 	le::IDirectionalLight*				directionalLight;
 	Model								mesh;
+	QString								title;
 
 };
 

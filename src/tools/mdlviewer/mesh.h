@@ -28,13 +28,17 @@ public:
 	bool						Save();
 	bool						SaveAs( const QString& Path );
 	void						Clear();
+	void						SetEdit( bool isEdit );
 
 	le::IMesh*					GetMesh();
 	std::vector<std::string>	GetMaterialPaths();
+	bool						GetEdited();
 
 private:
 	le::IMesh*					mesh;
 	MDLDoc						mdlDoc;
 	std::string					path;
+
+	bool						isEdited = false;;
 };
 

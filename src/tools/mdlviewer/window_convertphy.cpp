@@ -7,7 +7,7 @@
 #include <qstringlist.h>
 #include <iostream>
 #include <sstream>
-
+#include <qmessagebox>
 
 #include "common/gameinfo.h"
 #include "engineapi.h"
@@ -45,6 +45,11 @@ void Window_ConvertPHY::on_toolButton_InputPath_clicked()
 
 	ui->lineEdit_InputPath->setText( fileName );
 	inputPath = fileName;
+
+	int found = fileName.toStdString().find_last_of( '/' );
+	std::string out = fileName.toStdString().substr( 0, found + 1 );
+
+	ui->lineEdit_OutputPath->setText( out.c_str() );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -52,8 +57,8 @@ void Window_ConvertPHY::on_toolButton_InputPath_clicked()
 // ------------------------------------------------------------------------------------ //
 void Window_ConvertPHY::on_toolButton_OutputPath_clicked()
 {
-	QString		fileName = QFileDialog::getSaveFileName( this, "Save as..",
-		EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Physics file (*.phy)" );
+	QString		fileName = QFileDialog::getExistingDirectory( this, "Save as..",
+		EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir );
 
 	if ( fileName.isEmpty() ) return;
 
@@ -88,6 +93,18 @@ void Window_ConvertPHY::on_checkBox_HullShape_clicked()
 // ------------------------------------------------------------------------------------ //
 void Window_ConvertPHY::on_pushButton_Convert_clicked()
 {
+	if ( inputPath.isEmpty() )
+	{
+		QMessageBox::critical( this, "Convert Error", "No input file was selected. Please select an input file to convert", QMessageBox::Button::Ok );
+		return;
+	}
+
+	if ( outputPath.isEmpty() )
+	{
+		QMessageBox::critical( this, "Convert Error", "No save directory has been selected. Please choose where to save the new file", QMessageBox::Button::Ok );
+		return;
+	}
+
 	mass = ui->doubleSpinBox_Mass->value();
 
 	if ( mass == 0.0f )
@@ -100,8 +117,8 @@ void Window_ConvertPHY::on_pushButton_Convert_clicked()
 	QProcess			process;
 	QStringList			arguments;
 
-	arguments << "-s" << inputPath << "-o" << outputPath;
-	arguments << "-m" << QString::number( mass ) << "-i" << QString::number( inertia.x() ) << " " << QString::number( inertia.y() )
+	arguments << "-c" <<"-s" << inputPath << "-o" << outputPath;
+	arguments << "-masa" << QString::number( mass ) << "-i" << QString::number( inertia.x() ) << " " << QString::number( inertia.y() )
 		<< QString::number( inertia.z() );
 
 	if ( isStatic )
@@ -110,7 +127,17 @@ void Window_ConvertPHY::on_pushButton_Convert_clicked()
 	if ( isHullShape )
 		arguments << "-ghs";
 
-	process.execute( "lmdl", arguments );
+	process.execute( "./lmdl", arguments );
 	process.waitForFinished();
+	this->close();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: cancel convertation
+// ------------------------------------------------------------------------------------ //
+void Window_ConvertPHY::on_pushButton_Cancel_clicked()
+{
+	inputPath.clear();
+	outputPath.clear();
 	this->close();
 }

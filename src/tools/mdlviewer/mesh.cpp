@@ -149,6 +149,9 @@ bool Mesh::SaveAs( const QString& Path )
 	return false;
 }
 
+//-----------------------------------------------------------------
+// Delete all meshes
+//-----------------------------------------------------------------
 void Mesh::Clear()
 {
 	if ( mesh->GetCountReferences() <= 0 )
@@ -167,6 +170,17 @@ void Mesh::Clear()
 	}
 }
 
+//-----------------------------------------------------------------
+// Is mesh edited
+//-----------------------------------------------------------------
+void Mesh::SetEdit( bool isEdit )
+{
+	isEdited = isEdit;
+}
+
+//-----------------------------------------------------------------
+// Get mesh
+//-----------------------------------------------------------------
 le::IMesh* Mesh::GetMesh()
 {
 	if ( !mesh ) return nullptr;
@@ -175,6 +189,9 @@ le::IMesh* Mesh::GetMesh()
 	return mesh;
 }
 
+//-----------------------------------------------------------------
+// Get paths to materials
+//-----------------------------------------------------------------
 std::vector<std::string> Mesh::GetMaterialPaths()
 {
 	if ( mdlDoc.GetCountMaterials() == 0 ) return std::vector<std::string>();
@@ -182,10 +199,24 @@ std::vector<std::string> Mesh::GetMaterialPaths()
 	return mdlDoc.GetMaterials();
 }
 
-Mesh::Mesh()
+//-----------------------------------------------------------------
+// Get is edited mesh
+//-----------------------------------------------------------------
+bool Mesh::GetEdited()
 {
-	mesh = nullptr;
+	return isEdited;
 }
 
+//-----------------------------------------------------------------
+// Constructor
+//-----------------------------------------------------------------
+Mesh::Mesh() :
+	mesh( nullptr )
+{
+}
+
+//-----------------------------------------------------------------
+// Destructor
+//-----------------------------------------------------------------
 Mesh::~Mesh()
 {}

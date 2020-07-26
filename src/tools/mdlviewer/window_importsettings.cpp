@@ -5,6 +5,7 @@
 #include <qprocess.h>
 #include <qdebug.h>
 #include <qevent.h>
+#include <qmessagebox.h>
 
 #include "engineapi.h"
 #include "common/gameinfo.h"
@@ -47,7 +48,7 @@ void Window_ImportSettings::closeEvent( QCloseEvent* Event )
 // Event: choose model path
 // ------------------------------------------------------------------------------------ //
 void Window_ImportSettings::on_buttonPathIn_clicked()
-{
+{	
 	QString		fileName = QFileDialog::getOpenFileName( this, "Choose model for convert",
 		EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model files (*.*)" );
 
@@ -55,6 +56,10 @@ void Window_ImportSettings::on_buttonPathIn_clicked()
 
 	ui->lineEdit_InputPath->setText( fileName );
 	inputPath = fileName;
+
+	int found = fileName.lastIndexOf( '/' );
+	std::string out = fileName.toStdString().substr( 0, found + 1 );
+	ui->lineEdit_OutputPath->setText( out.c_str() );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -62,8 +67,8 @@ void Window_ImportSettings::on_buttonPathIn_clicked()
 // ------------------------------------------------------------------------------------ //
 void Window_ImportSettings::on_buttonPathOut_clicked()
 {
-	QString		fileName = QFileDialog::getSaveFileName( this, "Save as..",
-		EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)" );
+	QString		fileName = QFileDialog::getExistingDirectory( this, "Save as..",
+		EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir );
 
 	if ( fileName.isEmpty() ) return;
 
@@ -72,15 +77,25 @@ void Window_ImportSettings::on_buttonPathOut_clicked()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Event: choose output path
+// Event: start convert
 // ------------------------------------------------------------------------------------ //
 void Window_ImportSettings::on_buttonConvert_clicked()
 {
-	if ( inputPath.isEmpty() || outputPath.isEmpty() ) return;
+	if ( inputPath.isEmpty() )
+	{
+		QMessageBox::critical( this, "Import error", "No import file selected. Select a file" );
+		return;
+	}
+
+	if ( outputPath.isEmpty() )
+	{
+		QMessageBox::critical( this, "Import error", "No output directory selected. Select the directory where the file will be imported" );
+		return;
+	}
 
 	QProcess		procces;
-	procces.execute( "lmdl", QStringList() << "-s " << inputPath << " -o " << outputPath );
-	qDebug() << QStringList() << "-s " << inputPath << " -o " << outputPath;
+	
+	procces.execute( "./lmdl", QStringList() << "-s" << inputPath << "-o" << outputPath );
 	procces.waitForFinished();
 	this->close();
 }

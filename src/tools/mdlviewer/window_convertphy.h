@@ -23,6 +23,7 @@ private slots:
 	void		on_checkBox_Static_clicked();
 	void		on_checkBox_HullShape_clicked();
 	void		on_pushButton_Convert_clicked();
+	void		on_pushButton_Cancel_clicked();
 
 
 private:

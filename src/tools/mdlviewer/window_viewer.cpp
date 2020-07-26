@@ -13,6 +13,7 @@
 #include <qfiledialog.h>
 #include <string>
 #include <qmessagebox.h>
+#include <qlist.h>
 #include <QCloseEvent>
 
 #include "engine/iengine.h"
@@ -79,10 +80,11 @@ Window_Viewer::Window_Viewer( const GameDescriptor& GameDescriptor, QWidget* Par
 	Scene::GetInstance()->SetCamera( camera );
 
 	qDebug() << "Loaded camera";
-
+	title = "";
 	ui->toolButton_pathMaterial->setDisabled( true );
 	ui->actionSave->setDisabled( true );
 	ui->actionSave_As->setDisabled( true );
+	ui->tab_skins->setDisabled( true );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -98,11 +100,25 @@ Window_Viewer::~Window_Viewer()
 // ------------------------------------------------------------------------------------ //
 void Window_Viewer::on_actionOpen_triggered()
 {
+	if ( mesh.GetEdited() )
+	{
+		int result = QMessageBox::question( this, "Save previous model",
+			"Do you want to keep the change\n     in the previous model?", QMessageBox::Yes, QMessageBox::No );
+		if ( result == QMessageBox::Button::Yes )
+			mesh.Save();
+	}
+
 	QString path = QFileDialog::getOpenFileName( this, "Choose model file",
 		EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)" );
 	if ( path.isEmpty() ) return;
 
 	mesh.Load( path );
+
+	int foundStartName = path.toStdString().find_last_of( '/' );
+	int foundFinishName = path.toStdString().find_last_of( '.' );
+	std::string modelName = path.toStdString().substr( foundStartName + 1, foundFinishName );
+	title = "MDLViewer [" + ( QString ) modelName.c_str() + "]";
+	setWindowTitle( title );
 
 	RemoveAllMaterials();
 	UpdateCameraPosition();
@@ -120,6 +136,8 @@ void Window_Viewer::on_actionOpen_triggered()
 	ui->toolButton_pathMaterial->setDisabled( true );
 	ui->actionSave->setEnabled( true );
 	ui->actionSave_As->setEnabled( true );
+	ui->label_countTriangles->setText( QString::number( mesh.GetCountTriangles() ) );
+	ui->label_countVerteces->setText( QString::number( mesh.GetCountVerteces() ) );
 	ui->lineEdit_pathMaterial->setText( "" );
 }
 
@@ -128,11 +146,8 @@ void Window_Viewer::on_actionOpen_triggered()
 // ------------------------------------------------------------------------------------ //
 void Window_Viewer::on_actionSave_triggered()
 {
-	QMessageBox::Button result =
-		QMessageBox::information( this, "Info", "Do you want save this model?", QMessageBox::Button::Ok, QMessageBox::Button::Cancel );
-
-	if ( result == QMessageBox::Button::Ok )
-		mesh.Save();
+	mesh.Save();
+	mesh.SetEdited( false );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -140,12 +155,10 @@ void Window_Viewer::on_actionSave_triggered()
 // ------------------------------------------------------------------------------------ //
 void Window_Viewer::on_actionSave_As_triggered()
 {
-	QMessageBox::QMessageBox::Button result =
-		QMessageBox::information( this, "Info", "Do you want save this model?", QMessageBox::Button::Ok, QMessageBox::Button::Cancel );
+	mesh.SaveAs( QFileDialog::getSaveFileName( this, "Save model as",
+		EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)" ) );
 
-	if ( result == QMessageBox::Button::Ok )
-		mesh.SaveAs( QFileDialog::getSaveFileName( this, "Save model as",
-			EngineAPI::GetInstance()->GetEngine()->GetGameInfo().gameDir, "Model file (*.mdl)" ) );
+	mesh.SetEdited( false );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -193,11 +206,22 @@ void Window_Viewer::on_toolButton_pathMaterial_clicked()
 	if ( path.isEmpty() ) return;
 
 	ui->lineEdit_pathMaterial->setText( path );
-	mesh.LoadMaterial( path, ui->listWidget_materials->currentRow() );
+
+	mesh.SetEdited( true );
+	title += " *";
+
+	// select material(s) to replace 
+	QModelIndexList selectedIndexes = ui->listWidget_materials->selectionModel()->selectedIndexes();
+
+	// replace materials
+	for ( int index = 0, count = selectedIndexes.count(); index < count; ++index )
+	{
+		mesh.LoadMaterial( path, selectedIndexes[ index ].row() );
+	}
 
 	ui->listWidget_materials->clear();
 
-	//create names for material list
+	// create names for material list
 	std::vector<std::string> paths = mesh.GetMaterialPaths();
 	std::string fileName = "";
 	for ( le::UInt32_t index = 0, count = paths.size(); index < count; ++index )
@@ -257,10 +281,30 @@ void Window_Viewer::OnResizeViewport( quint32 Width, quint32 Height )
 	camera->InitProjection_Perspective( 75.f, ( float ) Width / ( float ) Height, 0.1f, 5500.f );
 }
 
+// ------------------------------------------------------------------------------------ //
+// Event: move mouse on viewport
+// ------------------------------------------------------------------------------------ //
 void Window_Viewer::OnMouseMove( quint32 PositionX, quint32 PositionY )
 {
 	if ( !camera ) return;
 
 
 	mesh.RotateByMouse( le::Vector2D_t( PositionX, PositionY ), 0.15f );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Event: close window
+// ------------------------------------------------------------------------------------ //
+void Window_Viewer::closeEvent( QCloseEvent* Event )
+{
+	if ( Event->type() == QCloseEvent::Close )
+		if ( mesh.GetEdited() )
+		{
+			int result = QMessageBox::question( this, "Save previous model",
+				"Do you want to keep the change\n     in the previous model?", QMessageBox::Yes, QMessageBox::No );
+			if ( result == QMessageBox::Button::Yes )
+				mesh.Save();
+		}
+
+	Event->accept();
 }

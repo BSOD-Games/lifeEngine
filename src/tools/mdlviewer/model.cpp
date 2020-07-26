@@ -171,6 +171,11 @@ void Model::Clear()
 	}
 }
 
+void Model::SetEdited( bool isEdited )
+{
+	isEdit = isEdited;
+}
+
 //-----------------------------------------------------------------
 // Get mesh
 //-----------------------------------------------------------------
@@ -218,6 +223,21 @@ void Model::RotateByMouse( const le::Vector2D_t& MouseOffset, float MouseSensiti
 		glm::angleAxis( eulerRotation.y, glm::vec3( 0.f, 1.f, 0.f ) );
 
 	model->SetRotation( quatRotation );
+}
+
+bool Model::GetEdited()
+{
+	return isEdit;
+}
+
+int Model::GetCountTriangles()
+{
+	return mdlDoc.GetCountVertexIndeces() / 3;
+}
+
+int Model::GetCountVerteces()
+{
+	return mdlDoc.GetCountVerteces();
 }
 
 //-----------------------------------------------------------------

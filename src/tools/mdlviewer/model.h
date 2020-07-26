@@ -31,10 +31,14 @@ public:
 	bool						Save();
 	bool						SaveAs( const QString& Path );
 	void						Clear();
+	void						SetEdited( bool isEdited );
 
 	le::IMesh*					GetMesh();
 	std::vector<std::string>	GetMaterialPaths();
 	void						RotateByMouse( const le::Vector2D_t& MouseOffset, float MouseSensitivity );
+	bool						GetEdited();
+	int							GetCountTriangles();
+	int							GetCountVerteces();
 
 private:
 	le::IMesh*					mesh;
@@ -43,5 +47,6 @@ private:
 	std::string					path;
 	le::Vector3D_t				eulerRotation;
 	le::Quaternion_t			quatRotation;
+	bool						isEdit = false;
 };
 
