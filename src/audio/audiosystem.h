@@ -22,28 +22,12 @@
 #include "listener.h"
 #include "audiosystemfactory.h"
 #include "audiodevice.h"
+#include "audioresource.h"
 
 //---------------------------------------------------------------------//
 
 namespace le
 {
-	//---------------------------------------------------------------------//
-
-	class Sound;
-
-	struct SoundDescriptor
-	{
-		bool			isPaused;
-		Sound*			sound;
-		UInt64_t		samplesOffset;
-	};
-
-	struct Chunk
-	{
-		const float*	samples;
-		UInt32_t		sampleCount;
-	};
-
 	//---------------------------------------------------------------------//
 
 	class AudioSystem : public IAudioSystemInternal
@@ -67,6 +51,9 @@ namespace le
 		void							SoundPlay( Sound* Sound );
 		void							SoundPause( Sound* Sound );
 		void							SoundStop( Sound* Sound );
+		void							SoundPlay( StreamSound* StreamSound );
+		void							SoundPause( StreamSound* StreamSound );
+		void							SoundStop( StreamSound* StreamSound );
 		inline AudioDevice&				GetAudioDevice()		
 		{
 			return audioDevice;
@@ -101,7 +88,7 @@ namespace le
 		void*											steamAudioContext;
 
 		std::queue < UInt32_t >							unusedBuffers;
-		std::unordered_map< Sound*, SoundDescriptor >	updateSounds;
+		std::unordered_map< void*, AudioResource >		updateSounds;
 	};
 
 	//---------------------------------------------------------------------//

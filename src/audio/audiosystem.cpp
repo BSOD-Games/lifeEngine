@@ -36,13 +36,13 @@ void SteamAudio_Logging( char* Message )
 bool le::AudioSystem::Initialize( IEngine* Engine )
 {
 	g_consoleSystem = Engine->GetConsoleSystem();
-	
+
 	try
 	{
 		// Creatin OpenAL device
 		if ( !g_consoleSystem )				throw std::runtime_error( "Console system not founded in engine" );
 		if ( !audioDevice.Create() )		throw std::runtime_error( "Failed in creating audio device" );
-	
+
 		// Creating context Steam Audio
 		IPLerror	error = iplCreateContext( SteamAudio_Logging, nullptr, nullptr, &steamAudioContext );
 		if ( error != IPL_STATUS_SUCCESS )
@@ -97,10 +97,10 @@ le::AudioSystem::~AudioSystem()
 		threadUpdate->join();
 		delete threadUpdate;
 	}
-	
+
 	// Destroy OpenAL device
 	audioDevice.Destroy();
-	
+
 	// If Steam Audio is created - destroy and cleanup
 	if ( steamAudioContext )
 	{
@@ -124,7 +124,7 @@ void le::AudioSystem::UnPause()
 		if ( updateSounds.empty() )		return;
 
 		for ( auto it = updateSounds.begin(), itEnd = updateSounds.end(); it != itEnd; ++it )
-			it->second.isPaused = false;
+			it->second.UnPause();
 	}
 }
 
@@ -139,7 +139,7 @@ void le::AudioSystem::Pause()
 		if ( updateSounds.empty() )		return;
 
 		for ( auto it = updateSounds.begin(), itEnd = updateSounds.end(); it != itEnd; ++it )
-			it->second.isPaused = true;
+			it->second.Pause();
 	}
 }
 
@@ -153,12 +153,6 @@ void le::AudioSystem::StopAllSounds()
 		std::lock_guard< std::mutex >			lock( mutexUpdate );
 		if ( updateSounds.empty() )		return;
 
-		for ( auto it = updateSounds.begin(), itEnd = updateSounds.end(); it != itEnd; ++it )
-			if ( it->second.sound->GetCountReferences() <= 1 )
-				it->second.sound->Release();
-			else
-				it->second.sound->DecrementReference();
-	
 		updateSounds.clear();
 	}
 }
@@ -167,29 +161,29 @@ void le::AudioSystem::StopAllSounds()
 // Sound play
 // ------------------------------------------------------------------------------------ //
 void le::AudioSystem::SoundPlay( Sound* Sound )
-{	
+{
 	if ( !Sound ) return;
 
 	{
 		std::lock_guard< std::mutex >			lock( mutexUpdate );
 		auto			it = updateSounds.find( Sound );
-		
+
 		// If sound alrady added to update see:
 		// if sound not paused - restart play from start
 		// if sound on pause - play next
 		if ( it != updateSounds.end() )
 		{
-			if ( !it->second.isPaused )
-				it->second.samplesOffset = 0;
-			else
-				it->second.isPaused = false;
+			if ( !it->second.IsPause() )	it->second.SetSamplesOffset( 0 );
+			else							it->second.UnPause();
 
 			return;
 		}
 
 		// If sound not finded - add to update
-		Sound->IncrementReference();
-		updateSounds[ Sound ] = SoundDescriptor{ false, Sound, 0 };
+		AudioResource			audioResource;
+		audioResource.SetSoundSource( Sound );
+		audioResource.SetLoop( Sound->IsLooped() );
+		updateSounds[ Sound ] = audioResource;
 	}
 }
 
@@ -206,7 +200,7 @@ void le::AudioSystem::SoundPause( Sound* Sound )
 		if ( it == updateSounds.end() )		return;
 
 		// Set sound on pause
-		it->second.isPaused = true;
+		it->second.Pause();
 	}
 }
 
@@ -216,18 +210,14 @@ void le::AudioSystem::SoundPause( Sound* Sound )
 void le::AudioSystem::SoundStop( Sound* Sound )
 {
 	if ( !Sound ) return;
-	
+
 	{
 		std::lock_guard< std::mutex >			lock( mutexUpdate );
 		auto			it = updateSounds.find( Sound );
 		if ( it == updateSounds.end() )		return;
 
 		// Remove sound from update
-		if ( it->second.sound->GetCountReferences() <= 1 )
-			it->second.sound->Release();
-		else
-			it->second.sound->DecrementReference();
-
+		it->second.Clear();
 		updateSounds.erase( it );
 	}
 }
@@ -238,9 +228,9 @@ void le::AudioSystem::SoundStop( Sound* Sound )
 void le::AudioSystem::Update()
 {
 	bool						isNeedPlay = false;
-	
+
 	// Create source and buffers
-	alGenSources( 1, &openALSource );	
+	alGenSources( 1, &openALSource );
 	alGenBuffers( BufferCount, openALBuffers );
 
 	// Initialize queue unused buffers
@@ -282,7 +272,7 @@ void le::AudioSystem::Update()
 
 		// Updating the buffers while there are sounds on the update
 		while ( !updateSounds.empty() && !unusedBuffers.empty() )
-		{			
+		{
 			bool			isNeedPushBuffer = false;
 			ALuint			buffer = unusedBuffers.front();
 			Chunk			chunk;
@@ -292,24 +282,14 @@ void le::AudioSystem::Update()
 				std::lock_guard< std::mutex >			lock( mutexUpdate );
 				for ( auto it = updateSounds.begin(), itEnd = updateSounds.end(); it != itEnd; ++it )
 				{
-					SoundDescriptor&				soundDescriptor = it->second;
-					if ( soundDescriptor.isPaused )				continue;
+					AudioResource&				audioResource = it->second;
+					if ( audioResource.IsPause() )				continue;
 
-					SoundBuffer*		soundBuffer = ( SoundBuffer* ) soundDescriptor.sound->GetBuffer();
-					bool				isExistsData = soundDescriptor.sound->GetData( chunk, soundDescriptor.samplesOffset, ( soundBuffer->GetSampleRate() * soundBuffer->GetChannelCount() ) / 20 );
-					soundDescriptor.samplesOffset += chunk.sampleCount;
-					
-					if ( !isExistsData )
+					if ( !audioResource.GetData( chunk ) )
 					{
-						if ( soundDescriptor.sound->IsLooped() )
-							soundDescriptor.samplesOffset = 0;
+						if ( audioResource.IsLooped() )			audioResource.SetSamplesOffset( 0 );
 						else
 						{
-							if ( it->second.sound->GetCountReferences() <= 1 )
-								it->second.sound->Release();
-							else
-								it->second.sound->DecrementReference();
-
 							it = updateSounds.erase( it );
 							itEnd = updateSounds.end();
 							--it;
@@ -327,7 +307,7 @@ void le::AudioSystem::Update()
 				unusedBuffers.pop();
 
 				alBufferData( buffer, AL_FORMAT_STEREO_FLOAT32, chunk.samples, chunk.sampleCount * sizeof( float ), 44100 );
-				alSourceQueueBuffers( openALSource, 1, &buffer );							
+				alSourceQueueBuffers( openALSource, 1, &buffer );
 			}
 		}
 
