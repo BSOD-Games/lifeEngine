@@ -71,12 +71,6 @@ Window_Editor::Window_Editor( const GameDescriptor& GameDescriptor, QWidget* Par
 
 	connect( ui->widget_preview, SIGNAL( ResizeViewport( quint32, quint32 ) ), this, SLOT( OnResizeViewport( quint32, quint32 ) ) );
 
-	qDebug() << "Loading game";
-	
-	if ( !EngineAPI::GetInstance()->GetEngine()->LoadGame( GameDescriptor.path.toStdString().c_str() ) )
-		Error_Critical( "Failed loading game" );
-	
-	qDebug() << "Loaded game";
 	qDebug() << "Initialize scene";
 
 	// Getting all shaders list

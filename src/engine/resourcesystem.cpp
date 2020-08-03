@@ -41,7 +41,6 @@
 #include "parsermaterial_lmt.h"
 #include "parsermesh_mdl.h"
 #include "parserphysicsmodel_phy.h"
-#include "parserscript_c.h"
 #include "parsertexture_freeimage.h"
 #include "parsersoundbuffer_ogg.h"
 
@@ -508,7 +507,6 @@ void le::ResourceSystem::UnloadTextures()
 // ------------------------------------------------------------------------------------ //
 void le::ResourceSystem::UnloadAll()
 {
-	UnloadScripts();
 	UnloadLevels();
 	UnloadMeshes();
 	UnloadFonts();
@@ -594,7 +592,6 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 		if ( !studioRender )	throw std::runtime_error( "Resource system requared studiorender" );
 
 		studioRenderFactory = studioRender->GetFactory();
-		scriptSystemFactory = g_scriptSystem->GetFactory();
 		audioSystemFactory = Engine->GetAudioSystem()->GetFactory();
 		engineFactory = Engine->GetFactory();
 
@@ -608,7 +605,6 @@ bool le::ResourceSystem::Initialize( IEngine* Engine )
 		RegisterLoader( []() -> IParserMaterial* { return new ParserMaterialLMT(); } );
 		RegisterLoader( []() -> IParserMesh* { return new ParserMeshMDL(); } );
 		RegisterLoader( []() -> IParserPhysicsModel* { return new ParserPhysicsModelPHY(); } );
-		RegisterLoader( []() -> IParserScript* { return new ParserScriptC(); } );
 		RegisterLoader( []() -> IParserTexture* { return new ParserTextureFreeImage(); } );
 		RegisterLoader( []() -> IParserSoundBuffer* { return new ParserSoundBufferOGG(); } );
 	}
@@ -659,8 +655,7 @@ void le::ResourceSystem::ClearPaths()
 // ------------------------------------------------------------------------------------ //
 le::ResourceSystem::ResourceSystem() :
 	studioRenderFactory( nullptr ),
-	engineFactory( nullptr ),
-	scriptSystemFactory( nullptr )
+	engineFactory( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -686,100 +681,6 @@ std::string le::ResourceSystem::GetFormatFile( const std::string& Route )
 		format[ index ] = tolower( format[ index ] );
 
 	return format;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Деструктор
-// ------------------------------------------------------------------------------------ //
-le::IScript* le::ResourceSystem::LoadScript( const char* Name, const char* Path, UInt32_t CountFunctions, ScriptDescriptor::Symbol* Functions, UInt32_t CountVars, ScriptDescriptor::Symbol* Vars )
-{
-	LIFEENGINE_ASSERT( Name );
-	LIFEENGINE_ASSERT( Path );
-
-	try
-	{
-		if ( !scriptSystemFactory )							throw std::runtime_error( "Resource system not initialized" );
-
-		if ( scripts.find( Name ) != scripts.end() )		return scripts[ Name ];
-		if ( loaderScripts.empty() )						throw std::runtime_error( "No script loaders" );
-
-		g_consoleSystem->PrintInfo( "Loading script [%s] with name [%s]", Path, Name );
-
-		std::string			format = GetFormatFile( Path );
-		if ( format.empty() )						throw std::runtime_error( "In script format not found" );
-
-		auto				parser = loaderScripts.find( format );
-		if ( parser == loaderScripts.end() )		throw std::runtime_error( "Loader for format script not found" );
-
-		IScript*			script = nullptr;
-		IParserScript*		parserScript = parser->second();
-
-		for ( UInt32_t index = 0, count = paths.size(); !script && index < count; ++index )
-			script = parserScript->Read( std::string( paths[ index ] + "/" + Path ).c_str(), CountFunctions, Functions, CountVars, Vars, scriptSystemFactory );
-
-		parserScript->Release();
-		if ( !script )							throw std::runtime_error( "Fail loading script" );
-		
-		script->IncrementReference();
-		scripts.insert( std::make_pair( Name, script ) );
-		g_consoleSystem->PrintInfo( "Loaded script [%s]", Name );
-
-		return script;
-	}
-	catch ( std::exception & Exception )
-	{
-		g_consoleSystem->PrintError( "Script [%s] not loaded: %s", Path, Exception.what() );
-		return nullptr;
-	}
-}
-
-// ------------------------------------------------------------------------------------ //
-// Деструктор
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnloadScript( const char* Name )
-{
-	LIFEENGINE_ASSERT( Name );
-
-	auto				it = scripts.find( Name );
-	if ( it == scripts.end() || it->second->GetCountReferences() > 1 )	return;
-
-	it->second->Release();
-	scripts.erase( it );
-
-	g_consoleSystem->PrintInfo( "Unloaded script [%s]", Name );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Деструктор
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::UnloadScripts()
-{
-	if ( scripts.empty() ) return;
-
-	for ( auto it = scripts.begin(), itEnd = scripts.end(); it != itEnd; )
-		if ( it->second->GetCountReferences() <= 1 )
-		{
-			it->second->Release();
-
-			g_consoleSystem->PrintInfo( "Unloaded script [%s]", it->first.c_str() );
-			it = scripts.erase( it );
-			itEnd = scripts.end();
-		}
-		else
-			++it;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Деструктор
-// ------------------------------------------------------------------------------------ //
-le::IScript* le::ResourceSystem::GetScript( const char* Name ) const
-{
-	LIFEENGINE_ASSERT( Name );
-
-	auto	it = scripts.find( Name );
-	if ( it != scripts.end() )		return it->second;
-
-	return nullptr;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -1406,31 +1307,6 @@ void le::ResourceSystem::RegisterLoader( CreateParserFontFn_t CreateParserFont )
 
 	g_consoleSystem->PrintInfo( "Parser font registered. Name: %s, Version: %s, Author: %s", parseFont->GetName(), parseFont->GetVersion(), parseFont->GetAuthor() );
 	parseFont->Release();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Register loader
-// ------------------------------------------------------------------------------------ //
-void le::ResourceSystem::RegisterLoader( CreateParserScriptFn_t CreateParserScript )
-{
-	if ( !CreateParserScript )		return;
-
-	IParserScript*		parserScript = CreateParserScript();
-	const char**		extensions = parserScript->GetFileExtensions();
-	UInt32_t			countExtensions = parserScript->GetCountFileExtensions();
-
-	if ( countExtensions <= 0 || !extensions )
-	{
-		g_consoleSystem->PrintError( "Parser script not registered, supported extensions not founded" );
-		parserScript->Release();
-		return;
-	}
-
-	for ( UInt32_t index = 0; index < countExtensions; ++index )
-		loaderScripts[ extensions[ index ] ] = CreateParserScript;
-
-	g_consoleSystem->PrintInfo( "Parser script registered. Name: %s, Version: %s, Author: %s", parserScript->GetName(), parserScript->GetVersion(), parserScript->GetAuthor() );
-	parserScript->Release();
 }
 
 // ------------------------------------------------------------------------------------ //

@@ -11,13 +11,11 @@
 #ifndef SCRIPTSYSTEM_H
 #define SCRIPTSYSTEM_H
 
-#include <string>
-#include <vector>
-#include <unordered_map>
-
 #include "engine/iscriptsysteminternal.h"
-#include "engine/scriptsystemfactory.h"
-#include "engine/scriptdescriptor.h"
+
+//---------------------------------------------------------------------//
+
+struct lua_State;
 
 //---------------------------------------------------------------------//
 
@@ -33,12 +31,7 @@ namespace le
 	{
 	public:
 		// IScriptSystem
-		virtual void			RegisterFunction( const char* Name, void* Value );
-		virtual void			RegisterVar( const char* Name, void* Value );
-		virtual void			UnregisterFunction( const char* Name );
-		virtual void			UnregisterVar( const char* Name );
-
-		virtual IFactory*		GetFactory() const;
+		virtual IScript*		CreateScript( const char* Path ) const;
 
 		// IScriptSystemInternal
 		virtual bool			Initialize( IEngine* Engine );
@@ -47,21 +40,7 @@ namespace le
 		ScriptSystem();
 		~ScriptSystem();
 
-		inline const std::unordered_map< std::string, void* >&			GetFunctions() const
-		{
-			return functions;
-		}
-
-		inline const std::unordered_map< std::string, void* >&			GetVars() const
-		{
-			return  vars;
-		}
-
-	private:
-		ScriptSystemFactory								factory;
-		std::unordered_map< std::string, void* >		functions;
-		std::unordered_map< std::string, void* >		vars;
-
+		static void				RegisterEngineAPI( lua_State* LuaVM );
 	};
 
 	//---------------------------------------------------------------------//

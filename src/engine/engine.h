@@ -12,7 +12,6 @@
 #define ENGINE_H
 
 #include "common/configurations.h"
-#include "common/version.h"
 #include "common/gameinfo.h"
 #include "engine/lifeengine.h"
 #include "engine/iengineinternal.h"
@@ -68,16 +67,6 @@ namespace le
 
 	//---------------------------------------------------------------------//
 
-	struct GameDescriptor
-	{
-		void*								handle;
-		LE_CreateGameFn_t					LE_CreateGame;
-		LE_DeleteGameFn_t					LE_DeleteGame;
-		LE_SetCriticalErrorFn_t				LE_SetCriticalError;
-	};
-
-	//---------------------------------------------------------------------//
-
 	class Engine : public IEngineInternal
 	{
 	public:
@@ -103,14 +92,12 @@ namespace le
 		virtual IWindow*				GetWindow() const;
 		virtual IFactory*				GetFactory() const;
 		virtual float					GetFixedTimeStep() const;
-        virtual const GameInfo&         GetGameInfo() const;
-		virtual Version					GetVersion() const;
+        virtual GameInfo				GetGameInfo() const;
+		virtual const char*				GetVersion() const;
 		virtual Configurations			GetConfigurations() const;
 
 		// IEngineInternal
 		virtual bool					Initialize( const char* EngineDirectory, const char* LogFile = "console.log", bool IsEditor = false );
-		virtual bool					LoadGame( const char* DirGame, UInt32_t CountArguments = 0, const char** Arguments = nullptr );
-		virtual void					UnloadGame();
 
 		virtual const char*				GetEngineDirectory() const;
 
@@ -119,15 +106,24 @@ namespace le
 		~Engine();
 
 	private:
+
+		//---------------------------------------------------------------------//
+
+		struct GameInfo
+		{
+			std::string				name;
+			std::string				icon;
+		};
+
+		//---------------------------------------------------------------------//
+
 		bool							LoadModule_StudioRender( const char* PathDLL );
 		void							UnloadModule_StudioRender();
         bool							LoadModule_PhysicsSystem( const char* PathDLL );
         void							UnloadModule_PhysicsSystem();
 		bool							LoadModule_AudioSystem( const char* PathDLL );
 		void							UnloadModule_AudioSystem();
-		bool							LoadGameInfo( const char* GameDir );
-		bool							LoadModule_Game( const char* PathDLL, UInt32_t CountArguments, const char** Arguments  );
-		void							UnloadModule_Game();
+		bool							LoadGameInfo();
 
 		bool							isInitialized;
 		bool							isRunSimulation;
@@ -150,9 +146,6 @@ namespace le
 
 		IAudioSystemInternal*			audioSystem;
 		AudioSystemDescriptor			audioSystemDescriptor;
-
-		IGame*							game;
-		GameDescriptor					gameDescriptor;
 
 		CriticalErrorCallbackFn_t		criticalError;
 		ConsoleSystem					consoleSystem;

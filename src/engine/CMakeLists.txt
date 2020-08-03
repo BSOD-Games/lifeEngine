@@ -6,10 +6,10 @@ cmake_minimum_required( VERSION 2.6 )
 
 file( GLOB SOURCE_FILES "*.h" "*.cpp" )	
 file( GLOB PROXES_FILES "proxes/*.h" "proxes/*.cpp" )	
-file( GLOB_RECURSE SCRIPTS_FILES "scripts/*.h" "scripts/*.cpp" )
 file( GLOB SHADERS_FILES "shaders/*.h" "shaders/*.cpp" )						
 file( GLOB PUBLIC_FILES "../public/common/*.h" "../public/engine/*.h" )								
 file( GLOB PRIVATE_FILES "../private/engine/*.h" )		
+file( GLOB SCRIPTSAPI_FILES "scriptsapi/*.h" "scriptsapi/*.cpp" )
 	
 set( MODULE_NAME engine )
 
@@ -18,9 +18,10 @@ set( RAPIDJSON_PATH ${EXTLIBS_DIR} CACHE PATH "Path to RapidJSON" )
 set( GLM_PATH ${EXTLIBS_DIR} CACHE PATH "Path to GLM" )
 set( FREEIMAGE_PATH ${EXTLIBS_DIR}/FreeImage CACHE PATH "Path to FreeImage" )
 set( FREETYPE_PATH ${EXTLIBS_DIR}/freetype CACHE PATH "Path to Freetype" )
-set( TCC_PATH ${EXTLIBS_DIR}/tcc CACHE PATH "Path to Tiny C Compiler" )
 set( OGG_PATH ${EXTLIBS_DIR}/ogg CACHE PATH "Path to ogg" )
 set( VORBIS_PATH ${EXTLIBS_DIR}/vorbis CACHE PATH "Path to vorbis" )
+set( LUAJIT_PATH ${EXTLIBS_DIR}/luajit CACHE PATH "Path to LuaJIT" )
+set( LUABRIDGE_PATH ${EXTLIBS_DIR}/LuaBridge CACHE PATH "Path to LuaBridge" )
 
 #
 #   --- Название модулей движка ---
@@ -61,20 +62,14 @@ add_definitions( -DLIFEENGINE_EXPORT )
 #   --- Настройки проекта ---
 #
 
-file( GLOB SOURCE_FILES "*.h" "*.cpp" )	
-file( GLOB PROXES_FILES "proxes/*.h" "proxes/*.cpp" )	
-file( GLOB_RECURSE SCRIPTS_FILES "scripts/*.h" "scripts/*.cpp" )
-file( GLOB SHADERS_FILES "shaders/*.h" "shaders/*.cpp" )						
-file( GLOB PUBLIC_FILES "../public/common/*.h" "../public/engine/*.h" )	
-
 source_group( "Public Files" FILES ${PUBLIC_FILES} )
 source_group( "Private Files" FILES ${PRIVATE_FILES} )
 source_group( "Proxes Files" FILES ${PROXES_FILES} )
-source_group( "Scripts Files" FILES ${SCRIPTS_FILES} )
 source_group( "Shaders Files" FILES ${SHADERS_FILES} )
+source_group( "ScriptsAPI Files" FILES ${SCRIPTSAPI_FILES} )
 
 configure_file( ${PATHS_H}.in ${PATHS_H} )
-add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${PUBLIC_FILES} ${PRIVATE_FILES} ${PROXES_FILES} ${SCRIPTS_FILES} ${SHADERS_FILES} ${ICON} )
+add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${PUBLIC_FILES} ${PRIVATE_FILES} ${PROXES_FILES} ${SHADERS_FILES} ${SCRIPTSAPI_FILES} ${ICON} )
 
 set_target_properties (${MODULE_NAME} PROPERTIES FOLDER Engine )
 set_target_properties( ${MODULE_NAME} PROPERTIES PREFIX "" )
@@ -91,9 +86,7 @@ include_directories( ../tools/lmtloader )
 include_directories( ../ )
 
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
-
-install( DIRECTORY "scripts" DESTINATION ${BUILD_DIR}/engine )
-install( DIRECTORY "shaders/shaders" DESTINATION ${BUILD_DIR}/engine )
+install( DIRECTORY "shaders/shaders" DESTINATION ${BUILD_DIR}/engine/content )
 
 #
 #   --- Ищим и подключаем зависимости ---
@@ -157,18 +150,6 @@ else()
     target_link_libraries( ${MODULE_NAME} ${FREETYPE_LIB} )
 endif()  
 
-#---------------
-#   Tiny C Compiler
-
-find_package( TCC REQUIRED )
-if( NOT TCC_FOUND )
-    message( SEND_ERROR "Failed to find Tiny C Compiler" )
-    return()
-else()
-    include_directories( ${TCC_INCLUDE} )
-    target_link_libraries( ${MODULE_NAME} ${TCC_LIB} ${CMAKE_DL_LIBS} )
-endif()
-
 #--------------
 #	OGG
 
@@ -191,4 +172,27 @@ if( NOT VORBIS_FOUND )
 else()
 	include_directories( ${VORBIS_INCLUDE} )
 	target_link_libraries( ${MODULE_NAME} ${VORBIS_LIB} ${VORBISFILE_LIB} )
+endif()
+
+#--------------
+#	LuaJIT
+
+find_package( LuaJIT REQUIRED )
+if( NOT LUAJIT_FOUND )
+	message( SEND_ERROR "Failed to find LuaJIT" )
+	return()
+else()
+	include_directories( ${LUAJIT_INCLUDE} )
+	target_link_libraries( ${MODULE_NAME} ${LUA_LIB} ${LUAJIT_LIB} )
+endif()
+
+#--------------
+#	LuaBridge
+
+find_package( LuaBridge REQUIRED )
+if( NOT LUABRIDGE_FOUND )
+	message( SEND_ERROR "Failed to find LuaBridge" )
+	return()
+else()
+	include_directories( ${LUABRIDGE_INCLUDE} )
 endif()

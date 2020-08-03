@@ -1,9 +1,17 @@
 cmake_minimum_required( VERSION 2.6 )
 project( lifeEngine )
 
-include( ${CMAKE_ROOT}/Modules/ExternalProject.cmake )
-find_package( Git REQUIRED )	
+set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake" )
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
+
+include( ${CMAKE_ROOT}/Modules/ExternalProject.cmake )
+include( Git )
+	
+git_init()	
+git_generation_version( LIFEENGINE_VERSION )
+
+message( STATUS "lifeEngine version: ${LIFEENGINE_VERSION}" )
+add_definitions( -DLIFEENGINE_VERSION="${LIFEENGINE_VERSION}" )
 
 #
 #   --- Название проектов ---
@@ -28,7 +36,6 @@ set( PROJECT_PHYLOADER tools/phyloader )
 set( EXTLIBS_DIR ${CMAKE_BINARY_DIR}/extlibs )
 set( QT5_DIR CACHE PATH "Qt5 dir (ex. D:/Soft/Qt/5.12.2/mingw73_64)" )
 set( BUILD_DIR ${PROJECT_SOURCE_DIR}/../build )
-set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake" )
 set( CMAKE_PREFIX_PATH ${QT5_DIR} )
 
 set( CMAKE_INCLUDE_CURRENT_DIR ON )

@@ -25,7 +25,6 @@
 #include "engine/global.h"
 #include "engine/convar.h"
 #include "engine/concmd.h"
-#include "engine/buildnum.h"
 #include "engine/resourcesystem.h"
 #include "studiorender/istudiorenderinternal.h"
 #include "studiorender/studiorenderviewport.h"
@@ -86,7 +85,7 @@ void CMD_Exit( le::UInt32_t CountArguments, const char** Arguments )
 void CMD_Version( le::UInt32_t CountArguments, const char** Arguments )
 {
 	if ( !le::g_consoleSystem ) return;
-	le::g_consoleSystem->PrintInfo( "lifeEngine %s (build %i)", LIFEENGINE_VERSION, le::Engine_BuildNumber() );
+	le::g_consoleSystem->PrintInfo( "lifeEngine %s", LIFEENGINE_VERSION );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -102,8 +101,6 @@ le::Engine::Engine() :
 	physicSystemDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
 	audioSystem( nullptr ),
 	audioSystemDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
-	game( nullptr ),
-	gameDescriptor( { nullptr, nullptr, nullptr, nullptr } ),
 	criticalError( nullptr ),
 	cmd_Exit( new ConCmd() ),
 	cmd_Version( new ConCmd() ),
@@ -131,8 +128,6 @@ le::Engine::Engine() :
 // ------------------------------------------------------------------------------------ //
 le::Engine::~Engine()
 {
-	if ( game )				UnloadModule_Game();
-
 	resourceSystem.UnloadAll();
 
 	if ( physicSystem )     UnloadModule_PhysicsSystem();
@@ -321,164 +316,62 @@ void le::Engine::UnloadModule_AudioSystem()
 // ------------------------------------------------------------------------------------ //
 // Р—Р°РіСЂСѓР·РёС‚СЊ РёРЅС„РѕСЂРјР°С†РёСЋ РѕР± РёРіСЂРµ
 // ------------------------------------------------------------------------------------ //
-bool le::Engine::LoadGameInfo( const char* DirGame )
+bool le::Engine::LoadGameInfo()
 {
-	gameInfo.Clear();
-	consoleSystem.PrintInfo( "Loading gameinfo.txt from dir [%s]", DirGame );
+	consoleSystem.PrintInfo( "Loading gameinfo.json" );
 	
-	std::ifstream		file( std::string( DirGame ) + "/gameinfo.txt" );
+	// Open file for read
+	std::ifstream		file( "gameinfo.json" );
 	if ( !file.is_open() )
 	{
-		consoleSystem.PrintError( "File gameinfo.txt not found in dir [%s]", DirGame );
+		consoleSystem.PrintError( "File gameinfo.json not found" );
 		return false;
 	}
 
+	// Getting all content from file
 	std::string					stringBuffer;
 	UInt32_t					stringLength = 0;
 	std::getline( file, stringBuffer, '\0' );
 
+	// Parse JSON document
 	rapidjson::Document			document;
 	document.Parse( stringBuffer.c_str() );
 	if ( document.HasParseError() )
 	{
-		consoleSystem.PrintError( "Fail parse gameinfo.txt in dir [%s]", DirGame );
+		consoleSystem.PrintError( "Fail parse gameinfo.json" );
 		return false;
 	}
 
+	// Getting values from file
 	for ( auto it = document.MemberBegin(), itEnd = document.MemberEnd(); it != itEnd; ++it )
 	{
-		// РџСѓС‚СЊ Рє РјРѕРґСѓР»СЋ СЃ РёРіСЂРѕРІРѕР№ Р»РѕРіРёРєРѕР№
-		if ( strcmp( it->name.GetString(), "gameDLL" ) == 0 && it->value.IsString() )
+		// Getting name game
+		if ( !strcmp( it->name.GetString(), "name" ) && it->value.IsString() )
 		{
-			UInt32_t            sizeExnesion;
-			UInt32_t            sizeJsonString = it->value.GetStringLength();
-			const char*         extension;
-
-#       if defined( PLATFORM_WINDOWS )
-			extension = ".dll";
-			sizeExnesion = 4;
-#       elif defined( PLATFORM_LINUX )
-			extension = ".so";
-			sizeExnesion = 3;
-#       endif // PLATFORM_WINDOWS
-
-			stringLength = sizeJsonString + sizeExnesion;
-
-			gameInfo.gameDLL = new char[ stringLength + 1 ];
-			memcpy( gameInfo.gameDLL, it->value.GetString(), sizeJsonString );
-			memcpy( gameInfo.gameDLL + sizeJsonString, extension, sizeExnesion );
-			gameInfo.gameDLL[ stringLength ] = '\0';
+			gameInfo.name = it->value.GetString();
+			window.SetTitle( gameInfo.name.c_str() );
 		}
 
-		// РџСѓС‚СЊ Рє РёРєРѕРЅРєРµ
-		if ( strcmp( it->name.GetString(), "icon" ) == 0 && it->value.IsString() )
+		// Getting icon
+		else if ( !strcmp( it->name.GetString(), "icon" ) && it->value.IsString() )
 		{
-			stringLength = it->value.GetStringLength();
+			bool		isError = false;
+			gameInfo.icon = it->value.GetString();
+			Image		image = resourceSystem.LoadImage( gameInfo.icon.c_str(), isError, true, false );
 
-			gameInfo.icon = new char[ stringLength + 1 ];
-			memcpy( gameInfo.icon, it->value.GetString(), stringLength );
-			gameInfo.icon[ stringLength ] = '\0';
-		}
-
-		// Р—Р°РіРѕР»РѕРІРѕРє РёРіСЂС‹
-		if ( strcmp( it->name.GetString(), "title" ) == 0 && it->value.IsString() )
-		{
-			stringLength = it->value.GetStringLength();
-
-			gameInfo.title = new char[ stringLength + 1 ];
-			memcpy( gameInfo.title, it->value.GetString(), stringLength );
-			gameInfo.title[ stringLength ] = '\0';
-		}
-
-		// Get path to resources
-		if ( strcmp( it->name.GetString(), "resources" ) == 0 && it->value.IsString() )
-		{
-			std::string					path = it->value.GetString();
-			std::string					dirGame( DirGame );
-			std::string::size_type		indexGameDirValue = path.find( "$gameDir" );
-			std::string::size_type		indexEngineDirValue = path.find( "$engineDir" );
-
-			if ( indexGameDirValue != std::string::npos )
+			if ( !isError )
 			{
-				path.erase( indexGameDirValue, 8 );
-				path.insert( indexGameDirValue, dirGame );
+				window.SetIcon( image );
+				resourceSystem.UnloadImage( image );
 			}
-			if ( indexEngineDirValue != std::string::npos )
-			{
-				path.erase( indexEngineDirValue, 10 );
-				path.insert( indexEngineDirValue, engineDirectory );
-			}
-
-			resourceSystem.AddPath( path.c_str() );
 		}
 	}
 
-	stringLength = strlen( DirGame );
-	gameInfo.gameDir = new char[ stringLength + 1 ];
-	memcpy( gameInfo.gameDir, DirGame, stringLength );
-	gameInfo.gameDir[ stringLength ] = '\0';
-
-	consoleSystem.PrintInfo( "Loaded gameinfo.txt from dir [%s]", DirGame );
+	consoleSystem.PrintInfo( "Loaded gameinfo.json" );
 	return true;
 }
 
-// ------------------------------------------------------------------------------------ //
-// Р—Р°РіСЂСѓР·РёС‚СЊ РјРѕРґСѓР»СЊ РёРіСЂС‹
-// ------------------------------------------------------------------------------------ //
-bool le::Engine::LoadModule_Game( const char* PathDLL, UInt32_t CountArguments, const char** Arguments  )
-{
-	// Р•СЃР»Рё РјРѕРґСѓР»СЊ СЂР°РЅРµРµ Р±С‹Р» Р·Р°РіСЂСѓР¶РµРЅ, С‚Рѕ СѓРґР°Р»СЏРµРј
-	if ( gameDescriptor.handle ) UnloadModule_Game();
-
-	consoleSystem.PrintInfo( "Loading game [%s]", PathDLL );
-
-	try
-	{
-		// Р—Р°РіСЂСѓР¶Р°РµРј РјРѕРґСѓР»СЊ
-		gameDescriptor.handle = SDL_LoadObject( PathDLL );
-		if ( !gameDescriptor.handle )	throw std::runtime_error( SDL_GetError() );
-
-		// Р‘РµСЂРµРј РёР· РјРѕРґСѓР»СЏ API РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РЅРёРј
-		gameDescriptor.LE_CreateGame = ( LE_CreateGameFn_t ) SDL_LoadFunction( gameDescriptor.handle, "LE_CreateGame" );
-		gameDescriptor.LE_DeleteGame = ( LE_DeleteGameFn_t ) SDL_LoadFunction( gameDescriptor.handle, "LE_DeleteGame" );
-		gameDescriptor.LE_SetCriticalError = ( LE_SetCriticalErrorFn_t ) SDL_LoadFunction( gameDescriptor.handle, "LE_SetCriticalError" );
-		if ( !gameDescriptor.LE_CreateGame )	throw std::runtime_error( "Function LE_CreateGame not found" );
-
-		// РЎРѕР·РґР°РµРј РёРіСЂРѕРІСѓСЋ Р»РѕРіРёРєСѓ
-		if ( gameDescriptor.LE_SetCriticalError )
-			gameDescriptor.LE_SetCriticalError( g_criticalError );
-
-		game = gameDescriptor.LE_CreateGame();
-		if ( !game->Initialize( this, CountArguments, Arguments ) )
-			throw std::runtime_error( "Fail initialize game" );
-	}
-	catch ( std::exception& Exception )
-	{
-		consoleSystem.PrintError( Exception.what() );
-		return false;
-	}
-
-	consoleSystem.PrintInfo( "Loaded game [%s]", PathDLL );
-	return true;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Р’С‹РіСЂСѓР·РёС‚СЊ РјРѕРґСѓР»СЊ РёРіСЂС‹
-// ------------------------------------------------------------------------------------ //
-void le::Engine::UnloadModule_Game()
-{
-	if ( !game ) return;
-
-	if ( game && gameDescriptor.LE_DeleteGame )
-		gameDescriptor.LE_DeleteGame( game );
-
-	SDL_UnloadObject( gameDescriptor.handle );
-	game = nullptr;
-	gameDescriptor = { nullptr, nullptr, nullptr, nullptr };
-	
-	consoleSystem.PrintInfo( "Unloaded game" );
-	resourceSystem.UnloadAll();
-}
+#include "engine/iscript.h"
 
 // ------------------------------------------------------------------------------------ //
 // Р—Р°РїСѓСЃС‚РёС‚СЊ СЃРёРјСѓР»СЏС†РёСЋ
@@ -492,11 +385,15 @@ void le::Engine::RunSimulation()
 		consoleSystem.PrintError( "The simulation is not running because engine not initialized" );
 		return;
 	}
-	else if ( !game )
+	
+	if ( !LoadGameInfo() )
 	{
-		consoleSystem.PrintError( "The simulation is not running because the game is not loaded" );
+		consoleSystem.PrintError( "Failed loading game info" );
 		return;
 	}
+
+	IScript*			script = scriptSystem.CreateScript( "script.lua" );
+	script->Start();
 
 	consoleSystem.PrintInfo( "*** Run simulation ***" );
 	
@@ -549,8 +446,6 @@ void le::Engine::RunSimulation()
 
 			default: break;
 			}
-
-			game->OnEvent( event );
 		}
 
 		if ( isFocus )
@@ -565,14 +460,14 @@ void le::Engine::RunSimulation()
 				delayFrame -= FIXED_TIME_UPDATE;
 
 				inputSystem.Update();
-				game->Update();
 				physicSystem->Update();
 				materialSystem.Update();
+				script->Update();
+
 				inputSystem.Clear();
 			}
 
 			studioRender->Begin();
-			game->Render();
 
 			if ( cvar_phyDebug->GetValueBool() )
 				physicSystem->DebugRender();
@@ -684,17 +579,17 @@ le::IFactory* le::Engine::GetFactory() const
 // ------------------------------------------------------------------------------------ //
 // Get game info
 // ------------------------------------------------------------------------------------ //
-const le::GameInfo& le::Engine::GetGameInfo() const
+le::GameInfo le::Engine::GetGameInfo() const
 {
-	return gameInfo;
+	return le::GameInfo{ gameInfo.name.c_str(), gameInfo.icon.c_str() };
 }
 
 // ------------------------------------------------------------------------------------ //
 // РџРѕР»СѓС‡РёС‚СЊ РІРµСЂСЃРёСЋ РґРІРёР¶РєР°
 // ------------------------------------------------------------------------------------ //
-le::Version le::Engine::GetVersion() const
+const char* le::Engine::GetVersion() const
 {
-	return Version( LIFEENGINE_VERSION, Engine_BuildNumber() );
+	return LIFEENGINE_VERSION;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -712,7 +607,7 @@ bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile, b
 	{
 		// Initialize console system
 		consoleSystem.Initialize( LogFile );
-
+		
 		// Print info by sysem
 		SDL_version		sdlVersion;
 		SDL_GetVersion( &sdlVersion );
@@ -720,7 +615,7 @@ bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile, b
 		consoleSystem.PrintInfo( "*** System info start ****" );
 		consoleSystem.PrintInfo( "  Base path: %s", SDL_GetBasePath() );
 		consoleSystem.PrintInfo( "" );
-		consoleSystem.PrintInfo( "  lifeEngine %s (build %i)", LIFEENGINE_VERSION, Engine_BuildNumber() );
+		consoleSystem.PrintInfo( "  lifeEngine %s", LIFEENGINE_VERSION );
 		consoleSystem.PrintInfo( "  SDL version: %i.%i.%i", sdlVersion.major, sdlVersion.minor, sdlVersion.patch );
 		consoleSystem.PrintInfo( "  Platform: %s", SDL_GetPlatform() );
 		consoleSystem.PrintInfo( "  CPU cache L1 size: %i bytes", SDL_GetCPUCacheLineSize() );
@@ -739,7 +634,9 @@ bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile, b
 		consoleSystem.PrintInfo( "  Has SSE42: %s", ( SDL_HasSSE42() == SDL_TRUE ? "true" : "false" ) );
 		consoleSystem.PrintInfo( "*** System info end ****" );
 
-		resourceSystem.AddPath( EngineDirectory );
+		// Initialize path to resources
+		resourceSystem.AddPath( "content" );
+		resourceSystem.AddPath( ( std::string( EngineDirectory ) + "/content" ).c_str() );
 
 		// Р—Р°РіСЂСѓР¶Р°РµРј Рё РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РїРѕРґСЃРёСЃС‚РµРјС‹
 		if ( !LoadModule_StudioRender( ( engineDirectory + "/" + LIFEENGINE_STUDIORENDER_DLL ).c_str() ) )			throw std::runtime_error( "Failed loading studiorender" );
@@ -799,54 +696,6 @@ bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile, b
 	consoleSystem.PrintInfo( "Initialized lifeEngine" );
 	isInitialized = true;
 	return true;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Р—Р°РіСЂСѓР·РёС‚СЊ РёРіСЂСѓ
-// ------------------------------------------------------------------------------------ //
-bool le::Engine::LoadGame( const char* DirGame, UInt32_t CountArguments, const char** Arguments  )
-{
-	// Р—Р°РіСЂСѓР¶Р°РµРј РёРЅС„РѕСЂРјР°С†РёСЋ РѕР± РёРіСЂРµ
-	if ( !LoadGameInfo( DirGame ) )
-		return false;
-
-	// Р—Р°РіСЂСѓР¶Р°РµРј РёРіСЂРѕРІСѓСЋ Р»РѕРіРёРєСѓ
-	if ( !LoadModule_Game( ( std::string( DirGame ) + "/" + gameInfo.gameDLL ).c_str(), CountArguments, Arguments ) )
-	{
-		resourceSystem.ClearPaths();
-		resourceSystem.AddPath( engineDirectory.c_str() );
-		return false;
-	}
-
-	// Р•СЃР»Рё РµСЃС‚СЊ РёРєРѕРЅРєР° Сѓ РёРіСЂС‹ - РіСЂСѓР·РёРј РµРµ
-	if ( gameInfo.icon )
-	{
-		bool		isError = false;
-		Image		image = resourceSystem.LoadImage( gameInfo.icon, isError, true, false );
-		
-		if ( !isError )
-		{
-			window.SetIcon( image );
-			resourceSystem.UnloadImage( image );
-		}
-	}
-
-	window.SetTitle( gameInfo.title );
-	return true;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Р’С‹РіСЂСѓР·РёС‚СЊ РёРіСЂСѓ
-// ------------------------------------------------------------------------------------ //
-void le::Engine::UnloadGame()
-{
-	StopSimulation();
-
-	gameInfo.Clear();
-	resourceSystem.ClearPaths();
-	resourceSystem.AddPath( engineDirectory.c_str() );
-
-	if ( game ) UnloadModule_Game();
 }
 
 // ------------------------------------------------------------------------------------ //

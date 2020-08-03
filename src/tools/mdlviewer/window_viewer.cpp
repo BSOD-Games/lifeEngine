@@ -27,13 +27,6 @@ Window_Viewer::Window_Viewer( const GameDescriptor& GameDescriptor, QWidget* Par
 		Error_Critical( "Failed initialize viewport" );
 
 	connect( ui->widget_viewport, SIGNAL( ResizeViewport( quint32, quint32 ) ), this, SLOT( OnResizeViewport( quint32, quint32 ) ) );
-
-	qDebug() << "Loading game";
-
-	if ( !EngineAPI::GetInstance()->GetEngine()->LoadGame( GameDescriptor.path.toStdString().c_str() ) )
-		Error_Critical( "Failed loading game" );
-
-	qDebug() << "Loaded game";
 }
 
 // ------------------------------------------------------------------------------------ //

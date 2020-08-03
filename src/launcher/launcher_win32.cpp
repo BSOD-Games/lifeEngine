@@ -21,8 +21,6 @@
 #include "engine/iconvar.h"
 #include "studiorender/istudiorenderinternal.h"
 
-#define DEFAULT_GAME		"episodic"
-
 //---------------------------------------------------------------------//
 
 struct EngineDescriptor
@@ -129,8 +127,6 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
         Application_LoadEngine();
 
         {
-            std::string                 gameDir = DEFAULT_GAME;
-
             // Cчитываем аргументы запуска лаунчера
             int				argc;
             LPWSTR*			argList = CommandLineToArgvW( GetCommandLineW(), &argc );
@@ -151,12 +147,11 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
 			le::Configurations			configurations = g_engineDescriptor.engine->GetConfigurations();
 
 			// Parsing arguments start
-			for ( int index = 0; index < argc; ++index )
-				if ( ( strstr( argv[ index ], "-game" ) || strstr( argv[ index ], "-g" ) ) && index + 1 < argc )
-				{
-					gameDir = argv[ index + 1 ];
-					break;
-				}
+            for ( int index = 0; index < argc; ++index )
+            {
+                // TODO: Add parse arguments (width, height, etc)
+                break;
+            }
 
             // Create window and context render
             le::IWindowInternal*			window = ( le::IWindowInternal* ) g_engineDescriptor.engine->GetWindow();
@@ -165,10 +160,6 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
 
             if ( !static_cast<le::IStudioRenderInternal*>( g_engineDescriptor.engine->GetStudioRender() )->CreateContext( window->GetHandle(), configurations.windowWidth->GetValueInt(), configurations.windowHeight->GetValueInt() ) )
                 throw std::runtime_error( "Fail creating context render" );
-
-            // Загружаем игру
-            if ( !g_engineDescriptor.engine->LoadGame( gameDir.c_str(), argc, ( const char** ) argv ) )
-                throw std::runtime_error( ( std::string( "Failed to load game [" ) + gameDir + "]" ).c_str() );
 
             // Удаляем выделенную память под аргументы и запускаем игру
             LocalFree( argList );

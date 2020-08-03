@@ -29,8 +29,6 @@ namespace le
     {
     public:
         virtual bool            Initialize( const char* EngineDirectory, const char* LogFile = "console.log", bool IsEditor = false ) = 0;
-        virtual bool			LoadGame( const char* DirGame, UInt32_t CountArguments = 0, const char** Arguments = nullptr ) = 0;
-        virtual void			UnloadGame() = 0;
 
         virtual const char*     GetEngineDirectory() const = 0;
     };

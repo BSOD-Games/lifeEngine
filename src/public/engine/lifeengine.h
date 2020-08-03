@@ -19,7 +19,6 @@ namespace le
 
     class IEngine;
     class IStudioRender;
-    class IGame;
     class IPhysicsSystem;
     class IAudioSystem;
 
@@ -31,8 +30,6 @@ namespace le
     typedef		void						( *LE_DeleteEngineFn_t )( IEngine* Engine );
     typedef		IStudioRender*				( *LE_CreateStudioRenderFn_t )();
     typedef		void						( *LE_DeleteStudioRenderFn_t )( IStudioRender* StudioRender );
-    typedef		IGame*						( *LE_CreateGameFn_t )();
-    typedef		void						( *LE_DeleteGameFn_t )( IGame* Game );
     typedef		void						( *LE_SetCriticalErrorFn_t )( CriticalErrorFn_t CriticalError );
     typedef     IPhysicsSystem*             ( *LE_CreatePhysicsSystemFn_t )();
     typedef     void                        ( *LE_DeletePhysicsSystemFn_t )( IPhysicsSystem* PhysicsSystem );
@@ -45,10 +42,6 @@ namespace le
 
     //---------------------------------------------------------------------//
 }
-
-//---------------------------------------------------------------------//
-
-#define LIFEENGINE_VERSION "2020.7-alpha"
 
 //---------------------------------------------------------------------//
 
@@ -86,12 +79,6 @@ namespace le
     namespace le { class IStudioRender; } \
     LIFEENGINE_API le::IStudioRender* LE_CreateStudioRender() { return new StudioRenderClass(); } \
     LIFEENGINE_API void LE_DeleteStudioRender( le::IStudioRender* Object ) { delete static_cast<StudioRenderClass*>( Object ); } \
-    LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
-
-#	define LIFEENGINE_GAME_API( GameClass ) \
-    namespace le { class IGame; } \
-    LIFEENGINE_API le::IGame* LE_CreateGame() { return new GameClass(); } \
-    LIFEENGINE_API void LE_DeleteGame( le::IGame* Object ) { delete static_cast<GameClass*>( Object ); } \
     LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
 
 #	define LIFEENGINE_PHYSICSSYSTEM_API( PhysicsSystemClass ) \

@@ -8,25 +8,23 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+extern "C"
+{
+	#include <lua.h>
+	#include <lauxlib.h>
+	#include <lualib.h>
+}
+
 #include <stdexcept>
 #include <exception>
-#include <libtcc.h>
+#include <fstream>
+#include <LuaBridge/LuaBridge.h>
 
-#include "engine/lifeengine.h"
-#include "engine/engine.h"
-#include "engine/scriptdescriptor.h"
+#include "global.h"
+#include "engine/resourcesystem.h"
 #include "engine/consolesystem.h"
 #include "engine/scriptsystem.h"
 #include "engine/script.h"
-#include "global.h"
-
-// ------------------------------------------------------------------------------------ //
-// Error callback
-// ------------------------------------------------------------------------------------ //
-void ErrorCallback( void* Obeject, const char* Message )
-{
-	le::g_consoleSystem->PrintError( Message );
-}
 
 // ------------------------------------------------------------------------------------ //
 // Increment reference
@@ -61,80 +59,21 @@ le::UInt32_t le::Script::GetCountReferences() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Load script
+// Call function "Start" from script
 // ------------------------------------------------------------------------------------ //
-bool le::Script::Load( const le::ScriptDescriptor& ScriptDescriptor )
+void le::Script::Start()
 {
-	if ( tccContext )	Unload();
-
-	try
-	{
-		if ( !ScriptDescriptor.code || ScriptDescriptor.code == "" )
-			throw  std::runtime_error( "Script code is empty" );
-
-		tccContext = tcc_new();
-		if ( !tccContext )		throw std::runtime_error( "TCC Context is not possible to create" );
-
-		tcc_set_error_func( tccContext, tccContext, ErrorCallback);
-		tcc_set_output_type( tccContext, TCC_OUTPUT_MEMORY );
-		tcc_add_include_path( tccContext, g_engine->GetGameInfo().gameDir );
-		tcc_add_sysinclude_path( tccContext, ( std::string( g_engine->GetEngineDirectory() ) + "/scripts" ).c_str() );
-        tcc_set_options( tccContext, "-nostdlib -nostdinc" );
-
-		if ( tcc_compile_string( tccContext, ScriptDescriptor.code ) == -1 )
-			throw std::runtime_error( "The script could not be compiled" );
-
-		LIFEENGINE_ASSERT( g_scriptSystem );
-		auto&			globalFunctions = g_scriptSystem->GetFunctions();
-		auto&			globalVars = g_scriptSystem->GetVars();
-
-        // TODO: Add all std functions from tcclib.h
-        tcc_add_symbol( tccContext, "memmove", ( void* ) &memmove );
-
-		// Register global functions and vars
-		for ( auto it = globalFunctions.begin(), itEnd = globalFunctions.end(); it != itEnd; ++it )
-			tcc_add_symbol( tccContext, it->first.c_str(), it->second );
-
-		for ( auto it = globalVars.begin(), itEnd = globalVars.end(); it != itEnd; ++it )
-			tcc_add_symbol( tccContext, it->first.c_str(), it->second );
-
-		// Register local functions and vars
-		for ( UInt32_t index = 0; index < ScriptDescriptor.countFunctions; ++index )
-		{
-			const ScriptDescriptor::Symbol&		symbol = ScriptDescriptor.functions[ index ];
-			tcc_add_symbol( tccContext, symbol.name, symbol.value );
-		}
-
-		for ( UInt32_t index = 0; index < ScriptDescriptor.countVars; ++index )
-		{
-			const ScriptDescriptor::Symbol&		symbol = ScriptDescriptor.vars[ index ];
-			tcc_add_symbol( tccContext, symbol.name, symbol.value );
-		}
-
-		if ( tcc_relocate( tccContext, TCC_RELOCATE_AUTO ) < 0 )
-			throw std::runtime_error( "The script could not be relocated" );
-	}
-	catch ( const std::exception& Exception )
-	{
-		g_consoleSystem->PrintError( Exception.what() );
-		Unload();
-		return false;
-	}
-
-	return true;
+	if ( !isExistStart )		return;
+	luabridge::getGlobal( luaState, "Start" )( );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Unload script
+// Call function "Update" from script
 // ------------------------------------------------------------------------------------ //
-void le::Script::Unload()
+void le::Script::Update()
 {
-	if ( !tccContext )	return;
-
-	tcc_delete( tccContext );
-	tccContext = nullptr;
-	functionsCache.clear();
-	varsCache.clear();
+	if ( !isExistUpdate )		return;
+	luabridge::getGlobal( luaState, "Update" )( );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -142,7 +81,9 @@ void le::Script::Unload()
 // ------------------------------------------------------------------------------------ //
 le::Script::Script() :
 	countReferences( 0 ),
-	tccContext( nullptr )
+	isExistStart( false ),
+	isExistUpdate( false ),
+	luaState( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -154,43 +95,59 @@ le::Script::~Script()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Is loaded script
+// Load script
 // ------------------------------------------------------------------------------------ //
-bool le::Script::IsLoaded() const
+bool le::Script::Load( const char* Path )
 {
-	return tccContext;
+	// Create new lua VM and open libs
+	luaState = luaL_newstate();
+	luaL_openlibs( luaState );
+
+	// Register in lua EngineAPI
+	ScriptSystem::RegisterEngineAPI( luaState );
+	
+	// Loading script
+	bool			isLoaded = false;
+	std::ifstream	file;
+
+	for ( UInt32_t index = 0, count = g_resourceSystem->GetCountPaths(); index < count; ++index )
+	{
+		// Getting full path
+		std::string			fullPath = std::string( g_resourceSystem->GetPath( index ) ) + "/" + Path;
+
+		// Open file
+		file.clear();
+		file.open( fullPath );
+		if ( !file.is_open() )		continue;
+
+		// If file exists - put all code from file in lua VM
+		std::string			code;
+		std::getline( file, code, '\0' );
+		
+		luaL_dostring( luaState, code.c_str() );
+		isLoaded = true;
+		break;
+	}
+
+	if ( !isLoaded )
+	{
+		Unload();
+		return false;
+	}
+
+	isExistStart = !luabridge::getGlobal( luaState, "Start" ).isNil();
+	isExistUpdate = !luabridge::getGlobal( luaState, "Update" ).isNil();
+	return true;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get function
+// Unload script
 // ------------------------------------------------------------------------------------ //
-void* le::Script::GetFunction( const char* Name )
+void le::Script::Unload()
 {
-	if ( !tccContext )		return nullptr;
-
-	auto		itFunction = functionsCache.find( Name );
-	if ( itFunction != functionsCache.end() )
-		return itFunction->second;
-
-	void*		function = tcc_get_symbol( tccContext, Name );
-	functionsCache.insert( std::make_pair( Name, function ) );
-
-	return function;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Get var
-// ------------------------------------------------------------------------------------ //
-void* le::Script::GetVar( const char* Name )
-{
-	if ( !tccContext )		return nullptr;
-
-	auto		itVar = varsCache.find( Name );
-	if ( itVar != varsCache.end() )
-		return itVar->second;
-
-	void*		var = tcc_get_symbol( tccContext, Name );
-	varsCache.insert( std::make_pair( Name, var ) );
-
-	return var;
+	if ( luaState )
+	{
+		lua_close( luaState );
+		luaState = nullptr;
+	}
 }

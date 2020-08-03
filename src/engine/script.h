@@ -11,15 +11,11 @@
 #ifndef SCRIPT_H
 #define SCRIPT_H
 
-#include <string>
-#include <vector>
-#include <unordered_map>
-
 #include "engine/iscript.h"
 
 //---------------------------------------------------------------------//
 
-struct TCCState;
+struct lua_State;
 
 //---------------------------------------------------------------------//
 
@@ -38,23 +34,21 @@ namespace le
 		virtual UInt32_t		GetCountReferences() const;
 
 		// IScript
-		virtual bool			Load( const ScriptDescriptor& ScriptDescriptor );
-		virtual void			Unload();
-
-		virtual bool			IsLoaded() const;
-		virtual void*			GetFunction( const char* Name );
-		virtual void*			GetVar( const char* Name );
+		virtual void            Start();
+		virtual void            Update();
 
 		// Script
 		Script();
 		~Script();
 
-	private:
-		UInt32_t										countReferences;
-		TCCState*										tccContext;
+		bool					Load( const char* Path );
+		void					Unload();
 
-		std::unordered_map< std::string, void* >		functionsCache;
-		std::unordered_map< std::string, void* >		varsCache;
+	private:
+		bool					isExistStart;
+		bool					isExistUpdate;
+		UInt32_t				countReferences;
+		lua_State*				luaState;
 	};
 
 	//---------------------------------------------------------------------//
