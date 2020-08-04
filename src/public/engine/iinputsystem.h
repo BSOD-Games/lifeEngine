@@ -24,15 +24,15 @@ namespace le
 	{
 	public:
         virtual ~IInputSystem() {}
-		virtual bool				IsKeyDown( BUTTON_CODE Key ) = 0;
-		virtual bool				IsKeyUp( BUTTON_CODE Key ) = 0;
-		virtual	bool				IsMouseKeyDown( BUTTON_CODE Key ) = 0;
-		virtual	bool				IsMouseKeyUp( BUTTON_CODE Key ) = 0;
-		virtual bool				IsMouseWheel( BUTTON_CODE Wheel ) = 0;
+		virtual bool					IsKeyDown( BUTTON_CODE Key ) = 0;
+		virtual bool					IsKeyUp( BUTTON_CODE Key ) = 0;
+		virtual	bool					IsMouseKeyDown( BUTTON_CODE Key ) = 0;
+		virtual	bool					IsMouseKeyUp( BUTTON_CODE Key ) = 0;
+		virtual bool					IsMouseWheel( BUTTON_CODE Wheel ) = 0;
 
-                virtual const Vector2DInt_t&            GetMousePosition() const = 0;
-                virtual const Vector2DInt_t&            GetMouseOffset() const = 0;
-		virtual float				GetMouseSensitivity() const = 0;
+        virtual const Vector2DInt_t&    GetMousePosition() const = 0;
+        virtual const Vector2DInt_t&    GetMouseOffset() const = 0;
+		virtual float					GetMouseSensitivity() const = 0;
 	};
 
 	//---------------------------------------------------------------------//

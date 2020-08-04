@@ -56,7 +56,8 @@ le::ScriptSystem::~ScriptSystem()
 void le::ScriptSystem::RegisterEngineAPI( lua_State* LuaVM )
 {
 	if ( !LuaVM ) return;
-
-	// Register console system
+	
+	LUAButtonCode::Register( LuaVM );
 	LUAConsoleSystem::Register( LuaVM );
+	LUAInputSystem::Register( LuaVM );
 }
