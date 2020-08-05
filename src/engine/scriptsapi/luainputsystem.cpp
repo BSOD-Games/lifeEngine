@@ -62,6 +62,22 @@ bool le::LUAInputSystem::IsMouseWheel( UInt32_t Wheel )
 }
 
 // ------------------------------------------------------------------------------------ //
+// Get mouse position
+// ------------------------------------------------------------------------------------ //
+le::Vector2DInt_t le::LUAInputSystem::GetMousePosition()
+{
+	return g_inputSystem->GetMousePosition();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get mouse offset
+// ------------------------------------------------------------------------------------ //
+le::Vector2DInt_t le::LUAInputSystem::GetMouseOffset()
+{
+	return g_inputSystem->GetMouseOffset();
+}
+
+// ------------------------------------------------------------------------------------ //
 // Get mouse sensitivity
 // ------------------------------------------------------------------------------------ //
 float le::LUAInputSystem::GetMouseSensitivity()
@@ -83,6 +99,8 @@ void le::LUAInputSystem::Register( lua_State* LuaVM )
 		addStaticFunction( "IsMouseKeyDown", &LUAInputSystem::IsMouseKeyDown ).
 		addStaticFunction( "IsMouseKeyUp", &LUAInputSystem::IsMouseKeyUp ).
 		addStaticFunction( "IsMouseWheel", &LUAInputSystem::IsMouseWheel ).
-		addStaticProperty( "sensitivity", &LUAInputSystem::GetMouseSensitivity ).
+		addStaticFunction( "GetMouseSensitivity", &LUAInputSystem::GetMouseSensitivity ).
+		addStaticFunction( "GetMousePosition", &LUAInputSystem::GetMousePosition ).
+		addStaticFunction( "GetMouseOffset", &LUAInputSystem::GetMouseOffset ).
 		endClass();
 }

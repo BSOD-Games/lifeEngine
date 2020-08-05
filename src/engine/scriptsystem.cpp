@@ -60,4 +60,7 @@ void le::ScriptSystem::RegisterEngineAPI( lua_State* LuaVM )
 	LUAButtonCode::Register( LuaVM );
 	LUAConsoleSystem::Register( LuaVM );
 	LUAInputSystem::Register( LuaVM );
+	LUAVector2D::Register( LuaVM );
+	LUAVector3D::Register( LuaVM );
+	LUAVector4D::Register( LuaVM );
 }

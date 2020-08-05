@@ -8,10 +8,11 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef LUAINPUTSYSTEM_H
-#define LUAINPUTSYSTEM_H
+#ifndef LUAVECTOR4D_H
+#define LUAVECTOR4D_H
 
-#include "common/buttoncode.h"
+#include <string>
+#include "common/types.h"
 
 //---------------------------------------------------------------------//
 
@@ -23,19 +24,20 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class LUAInputSystem
+	class LUAVector4D
 	{
 	public:
-		static void					Register( lua_State* LuaVM );
+		static Vector4D_t			Normalize( const Vector4D_t& Vector );
+		static float				Dot( const Vector4D_t& Left, const Vector4D_t& Right );
 
-		static bool					IsKeyDown( UInt32_t Key );
-		static bool					IsKeyUp( UInt32_t Key );
-		static bool					IsMouseKeyDown( UInt32_t Key );
-		static bool					IsMouseKeyUp( UInt32_t Key );
-		static bool					IsMouseWheel( UInt32_t Wheel );
-		static Vector2DInt_t		GetMousePosition();
-		static Vector2DInt_t		GetMouseOffset();
-		static float				GetMouseSensitivity();
+		static void					Normalize( Vector4D_t* Object );
+		static float				Dot( Vector4D_t* Object, const Vector4D_t& Right );
+		static void					Set( Vector4D_t* Object, float X, float Y, float Z, float W );
+		static void					Set( Vector4DInt_t* Object, int X, int Y, int Z, int W );
+		static std::string			ToString( Vector4D_t* Object );
+		static std::string			ToString( Vector4DInt_t* Object );
+
+		static void					Register( lua_State* LuaVM );
 	};
 
 	//---------------------------------------------------------------------//
@@ -43,4 +45,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !LUAINPUTSYSTEM_H
+#endif // !LUAVECTOR4D_H
