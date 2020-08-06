@@ -14,3 +14,7 @@
 #include "luavector2d.h"
 #include "luavector3d.h"
 #include "luavector4d.h"
+#include "luawindow.h"
+#include "luaimage.h"
+#include "luaresourcesystem.h"
+#include "luacamera.h"

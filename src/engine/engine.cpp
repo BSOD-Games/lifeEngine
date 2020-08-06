@@ -393,7 +393,7 @@ void le::Engine::RunSimulation()
 	}
 
 	IScript*			script = scriptSystem.CreateScript( "script.lua" );
-	script->Start();
+	if ( script ) script->Start();
 
 	consoleSystem.PrintInfo( "*** Run simulation ***" );
 	
@@ -462,7 +462,7 @@ void le::Engine::RunSimulation()
 				inputSystem.Update();
 				physicSystem->Update();
 				materialSystem.Update();
-				script->Update();
+				if ( script ) script->Update();
 
 				inputSystem.Clear();
 			}

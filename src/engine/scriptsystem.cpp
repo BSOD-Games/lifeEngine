@@ -8,6 +8,12 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
+extern "C"
+{
+	#include <lua.h>
+	#include <luajit.h>
+}
+
 #include "global.h"
 #include "engine/consolesystem.h"
 #include "engine/scriptsystem.h"
@@ -35,6 +41,8 @@ le::IScript* le::ScriptSystem::CreateScript( const char* Path ) const
 // ------------------------------------------------------------------------------------ //
 bool le::ScriptSystem::Initialize( le::IEngine* Engine )
 {	
+	g_consoleSystem->PrintInfo( "Lua version: " LUA_VERSION );
+	g_consoleSystem->PrintInfo( "LuaJIT version: " LUAJIT_VERSION );
 	return true;
 }
 
@@ -63,4 +71,8 @@ void le::ScriptSystem::RegisterEngineAPI( lua_State* LuaVM )
 	LUAVector2D::Register( LuaVM );
 	LUAVector3D::Register( LuaVM );
 	LUAVector4D::Register( LuaVM );
+	LUAWindow::Register( LuaVM );
+	LUAImage::Register( LuaVM );
+	LUAResourceSystem::Register( LuaVM );
+	LUACamera::Register( LuaVM );
 }
