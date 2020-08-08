@@ -8,15 +8,18 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef LUAIMAGE_H
-#define LUAIMAGE_H
+#ifndef LUAENUM_H
+#define LUAENUM_H
 
-#include "common/types.h"
+extern "C"
+{
+	#include <lua.h>
+	#include <lauxlib.h>
+	#include <lualib.h>
+}
 
-//---------------------------------------------------------------------//
-
-struct lua_State;
-struct Image;
+#include <string>
+#include <LuaBridge/LuaBridge.h>
 
 //---------------------------------------------------------------------//
 
@@ -24,11 +27,29 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class LUAImage
+	class LuaEnum
 	{
 	public:
-		static void				Register( lua_State* LuaVM );
-		static bool				IsEmpty( Image* Object );
+		LuaEnum( lua_State* LuaVM ) :
+			luaVM( LuaVM ),
+			luaEnum( luabridge::newTable( LuaVM ) )
+		{}
+
+		template< typename T >
+		LuaEnum&				AddValue( const std::string& Name, T Value )
+		{
+			luaEnum[ Name ] = ( int ) Value;
+			return *this;
+		}
+
+		luabridge::LuaRef		GetHandle()
+		{
+			return luaEnum;
+		}
+
+	private:
+		luabridge::LuaRef			luaEnum;
+		lua_State*					luaVM;
 	};
 
 	//---------------------------------------------------------------------//
@@ -36,4 +57,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !LUAIMAGE_H
+#endif // !LUAENUM_H

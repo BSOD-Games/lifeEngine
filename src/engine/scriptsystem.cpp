@@ -65,14 +65,9 @@ void le::ScriptSystem::RegisterEngineAPI( lua_State* LuaVM )
 {
 	if ( !LuaVM ) return;
 	
-	LUAButtonCode::Register( LuaVM );
 	LUAConsoleSystem::Register( LuaVM );
-	LUAInputSystem::Register( LuaVM );
 	LUAVector2D::Register( LuaVM );
 	LUAVector3D::Register( LuaVM );
 	LUAVector4D::Register( LuaVM );
-	LUAWindow::Register( LuaVM );
-	LUAImage::Register( LuaVM );
-	LUAResourceSystem::Register( LuaVM );
-	LUACamera::Register( LuaVM );
+	LUAInputSystem::Register( LuaVM );
 }

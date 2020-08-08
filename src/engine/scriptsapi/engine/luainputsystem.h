@@ -8,10 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef LUAWINDOW_H
-#define LUAWINDOW_H
+#ifndef LUAINPUTSYSTEM_H
+#define LUAINPUTSYSTEM_H
 
-#include "common/types.h"
+#include <string>
 
 //---------------------------------------------------------------------//
 
@@ -23,27 +23,10 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	struct Image;
-
-	//---------------------------------------------------------------------//
-
-	class LUAWindow
+	class LUAInputSystem
 	{
 	public:
 		static void				Register( lua_State* LuaVM );
-		static void				ResetCursor();
-
-		static void				SetTitle( const char* Title );
-		static void				SetIcon( const Image& Image );
-		static void				SetCursor( const Image& Image );
-		static void				SetSize( int Width, int Height );
-		static void				SetShowCursor( bool IsShow = true );
-		static void				SetFullscreen( bool IsFullscreen );
-
-		static bool				IsOpen();
-		static bool				IsShowingCursor();
-		static bool				IsFullscreen();
-		static Vector2D_t		GetSize();
 	};
 
 	//---------------------------------------------------------------------//
@@ -51,4 +34,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !LUAWINDOW_H
+#endif // !LUAINPUTSYSTEM_H

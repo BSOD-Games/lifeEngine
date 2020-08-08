@@ -9,7 +9,7 @@ file( GLOB PROXES_FILES "proxes/*.h" "proxes/*.cpp" )
 file( GLOB SHADERS_FILES "shaders/*.h" "shaders/*.cpp" )						
 file( GLOB PUBLIC_FILES "../public/common/*.h" "../public/engine/*.h" )								
 file( GLOB PRIVATE_FILES "../private/engine/*.h" )		
-file( GLOB SCRIPTSAPI_FILES "scriptsapi/*.h" "scriptsapi/*.cpp" )
+file( GLOB_RECURSE SCRIPTSAPI_FILES "scriptsapi/*.h" "scriptsapi/*.cpp" )
 	
 set( MODULE_NAME engine )
 

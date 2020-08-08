@@ -8,8 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef LUAVECTOR4D_H
-#define LUAVECTOR4D_H
+#ifndef LUAVECTOR2D_H
+#define LUAVECTOR2D_H
 
 #include <string>
 #include "common/types.h"
@@ -24,20 +24,33 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class LUAVector4D
+	class LUAVector2D
 	{
 	public:
-		static Vector4D_t			Normalize( const Vector4D_t& Vector );
-		static float				Dot( const Vector4D_t& Left, const Vector4D_t& Right );
-
-		static void					Normalize( Vector4D_t* Object );
-		static float				Dot( Vector4D_t* Object, const Vector4D_t& Right );
-		static void					Set( Vector4D_t* Object, float X, float Y, float Z, float W );
-		static void					Set( Vector4DInt_t* Object, int X, int Y, int Z, int W );
-		static std::string			ToString( Vector4D_t* Object );
-		static std::string			ToString( Vector4DInt_t* Object );
+		LUAVector2D( Vector2D_t& Copy );
+		LUAVector2D( float X = 0.f, float Y = 0.f );
 
 		static void					Register( lua_State* LuaVM );
+		static LUAVector2D			Normalize( const LUAVector2D& Vector );
+		static float				Dot( const LUAVector2D& Left, const LUAVector2D& Right );
+		void						Normalize();
+		float						Dot(const LUAVector2D& Right );
+		void						Set( float X, float Y );	
+		std::string					ToString();	
+
+		void						SetX( float X );
+		void						SetY( float Y );
+
+		float						GetX() const;
+		float						GetY() const;
+
+		LUAVector2D					operator+( const LUAVector2D& Right );
+		LUAVector2D					operator-( const LUAVector2D& Right );
+		LUAVector2D					operator/( const LUAVector2D& Right );
+		LUAVector2D					operator*( const LUAVector2D& Right );
+
+	private:
+		Vector2D_t					object;
 	};
 
 	//---------------------------------------------------------------------//
@@ -45,4 +58,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !LUAVECTOR4D_H
+#endif // !LUAVECTOR2D_H

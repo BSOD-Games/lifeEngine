@@ -19,7 +19,7 @@ extern "C"
 
 #include "global.h"
 #include "engine/consolesystem.h"
-#include "scriptsapi/luaconsolesystem.h"
+#include "scriptsapi/engine/luaconsolesystem.h"
 
 // ------------------------------------------------------------------------------------ //
 // Execute command
