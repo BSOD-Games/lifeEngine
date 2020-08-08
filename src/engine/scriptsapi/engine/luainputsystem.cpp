@@ -10,9 +10,9 @@
 
 extern "C"
 {
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
+	#include <lua.h>
+	#include <lauxlib.h>
+	#include <lualib.h>
 }
 
 #include <LuaBridge/LuaBridge.h>
@@ -21,6 +21,7 @@ extern "C"
 #include "engine/consolesystem.h"
 #include "engine/inputsystem.h"
 #include "scriptsapi/luaenum.h"
+#include "scriptsapi/mathlib/luavector2d.h"
 #include "scriptsapi/engine/luainputsystem.h"
 
 // ------------------------------------------------------------------------------------ //
@@ -29,7 +30,7 @@ extern "C"
 void le::LUAInputSystem::Register( lua_State* LuaVM )
 {
 	if ( !LuaVM )		return;
-
+	
 	// Register ButtonCode enums
 	LuaEnum			luaButtonCode( LuaVM );
 	luaButtonCode.AddValue( "None", BC_NONE ).
@@ -151,4 +152,81 @@ void le::LUAInputSystem::Register( lua_State* LuaVM )
 		AddValue( "MouseMiddle", BC_MOUSE_MIDDLE );
 
 	luabridge::setGlobal( LuaVM, luaButtonCode.GetHandle(), "ButtonCode" );
+
+	// Registern input system
+	luabridge::getGlobalNamespace( LuaVM ).
+		beginClass<LUAInputSystem>( "InputSystem" ).
+		addStaticFunction( "IsKeyDown", &LUAInputSystem::IsKeyDown ).
+		addStaticFunction( "IsKeyUp", &LUAInputSystem::IsKeyUp ).
+		addStaticFunction( "IsMouseKeyDown", &LUAInputSystem::IsMouseKeyDown ).
+		addStaticFunction( "IsMouseKeyUp", &LUAInputSystem::IsMouseKeyUp ).
+		addStaticFunction( "IsMouseWheel", &LUAInputSystem::IsMouseWheel ).
+		addStaticFunction( "GetMousePosition", &LUAInputSystem::GetMousePosition ).
+		addStaticFunction( "GetMouseOffset", &LUAInputSystem::GetMouseOffset ).
+		addStaticFunction( "GetMouseSensitivity", &LUAInputSystem::GetMouseSensitivity ).
+		endClass();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Is key down
+// ------------------------------------------------------------------------------------ //
+bool le::LUAInputSystem::IsKeyDown( UInt32_t Key )
+{
+	return g_inputSystem->IsKeyDown( ( BUTTON_CODE ) Key );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Is key up
+// ------------------------------------------------------------------------------------ //
+bool le::LUAInputSystem::IsKeyUp( UInt32_t Key )
+{
+	return g_inputSystem->IsKeyUp( ( BUTTON_CODE ) Key );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Is mouse key down
+// ------------------------------------------------------------------------------------ //
+bool le::LUAInputSystem::IsMouseKeyDown( UInt32_t Key )
+{
+	return g_inputSystem->IsMouseKeyDown( ( BUTTON_CODE ) Key );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Is mouse key up
+// ------------------------------------------------------------------------------------ //
+bool le::LUAInputSystem::IsMouseKeyUp( UInt32_t Key )
+{
+	return g_inputSystem->IsMouseKeyUp( ( BUTTON_CODE ) Key );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Is mouse wheel
+// ------------------------------------------------------------------------------------ //
+bool le::LUAInputSystem::IsMouseWheel( UInt32_t Wheel )
+{
+	return g_inputSystem->IsMouseWheel( ( BUTTON_CODE ) Wheel );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get mouse position
+// ------------------------------------------------------------------------------------ //
+le::LUAVector2D le::LUAInputSystem::GetMousePosition()
+{
+	return LUAVector2D( g_inputSystem->GetMousePosition() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get mouse offset
+// ------------------------------------------------------------------------------------ //
+le::LUAVector2D le::LUAInputSystem::GetMouseOffset()
+{
+	return LUAVector2D( g_inputSystem->GetMouseOffset() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get mouse sensitivity
+// ------------------------------------------------------------------------------------ //
+float le::LUAInputSystem::GetMouseSensitivity()
+{
+	return g_inputSystem->GetMouseSensitivity();
 }

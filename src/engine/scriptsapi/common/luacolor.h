@@ -8,8 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef LUAVECTOR2D_H
-#define LUAVECTOR2D_H
+#ifndef LUACOLOR_H
+#define LUACOLOR_H
 
 #include <string>
 #include "common/types.h"
@@ -24,35 +24,34 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class LUAVector2D
+	class LUAColor
 	{
 	public:
-		LUAVector2D( const Vector2D_t& Copy );
-		LUAVector2D( const Vector2DInt_t& Copy );
-		LUAVector2D( float X = 0.f, float Y = 0.f );
+		LUAColor( const Vector4D_t& Copy );
+		LUAColor( float R = 0.f, float G = 0.f, float B = 0.f, float A = 0.f );
 
 		static void					Register( lua_State* LuaVM );
-		static LUAVector2D			Normalize( const LUAVector2D& Vector );
-		static float				Dot( const LUAVector2D& Left, const LUAVector2D& Right );
-		void						Normalize();
-		float						Dot(const LUAVector2D& Right );
-		void						Set( float X, float Y );	
+		void						Set( float R, float G, float B, float A );
 		std::string					ToString();	
 
-		void						SetX( float X );
-		void						SetY( float Y );
+		void						SetR( float R );
+		void						SetG( float G );
+		void						SetB( float B );
+		void						SetA( float A );
 
-		float						GetX() const;
-		float						GetY() const;
-		inline const Vector2D_t&	GetHandle() const			{ return object; }
+		float						GetR() const;
+		float						GetG() const;
+		float						GetB() const;
+		float						GetA() const;
+		inline const Color_t&		GetHandle() const		{ return object; }
 
-		LUAVector2D					operator+( const LUAVector2D& Right );
-		LUAVector2D					operator-( const LUAVector2D& Right );
-		LUAVector2D					operator/( const LUAVector2D& Right );
-		LUAVector2D					operator*( const LUAVector2D& Right );
+		LUAColor					operator+( const LUAColor& Right );
+		LUAColor					operator-( const LUAColor& Right );
+		LUAColor					operator/( const LUAColor& Right );
+		LUAColor					operator*( const LUAColor& Right );
 
 	private:
-		Vector2D_t					object;
+		Color_t					object;
 	};
 
 	//---------------------------------------------------------------------//
@@ -60,4 +59,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !LUAVECTOR2D_H
+#endif // !LUACOLOR_H

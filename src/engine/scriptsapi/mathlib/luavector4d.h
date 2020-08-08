@@ -27,7 +27,7 @@ namespace le
 	class LUAVector4D
 	{
 	public:
-		LUAVector4D( Vector4D_t& Copy );
+		LUAVector4D( const Vector4D_t& Copy );
 		LUAVector4D( float X = 0.f, float Y = 0.f, float Z = 0.f, float W = 0.f );
 
 		static void					Register( lua_State* LuaVM );
@@ -47,6 +47,7 @@ namespace le
 		float						GetY() const;
 		float						GetZ() const;
 		float						GetW() const;
+		inline const Vector4D_t&	GetHandle() const		{ return object; }
 
 		LUAVector4D					operator+( const LUAVector4D& Right );
 		LUAVector4D					operator-( const LUAVector4D& Right );

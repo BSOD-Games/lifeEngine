@@ -10,203 +10,222 @@
 
 extern "C"
 {
-    #include <lua.h>
-    #include <lauxlib.h>
-    #include <lualib.h>
+	#include <lua.h>
+	#include <lauxlib.h>
+	#include <lualib.h>
 }
 
 #include <LuaBridge/LuaBridge.h>
 
 #include "global.h"
-#include "common/types.h"
-#include "engine/inputsystem.h"
+#include "engine/model.h"
 #include "scriptsapi/mathlib/luavector3d.h"
+#include "scriptsapi/studiorender/luamesh.h"
+#include "scriptsapi/engine/luamodel.h"
 
 // ------------------------------------------------------------------------------------ //
-// Register vector 3d
+// Register model in LUA
 // ------------------------------------------------------------------------------------ //
-void le::LUAVector3D::Register( lua_State* LuaVM )
+void le::LUAModel::Register( lua_State* LuaVM )
 {
 	if ( !LuaVM )		return;
 
-	// Register Vector 2D
+	// Registern input system
 	luabridge::getGlobalNamespace( LuaVM ).
-		beginClass<LUAVector3D>( "Vector3D" ).
-		addConstructor< void (*) () >().
-		addProperty( "x", &LUAVector3D::GetX, &LUAVector3D::SetX ).
-		addProperty( "y", &LUAVector3D::GetY, &LUAVector3D::SetY ).
-		addProperty( "z", &LUAVector3D::GetZ, &LUAVector3D::SetZ ).
-		addFunction( "Normalize", &LUAVector3D::Normalize ).
-		addFunction( "Dot", &LUAVector3D::Dot ).
-		addFunction( "Cross", &LUAVector3D::Cross ).
-		addFunction( "Set", &LUAVector3D::Set ).
-		addFunction( "__tostring", &LUAVector3D::ToString ).
-		addFunction( "__add", ( LUAVector3D ( LUAVector3D::* )( const LUAVector3D& ) ) &LUAVector3D::operator+ ).
-		addFunction( "__sub", ( LUAVector3D ( LUAVector3D::* )( const LUAVector3D& ) ) &LUAVector3D::operator- ).
-		addFunction( "__mul", ( LUAVector3D ( LUAVector3D::* )( const LUAVector3D& ) ) &LUAVector3D::operator* ).
-		addFunction( "__div", ( LUAVector3D ( LUAVector3D::* )( const LUAVector3D& ) ) &LUAVector3D::operator/ ).
-		addStaticFunction( "Normalize", ( LUAVector3D (*) ( const LUAVector3D& ) ) &LUAVector3D::Normalize ).
-		addStaticFunction( "Dot", ( float (*) ( const LUAVector3D&, const LUAVector3D& ) ) &LUAVector3D::Dot ).
-		addStaticFunction( "Cross", ( LUAVector3D (*) ( const LUAVector3D&, const LUAVector3D& ) ) &LUAVector3D::Cross ).
+		beginClass<LUAModel>( "Model" ).
+		addConstructor< void (*)() >().
+		addFunction( "Move", &LUAModel::Move ).
+		addFunction( "Rotate", &LUAModel::Rotate ).
+		addFunction( "Scale", &LUAModel::Scale ).
+		addFunction( "SetPosition", &LUAModel::SetPosition ).
+		addFunction( "SetRotation", &LUAModel::SetRotation ).
+		addFunction( "SetScale", &LUAModel::SetScale ).
+		addFunction( "SetMesh", &LUAModel::SetMesh ).
+		addFunction( "SetMin", &LUAModel::SetMin ).
+		addFunction( "SetMax", &LUAModel::SetMax ).
+		addFunction( "SetStartFace", &LUAModel::SetStartFace ).
+		addFunction( "SetCountFace", &LUAModel::SetCountFace ).
+		addFunction( "GetPosition", &LUAModel::GetPosition ).
+		addFunction( "GetScale", &LUAModel::GetScale ).
+		addFunction( "GetMesh", &LUAModel::GetMesh ).
+		addFunction( "GetMin", &LUAModel::GetMin ).
+		addFunction( "GetMax", &LUAModel::GetMax ).
+		addFunction( "GetStartFace", &LUAModel::GetStartFace ).
+		addFunction( "GetCountFace", &LUAModel::GetCountFace ).
 		endClass();
 }
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D::LUAVector3D( const Vector3D_t& Copy ) :
-	object( Copy.x, Copy.y, Copy.z )
-{}
+le::LUAModel::LUAModel() :
+	object( new Model() )
+{
+	object->IncrementReference();
+}
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D::LUAVector3D( float X, float Y, float Z ) :
-	object( X, Y, Z )
-{}
-
-// ------------------------------------------------------------------------------------ //
-// Normalize vector
-// ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAVector3D::Normalize( const LUAVector3D& Vector )
-{
-	return LUAVector3D( glm::normalize( Vector.object ) );
+le::LUAModel::LUAModel( const LUAModel& Copy ) :
+	object( Copy.object )
+{	
+	if ( object ) object->IncrementReference();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Dot
+// Destructor
 // ------------------------------------------------------------------------------------ //
-float le::LUAVector3D::Dot( const LUAVector3D& Left, const LUAVector3D& Right )
+le::LUAModel::~LUAModel()
 {
-	return glm::dot( Left.object, Right.object );
+	if ( !object )		return;
+
+	if ( object->GetCountReferences() <= 1 )
+		object->Release();
+	else
+		object->DecrementReference();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Cross
+// Move
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAVector3D::Cross( const LUAVector3D& Left, const LUAVector3D& Right )
+void le::LUAModel::Move( const LUAVector3D& FactorMove )
 {
-	return glm::cross( Left.object, Right.object );
+	object->Move( FactorMove.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Normalize vector
+// Rotate
 // ------------------------------------------------------------------------------------ //
-void le::LUAVector3D::Normalize()
+void le::LUAModel::Rotate( const LUAVector3D& FactorRotate )
 {
-	object = glm::normalize( object );
+	object->Rotate( FactorRotate.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Dot
+// Scale
 // ------------------------------------------------------------------------------------ //
-float le::LUAVector3D::Dot( const LUAVector3D& Right )
+void le::LUAModel::Scale( const LUAVector3D& FactorScale )
 {
-	return glm::dot( object, Right.object );
+	object->Scale( FactorScale.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Cross
+// Set position
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAVector3D::Cross( const LUAVector3D& Right )
+void le::LUAModel::SetPosition( const LUAVector3D& Position )
 {
-	return glm::cross( object, Right.object );
+	object->SetPosition( Position.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set x and y
+// Set rotation
 // ------------------------------------------------------------------------------------ //
-void le::LUAVector3D::Set( float X, float Y, float Z )
+void le::LUAModel::SetRotation( const LUAVector3D& Rotation )
 {
-	object.x = X;
-	object.y = Y;
-	object.z = Z;
+	object->SetRotation( Rotation.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Convert to string
+// Set scale
 // ------------------------------------------------------------------------------------ //
-std::string le::LUAVector3D::ToString()
+void le::LUAModel::SetScale( const LUAVector3D& Scale )
 {
-	return std::to_string( object.x ) + ", " + std::to_string( object.y ) + ", " + std::to_string( object.z );
+	object->SetScale( Scale.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set x
+// Set mesh
 // ------------------------------------------------------------------------------------ //
-void le::LUAVector3D::SetX( float X )
+void le::LUAModel::SetMesh( const LUAMesh& Mesh )
 {
-	object.x = X;
+	object->SetMesh( Mesh.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set y
+// Set min
 // ------------------------------------------------------------------------------------ //
-void le::LUAVector3D::SetY( float Y )
+void le::LUAModel::SetMin( const LUAVector3D& MinPosition )
 {
-	object.y = Y;
+	object->SetMin( MinPosition.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set x
+// Set max
 // ------------------------------------------------------------------------------------ //
-void le::LUAVector3D::SetZ( float Z )
+void le::LUAModel::SetMax( const LUAVector3D& MaxPosition )
 {
-	object.z = Z;
+	object->SetMax( MaxPosition.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get x
+// Set start face
 // ------------------------------------------------------------------------------------ //
-float le::LUAVector3D::GetX() const
+void le::LUAModel::SetStartFace( UInt32_t StartFace )
 {
-	return object.x;
+	object->SetStartFace( StartFace );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get y
+// Set count face
 // ------------------------------------------------------------------------------------ //
-float le::LUAVector3D::GetY() const
+void le::LUAModel::SetCountFace( UInt32_t CountFace )
 {
-	return object.y;
+	object->SetCountFace( CountFace );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get z
+// Get position
 // ------------------------------------------------------------------------------------ //
-float le::LUAVector3D::GetZ() const
+le::LUAVector3D le::LUAModel::GetPosition() const
 {
-	return object.z;
+	return LUAVector3D( object->GetPosition() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// operator +
+// Get scale
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAVector3D::operator+( const LUAVector3D& Right )
+le::LUAVector3D le::LUAModel::GetScale() const
 {
-	return LUAVector3D( object + Right.object );
+	return LUAVector3D( object->GetScale() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// operator -
+// Get mesh
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAVector3D::operator-( const LUAVector3D& Right )
+le::LUAMesh le::LUAModel::GetMesh()
 {
-	return LUAVector3D( object - Right.object );
+	return LUAMesh( object->GetMesh() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// operator /
+// Get min
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAVector3D::operator/( const LUAVector3D& Right )
+le::LUAVector3D le::LUAModel::GetMin()
 {
-	return LUAVector3D( object / Right.object );
+	return LUAVector3D( object->GetMin() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// operator *
+// Get max
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAVector3D::operator*( const LUAVector3D& Right )
+le::LUAVector3D le::LUAModel::GetMax()
 {
-	return LUAVector3D( object * Right.object );
+	return LUAVector3D( object->GetMax() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get start face
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::LUAModel::GetStartFace() const
+{
+	return object->GetStartFace();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get count face
+// ------------------------------------------------------------------------------------ //
+le::UInt32_t le::LUAModel::GetCountFace() const
+{
+	return object->GetCountFace();
 }

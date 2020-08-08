@@ -8,11 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef LUAINPUTSYSTEM_H
-#define LUAINPUTSYSTEM_H
-
-#include <string>
-#include "common/buttoncode.h"
+#ifndef LUAMESH_H
+#define LUAMESH_H
 
 //---------------------------------------------------------------------//
 
@@ -24,23 +21,24 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class LUAVector2D;
+	class IMesh;
 
 	//---------------------------------------------------------------------//
 
-	class LUAInputSystem
+	class LUAMesh
 	{
 	public:
 		static void				Register( lua_State* LuaVM );
-		static bool				IsKeyDown( UInt32_t Key );
-		static bool				IsKeyUp( UInt32_t Key );
-		static bool				IsMouseKeyDown( UInt32_t Key );
-		static bool				IsMouseKeyUp( UInt32_t Key );
-		static bool				IsMouseWheel( UInt32_t Wheel );
 
-		static LUAVector2D		GetMousePosition();
-		static LUAVector2D		GetMouseOffset();
-		static float			GetMouseSensitivity();
+		LUAMesh();
+		LUAMesh( IMesh* Object );
+		LUAMesh( const LUAMesh& Copy );
+		~LUAMesh();
+		
+		inline IMesh*			GetHandle() const { return object; }
+
+	private:
+		IMesh*				object;
 	};
 
 	//---------------------------------------------------------------------//
@@ -48,4 +46,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !LUAINPUTSYSTEM_H
+#endif // !LUAMESH_H

@@ -17,6 +17,11 @@
 
 struct lua_State;
 
+namespace luabridge
+{
+	class LuaRef;
+}
+
 //---------------------------------------------------------------------//
 
 namespace le
@@ -36,6 +41,7 @@ namespace le
 		// IScript
 		virtual void            Start();
 		virtual void            Update();
+		virtual void            Render();
 
 		// Script
 		Script();
@@ -45,10 +51,11 @@ namespace le
 		void					Unload();
 
 	private:
-		bool					isExistStart;
-		bool					isExistUpdate;
-		UInt32_t				countReferences;
+		UInt32_t				countReferences;		
 		lua_State*				luaState;
+		luabridge::LuaRef*		luaStartFn;
+		luabridge::LuaRef*		luaUpdateFn;
+		luabridge::LuaRef*		luaRenderFn;
 	};
 
 	//---------------------------------------------------------------------//

@@ -8,11 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef LUAINPUTSYSTEM_H
-#define LUAINPUTSYSTEM_H
+#ifndef LUAIMAGE_H
+#define LUAIMAGE_H
 
-#include <string>
-#include "common/buttoncode.h"
+#include "common/image.h"
 
 //---------------------------------------------------------------------//
 
@@ -24,23 +23,27 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class LUAVector2D;
-
-	//---------------------------------------------------------------------//
-
-	class LUAInputSystem
+	class LUAImage
 	{
 	public:
 		static void				Register( lua_State* LuaVM );
-		static bool				IsKeyDown( UInt32_t Key );
-		static bool				IsKeyUp( UInt32_t Key );
-		static bool				IsMouseKeyDown( UInt32_t Key );
-		static bool				IsMouseKeyUp( UInt32_t Key );
-		static bool				IsMouseWheel( UInt32_t Wheel );
 
-		static LUAVector2D		GetMousePosition();
-		static LUAVector2D		GetMouseOffset();
-		static float			GetMouseSensitivity();
+		LUAImage();
+		LUAImage( const Image& Copy );
+		
+		bool					IsEmpty() const;
+		UInt32_t				GetWidth() const;
+		UInt32_t				GetHeight() const;
+		UInt32_t				GetDepth() const;
+		UInt32_t				GetPitch() const;
+		UInt32_t				GetRMask() const;
+		UInt32_t				GetGMask() const;
+		UInt32_t				GetBMask() const;
+		UInt32_t				GetAMask() const;
+		inline const Image&		GetHandle() const		{ return image; }
+
+	private:
+		Image					image;
 	};
 
 	//---------------------------------------------------------------------//
@@ -48,4 +51,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !LUAINPUTSYSTEM_H
+#endif // !LUAIMAGE_H

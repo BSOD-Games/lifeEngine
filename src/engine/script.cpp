@@ -65,8 +65,8 @@ void le::Script::Start()
 {
 	try
 	{
-		if ( !isExistStart )		return;
-		luabridge::getGlobal( luaState, "Start" )( );
+		if ( !luaStartFn )		return;
+		( *luaStartFn )( );
 	}
 	catch ( std::exception& Exception )
 	{
@@ -81,8 +81,24 @@ void le::Script::Update()
 {
 	try
 	{
-		if ( !isExistUpdate )		return;
-		luabridge::getGlobal( luaState, "Update" )( );
+		if ( !luaUpdateFn )		return;
+		( *luaUpdateFn )( );
+	}
+	catch ( std::exception& Exception )
+	{
+		g_consoleSystem->PrintError( Exception.what() );
+	}
+}
+
+// ------------------------------------------------------------------------------------ //
+// Call function "Render" from script
+// ------------------------------------------------------------------------------------ //
+void le::Script::Render()
+{
+	try
+	{
+		if ( !luaRenderFn )		return;
+		( *luaRenderFn )( );
 	}
 	catch ( std::exception& Exception )
 	{
@@ -95,9 +111,10 @@ void le::Script::Update()
 // ------------------------------------------------------------------------------------ //
 le::Script::Script() :
 	countReferences( 0 ),
-	isExistStart( false ),
-	isExistUpdate( false ),
-	luaState( nullptr )
+	luaState( nullptr ),
+	luaStartFn( nullptr ),
+	luaUpdateFn( nullptr ),
+	luaRenderFn( nullptr )
 {}
 
 // ------------------------------------------------------------------------------------ //
@@ -180,8 +197,9 @@ bool le::Script::Load( const char* Path )
 			throw std::runtime_error( errorMessage );
 		}
 
-		isExistStart = !luabridge::getGlobal( luaState, "Start" ).isNil();
-		isExistUpdate = !luabridge::getGlobal( luaState, "Update" ).isNil();
+		luaStartFn = new luabridge::LuaRef( luabridge::getGlobal( luaState, "Start" ) ) ;
+		luaUpdateFn = new luabridge::LuaRef( luabridge::getGlobal( luaState, "Update" ) );
+		luaRenderFn = new luabridge::LuaRef( luabridge::getGlobal( luaState, "Render" ) );
 		return true;
 	}
 	catch ( std::exception& Exception )
@@ -202,4 +220,8 @@ void le::Script::Unload()
 		lua_close( luaState );
 		luaState = nullptr;
 	}
+
+	luaStartFn = nullptr;
+	luaUpdateFn = nullptr;
+	luaRenderFn = nullptr;
 }

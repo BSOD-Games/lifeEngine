@@ -8,11 +8,10 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef LUAINPUTSYSTEM_H
-#define LUAINPUTSYSTEM_H
+#ifndef LUARAY_H
+#define LUARAY_H
 
-#include <string>
-#include "common/buttoncode.h"
+#include "scriptsapi/mathlib/luavector3d.h"
 
 //---------------------------------------------------------------------//
 
@@ -24,23 +23,21 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class LUAVector2D;
+	struct Ray;
 
 	//---------------------------------------------------------------------//
 
-	class LUAInputSystem
+	struct LUARay
 	{
 	public:
 		static void				Register( lua_State* LuaVM );
-		static bool				IsKeyDown( UInt32_t Key );
-		static bool				IsKeyUp( UInt32_t Key );
-		static bool				IsMouseKeyDown( UInt32_t Key );
-		static bool				IsMouseKeyUp( UInt32_t Key );
-		static bool				IsMouseWheel( UInt32_t Wheel );
 
-		static LUAVector2D		GetMousePosition();
-		static LUAVector2D		GetMouseOffset();
-		static float			GetMouseSensitivity();
+		LUARay( Ray& Ray );
+		LUARay( const LUAVector3D& Origin = LUAVector3D(), const LUAVector3D& Direction = LUAVector3D() );
+		void				Set( const LUAVector3D& Origin, const LUAVector3D& Direction );
+
+		LUAVector3D			origin;
+		LUAVector3D			direction;
 	};
 
 	//---------------------------------------------------------------------//
@@ -48,4 +45,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !LUAINPUTSYSTEM_H
+#endif // !LUARAY_H

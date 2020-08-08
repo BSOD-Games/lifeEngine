@@ -70,4 +70,15 @@ void le::ScriptSystem::RegisterEngineAPI( lua_State* LuaVM )
 	LUAVector3D::Register( LuaVM );
 	LUAVector4D::Register( LuaVM );
 	LUAInputSystem::Register( LuaVM );
+	LUAConCmd::Register( LuaVM );
+	LUAImage::Register( LuaVM );
+	LUAWindow::Register( LuaVM );
+	LUARay::Register( LuaVM );
+	LUACamera::Register( LuaVM );
+	LUAShaderParameter::Register( LuaVM );
+	LUAColor::Register( LuaVM );
+	LUAResourceSystem::Register( LuaVM );
+	LUAMesh::Register( LuaVM );
+	LUAModel::Register( LuaVM );
+	LUAStudioRender::Register( LuaVM );
 }

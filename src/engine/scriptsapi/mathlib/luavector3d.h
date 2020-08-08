@@ -27,7 +27,7 @@ namespace le
 	class LUAVector3D
 	{
 	public:
-		LUAVector3D( Vector3D_t& Copy );
+		LUAVector3D( const Vector3D_t& Copy );
 		LUAVector3D( float X = 0.f, float Y = 0.f, float Z = 0.f );
 
 		static void					Register( lua_State* LuaVM );
@@ -47,6 +47,7 @@ namespace le
 		float						GetX() const;
 		float						GetY() const;
 		float						GetZ() const;
+		inline const Vector3D_t&	GetHandle() const			{ return object; }
 
 		LUAVector3D					operator+( const LUAVector3D& Right );
 		LUAVector3D					operator-( const LUAVector3D& Right );

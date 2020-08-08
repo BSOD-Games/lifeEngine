@@ -18,166 +18,157 @@ extern "C"
 #include <LuaBridge/LuaBridge.h>
 
 #include "global.h"
-#include "common/types.h"
-#include "engine/inputsystem.h"
-#include "scriptsapi/mathlib/luavector2d.h"
+#include "scriptsapi/common/luacolor.h"
 
 // ------------------------------------------------------------------------------------ //
-// Register vector 2d
+// Register color
 // ------------------------------------------------------------------------------------ //
-void le::LUAVector2D::Register( lua_State* LuaVM )
+void le::LUAColor::Register( lua_State* LuaVM )
 {
 	if ( !LuaVM )		return;
 
-	// Register Vector 2D
+	// Register Vector 4D
 	luabridge::getGlobalNamespace( LuaVM ).
-		beginClass<LUAVector2D>( "Vector2D" ).
+		beginClass<LUAColor>( "Color" ).
 		addConstructor< void (*) () >().
-		addProperty( "x", &LUAVector2D::GetX, &LUAVector2D::SetX ).
-		addProperty( "y", &LUAVector2D::GetY, &LUAVector2D::SetY ).
-		addFunction( "Normalize", &LUAVector2D::Normalize ).
-		addFunction( "Dot", &LUAVector2D::Dot ).
-		addFunction( "Set", &LUAVector2D::Set ).
-		addFunction( "__tostring", &LUAVector2D::ToString ).
-		addFunction( "__add", ( LUAVector2D ( LUAVector2D::* )( const LUAVector2D& ) ) &LUAVector2D::operator+ ).
-		addFunction( "__sub", ( LUAVector2D ( LUAVector2D::* )( const LUAVector2D& ) ) &LUAVector2D::operator- ).
-		addFunction( "__mul", ( LUAVector2D ( LUAVector2D::* )( const LUAVector2D& ) ) &LUAVector2D::operator* ).
-		addFunction( "__div", ( LUAVector2D ( LUAVector2D::* )( const LUAVector2D& ) ) &LUAVector2D::operator/ ).
-		addStaticFunction( "Normalize", ( LUAVector2D (*) ( const LUAVector2D& ) ) &LUAVector2D::Normalize ).
-		addStaticFunction( "Dot", ( float (*) ( const LUAVector2D&, const LUAVector2D& ) ) &LUAVector2D::Dot ).
+		addProperty( "x", &LUAColor::GetR, &LUAColor::SetR ).
+		addProperty( "y", &LUAColor::GetG, &LUAColor::SetG ).
+		addProperty( "z", &LUAColor::GetB, &LUAColor::SetB ).
+		addProperty( "w", &LUAColor::GetA, &LUAColor::SetA ).
+		addFunction( "Set", &LUAColor::Set ).
+		addFunction( "__tostring", &LUAColor::ToString ).
+		addFunction( "__add", ( LUAColor ( LUAColor::* )( const LUAColor& ) ) &LUAColor::operator+ ).
+		addFunction( "__sub", ( LUAColor ( LUAColor::* )( const LUAColor& ) ) &LUAColor::operator- ).
+		addFunction( "__mul", ( LUAColor ( LUAColor::* )( const LUAColor& ) ) &LUAColor::operator* ).
+		addFunction( "__div", ( LUAColor ( LUAColor::* )( const LUAColor& ) ) &LUAColor::operator/ ).
 		endClass();
 }
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
-le::LUAVector2D::LUAVector2D( const Vector2D_t& Copy ) :
-	object( Copy.x, Copy.y )
+le::LUAColor::LUAColor( const Color_t& Copy ) :
+	object( Copy.r, Copy.g, Copy.b, Copy.a )
 {}
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
-le::LUAVector2D::LUAVector2D( const Vector2DInt_t& Copy ) :
-	object( Copy.x, Copy.y )
+le::LUAColor::LUAColor( float R, float G, float B, float A ) :
+	object( R, G, B, A )
 {}
-
-// ------------------------------------------------------------------------------------ //
-// Constructor
-// ------------------------------------------------------------------------------------ //
-le::LUAVector2D::LUAVector2D( float X, float Y ) :
-	object( X, Y )
-{}
-
-// ------------------------------------------------------------------------------------ //
-// Normalize vector
-// ------------------------------------------------------------------------------------ //
-le::LUAVector2D le::LUAVector2D::Normalize( const LUAVector2D& Vector )
-{
-	return LUAVector2D( glm::normalize( Vector.object ) );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Dot
-// ------------------------------------------------------------------------------------ //
-float le::LUAVector2D::Dot( const LUAVector2D& Left, const LUAVector2D& Right )
-{
-	return glm::dot( Left.object, Right.object );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Normalize vector
-// ------------------------------------------------------------------------------------ //
-void le::LUAVector2D::Normalize()
-{
-	object = glm::normalize( object );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Dot
-// ------------------------------------------------------------------------------------ //
-float le::LUAVector2D::Dot( const LUAVector2D& Right )
-{
-	return glm::dot( object, Right.object );
-}
 
 // ------------------------------------------------------------------------------------ //
 // Set x and y
 // ------------------------------------------------------------------------------------ //
-void le::LUAVector2D::Set( float X, float Y )
+void le::LUAColor::Set( float R, float G, float B, float A )
 {
-	object.x = X;
-	object.y = Y;
+	object.r = R;
+	object.g = G;
+	object.b = B;
+	object.a = A;
 }
 
 // ------------------------------------------------------------------------------------ //
 // Convert to string
 // ------------------------------------------------------------------------------------ //
-std::string le::LUAVector2D::ToString()
+std::string le::LUAColor::ToString()
 {
-	return std::to_string( object.x ) + ", " + std::to_string( object.y );
+	return std::to_string( object.r ) + ", " + std::to_string( object.g ) + ", " + std::to_string( object.b ) + ", " + std::to_string( object.a );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set x
+// Set r
 // ------------------------------------------------------------------------------------ //
-void le::LUAVector2D::SetX( float X )
+void le::LUAColor::SetR( float R )
 {
-	object.x = X;
+	object.r = R;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set y
+// Set G
 // ------------------------------------------------------------------------------------ //
-void le::LUAVector2D::SetY( float Y )
+void le::LUAColor::SetG( float G )
 {
-	object.y = Y;
+	object.g = G;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get x
+// Set b
 // ------------------------------------------------------------------------------------ //
-float le::LUAVector2D::GetX() const
+void le::LUAColor::SetB( float B )
 {
-	return object.x;
+	object.b = B;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get y
+// Set a
 // ------------------------------------------------------------------------------------ //
-float le::LUAVector2D::GetY() const
+void le::LUAColor::SetA( float A )
 {
-	return object.y;
+	object.a = A;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get r
+// ------------------------------------------------------------------------------------ //
+float le::LUAColor::GetR() const
+{
+	return object.r;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get g
+// ------------------------------------------------------------------------------------ //
+float le::LUAColor::GetG() const
+{
+	return object.g;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get b
+// ------------------------------------------------------------------------------------ //
+float le::LUAColor::GetB() const
+{
+	return object.b;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get a
+// ------------------------------------------------------------------------------------ //
+float le::LUAColor::GetA() const
+{
+	return object.a;
 }
 
 // ------------------------------------------------------------------------------------ //
 // operator +
 // ------------------------------------------------------------------------------------ //
-le::LUAVector2D le::LUAVector2D::operator+( const LUAVector2D& Right )
+le::LUAColor le::LUAColor::operator+( const LUAColor& Right )
 {
-	return LUAVector2D( object + Right.object );
+	return LUAColor( object + Right.object );
 }
 
 // ------------------------------------------------------------------------------------ //
 // operator -
 // ------------------------------------------------------------------------------------ //
-le::LUAVector2D le::LUAVector2D::operator-( const LUAVector2D& Right )
+le::LUAColor le::LUAColor::operator-( const LUAColor& Right )
 {
-	return LUAVector2D( object - Right.object );
+	return LUAColor( object - Right.object );
 }
 
 // ------------------------------------------------------------------------------------ //
 // operator /
 // ------------------------------------------------------------------------------------ //
-le::LUAVector2D le::LUAVector2D::operator/( const LUAVector2D& Right )
+le::LUAColor le::LUAColor::operator/( const LUAColor& Right )
 {
-	return LUAVector2D( object / Right.object );
+	return LUAColor( object / Right.object );
 }
 
 // ------------------------------------------------------------------------------------ //
 // operator *
 // ------------------------------------------------------------------------------------ //
-le::LUAVector2D le::LUAVector2D::operator*( const LUAVector2D& Right )
+le::LUAColor le::LUAColor::operator*( const LUAColor& Right )
 {
-	return LUAVector2D( object * Right.object );
+	return LUAColor( object * Right.object );
 }

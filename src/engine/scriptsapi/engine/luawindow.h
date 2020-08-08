@@ -8,11 +8,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef LUAINPUTSYSTEM_H
-#define LUAINPUTSYSTEM_H
-
-#include <string>
-#include "common/buttoncode.h"
+#ifndef LUAWINDOW_H
+#define LUAWINDOW_H
 
 //---------------------------------------------------------------------//
 
@@ -25,22 +22,27 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	class LUAVector2D;
+	class LUAImage;
 
 	//---------------------------------------------------------------------//
 
-	class LUAInputSystem
+	class LUAWindow
 	{
 	public:
 		static void				Register( lua_State* LuaVM );
-		static bool				IsKeyDown( UInt32_t Key );
-		static bool				IsKeyUp( UInt32_t Key );
-		static bool				IsMouseKeyDown( UInt32_t Key );
-		static bool				IsMouseKeyUp( UInt32_t Key );
-		static bool				IsMouseWheel( UInt32_t Wheel );
+		static void				ResetCursor();
 
-		static LUAVector2D		GetMousePosition();
-		static LUAVector2D		GetMouseOffset();
-		static float			GetMouseSensitivity();
+		static void				SetTitle( const char* Title );
+		static void				SetIcon( const LUAImage& Image );
+		static void				SetCursor( const LUAImage& Image );
+		static void				SetSize( int Width, int Height );
+		static void				SetShowCursor( bool IsShow = true );
+		static void				SetFullscreen( bool IsFullscreen );
+
+		static bool				IsOpen();
+		static bool				IsShowingCursor();
+		static bool				IsFullscreen();
+		static LUAVector2D		GetSize();
 	};
 
 	//---------------------------------------------------------------------//
@@ -48,4 +50,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !LUAINPUTSYSTEM_H
+#endif // !LUACONCMD_H

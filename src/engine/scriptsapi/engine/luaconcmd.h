@@ -8,11 +8,18 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef LUAINPUTSYSTEM_H
-#define LUAINPUTSYSTEM_H
+#ifndef LUACONCMD_H
+#define LUACONCMD_H
+
+extern "C"
+{
+	#include <lua.h>
+	#include <lauxlib.h>
+	#include <lualib.h>
+}
 
 #include <string>
-#include "common/buttoncode.h"
+#include <LuaBridge/LuaBridge.h>
 
 //---------------------------------------------------------------------//
 
@@ -24,23 +31,25 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	class LUAVector2D;
-
-	//---------------------------------------------------------------------//
-
-	class LUAInputSystem
+	class LUAConCmd
 	{
 	public:
-		static void				Register( lua_State* LuaVM );
-		static bool				IsKeyDown( UInt32_t Key );
-		static bool				IsKeyUp( UInt32_t Key );
-		static bool				IsMouseKeyDown( UInt32_t Key );
-		static bool				IsMouseKeyUp( UInt32_t Key );
-		static bool				IsMouseWheel( UInt32_t Wheel );
+		LUAConCmd( const char* Name, const char* HelpText, luabridge::LuaRef ExecCallback );
+		~LUAConCmd();
 
-		static LUAVector2D		GetMousePosition();
-		static LUAVector2D		GetMouseOffset();
-		static float			GetMouseSensitivity();
+		static void				Register( lua_State* LuaVM );
+		void					Exec( luabridge::LuaRef Arguments );
+
+		void					SetExecCallback( luabridge::LuaRef ExecCallback );
+		void					SetName( const char* Name );
+
+		const char*				GetName() const;
+		const char*				GetHelpText() const;
+
+	private:
+		luabridge::LuaRef		execCallback;
+		std::string				name;
+		std::string				helpText;
 	};
 
 	//---------------------------------------------------------------------//
@@ -48,4 +57,4 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !LUAINPUTSYSTEM_H
+#endif // !LUACONCMD_H

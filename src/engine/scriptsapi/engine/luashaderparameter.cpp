@@ -10,203 +10,220 @@
 
 extern "C"
 {
-    #include <lua.h>
-    #include <lauxlib.h>
-    #include <lualib.h>
+	#include <lua.h>
+	#include <lauxlib.h>
+	#include <lualib.h>
 }
 
 #include <LuaBridge/LuaBridge.h>
 
 #include "global.h"
-#include "common/types.h"
-#include "engine/inputsystem.h"
+#include "engine/shaderparameter.h"
+#include "scriptsapi/common/luacolor.h"
+#include "scriptsapi/mathlib/luavector2d.h"
 #include "scriptsapi/mathlib/luavector3d.h"
+#include "scriptsapi/mathlib/luavector4d.h"
+#include "scriptsapi/engine/luashaderparameter.h"
 
 // ------------------------------------------------------------------------------------ //
-// Register vector 3d
+// Register shader parameter in LUA
 // ------------------------------------------------------------------------------------ //
-void le::LUAVector3D::Register( lua_State* LuaVM )
+void le::LUAShaderParameter::Register( lua_State* LuaVM )
 {
 	if ( !LuaVM )		return;
 
-	// Register Vector 2D
+	// Registern shader parameter
 	luabridge::getGlobalNamespace( LuaVM ).
-		beginClass<LUAVector3D>( "Vector3D" ).
-		addConstructor< void (*) () >().
-		addProperty( "x", &LUAVector3D::GetX, &LUAVector3D::SetX ).
-		addProperty( "y", &LUAVector3D::GetY, &LUAVector3D::SetY ).
-		addProperty( "z", &LUAVector3D::GetZ, &LUAVector3D::SetZ ).
-		addFunction( "Normalize", &LUAVector3D::Normalize ).
-		addFunction( "Dot", &LUAVector3D::Dot ).
-		addFunction( "Cross", &LUAVector3D::Cross ).
-		addFunction( "Set", &LUAVector3D::Set ).
-		addFunction( "__tostring", &LUAVector3D::ToString ).
-		addFunction( "__add", ( LUAVector3D ( LUAVector3D::* )( const LUAVector3D& ) ) &LUAVector3D::operator+ ).
-		addFunction( "__sub", ( LUAVector3D ( LUAVector3D::* )( const LUAVector3D& ) ) &LUAVector3D::operator- ).
-		addFunction( "__mul", ( LUAVector3D ( LUAVector3D::* )( const LUAVector3D& ) ) &LUAVector3D::operator* ).
-		addFunction( "__div", ( LUAVector3D ( LUAVector3D::* )( const LUAVector3D& ) ) &LUAVector3D::operator/ ).
-		addStaticFunction( "Normalize", ( LUAVector3D (*) ( const LUAVector3D& ) ) &LUAVector3D::Normalize ).
-		addStaticFunction( "Dot", ( float (*) ( const LUAVector3D&, const LUAVector3D& ) ) &LUAVector3D::Dot ).
-		addStaticFunction( "Cross", ( LUAVector3D (*) ( const LUAVector3D&, const LUAVector3D& ) ) &LUAVector3D::Cross ).
+		beginClass<LUAShaderParameter>( "ShaderParameter" ).
+		addConstructor< void (*)() >().
+		addFunction( "Clear", &LUAShaderParameter::Clear ).
+		addFunction( "SetName", &LUAShaderParameter::SetName ).
+		addFunction( "SetValueInt", &LUAShaderParameter::SetValueInt ).
+		addFunction( "SetValueFloat", &LUAShaderParameter::SetValueFloat ).
+		addFunction( "SetValueShaderFlag", &LUAShaderParameter::SetValueShaderFlag ).
+		addFunction( "SetValueColor", &LUAShaderParameter::SetValueColor ).
+		addFunction( "SetValueVector2D", &LUAShaderParameter::SetValueVector2D ).
+		addFunction( "SetValueVector3D", &LUAShaderParameter::SetValueVector3D ).
+		addFunction( "SetValueVector4D", &LUAShaderParameter::SetValueVector4D ).
+		addFunction( "IsDefined", &LUAShaderParameter::IsDefined ).
+		addFunction( "GetName", &LUAShaderParameter::GetName ).
+		addFunction( "GetType", &LUAShaderParameter::GetType ).
+		addFunction( "GetValueInt", &LUAShaderParameter::GetValueInt ).
+		addFunction( "GetValueFloat", &LUAShaderParameter::GetValueFloat ).
+		addFunction( "GetValueShaderFlag", &LUAShaderParameter::GetValueShaderFlag ).
+		addFunction( "GetValueColor", &LUAShaderParameter::GetValueColor ).
+		addFunction( "GetValueVector2D", &LUAShaderParameter::GetValueVector2D ).
+		addFunction( "GetValueVector3D", &LUAShaderParameter::GetValueVector3D ).
+		addFunction( "GetValueVector4D", &LUAShaderParameter::GetValueVector4D ).
 		endClass();
 }
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D::LUAVector3D( const Vector3D_t& Copy ) :
-	object( Copy.x, Copy.y, Copy.z )
+le::LUAShaderParameter::LUAShaderParameter() :
+	object( new ShaderParameter() )
 {}
 
 // ------------------------------------------------------------------------------------ //
-// Constructor
+// Destructor
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D::LUAVector3D( float X, float Y, float Z ) :
-	object( X, Y, Z )
-{}
-
-// ------------------------------------------------------------------------------------ //
-// Normalize vector
-// ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAVector3D::Normalize( const LUAVector3D& Vector )
+le::LUAShaderParameter::~LUAShaderParameter()
 {
-	return LUAVector3D( glm::normalize( Vector.object ) );
+	if ( object->GetCountReferences() == 0 )
+		object->Release();
+	else
+		object->DecrementReference();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Dot
+// Clear
 // ------------------------------------------------------------------------------------ //
-float le::LUAVector3D::Dot( const LUAVector3D& Left, const LUAVector3D& Right )
+void le::LUAShaderParameter::Clear()
 {
-	return glm::dot( Left.object, Right.object );
+	object->Clear();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Cross
+// Set name
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAVector3D::Cross( const LUAVector3D& Left, const LUAVector3D& Right )
+void le::LUAShaderParameter::SetName( const char* Name )
 {
-	return glm::cross( Left.object, Right.object );
+	object->SetName( Name );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Normalize vector
+// Set value int
 // ------------------------------------------------------------------------------------ //
-void le::LUAVector3D::Normalize()
+void le::LUAShaderParameter::SetValueInt( int Value )
 {
-	object = glm::normalize( object );
+	object->SetValueInt( Value );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Dot
+// Set value float
 // ------------------------------------------------------------------------------------ //
-float le::LUAVector3D::Dot( const LUAVector3D& Right )
+void le::LUAShaderParameter::SetValueFloat( float Value )
 {
-	return glm::dot( object, Right.object );
+	object->SetValueFloat( Value );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Cross
+// Set value shader flag
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAVector3D::Cross( const LUAVector3D& Right )
+void le::LUAShaderParameter::SetValueShaderFlag( bool Value )
 {
-	return glm::cross( object, Right.object );
+	object->SetValueShaderFlag( Value );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set x and y
+// Set value vector 2d
 // ------------------------------------------------------------------------------------ //
-void le::LUAVector3D::Set( float X, float Y, float Z )
+void le::LUAShaderParameter::SetValueVector2D( const LUAVector2D& Value )
 {
-	object.x = X;
-	object.y = Y;
-	object.z = Z;
+	object->SetValueVector2D( Value.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Convert to string
+// Set value vector 3d
 // ------------------------------------------------------------------------------------ //
-std::string le::LUAVector3D::ToString()
+void le::LUAShaderParameter::SetValueVector3D( const LUAVector3D& Value )
 {
-	return std::to_string( object.x ) + ", " + std::to_string( object.y ) + ", " + std::to_string( object.z );
+	object->SetValueVector3D( Value.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set x
+// Set value vector 4d
 // ------------------------------------------------------------------------------------ //
-void le::LUAVector3D::SetX( float X )
+void le::LUAShaderParameter::SetValueVector4D( const LUAVector4D& Value )
 {
-	object.x = X;
+	object->SetValueVector4D( Value.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set y
+// Set value color
 // ------------------------------------------------------------------------------------ //
-void le::LUAVector3D::SetY( float Y )
+void le::LUAShaderParameter::SetValueColor( const LUAColor& Value )
 {
-	object.y = Y;
+	object->SetValueColor( Value.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set x
+// Is defined
 // ------------------------------------------------------------------------------------ //
-void le::LUAVector3D::SetZ( float Z )
+bool le::LUAShaderParameter::IsDefined() const
 {
-	object.z = Z;
+	return object->IsDefined();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get x
+// Get name
 // ------------------------------------------------------------------------------------ //
-float le::LUAVector3D::GetX() const
+const char* le::LUAShaderParameter::GetName() const
 {
-	return object.x;
+	return object->GetName();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get y
+// Get type
 // ------------------------------------------------------------------------------------ //
-float le::LUAVector3D::GetY() const
+le::UInt32_t le::LUAShaderParameter::GetType() const
 {
-	return object.y;
+	return object->GetType();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get z
+// Get value int
 // ------------------------------------------------------------------------------------ //
-float le::LUAVector3D::GetZ() const
+int le::LUAShaderParameter::GetValueInt() const
 {
-	return object.z;
+	return object->GetValueInt();
 }
 
 // ------------------------------------------------------------------------------------ //
-// operator +
+// Get value float
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAVector3D::operator+( const LUAVector3D& Right )
+float le::LUAShaderParameter::GetValueFloat() const
 {
-	return LUAVector3D( object + Right.object );
+	return object->GetValueFloat();
 }
 
 // ------------------------------------------------------------------------------------ //
-// operator -
+// Get value shader flag
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAVector3D::operator-( const LUAVector3D& Right )
+bool le::LUAShaderParameter::GetValueShaderFlag() const
 {
-	return LUAVector3D( object - Right.object );
+	return object->GetValueShaderFlag();
 }
 
 // ------------------------------------------------------------------------------------ //
-// operator /
+// Get value vector 2d
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAVector3D::operator/( const LUAVector3D& Right )
+le::LUAVector2D le::LUAShaderParameter::GetValueVector2D() const
 {
-	return LUAVector3D( object / Right.object );
+	return LUAVector2D( object->GetValueVector2D() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// operator *
+// Get value vector 3d
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAVector3D::operator*( const LUAVector3D& Right )
+le::LUAVector3D le::LUAShaderParameter::GetValueVector3D() const
 {
-	return LUAVector3D( object * Right.object );
+	return LUAVector3D( object->GetValueVector3D() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get value vector 4d
+// ------------------------------------------------------------------------------------ //
+le::LUAVector4D le::LUAShaderParameter::GetValueVector4D() const
+{
+	return LUAVector4D( object->GetValueVector4D() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get value color
+// ------------------------------------------------------------------------------------ //
+le::LUAColor le::LUAShaderParameter::GetValueColor() const
+{
+	return LUAColor( object->GetValueColor() );
 }

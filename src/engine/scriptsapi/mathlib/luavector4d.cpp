@@ -53,7 +53,7 @@ void le::LUAVector4D::Register( lua_State* LuaVM )
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
-le::LUAVector4D::LUAVector4D( Vector4D_t& Copy ) :
+le::LUAVector4D::LUAVector4D( const Vector4D_t& Copy ) :
 	object( Copy.x, Copy.y, Copy.z, Copy.w )
 {}
 

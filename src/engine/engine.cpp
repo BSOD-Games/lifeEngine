@@ -468,7 +468,8 @@ void le::Engine::RunSimulation()
 			}
 
 			studioRender->Begin();
-
+			
+			if ( script ) script->Render();
 			if ( cvar_phyDebug->GetValueBool() )
 				physicSystem->DebugRender();
 
