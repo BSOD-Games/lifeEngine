@@ -18,121 +18,141 @@ extern "C"
 #include <LuaBridge/LuaBridge.h>
 
 #include "global.h"
-#include "engine/resourcesystem.h"
-#include "scriptsapi/common/luaimage.h"
-#include "scriptsapi/studiorender/luamesh.h"
+#include "engine/ilevel.h"
+#include "scriptsapi/mathlib/luavector3d.h"
+#include "scriptsapi/engine/luacamera.h"
+#include "scriptsapi/engine/luamodel.h"
 #include "scriptsapi/engine/lualevel.h"
-#include "scriptsapi/engine/luaresourcesystem.h"
+#include "scriptsapi/engine/luaentity.h"
+#include "scriptsapi/studiorender/luastudiorender.h"
 
 // ------------------------------------------------------------------------------------ //
-// Register resource system in LUA
+// Increment reference
 // ------------------------------------------------------------------------------------ //
-void le::LUAResourceSystem::Register( lua_State* LuaVM )
+void le::LUAEntity::IncrementReference()
 {
-	if ( !LuaVM )		return;
-
-	// Registern input system
-	luabridge::getGlobalNamespace( LuaVM ).
-		beginClass<LUAResourceSystem>( "ResourceSystem" ).
-		addStaticFunction( "LoadImage", &LUAResourceSystem::LoadImage ).
-		addStaticFunction( "LoadMesh", &LUAResourceSystem::LoadMesh ).
-		addStaticFunction( "LoadLevel", &LUAResourceSystem::LoadLevel ).
-		addStaticFunction( "UnloadImage", &LUAResourceSystem::UnloadImage ).
-		addStaticFunction( "UnloadMesh", &LUAResourceSystem::UnloadMesh ).
-		addStaticFunction( "UnloadMeshes", &LUAResourceSystem::UnloadMeshes ).
-		addStaticFunction( "UnloadLevel", &LUAResourceSystem::UnloadLevel ).
-		addStaticFunction( "UnloadLevels", &LUAResourceSystem::UnloadLevels ).
-		addStaticFunction( "UnloadAll", &LUAResourceSystem::UnloadAll ).
-		addStaticFunction( "GetMesh", &LUAResourceSystem::GetMesh ).
-		addStaticFunction( "GetLevel", &LUAResourceSystem::GetLevel ).
-		endClass();
+	++countReferences;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Load image
+// Decrement reference
 // ------------------------------------------------------------------------------------ //
-le::LUAImage le::LUAResourceSystem::LoadImage( const char* Path, bool IsFlipVertical, bool IsSwitchRedAndBlueChannels )
+void le::LUAEntity::DecrementReference()
 {
-	bool		isError = false;
-	return g_resourceSystem->LoadImage( Path, isError, IsFlipVertical, IsSwitchRedAndBlueChannels );
+	--countReferences;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Load mesh
+// Release
 // ------------------------------------------------------------------------------------ //
-le::LUAMesh le::LUAResourceSystem::LoadMesh( const char* Name, const char* Path )
+void le::LUAEntity::Release()
 {
-	return LUAMesh( g_resourceSystem->LoadMesh( Name, Path ) );
+	delete this;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Load level
+// Get ñount references
 // ------------------------------------------------------------------------------------ //
-le::LUALevel le::LUAResourceSystem::LoadLevel( const char* Name, const char* Path )
-{	
-	return LUALevel( g_resourceSystem->LoadLevel( Name, Path, ( IFactory* ) &LUALevel::GetEntityFactory() ) );
+le::UInt32_t le::LUAEntity::GetCountReferences() const
+{
+	return countReferences;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Unload image
+// Key value
 // ------------------------------------------------------------------------------------ //
-void le::LUAResourceSystem::UnloadImage( LUAImage& Image )
+void le::LUAEntity::KeyValue( const char* Key, const char* Value )
 {
-	g_resourceSystem->UnloadImage( ( le::Image& ) Image.GetHandle() );
+	( *object )[ "KeyValue" ]( Key, Value );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Unload mesh
+// Update
 // ------------------------------------------------------------------------------------ //
-void le::LUAResourceSystem::UnloadMesh( const char* Name )
+void le::LUAEntity::Update()
 {
-	g_resourceSystem->UnloadMesh( Name );
+	( *object )[ "Update" ]();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Unload level
+// Render
 // ------------------------------------------------------------------------------------ //
-void le::LUAResourceSystem::UnloadLevel( const char* Name )
+void le::LUAEntity::Render( IStudioRender* StudioRender )
 {
-	g_resourceSystem->UnloadLevel( Name );
+	( *object )[ "Render" ]();
 }
 
 // ------------------------------------------------------------------------------------ //
-// Unload meshes
+// Set model
 // ------------------------------------------------------------------------------------ //
-void le::LUAResourceSystem::UnloadMeshes()
+void le::LUAEntity::SetModel( IModel* Model, IBody* Body )
 {
-	g_resourceSystem->UnloadMeshes();
+	( *object )[ "SetModel" ]( LUAModel( Model ) );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Unload levels
+// Set position
 // ------------------------------------------------------------------------------------ //
-void le::LUAResourceSystem::UnloadLevels()
+void le::LUAEntity::SetPosition( const Vector3D_t& Position )
 {
-	g_resourceSystem->UnloadLevels();
+	//( *object )[ "SetPosition" ]( Position );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Unload all
+// Set level
 // ------------------------------------------------------------------------------------ //
-void le::LUAResourceSystem::UnloadAll()
+void le::LUAEntity::SetLevel( ILevel* Level )
 {
-	g_resourceSystem->UnloadAll();
+	( *object )[ "SetLevel" ]( LUALevel( Level ) );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get mesh
+// Is visible
 // ------------------------------------------------------------------------------------ //
-le::LUAMesh le::LUAResourceSystem::GetMesh( const char* Name )
+bool le::LUAEntity::IsVisible( ICamera* Camera ) const
 {
-	return LUAMesh( g_resourceSystem->GetMesh( Name ) );
+	return true;// ( *object )[ "IsVisible" ]( LUACamera( Camera ) );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get level
+// Get center
 // ------------------------------------------------------------------------------------ //
-le::LUALevel le::LUAResourceSystem::GetLevel( const char* Name )
+le::Vector3D_t le::LUAEntity::GetCenter() const
 {
-	return LUALevel( g_resourceSystem->GetLevel( Name ) );
+	return Vector3D_t( /*( *object )[ "GetCenter" ]().cast<LUAVector3D>().GetHandle()*/ );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get position
+// ------------------------------------------------------------------------------------ //
+const le::Vector3D_t& le::LUAEntity::GetPosition() const
+{
+	return q;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Constructor
+// ------------------------------------------------------------------------------------ //
+le::LUAEntity::LUAEntity( luabridge::LuaRef& Object ) :
+	countReferences( 0 ),
+	object( nullptr )
+{
+	object = new luabridge::LuaRef( Object() );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Constructor
+// ------------------------------------------------------------------------------------ //
+le::LUAEntity::LUAEntity( const LUAEntity& Copy ) :
+	countReferences( 0 ),
+	object( luabridge::LuaRef( *Copy.object ) )
+{}
+
+// ------------------------------------------------------------------------------------ //
+// Destructor
+// ------------------------------------------------------------------------------------ //
+le::LUAEntity::~LUAEntity()
+{
+	if ( !object )			return;
+	//delete object;
 }

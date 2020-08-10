@@ -24,6 +24,7 @@ extern "C"
 #include "scriptsapi/common/luaray.h"
 #include "scriptsapi/mathlib/luavector2d.h"
 #include "scriptsapi/mathlib/luavector3d.h"
+#include "scriptsapi/mathlib/luaquaternion.h"
 #include "scriptsapi/engine/luacamera.h"
 
 // ------------------------------------------------------------------------------------ //
@@ -68,6 +69,7 @@ void le::LUACamera::Register( lua_State* LuaVM )
 		addFunction( "GetRight", &LUACamera::GetRight ).
 		addFunction( "GetDirectionMove", &LUACamera::GetDirectionMove ).
 		addFunction( "GetEulerRotation", &LUACamera::GetEulerRotation ).
+		addFunction( "GetQuatRotation", &LUACamera::GetQuatRotation ).
 		addFunction( "GetTargetDirection", &LUACamera::GetTargetDirection ).
 		endClass();
 }
@@ -79,6 +81,15 @@ le::LUACamera::LUACamera() :
 	camera( new Camera() )
 {
 	camera->IncrementReference();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Constructor
+// ------------------------------------------------------------------------------------ //
+le::LUACamera::LUACamera( ICamera* Camera ) :
+	camera( Camera )
+{
+	if ( camera ) camera->IncrementReference();
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -261,6 +272,14 @@ le::LUAVector3D le::LUACamera::GetRight() const
 le::LUAVector3D le::LUACamera::GetDirectionMove( UInt32_t SideMove ) const
 {
 	return LUAVector3D( camera->GetDirectionMove( ( CAMERA_SIDE_MOVE ) SideMove ) );
+}
+
+// ------------------------------------------------------------------------------------ //
+// Get quaternion rotation
+// ------------------------------------------------------------------------------------ //
+le::LUAQuaternion le::LUACamera::GetQuatRotation() const
+{
+	return LUAQuaternion( camera->GetQuatRotation() );
 }
 
 // ------------------------------------------------------------------------------------ //

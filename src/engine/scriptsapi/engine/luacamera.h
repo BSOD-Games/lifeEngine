@@ -26,6 +26,7 @@ namespace le
 	class ICamera;
 	class LUAVector2D;
 	class LUAVector3D;
+	class LUAQuaternion;
 	struct LUARay;
 
 	//---------------------------------------------------------------------//
@@ -36,6 +37,7 @@ namespace le
 		static void				Register( lua_State* LuaVM );
 		
 		LUACamera();
+		LUACamera( ICamera* Camera );
 		LUACamera( const LUACamera& Copy );
 		~LUACamera();
 		void					InitProjection_Perspective( float FOV, float Aspect, float Near, float Far );
@@ -61,13 +63,10 @@ namespace le
 		LUAVector3D				GetUp() const;
 		LUAVector3D				GetRight() const;
 		LUAVector3D				GetDirectionMove( UInt32_t SideMove ) const;
-		//const Quaternion_t		GetQuatRotation() const;
+		LUAQuaternion			GetQuatRotation() const;
 		LUAVector3D				GetEulerRotation() const;
 		LUAVector3D				GetTargetDirection() const;
 		inline ICamera*			GetHandle() const				{ return camera; }
-
-		//const Matrix4x4_t		GetViewMatrix();
-		//const Matrix4x4_t		GetProjectionMatrix() const;
 
 	private:
 		ICamera*				camera;

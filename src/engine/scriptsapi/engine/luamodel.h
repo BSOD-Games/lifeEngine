@@ -22,6 +22,7 @@ namespace le
 	//---------------------------------------------------------------------//
 
 	class LUAVector3D;
+	class LUAQuaternion;
 	class LUAMesh;
 	class IModel;
 
@@ -33,17 +34,18 @@ namespace le
 		static void				Register( lua_State* LuaVM );
 
 		LUAModel();
+		LUAModel( IModel* Model );
 		LUAModel( const LUAModel& Copy );
 		~LUAModel();
 		
 		void					Move( const LUAVector3D& FactorMove );
 		void					Rotate( const LUAVector3D& FactorRotate );
-		//void					Rotate( const Quaternion_t& FactorRotate );
+		void					Rotate( const LUAQuaternion& FactorRotate );
 		void					Scale( const LUAVector3D& FactorScale );
 
 		void					SetPosition( const LUAVector3D& Position );
 		void					SetRotation( const LUAVector3D& Rotation );
-		//void					SetRotation( const Quaternion_t& Rotation );
+		void					SetRotation( const LUAQuaternion& Rotation );
 		void					SetScale( const LUAVector3D& Scale );
 		void					SetMesh( const LUAMesh& Mesh );
 		void					SetMin( const LUAVector3D& MinPosition );
@@ -52,7 +54,7 @@ namespace le
 		void					SetCountFace( UInt32_t CountFace );
 
 		LUAVector3D				GetPosition() const;
-		//virtual const Quaternion_t& GetRotation() const = 0;
+		LUAQuaternion			GetRotation() const;
 		LUAVector3D				GetScale() const;
 		//virtual const Matrix4x4_t& GetTransformation() = 0;
 		LUAMesh					GetMesh();

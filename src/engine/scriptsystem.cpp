@@ -81,4 +81,7 @@ void le::ScriptSystem::RegisterEngineAPI( lua_State* LuaVM )
 	LUAMesh::Register( LuaVM );
 	LUAModel::Register( LuaVM );
 	LUAStudioRender::Register( LuaVM );
+	LUAQuaternion::Register( LuaVM );
+	LUALevel::Register( LuaVM );
+	//LUAEntity::Register( LuaVM );
 }

@@ -38,7 +38,7 @@ namespace le
 		virtual ~ILevel() {}
 		virtual bool			Load( const char* Path, IFactory* GameFactory ) = 0;
 		virtual void			Update() = 0;
-		virtual void                    Render() = 0;
+		virtual void            Render() = 0;
 		virtual void			Clear() = 0;
 		virtual void			AddCamera( ICamera* Camera ) = 0;
 		virtual void			AddEntity( IEntity* Entity ) = 0;

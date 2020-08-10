@@ -10,259 +10,239 @@
 
 extern "C"
 {
-	#include <lua.h>
-	#include <lauxlib.h>
-	#include <lualib.h>
+    #include <lua.h>
+    #include <lauxlib.h>
+    #include <lualib.h>
 }
 
 #include <LuaBridge/LuaBridge.h>
 
 #include "global.h"
-#include "engine/model.h"
+#include "common/types.h"
 #include "scriptsapi/mathlib/luavector3d.h"
 #include "scriptsapi/mathlib/luaquaternion.h"
-#include "scriptsapi/studiorender/luamesh.h"
-#include "scriptsapi/engine/luamodel.h"
 
 // ------------------------------------------------------------------------------------ //
-// Register model in LUA
+// Register quaternion
 // ------------------------------------------------------------------------------------ //
-void le::LUAModel::Register( lua_State* LuaVM )
+void le::LUAQuaternion::Register( lua_State* LuaVM )
 {
 	if ( !LuaVM )		return;
 
-	// Registern input system
+	// Register Quaternion
 	luabridge::getGlobalNamespace( LuaVM ).
-		beginClass<LUAModel>( "Model" ).
-		addConstructor< void (*)() >().
-		addFunction( "Move", &LUAModel::Move ).
-		addFunction( "Rotate", ( void ( LUAModel::* ) ( const LUAVector3D& ) ) &LUAModel::Rotate ).
-		addFunction( "Rotate", ( void ( LUAModel::* ) ( const LUAQuaternion& ) ) &LUAModel::Rotate ).
-		addFunction( "Scale", &LUAModel::Scale ).
-		addFunction( "SetPosition", &LUAModel::SetPosition ).
-		addFunction( "SetRotation", ( void ( LUAModel::* )( const LUAVector3D& ) ) &LUAModel::SetRotation ).
-		addFunction( "SetRotation", ( void ( LUAModel::* )( const LUAQuaternion& ) ) &LUAModel::SetRotation ).
-		addFunction( "SetScale", &LUAModel::SetScale ).
-		addFunction( "SetMesh", &LUAModel::SetMesh ).
-		addFunction( "SetMin", &LUAModel::SetMin ).
-		addFunction( "SetMax", &LUAModel::SetMax ).
-		addFunction( "SetStartFace", &LUAModel::SetStartFace ).
-		addFunction( "SetCountFace", &LUAModel::SetCountFace ).
-		addFunction( "GetPosition", &LUAModel::GetPosition ).
-		addFunction( "GetScale", &LUAModel::GetScale ).
-		addFunction( "GetMesh", &LUAModel::GetMesh ).
-		addFunction( "GetMin", &LUAModel::GetMin ).
-		addFunction( "GetMax", &LUAModel::GetMax ).
-		addFunction( "GetStartFace", &LUAModel::GetStartFace ).
-		addFunction( "GetCountFace", &LUAModel::GetCountFace ).
-		addFunction( "GetRotation", &LUAModel::GetRotation ).
+		beginClass<LUAQuaternion>( "Quaternion" ).
+		addConstructor< void (*) () >().
+		addProperty( "x", &LUAQuaternion::GetX, &LUAQuaternion::SetX ).
+		addProperty( "y", &LUAQuaternion::GetY, &LUAQuaternion::SetY ).
+		addProperty( "z", &LUAQuaternion::GetZ, &LUAQuaternion::SetZ ).
+		addProperty( "w", &LUAQuaternion::GetW, &LUAQuaternion::SetW ).
+		addFunction( "Normalize", &LUAQuaternion::Normalize ).
+		addFunction( "Dot", &LUAQuaternion::Dot ).
+		addFunction( "Cross", ( LUAQuaternion ( LUAQuaternion::* ) ( const LUAQuaternion& ) ) &LUAQuaternion::Cross ).
+		addFunction( "Cross", ( LUAQuaternion ( LUAQuaternion::* ) ( const LUAVector3D& ) ) & LUAQuaternion::Cross ).
+		addFunction( "Set", &LUAQuaternion::Set ).
+		addFunction( "__tostring", &LUAQuaternion::ToString ).
+		addFunction( "__add", ( LUAQuaternion ( LUAQuaternion::* )( const LUAQuaternion& ) ) & LUAQuaternion::operator+ ).
+		addFunction( "__sub", ( LUAQuaternion ( LUAQuaternion::* )( const LUAQuaternion& ) ) & LUAQuaternion::operator- ).
+		addFunction( "__mul", ( LUAQuaternion ( LUAQuaternion::* )( const LUAQuaternion& ) ) & LUAQuaternion::operator* ).
+		addStaticFunction( "Normalize", ( LUAQuaternion(*) ( const LUAQuaternion& ) ) & LUAQuaternion::Normalize ).
+		addStaticFunction( "Dot", ( float (*) ( const LUAQuaternion&, const LUAQuaternion& ) ) & LUAQuaternion::Dot ).
+		addStaticFunction( "Cross", ( LUAQuaternion (*) ( const LUAQuaternion&, const LUAQuaternion& ) ) &LUAQuaternion::Cross ).
+		addStaticFunction( "Cross", ( LUAQuaternion (*) ( const LUAQuaternion&, const LUAVector3D& ) ) & LUAQuaternion::Cross ).
+		addStaticFunction( "Cross", ( LUAQuaternion (*) ( const LUAVector3D&, const LUAQuaternion& ) ) & LUAQuaternion::Cross ).
 		endClass();
 }
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
-le::LUAModel::LUAModel() :
-	object( new Model() )
-{
-	object->IncrementReference();
-}
+le::LUAQuaternion::LUAQuaternion( const Quaternion_t& Copy ) :
+	object( Copy )
+{}
 
 // ------------------------------------------------------------------------------------ //
 // Constructor
 // ------------------------------------------------------------------------------------ //
-le::LUAModel::LUAModel( IModel* Model ) :
-	object( Model )
+le::LUAQuaternion::LUAQuaternion( float X, float Y, float Z, float W ) :
+	object( W, X, Y, Z )
+{}
+
+// ------------------------------------------------------------------------------------ //
+// Normalize
+// ------------------------------------------------------------------------------------ //
+le::LUAQuaternion le::LUAQuaternion::Normalize( const LUAQuaternion& Quternion )
 {
-	if ( object ) object->IncrementReference();
+	return LUAQuaternion( glm::normalize( Quternion.GetHandle() ) );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Constructor
+// Dot
 // ------------------------------------------------------------------------------------ //
-le::LUAModel::LUAModel( const LUAModel& Copy ) :
-	object( Copy.object )
-{	
-	if ( object ) object->IncrementReference();
+float le::LUAQuaternion::Dot( const LUAQuaternion& Left, const LUAQuaternion& Right )
+{
+	return glm::dot( Left.GetHandle(), Right.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Destructor
+// Cross
 // ------------------------------------------------------------------------------------ //
-le::LUAModel::~LUAModel()
+le::LUAQuaternion le::LUAQuaternion::Cross( const LUAQuaternion& Left, const LUAQuaternion& Right )
 {
-	if ( !object )		return;
-
-	if ( object->GetCountReferences() <= 1 )
-		object->Release();
-	else
-		object->DecrementReference();
+	return LUAQuaternion( glm::cross( Left.GetHandle(), Right.GetHandle() ) );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Move
+// Cross
 // ------------------------------------------------------------------------------------ //
-void le::LUAModel::Move( const LUAVector3D& FactorMove )
+le::LUAQuaternion le::LUAQuaternion::Cross( const LUAQuaternion& Left, const LUAVector3D& Right )
 {
-	object->Move( FactorMove.GetHandle() );
+	return LUAQuaternion( glm::cross( Left.GetHandle(), Right.GetHandle() ) );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Rotate
+// Cross
 // ------------------------------------------------------------------------------------ //
-void le::LUAModel::Rotate( const LUAVector3D& FactorRotate )
+le::LUAQuaternion le::LUAQuaternion::Cross( const LUAVector3D& Left, const LUAQuaternion& Right )
 {
-	object->Rotate( FactorRotate.GetHandle() );
+	return LUAQuaternion( glm::cross( Left.GetHandle(), Right.GetHandle() ) );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Rotate
+// Normalize
 // ------------------------------------------------------------------------------------ //
-void le::LUAModel::Rotate( const LUAQuaternion& FactorRotate )
+void le::LUAQuaternion::Normalize()
 {
-	object->Rotate( FactorRotate.GetHandle() );
+	glm::normalize( object );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Scale
+// Dot
 // ------------------------------------------------------------------------------------ //
-void le::LUAModel::Scale( const LUAVector3D& FactorScale )
+float le::LUAQuaternion::Dot( const LUAQuaternion& Right )
 {
-	object->Scale( FactorScale.GetHandle() );
+	return glm::dot( object, Right.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set position
+// Set
 // ------------------------------------------------------------------------------------ //
-void le::LUAModel::SetPosition( const LUAVector3D& Position )
+void le::LUAQuaternion::Set( float X, float Y, float Z, float W )
 {
-	object->SetPosition( Position.GetHandle() );
+	object.x = X;
+	object.y = Y;
+	object.z = Z;
+	object.w = W;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set rotation
+// Cross
 // ------------------------------------------------------------------------------------ //
-void le::LUAModel::SetRotation( const LUAVector3D& Rotation )
+le::LUAQuaternion le::LUAQuaternion::Cross( const LUAQuaternion& Right )
 {
-	object->SetRotation( Rotation.GetHandle() );
+	return LUAQuaternion( Right.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set rotation
+// Cross
 // ------------------------------------------------------------------------------------ //
-void le::LUAModel::SetRotation( const LUAQuaternion& Rotation )
+le::LUAQuaternion le::LUAQuaternion::Cross( const LUAVector3D& Right )
 {
-	object->SetRotation( Rotation.GetHandle() );
+	return LUAQuaternion( Right.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set scale
+// To string
 // ------------------------------------------------------------------------------------ //
-void le::LUAModel::SetScale( const LUAVector3D& Scale )
+std::string le::LUAQuaternion::ToString()
 {
-	object->SetScale( Scale.GetHandle() );
+	return std::to_string( object.x ) + ", " + std::to_string( object.y ) + ", " + std::to_string( object.z ) + ", " + std::to_string( object.w );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set mesh
+// Set x
 // ------------------------------------------------------------------------------------ //
-void le::LUAModel::SetMesh( const LUAMesh& Mesh )
+void le::LUAQuaternion::SetX( float X )
 {
-	object->SetMesh( Mesh.GetHandle() );
+	object.x = X;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set min
+// Set y
 // ------------------------------------------------------------------------------------ //
-void le::LUAModel::SetMin( const LUAVector3D& MinPosition )
+void le::LUAQuaternion::SetY( float Y )
 {
-	object->SetMin( MinPosition.GetHandle() );
+	object.y = Y;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set max
+// Set z
 // ------------------------------------------------------------------------------------ //
-void le::LUAModel::SetMax( const LUAVector3D& MaxPosition )
+void le::LUAQuaternion::SetZ( float Z )
 {
-	object->SetMax( MaxPosition.GetHandle() );
+	object.z = Z;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set start face
+// Set w
 // ------------------------------------------------------------------------------------ //
-void le::LUAModel::SetStartFace( UInt32_t StartFace )
+void le::LUAQuaternion::SetW( float W )
 {
-	object->SetStartFace( StartFace );
+	object.w = W;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Set count face
+// Get x
 // ------------------------------------------------------------------------------------ //
-void le::LUAModel::SetCountFace( UInt32_t CountFace )
+float le::LUAQuaternion::GetX() const
 {
-	object->SetCountFace( CountFace );
+	return object.x;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get position
+// Get y
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAModel::GetPosition() const
+float le::LUAQuaternion::GetY() const
 {
-	return LUAVector3D( object->GetPosition() );
+	return object.y;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get rotation
+// Get z
 // ------------------------------------------------------------------------------------ //
-le::LUAQuaternion le::LUAModel::GetRotation() const
+float le::LUAQuaternion::GetZ() const
 {
-	return LUAQuaternion( object->GetRotation() );
+	return object.z;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get scale
+// Get w
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAModel::GetScale() const
+float le::LUAQuaternion::GetW() const
 {
-	return LUAVector3D( object->GetScale() );
+	return object.w;
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get mesh
+// Operator +
 // ------------------------------------------------------------------------------------ //
-le::LUAMesh le::LUAModel::GetMesh()
+le::LUAQuaternion le::LUAQuaternion::operator+( const LUAQuaternion& Right )
 {
-	return LUAMesh( object->GetMesh() );
+	return LUAQuaternion( object + Right.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get min
+// Operator -
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAModel::GetMin()
+le::LUAQuaternion le::LUAQuaternion::operator-( const LUAQuaternion& Right )
 {
-	return LUAVector3D( object->GetMin() );
+	return LUAQuaternion( object - Right.GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get max
+// Operator *
 // ------------------------------------------------------------------------------------ //
-le::LUAVector3D le::LUAModel::GetMax()
+le::LUAQuaternion le::LUAQuaternion::operator*( const LUAQuaternion& Right )
 {
-	return LUAVector3D( object->GetMax() );
-}
-
-// ------------------------------------------------------------------------------------ //
-// Get start face
-// ------------------------------------------------------------------------------------ //
-le::UInt32_t le::LUAModel::GetStartFace() const
-{
-	return object->GetStartFace();
-}
-
-// ------------------------------------------------------------------------------------ //
-// Get count face
-// ------------------------------------------------------------------------------------ //
-le::UInt32_t le::LUAModel::GetCountFace() const
-{
-	return object->GetCountFace();
+	return LUAQuaternion( object * Right.GetHandle() );
 }

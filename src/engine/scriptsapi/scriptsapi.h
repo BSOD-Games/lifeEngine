@@ -24,3 +24,6 @@
 #include "scriptsapi/studiorender/luamesh.h"
 #include "scriptsapi/engine/luamodel.h"
 #include "scriptsapi/studiorender/luastudiorender.h"
+#include "scriptsapi/mathlib/luaquaternion.h"
+#include "scriptsapi/engine/lualevel.h"
+#include "scriptsapi/engine/luaentity.h"
