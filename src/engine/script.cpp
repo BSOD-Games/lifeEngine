@@ -68,10 +68,11 @@ void le::Script::Start()
 		if ( !luaStartFn )		return;
 		( *luaStartFn )( );
 	}
-	catch ( std::exception& Exception )
+	catch ( luabridge::LuaException& Exception )
 	{
 		g_consoleSystem->PrintError( Exception.what() );
 	}
+	
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -134,6 +135,7 @@ bool le::Script::Load( const char* Path )
 	{
 		// Create new lua VM and open libs
 		luaState = luaL_newstate();
+		luabridge::enableExceptions( luaState );
 		luaJIT_setmode( luaState, 0, LUAJIT_MODE_ENGINE | LUAJIT_MODE_ON );
 		luaL_openlibs( luaState );
 

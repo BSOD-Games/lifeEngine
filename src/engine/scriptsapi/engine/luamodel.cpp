@@ -37,7 +37,7 @@ void le::LUAModel::Register( lua_State* LuaVM )
 		addConstructor< void (*)() >().
 		addFunction( "Move", &LUAModel::Move ).
 		addFunction( "Rotate", ( void ( LUAModel::* ) ( const LUAVector3D& ) ) &LUAModel::Rotate ).
-		addFunction( "Rotate", ( void ( LUAModel::* ) ( const LUAQuaternion& ) ) &LUAModel::Rotate ).
+		//addFunction( "Rotate", ( void ( LUAModel::* ) ( const LUAQuaternion& ) ) &LUAModel::Rotate ).
 		addFunction( "Scale", &LUAModel::Scale ).
 		addFunction( "SetPosition", &LUAModel::SetPosition ).
 		addFunction( "SetRotation", ( void ( LUAModel::* )( const LUAVector3D& ) ) &LUAModel::SetRotation ).

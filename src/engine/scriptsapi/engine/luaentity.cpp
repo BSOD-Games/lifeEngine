@@ -63,7 +63,7 @@ le::UInt32_t le::LUAEntity::GetCountReferences() const
 // ------------------------------------------------------------------------------------ //
 void le::LUAEntity::KeyValue( const char* Key, const char* Value )
 {
-	( *object )[ "KeyValue" ]( Key, Value );
+	( *object )[ "KeyValue" ]( *object, Key, Value );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -71,7 +71,7 @@ void le::LUAEntity::KeyValue( const char* Key, const char* Value )
 // ------------------------------------------------------------------------------------ //
 void le::LUAEntity::Update()
 {
-	( *object )[ "Update" ]();
+	( *object )[ "Update" ]( *object );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -79,7 +79,8 @@ void le::LUAEntity::Update()
 // ------------------------------------------------------------------------------------ //
 void le::LUAEntity::Render( IStudioRender* StudioRender )
 {
-	( *object )[ "Render" ]();
+	luabridge::LuaRef s = ( *object )[ "Render" ];
+	if ( s.isFunction() ) s( *object );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -87,7 +88,7 @@ void le::LUAEntity::Render( IStudioRender* StudioRender )
 // ------------------------------------------------------------------------------------ //
 void le::LUAEntity::SetModel( IModel* Model, IBody* Body )
 {
-	( *object )[ "SetModel" ]( LUAModel( Model ) );
+	( *object )[ "SetModel" ]( *object, LUAModel( Model ) );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -95,7 +96,7 @@ void le::LUAEntity::SetModel( IModel* Model, IBody* Body )
 // ------------------------------------------------------------------------------------ //
 void le::LUAEntity::SetPosition( const Vector3D_t& Position )
 {
-	//( *object )[ "SetPosition" ]( Position );
+	( *object )[ "SetPosition" ]( *object, Position );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -103,7 +104,7 @@ void le::LUAEntity::SetPosition( const Vector3D_t& Position )
 // ------------------------------------------------------------------------------------ //
 void le::LUAEntity::SetLevel( ILevel* Level )
 {
-	( *object )[ "SetLevel" ]( LUALevel( Level ) );
+	( *object )[ "SetLevel" ]( *object, LUALevel( Level ) );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -111,7 +112,7 @@ void le::LUAEntity::SetLevel( ILevel* Level )
 // ------------------------------------------------------------------------------------ //
 bool le::LUAEntity::IsVisible( ICamera* Camera ) const
 {
-	return true;// ( *object )[ "IsVisible" ]( LUACamera( Camera ) );
+	return ( *object )[ "IsVisible" ]( *object, LUACamera( Camera ) );
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -119,7 +120,7 @@ bool le::LUAEntity::IsVisible( ICamera* Camera ) const
 // ------------------------------------------------------------------------------------ //
 le::Vector3D_t le::LUAEntity::GetCenter() const
 {
-	return Vector3D_t( /*( *object )[ "GetCenter" ]().cast<LUAVector3D>().GetHandle()*/ );
+	return Vector3D_t( ( *object )[ "GetCenter" ]( *object ).cast<LUAVector3D>().GetHandle() );
 }
 
 // ------------------------------------------------------------------------------------ //

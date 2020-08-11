@@ -392,7 +392,7 @@ void le::Engine::RunSimulation()
 		return;
 	}
 
-	IScript*			script = scriptSystem.CreateScript( "script.lua" );
+	IScript*			script = scriptSystem.CreateScript( "main.lua" );
 	if ( script ) script->Start();
 
 	consoleSystem.PrintInfo( "*** Run simulation ***" );

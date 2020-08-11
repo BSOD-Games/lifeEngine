@@ -17,6 +17,10 @@
 //---------------------------------------------------------------------//
 
 struct lua_State;
+namespace luabridge
+{
+	class LuaRef;
+}
 
 //---------------------------------------------------------------------//
 
@@ -32,7 +36,7 @@ namespace le
 	{
 	public:
 		static void				Register( lua_State* LuaVM );
-		static bool				IsKeyDown( UInt32_t Key );
+		static bool				IsKeyDown( const luabridge::LuaRef& Key );
 		static bool				IsKeyUp( UInt32_t Key );
 		static bool				IsMouseKeyDown( UInt32_t Key );
 		static bool				IsMouseKeyUp( UInt32_t Key );

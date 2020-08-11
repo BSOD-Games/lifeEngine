@@ -30,7 +30,7 @@ extern "C"
 void le::LUAStudioRender::Register( lua_State* LuaVM )
 {
 	if ( !LuaVM )		return;
-
+	
 	// Registern studiorender system
 	luabridge::getGlobalNamespace( LuaVM ).
 		beginClass<LUAStudioRender>( "StudioRender" ).
@@ -81,7 +81,7 @@ void le::LUAStudioRender::SubmitModel( const LUAModel& Model )
 // ------------------------------------------------------------------------------------ //
 void le::LUAStudioRender::SubmitModel( const LUAModel& Model, UInt32_t StartSurface, UInt32_t CountSurface )
 {
-	g_studioRender->SubmitModel( Model.GetHandle() );
+	g_studioRender->SubmitModel( Model.GetHandle(), StartSurface, CountSurface );
 }
 
 // ------------------------------------------------------------------------------------ //

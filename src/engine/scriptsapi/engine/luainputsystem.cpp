@@ -170,9 +170,11 @@ void le::LUAInputSystem::Register( lua_State* LuaVM )
 // ------------------------------------------------------------------------------------ //
 // Is key down
 // ------------------------------------------------------------------------------------ //
-bool le::LUAInputSystem::IsKeyDown( UInt32_t Key )
+bool le::LUAInputSystem::IsKeyDown( const luabridge::LuaRef& Key )
 {
-	return g_inputSystem->IsKeyDown( ( BUTTON_CODE ) Key );
+	if ( !Key.isNumber() ) return false;
+	int a = Key.cast<int>();
+	return g_inputSystem->IsKeyDown( ( BUTTON_CODE ) a );
 }
 
 // ------------------------------------------------------------------------------------ //
