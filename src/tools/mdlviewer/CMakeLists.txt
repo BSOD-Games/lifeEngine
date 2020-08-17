@@ -49,7 +49,7 @@ set_target_properties (${MODULE_NAME} PROPERTIES FOLDER Tools )
 target_link_libraries( ${MODULE_NAME} mdlloader )
 target_link_libraries( ${MODULE_NAME} Qt5::Widgets Qt5::Core ${CMAKE_DL_LIBS} )
 
-install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
+install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/binaries )
 
 include_directories( ../mdlloader )
 include_directories( ../../public )

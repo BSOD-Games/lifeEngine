@@ -7,7 +7,7 @@ cmake_minimum_required( VERSION 2.6 )
 file( GLOB SOURCE_FILES "*.h" "*.cpp" )	
 file( GLOB PROXES_FILES "proxes/*.h" "proxes/*.cpp" )	
 file( GLOB SHADERS_FILES "shaders/*.h" "shaders/*.cpp" )						
-file( GLOB PUBLIC_FILES "../public/common/*.h" "../public/engine/*.h" )								
+file( GLOB PUBLIC_FILES "../public/common/*.h" "../public/engine/*.h" "../public/game/*.h" )								
 file( GLOB PRIVATE_FILES "../private/engine/*.h" )		
 file( GLOB_RECURSE SCRIPTSAPI_FILES "scriptsapi/*.h" "scriptsapi/*.cpp" )
 	
@@ -85,8 +85,11 @@ include_directories( ../tools/phyloader )
 include_directories( ../tools/lmtloader )
 include_directories( ../ )
 
-install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
-install( DIRECTORY "shaders/shaders" DESTINATION ${BUILD_DIR}/engine/content )
+install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/binaries )
+install( DIRECTORY "shaders/shaders" DESTINATION ${BUILD_DIR}/engine )
+install( DIRECTORY "resources/game" DESTINATION ${BUILD_DIR}/developer )
+install( DIRECTORY "../public/" DESTINATION ${BUILD_DIR}/developer/engine )
+install( DIRECTORY "../private/" DESTINATION ${BUILD_DIR}/developer/engine )
 
 #
 #   --- Ищим и подключаем зависимости ---

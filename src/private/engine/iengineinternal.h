@@ -28,9 +28,7 @@ namespace le
     class IEngineInternal : public IEngine
     {
     public:
-        virtual bool            Initialize( const char* EngineDirectory, const char* LogFile = "console.log", bool IsEditor = false ) = 0;
-
-        virtual const char*     GetEngineDirectory() const = 0;
+        virtual bool            Initialize( const char* LogFile = "console.log", bool IsEditor = false ) = 0;
     };
 
     //---------------------------------------------------------------------//

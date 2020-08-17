@@ -21,6 +21,7 @@ namespace le
     class IStudioRender;
     class IPhysicsSystem;
     class IAudioSystem;
+    class IGameMode;
 
     //---------------------------------------------------------------------//
 
@@ -35,6 +36,8 @@ namespace le
     typedef     void                        ( *LE_DeletePhysicsSystemFn_t )( IPhysicsSystem* PhysicsSystem );
     typedef     IAudioSystem*               ( *LE_CreateAudioSystemFn_t )();
     typedef     void                        ( *LE_DeleteAudioSystemFn_t )( IAudioSystem* AudioSystem );
+    typedef     IGameMode*                  ( *LE_CreateGameModeFn_t )();
+    typedef     void                        ( *LE_DeleteGameModeFn_t )( IGameMode* GameMode );
 
     //---------------------------------------------------------------------//
 
@@ -92,6 +95,16 @@ namespace le
     LIFEENGINE_API le::IAudioSystem* LE_CreateAudioSystem() { return new AudioSystemClass(); } \
     LIFEENGINE_API void LE_DeleteAudioSystem( le::IAudioSystem* Object ) { delete static_cast<AudioSystemClass*>( Object ); } \
     LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
+
+#ifdef LIFEENGINE_EDITOR
+#	    define LIFEENGINE_GAMEMODE_API( GameModeClass ) \
+        namespace le { class IGameMode; } \
+        LIFEENGINE_API le::IGameMode* LE_CreateGameMode() { return new GameModeClass(); } \
+        LIFEENGINE_API void LE_DeleteGameMode( le::IGameMode* Object ) { delete static_cast<GameModeClass*>( Object ); } \
+        LIFEENGINE_API void LE_SetCriticalError( le::CriticalErrorFn_t CriticalError ) { le::g_criticalError = CriticalError; }
+#else
+#       define LIFEENGINE_GAMEMODE_API( GameModeClass )
+#endif // LIFEENGINE_EDITOR 
 
 //---------------------------------------------------------------------//
 

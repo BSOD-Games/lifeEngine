@@ -21,7 +21,6 @@
 #include "engine/paths.h"
 #include "engine/engine.h"
 #include "engine/window.h"
-#include "engine/igame.h"
 #include "engine/global.h"
 #include "engine/convar.h"
 #include "engine/concmd.h"
@@ -109,7 +108,8 @@ le::Engine::Engine() :
 	cvar_windowHeight( new ConVar() ),
 	cvar_windowFullscreen( new ConVar() ),
 	cvar_mouseSensitivity( new ConVar() ),
-	cvar_rvsinc( new ConVar() )
+	cvar_rvsinc( new ConVar() ),
+	gameMode( nullptr )
 {
 	LIFEENGINE_ASSERT( !g_engine );
 
@@ -314,66 +314,6 @@ void le::Engine::UnloadModule_AudioSystem()
 }
 
 // ------------------------------------------------------------------------------------ //
-// Р—Р°РіСЂСѓР·РёС‚СЊ РёРЅС„РѕСЂРјР°С†РёСЋ РѕР± РёРіСЂРµ
-// ------------------------------------------------------------------------------------ //
-bool le::Engine::LoadGameInfo()
-{
-	consoleSystem.PrintInfo( "Loading gameinfo.json" );
-	
-	// Open file for read
-	std::ifstream		file( "gameinfo.json" );
-	if ( !file.is_open() )
-	{
-		consoleSystem.PrintError( "File gameinfo.json not found" );
-		return false;
-	}
-
-	// Getting all content from file
-	std::string					stringBuffer;
-	UInt32_t					stringLength = 0;
-	std::getline( file, stringBuffer, '\0' );
-
-	// Parse JSON document
-	rapidjson::Document			document;
-	document.Parse( stringBuffer.c_str() );
-	if ( document.HasParseError() )
-	{
-		consoleSystem.PrintError( "Fail parse gameinfo.json" );
-		return false;
-	}
-
-	// Getting values from file
-	for ( auto it = document.MemberBegin(), itEnd = document.MemberEnd(); it != itEnd; ++it )
-	{
-		// Getting name game
-		if ( !strcmp( it->name.GetString(), "name" ) && it->value.IsString() )
-		{
-			gameInfo.name = it->value.GetString();
-			window.SetTitle( gameInfo.name.c_str() );
-		}
-
-		// Getting icon
-		else if ( !strcmp( it->name.GetString(), "icon" ) && it->value.IsString() )
-		{
-			bool		isError = false;
-			gameInfo.icon = it->value.GetString();
-			Image		image = resourceSystem.LoadImage( gameInfo.icon.c_str(), isError, true, false );
-
-			if ( !isError )
-			{
-				window.SetIcon( image );
-				resourceSystem.UnloadImage( image );
-			}
-		}
-	}
-
-	consoleSystem.PrintInfo( "Loaded gameinfo.json" );
-	return true;
-}
-
-#include "engine/iscript.h"
-
-// ------------------------------------------------------------------------------------ //
 // Р—Р°РїСѓСЃС‚РёС‚СЊ СЃРёРјСѓР»СЏС†РёСЋ
 // ------------------------------------------------------------------------------------ //
 void le::Engine::RunSimulation()
@@ -385,15 +325,12 @@ void le::Engine::RunSimulation()
 		consoleSystem.PrintError( "The simulation is not running because engine not initialized" );
 		return;
 	}
-	
-	if ( !LoadGameInfo() )
+
+	if ( !gameMode )
 	{
-		consoleSystem.PrintError( "Failed loading game info" );
+		consoleSystem.PrintError( "Game mode not set" );
 		return;
 	}
-
-	IScript*			script = scriptSystem.CreateScript( "main.lua" );
-	if ( script ) script->Start();
 
 	consoleSystem.PrintInfo( "*** Run simulation ***" );
 	
@@ -462,14 +399,12 @@ void le::Engine::RunSimulation()
 				inputSystem.Update();
 				physicSystem->Update();
 				materialSystem.Update();
-				if ( script ) script->Update();
 
 				inputSystem.Clear();
 			}
 
 			studioRender->Begin();
 			
-			if ( script ) script->Render();
 			if ( cvar_phyDebug->GetValueBool() )
 				physicSystem->DebugRender();
 
@@ -487,6 +422,24 @@ void le::Engine::RunSimulation()
 void le::Engine::StopSimulation()
 {
 	isRunSimulation = false;
+	resourceSystem.UnloadAll();
+}
+
+// ------------------------------------------------------------------------------------ //
+// Set game mode
+// ------------------------------------------------------------------------------------ //
+void le::Engine::SetGameMode( IGameMode* GameMode )
+{
+	gameMode = GameMode;
+}
+
+// ------------------------------------------------------------------------------------ //
+// Unset game mode
+// ------------------------------------------------------------------------------------ //
+void le::Engine::UnsetGameMode()
+{
+	StopSimulation();	
+	gameMode = nullptr;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -578,11 +531,11 @@ le::IFactory* le::Engine::GetFactory() const
 }
 
 // ------------------------------------------------------------------------------------ //
-// Get game info
+// Get game mode
 // ------------------------------------------------------------------------------------ //
-le::GameInfo le::Engine::GetGameInfo() const
+le::IGameMode* le::Engine::GetGameMode() const
 {
-	return le::GameInfo{ gameInfo.name.c_str(), gameInfo.icon.c_str() };
+	return gameMode;
 }
 
 // ------------------------------------------------------------------------------------ //
@@ -596,12 +549,11 @@ const char* le::Engine::GetVersion() const
 // ------------------------------------------------------------------------------------ //
 // Initialize engine
 // ------------------------------------------------------------------------------------ //
-bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile, bool IsEditor )
+bool le::Engine::Initialize( const char* LogFile, bool IsEditor )
 {
 	if ( isInitialized )	return true;
 	consoleSystem.PrintInfo( "Initialization lifeEngine" );
 	
-	engineDirectory = EngineDirectory;
 	isEditor = IsEditor;
 	
 	try
@@ -636,13 +588,13 @@ bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile, b
 		consoleSystem.PrintInfo( "*** System info end ****" );
 
 		// Initialize path to resources
-		resourceSystem.AddPath( "content" );
-		resourceSystem.AddPath( ( std::string( EngineDirectory ) + "/content" ).c_str() );
+		resourceSystem.AddPath( "../content" );
+		resourceSystem.AddPath( "../engine" );
 
 		// Р—Р°РіСЂСѓР¶Р°РµРј Рё РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РїРѕРґСЃРёСЃС‚РµРјС‹
-		if ( !LoadModule_StudioRender( ( engineDirectory + "/" + LIFEENGINE_STUDIORENDER_DLL ).c_str() ) )			throw std::runtime_error( "Failed loading studiorender" );
-		if ( !LoadModule_PhysicsSystem( ( engineDirectory + "/" + LIFEENGINE_PHYSICSSYSTEM_DLL ).c_str() ) )		throw std::runtime_error( "Failed loading physics system" );
-		if ( !LoadModule_AudioSystem( ( engineDirectory + "/" + LIFEENGINE_AUDIOSYSTEM_DLL ).c_str() ) )			throw std::runtime_error( "Failed loading audio system" );
+		if ( !LoadModule_StudioRender( LIFEENGINE_STUDIORENDER_DLL ) )			throw std::runtime_error( "Failed loading studiorender" );
+		if ( !LoadModule_PhysicsSystem( LIFEENGINE_PHYSICSSYSTEM_DLL ) )		throw std::runtime_error( "Failed loading physics system" );
+		if ( !LoadModule_AudioSystem( LIFEENGINE_AUDIOSYSTEM_DLL ) )			throw std::runtime_error( "Failed loading audio system" );
 
 		// Initialize studiorender
 		if ( !studioRender )							throw std::runtime_error( "Studiorender not loaded" );
@@ -697,14 +649,6 @@ bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile, b
 	consoleSystem.PrintInfo( "Initialized lifeEngine" );
 	isInitialized = true;
 	return true;
-}
-
-// ------------------------------------------------------------------------------------ //
-// Get engine directory
-// ------------------------------------------------------------------------------------ //
-const char* le::Engine::GetEngineDirectory() const
-{
-	return engineDirectory.c_str();
 }
 
 // ------------------------------------------------------------------------------------ //

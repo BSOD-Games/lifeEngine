@@ -17,7 +17,6 @@ add_definitions( -DLIFEENGINE_VERSION="${LIFEENGINE_VERSION}" )
 #   --- Название проектов ---
 #
 
-set( PROJECT_LAUNCHER launcher )
 set( PROJECT_ENGINE engine )
 set( PROJECT_STUDIORENDER studiorender )
 set( PROJECT_PHYSICS physics )
@@ -61,11 +60,10 @@ if ( EXISTS ${EXTLIBS_DIR} )
 	execute_process( COMMAND ${GIT_EXECUTABLE} -C ${EXTLIBS_DIR} pull origin )
 
 	include( ${EXTLIBS_DIR}/cmake/install_extlibs.cmake )
-	install_extlibs( ${EXTLIBS_DIR} ${BUILD_DIR}/engine )
+	install_extlibs( ${EXTLIBS_DIR} ${BUILD_DIR}/binaries )
 endif()
 
 option( LIFEENGINE_DEBUG "Enable debug mode" OFF )
-option( BUILD_LAUNCHER "Build launcher engine" OFF )
 option( BUILD_ENGINE "Build engine" OFF )
 option( BUILD_STUDIORENDER "Build studiorender" OFF )
 option( BUILD_PHYSICS "Build physics" OFF )
@@ -97,10 +95,6 @@ endif()
 #
 
 include_directories( ${CMAKE_BINARY_DIR} )
-
-if ( BUILD_LAUNCHER )
-        add_subdirectory( ${PROJECT_LAUNCHER} )
-endif()
 
 if ( BUILD_ENGINE )
 	add_subdirectory( ${PROJECT_ENGINE} )

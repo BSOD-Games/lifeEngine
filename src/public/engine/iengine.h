@@ -32,6 +32,7 @@ namespace le
     class IPhysicsSystem;
 	class IScriptSystem;
 	class IAudioSystem;
+	class IGameMode;
 
 	//---------------------------------------------------------------------//
 
@@ -41,6 +42,9 @@ namespace le
         virtual ~IEngine() {}
 		virtual void					RunSimulation() = 0;
 		virtual void					StopSimulation() = 0;		
+
+		virtual void					SetGameMode( IGameMode* GameMode ) = 0;
+		virtual void					UnsetGameMode() = 0;
 
 		virtual bool					IsRunSimulation() const = 0;
 		virtual bool					IsEditor() const = 0;
@@ -54,8 +58,8 @@ namespace le
 		virtual IAudioSystem*			GetAudioSystem() const = 0;
 		virtual IWindow*				GetWindow() const = 0;
 		virtual IFactory*				GetFactory() const = 0;
+		virtual IGameMode*				GetGameMode() const = 0;
 		virtual float					GetFixedTimeStep() const = 0;
-        virtual GameInfo				GetGameInfo() const = 0;
 		virtual Configurations			GetConfigurations() const = 0;
 		virtual const char*				GetVersion() const = 0;
 	};

@@ -39,7 +39,7 @@ include_directories( ../phyloader )
 include_directories( ../../public )
 include_directories( ../../private )
 
-install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
+install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/binaries )
 
 #
 #   --- Ищим и подключаем зависимости ---

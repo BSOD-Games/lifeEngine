@@ -1,15 +1,15 @@
 //////////////////////////////////////////////////////////////////////////
 //
-//			*** lifeEngine (Двигатель жизни) ***
-//				Copyright (C) 2018-2019
+//					*** lifeEngine ***
+//				Copyright (C) 2018-2020
 //
-// Репозиторий движка:  https://github.com/zombihello/lifeEngine
-// Авторы:				Егор Погуляка (zombiHello)
+// Engine repository:  	https://github.com/BSOD-Games/lifeEngine
+// Authors:				Egor Pogulyaka (zombiHello)
 //
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef IGAME_H
-#define IGAME_H
+#ifndef IGAMEMODE_H
+#define IGAMEMODE_H
 
 #include "common/types.h"
 
@@ -19,19 +19,17 @@ namespace le
 {
 	//---------------------------------------------------------------------//
 
-	struct Event;
 	class IEngine;
 
 	//---------------------------------------------------------------------//
 
-	class IGame
+	class IGameMode
 	{
 	public:
-        virtual ~IGame() {}
+        virtual ~IGameMode() {}
 		virtual bool				Initialize( IEngine* Engine, UInt32_t CountArguments, const char** Arguments ) = 0;
-		virtual void				Update() = 0;
-		virtual void                Render() = 0;
-		virtual void				OnEvent( const Event& Event ) = 0;
+		virtual bool				LoadGame( const char* PathLevel ) = 0;
+		virtual void				UnloadGame() = 0;
 	};
 
 	//---------------------------------------------------------------------//
@@ -39,5 +37,5 @@ namespace le
 
 //---------------------------------------------------------------------//
 
-#endif // !IGAME_H
+#endif // !IGAMEMODE_H
 

@@ -12,7 +12,6 @@
 #define ENGINE_H
 
 #include "common/configurations.h"
-#include "common/gameinfo.h"
 #include "engine/lifeengine.h"
 #include "engine/iengineinternal.h"
 #include "engine/consolesystem.h"
@@ -79,6 +78,9 @@ namespace le
 		virtual void					RunSimulation();
 		virtual void					StopSimulation();		
 
+		virtual void					SetGameMode( IGameMode* GameMode );
+		virtual void					UnsetGameMode();
+
 		virtual bool					IsRunSimulation() const;
 		virtual bool					IsEditor() const;
 		virtual IConsoleSystem*			GetConsoleSystem() const;
@@ -91,39 +93,25 @@ namespace le
 		virtual IAudioSystem*			GetAudioSystem() const;
 		virtual IWindow*				GetWindow() const;
 		virtual IFactory*				GetFactory() const;
+		virtual IGameMode*				GetGameMode() const;
 		virtual float					GetFixedTimeStep() const;
-        virtual GameInfo				GetGameInfo() const;
 		virtual const char*				GetVersion() const;
 		virtual Configurations			GetConfigurations() const;
 
 		// IEngineInternal
-		virtual bool					Initialize( const char* EngineDirectory, const char* LogFile = "console.log", bool IsEditor = false );
-
-		virtual const char*				GetEngineDirectory() const;
+		virtual bool					Initialize( const char* LogFile = "console.log", bool IsEditor = false );
 
 		// Engine
 		Engine();
 		~Engine();
 
 	private:
-
-		//---------------------------------------------------------------------//
-
-		struct GameInfo
-		{
-			std::string				name;
-			std::string				icon;
-		};
-
-		//---------------------------------------------------------------------//
-
 		bool							LoadModule_StudioRender( const char* PathDLL );
 		void							UnloadModule_StudioRender();
         bool							LoadModule_PhysicsSystem( const char* PathDLL );
         void							UnloadModule_PhysicsSystem();
 		bool							LoadModule_AudioSystem( const char* PathDLL );
 		void							UnloadModule_AudioSystem();
-		bool							LoadGameInfo();
 
 		bool							isInitialized;
 		bool							isRunSimulation;
@@ -147,6 +135,7 @@ namespace le
 		IAudioSystemInternal*			audioSystem;
 		AudioSystemDescriptor			audioSystemDescriptor;
 
+		IGameMode*						gameMode;
 		CriticalErrorCallbackFn_t		criticalError;
 		ConsoleSystem					consoleSystem;
 		ResourceSystem					resourceSystem;
@@ -155,8 +144,6 @@ namespace le
 		ScriptSystem					scriptSystem;
 		Window							window;
 		EngineFactory					engineFactory;
-		GameInfo						gameInfo;
-		std::string						engineDirectory;
 	};
 
 	//---------------------------------------------------------------------//

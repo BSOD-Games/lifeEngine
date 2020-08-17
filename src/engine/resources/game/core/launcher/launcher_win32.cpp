@@ -12,14 +12,15 @@
 #include <exception>
 #include <fstream>
 
-#include "common/configurations.h"
-#include "engine/paths.h"
-#include "engine/lifeengine.h"
-#include "engine/iengineinternal.h"
-#include "engine/iwindowinternal.h"
-#include "engine/iconsolesystem.h"
-#include "engine/iconvar.h"
-#include "studiorender/istudiorenderinternal.h"
+#include <common/configurations.h>
+#include <engine/lifeengine.h>
+#include <engine/iengineinternal.h>
+#include <engine/iwindowinternal.h>
+#include <engine/iconsolesystem.h>
+#include <engine/iconvar.h>
+#include <studiorender/istudiorenderinternal.h>
+
+#include "gamemode.h"
 
 //---------------------------------------------------------------------//
 
@@ -64,9 +65,9 @@ void            Engine_CriticalError( const char* Message );
 void Application_LoadEngine()
 {
     // Loading engine
-    g_engineDescriptor.engineDLL = LoadLibraryA( "engine/" LIFEENGINE_ENGINE_DLL );
+    g_engineDescriptor.engineDLL = LoadLibraryA( "engine.dll" );
     if ( !g_engineDescriptor.engineDLL )               
-        throw std::runtime_error( "Faile loaded engine/" LIFEENGINE_ENGINE_DLL );
+        throw std::runtime_error( "Faile loaded engine.dll" );
 
     g_engineDescriptor.LE_CreateEngine = ( le::LE_CreateEngineFn_t ) GetProcAddress( g_engineDescriptor.engineDLL, "LE_CreateEngine" );
     if ( !g_engineDescriptor.LE_CreateEngine )		
@@ -106,7 +107,7 @@ void Engine_CriticalError( const char* Message )
         window->SetShowCursor( true );
     }
 
-    std::ofstream			fileLog( "console.log", std::ios::app );
+    std::ofstream			fileLog( "../console.log", std::ios::app );
     MessageBoxA( nullptr, Message, "Error lifeEngine", MB_OK | MB_ICONERROR );
     fileLog << "\nCritical error: " << Message;
 
@@ -119,12 +120,11 @@ void Engine_CriticalError( const char* Message )
 // ------------------------------------------------------------------------------------ //
 int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nCmdShow )
 {	
-    SetDllDirectoryA( "engine" );
-
     try
     {
         // Loading engine
         Application_LoadEngine();
+        GameMode            gameMode;
 
         {
             // Cчитываем аргументы запуска лаунчера
@@ -141,7 +141,7 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
             }
 
             // Инициализируем движок для запуска игры
-            if ( !g_engineDescriptor.engine->Initialize( "engine", "console.log" ) )
+            if ( !g_engineDescriptor.engine->Initialize( "../console.log" ) )
                 throw std::runtime_error( "The engine is not initialized. See the logs for details" );
 
 			le::Configurations			configurations = g_engineDescriptor.engine->GetConfigurations();
@@ -155,19 +155,25 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nC
 
             // Create window and context render
             le::IWindowInternal*			window = ( le::IWindowInternal* ) g_engineDescriptor.engine->GetWindow();
-            if ( !window->Create( "lifeEngine " LIFEENGINE_VERSION, configurations.windowWidth->GetValueInt(), configurations.windowHeight->GetValueInt(), configurations.windowFullscreen->GetValueBool() ? le::SW_FULLSCREEN : le::SW_DEFAULT ) )
-                throw std::runtime_error( "Fail creating window" );
+            if ( !window->Create( "lifeEngine", configurations.windowWidth->GetValueInt(), configurations.windowHeight->GetValueInt(), configurations.windowFullscreen->GetValueBool() ? le::SW_FULLSCREEN : le::SW_DEFAULT ) )
+                throw std::runtime_error( "Failed creating window" );
 
             if ( !static_cast<le::IStudioRenderInternal*>( g_engineDescriptor.engine->GetStudioRender() )->CreateContext( window->GetHandle(), configurations.windowWidth->GetValueInt(), configurations.windowHeight->GetValueInt() ) )
-                throw std::runtime_error( "Fail creating context render" );
+                throw std::runtime_error( "Failed creating context render" );
+
+            // Initialize game mode
+            if ( !gameMode.Initialize( g_engineDescriptor.engine, argc, ( const char** ) argv ) )
+                throw std::runtime_error( "Failed initialize game" );
 
             // Удаляем выделенную память под аргументы и запускаем игру
             LocalFree( argList );
             delete[] argv;
         }
 
-        // Если все прошло успешно - запускаем симуляцию игры
+        // Если все прошло успешно - запускаем симуляцию игры           
+        g_engineDescriptor.engine->SetGameMode( &gameMode );
         g_engineDescriptor.engine->RunSimulation();
+        g_engineDescriptor.engine->UnsetGameMode();
 
         // Unload engine and DLL
         Application_UnloadEngine();

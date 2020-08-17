@@ -42,7 +42,7 @@ include_directories( ../public )
 include_directories( ../private )
 include_directories( ../ )
 
-install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
+install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/binaries )
 
 #
 #   --- Ищим и подключаем зависимости ---
