@@ -1,17 +1,46 @@
 cmake_minimum_required( VERSION 2.6 )
 project( lifeEngine )
 
+set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMake" )
+set( EXTLIBS_DIR ${CMAKE_BINARY_DIR}/Extlibs )
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
+
+include( ${CMAKE_ROOT}/Modules/ExternalProject.cmake )
+include( Git )
+	
+git_init()	
 
 #
 #   --- Modules ---
 #
+# ================================================
 
 set( MODULE_CORE Source/Runtime/Core )
+set( EDITOR Source/Editor )
 
+# ================================================
 #
 #   --- Build settings ---
 #
+
+# Download extlibs from repo
+if ( NOT EXISTS ${EXTLIBS_DIR} )
+	set( EXTLIBS_REP https://github.com/BSOD-Games/lifeEngine-extlibs.git )	
+	execute_process( COMMAND ${GIT_EXECUTABLE} clone ${EXTLIBS_REP} ${EXTLIBS_DIR} )
+
+	if ( NOT EXISTS ${EXTLIBS_DIR} )
+		message( SEND_ERROR "Failed loading extlibs from [${EXTLIBS_REP}]" )
+	endif()
+endif( )
+
+# If there is a directory of dependencies, set up the binary system in
+# build directory
+if ( EXISTS ${EXTLIBS_DIR} )
+	execute_process( COMMAND ${GIT_EXECUTABLE} -C ${EXTLIBS_DIR} pull origin )
+
+	include( ${EXTLIBS_DIR}/cmake/install_extlibs.cmake )
+	#install_extlibs( ${EXTLIBS_DIR} ${BUILD_DIR}/binaries )
+endif()
 
 # Get OS name
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
@@ -27,7 +56,7 @@ else()
 	set( ARCH_TYPE x86 )
 endif()
 
-set( BUILD_DIR ${CMAKE_INSTALL_PREFIX}/Engine )
+set( BUILD_DIR ${CMAKE_INSTALL_PREFIX} )
 set( CMAKE_CONFIGURATION_TYPES "Debug;Release" )
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
 set( CMAKE_CXX_STANDARD 14 )
@@ -35,6 +64,7 @@ set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 option( IS_MONOLIT "Is monolit" OFF )
 
+# Platform specific settings
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )	
     if ( MINGW )
         set( CMAKE_RC_COMPILER_INIT windres )
@@ -51,8 +81,10 @@ if( IS_MONOLIT )
 	add_definitions( -DLIFEENGINE_MONOLIT )
 endif()
 
+# ================================================
 #
 #	--- Add modules ---
 #
 
 add_subdirectory( ${MODULE_CORE} )
+add_subdirectory( ${EDITOR} )

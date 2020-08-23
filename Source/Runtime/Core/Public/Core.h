@@ -4,8 +4,11 @@
 #ifndef CORE_H
 #define CORE_H
 
+#include <string>
+
 #include "Misc/CoreDefines.h"
-#include "Modules/IObject.h"
+#include "Logging/Logger.h"
+#include "Window.h"
 
 namespace le
 {
@@ -19,23 +22,23 @@ namespace le
 		CORE_API ~Core();
 
 		/* Initialize engine */
-		CORE_API bool Initialize();
+		CORE_API bool Initialize( const std::string& InConfigPath, const std::string& InLogPath );
 
-		/* Register interface */
-		CORE_API void RegisterInterface( const SGuid& InGuid, CreateObjectFn InCreateObjectFn );
-
-		/* Unregister interface */
-		CORE_API void UnregisterInterface( const SGuid& InGuid );
-
-		/* Create object */
-		CORE_API void* CreateObject( const SGuid& InGuid );
-
-		/* Create object */
-		template< typename T >
-		T* CreateObject( const SGuid& InGuid )
+		/* Get window */
+		FORCEINLINE Window& GetWindow()
 		{
-			return static_cast< T* >( CreateObject( InGuid ) );
+			return window;
 		}
+
+		/* Get logger */
+		FORCEINLINE Logger& GetLogger()
+		{
+			return logger;
+		}
+
+	private:
+		Logger			logger;
+		Window			window;
 	};
 }
 

@@ -9,9 +9,10 @@
 // Is debug?
 #ifdef _DEBUG
 	#define LIFEENGINE_DEBUG									/* Macro for debug engine */
-	#define PLATFORM_BREAK()			( __nop(), __debugbreak() )
+	#define PLATFORM_BREAK()					( __nop(), __debugbreak() )
 #else
 	#define PLATFORM_BREAK()
+	#define DEBUG_OUTPUT( Message )	
 #endif // _DEBUG
 
 // Function type macros
