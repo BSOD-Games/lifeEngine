@@ -4,18 +4,18 @@
 #include <qapplication.h>
 #include <qmessagebox.h>
 
-#include <Core.h>
-#include <Misc/CoreGlobals.h>
+#include <Engine.h>
+#include <Logging/LogMacros.h>
 
 // ------------------------------------------------------------------------------------ //
 // Main function
 // ------------------------------------------------------------------------------------ //
 int main( int argc, char** argv )
 {
-	le::Core			core;
-	if ( !core.Initialize( "../../Config/Engine.json", "../../lifeEditor.log" ) )		return 1;
-
-	le::GWindow->Open( "TestBed", 900, 900, le::SW_Default );
+	le::Engine::GetInstance()->Initialize( "../../Config.json", "../../lifeEditor.log" );
+	
+	LIFEENGINE_LOG_DEBUG( "Editor", "Messa" );
+	LIFEENGINE_LOG_FAIL( "Editor", "FAAAAIL i = %i", 23 );
 	return 0;
 }
 

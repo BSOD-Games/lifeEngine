@@ -15,7 +15,6 @@ namespace le
 	typedef		unsigned int		uint32;
 	typedef		unsigned long long	uint64;
 	typedef		unsigned char		byte;
-	typedef		void*				WindowHandle_t;
 }
 
 #endif // !TYPES_H

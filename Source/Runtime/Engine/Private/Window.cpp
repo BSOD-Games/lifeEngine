@@ -4,16 +4,24 @@
 #include "Window.h"
 
 /**
- * Constructor window
+ * Constructor
  */
 le::Window::Window() :
 	handle( nullptr )
 {}
 
 /**
- * Destructor window
+ * Destructor
  */
 le::Window::~Window()
+{
+	Close();
+}
+
+/**
+ * Show message box
+ */
+void le::Window::ShowMessageBox( const std::string& InMessage, EMessageBoxType InType )
 {}
 
 /**
@@ -25,12 +33,11 @@ bool le::Window::Open( const std::string& InTitle, uint32 InWidth, uint32 InHeig
 }
 
 /**
- * Set window handle
+ * Initialize window instance for alrady created native window
  */
-void le::Window::SetHandle( WindowHandle_t InWindowHandle )
+bool le::Window::Open( FWindowHandle InWindowHandle )
 {
-	if ( !handle ) Close();
-	handle = InWindowHandle;
+	return true;
 }
 
 /**
@@ -38,11 +45,3 @@ void le::Window::SetHandle( WindowHandle_t InWindowHandle )
  */
 void le::Window::Close()
 {}
-
-/**
- * Get window handle
- */
-le::WindowHandle_t le::Window::GetHandle() const
-{
-	return handle;
-}

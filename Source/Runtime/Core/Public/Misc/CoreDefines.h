@@ -18,16 +18,6 @@
 // Core macros
 #define LIFEENGINE_DEPRECATED( Version, Message )			[ [ deprecated( Message " Please update your code to the new API before upgrading to the next release, otherwise your project will no longer compile." ) ] ]
 
-#ifndef LIFEENGINE_MONOLIT
-	#ifdef CORE_EXPORT
-		#define CORE_API DLLEXPORT
-	#else
-		#define CORE_API DLLIMPORT
-	#endif // CORE_EXPORT
-#else
-	#define CORE_API
-#endif // !LIFEENGINE_MONOLIT
-
 // Macros for debug
 #ifdef LIFEENGINE_DEBUG
 	#define LIFEENGINE_ASSERT( X )			if ( !( X ) ) PLATFORM_BREAK()

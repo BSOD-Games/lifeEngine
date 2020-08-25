@@ -8,6 +8,7 @@
 #include <string>
 
 #include "Misc/CoreDefines.h"
+#include "Templates/Singleton.h"
 
 namespace le
 {
@@ -20,23 +21,23 @@ namespace le
 		LT_Fail
 	};
 
-	class Logger
+	class Logger : public TSingleton<Logger>
 	{
 	public:
 		/* Constructor */
-		CORE_API Logger();
+		Logger();
 
 		/* Destructor */
-		CORE_API ~Logger();
+		~Logger();
 
 		/* Print message to log */
-		CORE_API void Logf( ELogType InLogType, const std::string& InCategory, const char* InMessage, ... );
+		void Logf( ELogType InLogType, const std::string& InCategory, const char* InMessage, ... );
 
 		/* Close file */
-		CORE_API void CloseFile();
+		void CloseFile();
 
 		/* Set path to log file */
-		CORE_API void SetFile( const std::string& InPath );
+		void SetFile( const std::string& InPath );
 
 	private:
 		FILE*		file;

@@ -21,13 +21,13 @@ endif()
 file( GLOB PUBLIC_FILES_MISC "Public/Misc/*.h" )
 source_group( "Public Files\\Misc" FILES ${PUBLIC_FILES_MISC} )
 
-# Modules files
-file( GLOB PUBLIC_FILES_MODULES "Public/Modules/*.h" )
-source_group( "Public Files\\Modules" FILES ${PUBLIC_FILES_MODULES} )
-
 # Logging files
 file( GLOB PUBLIC_FILES_LOGGING "Public/Logging/*.h" )
 source_group( "Public Files\\Logging" FILES ${PUBLIC_FILES_LOGGING} )
+
+# Templates files
+file( GLOB PUBLIC_FILES_TEMPLATES "Public/Templates/*.h" )
+source_group( "Public Files\\Templates" FILES ${PUBLIC_FILES_TEMPLATES} )
 
 # -- Private files --
 # Root private files
@@ -38,24 +38,13 @@ source_group( "Private Files" FILES ${PRIVATE_FILES} )
 file( GLOB PRIVATE_FILES_LOGGING "Private/Logging/*.h" "Private/Logging/*.cpp" )
 source_group( "Private Files\\Logging" FILES ${PRIVATE_FILES_LOGGING} )
 
-# Misc private files
-file( GLOB PRIVATE_FILES_MISC "Private/Misc/*.h" "Private/Misc/*.cpp" )
-source_group( "Private Files\\Misc" FILES ${PRIVATE_FILES_MISC} )
-
 # ================================================
 #
 #   --- Project settings ---
 #
 
-set( SOURCE_FILES ${PUBLIC_FILES} ${PRIVATE_FILES} ${PUBLIC_FILES_PLATFORM} ${PUBLIC_FILES_MISC} ${PUBLIC_FILES_MODULES} ${PUBLIC_FILES_LOGGING} ${PRIVATE_FILES_LOGGING} ${PRIVATE_FILES_MISC} )
-
-if( NOT IS_MONOLIT )
-	add_definitions( -DCORE_EXPORT )
-	add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} )
-	install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/Binaries/${ARCH_TYPE} )
-else()
-	add_library( ${MODULE_NAME} STATIC ${SOURCE_FILES} )
-endif()
+set( SOURCE_FILES ${PUBLIC_FILES} ${PRIVATE_FILES} ${PUBLIC_FILES_PLATFORM} ${PUBLIC_FILES_MISC} ${PUBLIC_FILES_LOGGING} ${PRIVATE_FILES_LOGGING} ${PUBLIC_FILES_TEMPLATES} )
+add_library( ${MODULE_NAME} STATIC ${SOURCE_FILES} )
 
 set_target_properties( ${MODULE_NAME} PROPERTIES FOLDER Engine )
 set_target_properties( ${MODULE_NAME} PROPERTIES PREFIX "" )

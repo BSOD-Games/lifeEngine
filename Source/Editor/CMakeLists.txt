@@ -46,9 +46,10 @@ set_target_properties( ${MODULE_NAME} PROPERTIES FOLDER Editor )
 set_target_properties( ${MODULE_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${BUILD_DIR}/Binaries/${ARCH_TYPE}
 												 VS_DEBUGGER_ENVIRONMENT ${BUILD_DIR}/Binaries/${ARCH_TYPE} )
 
-target_link_libraries( ${MODULE_NAME} Core )
+target_link_libraries( ${MODULE_NAME} Engine )
 target_link_libraries( ${MODULE_NAME} Qt5::Widgets Qt5::Core ${CMAKE_DL_LIBS} )
-include_directories( ../Runtime/Core/public )
+include_directories( ../Runtime/Core/Public )
+include_directories( ../Runtime/Engine/Public )
 
 # ================================================
 #

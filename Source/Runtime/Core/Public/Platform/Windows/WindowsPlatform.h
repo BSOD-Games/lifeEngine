@@ -12,7 +12,6 @@
 	#define PLATFORM_BREAK()					( __nop(), __debugbreak() )
 #else
 	#define PLATFORM_BREAK()
-	#define DEBUG_OUTPUT( Message )	
 #endif // _DEBUG
 
 // Function type macros
@@ -21,9 +20,5 @@
 #define STDCALL				__stdcall							/* Standard calling convention */
 #define FORCEINLINE			__forceinline						/* Force code to be inline */
 #define FORCENOINLINE		__declspec( noinline )				/* Force code to NOT be inline */
-
-// DLL export and import definitions
-#define DLLEXPORT			__declspec( dllexport )				/* Export from DLL */
-#define DLLIMPORT			__declspec( dllimport )				/* Import from DLL */
 
 #endif // !WINDOWSPLATFORM_H

@@ -16,6 +16,7 @@ git_init()
 # ================================================
 
 set( MODULE_CORE Source/Runtime/Core )
+set( MODULE_ENGINE Source/Runtime/Engine )
 set( EDITOR Source/Editor )
 
 # ================================================
@@ -62,8 +63,6 @@ set( CMAKE_INCLUDE_CURRENT_DIR ON )
 set( CMAKE_CXX_STANDARD 14 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
-option( IS_MONOLIT "Is monolit" OFF )
-
 # Platform specific settings
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )	
     if ( MINGW )
@@ -77,14 +76,11 @@ else()
     message( SEND_ERROR "Unknow platform" )
 endif()
 
-if( IS_MONOLIT )
-	add_definitions( -DLIFEENGINE_MONOLIT )
-endif()
-
 # ================================================
 #
 #	--- Add modules ---
 #
 
 add_subdirectory( ${MODULE_CORE} )
+add_subdirectory( ${MODULE_ENGINE} )
 add_subdirectory( ${EDITOR} )
