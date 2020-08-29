@@ -6,6 +6,7 @@
 
 #include <Engine.h>
 #include <Logging/LogMacros.h>
+#include <System/Window.h>
 
 // ------------------------------------------------------------------------------------ //
 // Main function
@@ -13,8 +14,25 @@
 int main( int argc, char** argv )
 {
 	le::Engine::GetInstance()->Initialize( "../../Config.json", "../../lifeEditor.log" );
-	
+	le::Window::GetInstance()->Open( "lifeEditor", 800, 600 );
+
 	LIFEENGINE_LOG_DEBUG( "Editor", "Messa" );
+	le::Window::ShowMessageBox( "Hello", le::MBT_Info );
+	
+	while ( le::Window::GetInstance()->IsOpen() ) 
+	{
+		le::Event		event;
+		while ( le::Window::GetInstance()->PollEvent( event ) ) 
+		{
+			switch ( event.type )
+			{
+			case le::ET_WindowClose:
+				le::Window::GetInstance()->Close();
+				break;
+			}
+		}
+	}
+	
 	LIFEENGINE_LOG_FAIL( "Editor", "FAAAAIL i = %i", 23 );
 	return 0;
 }

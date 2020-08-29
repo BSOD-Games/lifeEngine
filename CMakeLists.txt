@@ -27,7 +27,8 @@ set( EDITOR Source/Editor )
 # Download extlibs from repo
 if ( NOT EXISTS ${EXTLIBS_DIR} )
 	set( EXTLIBS_REP https://github.com/BSOD-Games/lifeEngine-extlibs.git )	
-	execute_process( COMMAND ${GIT_EXECUTABLE} clone ${EXTLIBS_REP} ${EXTLIBS_DIR} )
+	git_current_branch( CURRENT_BRANCH )
+	execute_process( COMMAND ${GIT_EXECUTABLE} clone --branch ${CURRENT_BRANCH} -v ${EXTLIBS_REP} ${EXTLIBS_DIR} )
 
 	if ( NOT EXISTS ${EXTLIBS_DIR} )
 		message( SEND_ERROR "Failed loading extlibs from [${EXTLIBS_REP}]" )
@@ -40,7 +41,7 @@ if ( EXISTS ${EXTLIBS_DIR} )
 	execute_process( COMMAND ${GIT_EXECUTABLE} -C ${EXTLIBS_DIR} pull origin )
 
 	include( ${EXTLIBS_DIR}/cmake/install_extlibs.cmake )
-	#install_extlibs( ${EXTLIBS_DIR} ${BUILD_DIR}/binaries )
+	set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${EXTLIBS_DIR}/CMake" )
 endif()
 
 # Get OS name
@@ -64,7 +65,7 @@ set( CMAKE_CXX_STANDARD 14 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 # Platform specific settings
-if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )	
+if( ${PLATFORM_TYPE} MATCHES "Windows" )	
     if ( MINGW )
         set( CMAKE_RC_COMPILER_INIT windres )
         enable_language( RC )

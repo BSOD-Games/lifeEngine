@@ -8,6 +8,7 @@
 
 #include "Misc/Types.h"
 #include "Templates/Singleton.h"
+#include "Event.h"
 
 namespace le
 {
@@ -40,18 +41,23 @@ namespace le
 		/* Destructor */
 		~Window();
 
-
 		/* Show message box */
 		static void ShowMessageBox( const std::string& InMessage, EMessageBoxType InType );
 
 		/* Open window */
 		bool Open( const std::string& InTitle, uint32 InWidth, uint32 InHeight, EStyleWindow InStyleWindow = SW_Default );
 
-		/* Initialize window instance for alrady created native window */
-		bool Open( FWindowHandle InWindowHandle );
-
 		/* Close window */
 		void Close();
+
+		/* Poll event */
+		bool PollEvent( Event& OutEvent );
+
+		/* Is open */
+		FORCEINLINE bool IsOpen() const
+		{
+			return handle;
+		}
 
 		/* Get handle window */
 		FORCEINLINE FWindowHandle GetHandle() const
@@ -60,7 +66,10 @@ namespace le
 		}
 
 	private:
-		FWindowHandle			handle;
+		struct SDL_Window*			window;
+		struct SDL_Cursor*			cursor;
+		struct SDL_SysWMinfo*		sysWMinfo;
+		FWindowHandle				handle;
 	};
 }
 

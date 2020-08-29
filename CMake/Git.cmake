@@ -9,6 +9,17 @@ function( git_init )
 	endif()	
 endfunction()
 
+# Get branch name
+function( git_current_branch OUT_VALUE )
+	execute_process( COMMAND ${GIT_EXECUTABLE} branch --show-current
+						WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+						OUTPUT_VARIABLE CURRENT_BRANCH
+						ERROR_QUIET
+						OUTPUT_STRIP_TRAILING_WHITESPACE )	
+
+	set( ${OUT_VALUE} ${CURRENT_BRANCH} PARENT_SCOPE )
+endfunction()
+
 # Generation version from Git
 function( git_generation_version OUT_VALUE )
 	

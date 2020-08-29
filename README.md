@@ -1,4 +1,4 @@
-![lifeEngine](Logo/header.jpg?raw=true) 
+![lifeEngine](Logo/Header.jpg?raw=true) 
 
 # Описание
 Это игровой 3D-движок написанный на С++ с высокоуровневым API и модульной архитектурой. Также,
