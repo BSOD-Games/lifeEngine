@@ -171,10 +171,11 @@ le::FRHIContext le::WinGL_CreateContext( FWindowHandle InWindowHandle, const SSe
 	}
 
 	SRHIContext*			rhiContext = new SRHIContext( deviceContext, renderContext );
+	WinGL_MakeCurrentContext( rhiContext );
 	LIFEENGINE_LOG_INFO( "OpenGL4RHI", "Context OpenGL %s%s%s created", glGetString( GL_VERSION ),
 						 ( isSetProfile && ( InSettingsContext.attributeFlags& SSettingsContext::CA_Core ) ? " core" : "" ),
 						 ( isSetProfile && ( InSettingsContext.attributeFlags& SSettingsContext::CA_Debug ) ? " debug" : "" ) );
-
+	
 	return rhiContext;
 }
 
@@ -188,12 +189,12 @@ bool le::WinGL_MakeCurrentContext( FRHIContext InRHIContext )
 
 	if ( !wglMakeCurrent( static_cast< SRHIContext* >( InRHIContext )->deviceContext, static_cast< SRHIContext* >( InRHIContext )->renderContext ) )
 	{
-		LIFEENGINE_LOG_ERROR( "OpenGL4RHI", "Failed in making current context %p. Code error: %i", InRHIContext, GetLastError() );
+		LIFEENGINE_LOG_ERROR( "OpenGL4RHI", "Failed in making current context 0x%p. Code error: %i", InRHIContext, GetLastError() );
 		return false;
 	}
 
 	GRHIContext = static_cast< SRHIContext* >( InRHIContext );
-	LIFEENGINE_LOG_INFO( "OpenGL4RHI", "Context %p makeed current", InRHIContext );
+	LIFEENGINE_LOG_INFO( "OpenGL4RHI", "Context 0x%p makeed current", InRHIContext );
 	return true;
 }
 
@@ -212,7 +213,7 @@ void le::WinGL_DeleteContext( FRHIContext InRHIContext )
 	DeleteDC( static_cast< SRHIContext* >( InRHIContext )->deviceContext );
 	delete static_cast< SRHIContext* >( InRHIContext );
 	
-	LIFEENGINE_LOG_INFO( "OpenGL4RHI", "Context %p deleted", InRHIContext );
+	LIFEENGINE_LOG_INFO( "OpenGL4RHI", "Context 0x%p deleted", InRHIContext );
 }
 
 /**
