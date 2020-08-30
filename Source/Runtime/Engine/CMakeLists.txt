@@ -22,6 +22,14 @@ source_group( "Public Files" FILES ${PUBLIC_FILES} )
 file( GLOB PUBLIC_FILES_SYSTEM "Public/System/*.h" )
 source_group( "Public Files\\System" FILES ${PUBLIC_FILES_SYSTEM} )
 
+# Rendering files
+file( GLOB PUBLIC_FILES_RENDERING "Public/Rendering/*.h" )
+source_group( "Public Files\\Rendering" FILES ${PUBLIC_FILES_RENDERING} )
+
+# Rendering/RHI files
+file( GLOB PUBLIC_FILES_RENDERING_RHI "Public/Rendering/RHI/*.h" )
+source_group( "Public Files\\Rendering\\RHI" FILES ${PUBLIC_FILES_RENDERING_RHI} )
+
 # -- Private files --
 # Root private files
 file( GLOB PRIVATE_FILES "Private/*.h" "Private/*.cpp" )
@@ -31,12 +39,16 @@ source_group( "Private Files" FILES ${PRIVATE_FILES} )
 file( GLOB PRIVATE_FILES_SYSTEM "Private/System/*.h" "Private/System/*.cpp" )
 source_group( "Private Files\\System" FILES ${PRIVATE_FILES_SYSTEM} )
 
+# Rendering private files
+file( GLOB PRIVATE_FILES_RENDERING "Private/Rendering/*.h" "Private/Rendering/*.cpp" )
+source_group( "Private Files\\Rendering" FILES ${PRIVATE_FILES_RENDERING} )
+
 # ================================================
 #
 #   --- Project settings ---
 #
 
-set( SOURCE_FILES ${PUBLIC_FILES} ${PRIVATE_FILES} ${PUBLIC_FILES_SYSTEM} ${PRIVATE_FILES_SYSTEM} )
+set( SOURCE_FILES ${PUBLIC_FILES} ${PRIVATE_FILES} ${PUBLIC_FILES_SYSTEM} ${PRIVATE_FILES_SYSTEM} ${PUBLIC_FILES_RENDERING} ${PRIVATE_FILES_RENDERING} ${PUBLIC_FILES_RENDERING_RHI} )
 add_library( ${MODULE_NAME} STATIC ${SOURCE_FILES} )
 target_link_libraries( ${MODULE_NAME} Core )
 
@@ -49,6 +61,10 @@ include_directories( Public )
 include_directories( Private )
 include_directories( ../ )
 include_directories( ../Core/Public )
+
+# OpenGL 4.5 RHI
+include_directories( ../OpenGL4RHI/Public )
+target_link_libraries( ${MODULE_NAME} OpenGL4RHI )
 
 # ================================================
 #

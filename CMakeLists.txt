@@ -1,7 +1,7 @@
 cmake_minimum_required( VERSION 2.6 )
 project( lifeEngine )
 
-set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMake" )
+set( CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMake" )
 set( EXTLIBS_DIR ${CMAKE_BINARY_DIR}/Extlibs )
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
 
@@ -17,6 +17,7 @@ git_init()
 
 set( MODULE_CORE Source/Runtime/Core )
 set( MODULE_ENGINE Source/Runtime/Engine )
+set( MODULE_OPENGL4RHI Source/Runtime/OpenGL4RHI )
 set( EDITOR Source/Editor )
 
 # ================================================
@@ -85,3 +86,4 @@ endif()
 add_subdirectory( ${MODULE_CORE} )
 add_subdirectory( ${MODULE_ENGINE} )
 add_subdirectory( ${EDITOR} )
+add_subdirectory( ${MODULE_OPENGL4RHI} )

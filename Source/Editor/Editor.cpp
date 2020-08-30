@@ -6,6 +6,7 @@
 
 #include <Engine.h>
 #include <Logging/LogMacros.h>
+#include <Rendering/RenderSystem.h>
 #include <System/Window.h>
 
 // ------------------------------------------------------------------------------------ //
@@ -15,9 +16,10 @@ int main( int argc, char** argv )
 {
 	le::Engine::GetInstance()->Initialize( "../../Config.json", "../../lifeEditor.log" );
 	le::Window::GetInstance()->Open( "lifeEditor", 800, 600 );
+	le::FRHIContext rhiContext = le::RenderSystem::GetInstance()->CreateContext( le::Window::GetInstance()->GetHandle() );
+	le::RenderSystem::GetInstance()->MakeCurrentContext( rhiContext );
 
 	LIFEENGINE_LOG_DEBUG( "Editor", "Messa" );
-	le::Window::ShowMessageBox( "Hello", le::MBT_Info );
 	
 	while ( le::Window::GetInstance()->IsOpen() ) 
 	{
@@ -31,9 +33,12 @@ int main( int argc, char** argv )
 				break;
 			}
 		}
+
+		le::RenderSystem::GetInstance()->Begin();
+		le::RenderSystem::GetInstance()->End();
+		le::RenderSystem::GetInstance()->Present();
 	}
 	
-	LIFEENGINE_LOG_FAIL( "Editor", "FAAAAIL i = %i", 23 );
 	return 0;
 }
 
