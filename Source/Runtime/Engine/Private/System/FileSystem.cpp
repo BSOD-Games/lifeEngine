@@ -6,6 +6,17 @@
 #include "Logging/LogMacros.h"
 #include "System/FileSystem.h"
 
+#ifdef PLATFORM_WINDOWS
+	#include <Windows.h>
+
+	#undef CreateDirectory
+	#undef CreateFile
+	#undef DeleteFile
+#else
+	#error Unknown platform
+#endif // PLATFORM_WINDOWS
+
+
 /* Constructor */
 le::FileSystem::FileSystem()
 {}
@@ -48,6 +59,19 @@ void le::FileSystem::Unmount( const std::string& InPath )
 	LIFEENGINE_LOG_WARNING( "Engine", "bool le::FileSystem::Unmount( const std::string& InPath ) :: Not implemented" );
 }
 
+/* Create directory */
+bool le::FileSystem::CreateDirectory( const std::string& InPath ) const
+{
+	std::string			path;
+	ReplaceSlashes( InPath, path );
+
+#ifdef PLATFORM_WINDOWS
+	return CreateDirectoryA( ( rootPath + "/" + path ).c_str(), 0 );
+#else
+	return false;
+#endif // PLATFORM_WINDOWS
+}
+
 /* Create file */
 le::FFileHandle le::FileSystem::CreateFile( const std::string& InPath ) const
 {
@@ -55,11 +79,8 @@ le::FFileHandle le::FileSystem::CreateFile( const std::string& InPath ) const
 	std::string			path;
 	ReplaceSlashes( InPath, path );
 
-	for ( uint32 index = 0; index < searchPaths.size(); ++index )
-	{
-		file->open( searchPaths[ index ] + "/" + path, std::ios::in | std::ios::out | std::ios::trunc );
-		if ( file->is_open() )		return file;
-	}
+	file->open( rootPath + "/" + path, std::ios::in | std::ios::out | std::ios::trunc );
+	if ( file->is_open() )		return file;
 
 	delete file;
 	return nullptr;
@@ -93,6 +114,30 @@ void le::FileSystem::CloseFile( FFileHandle& InFile ) const
 	file->close();
 	delete file;
 	InFile = nullptr;
+}
+
+/* Delete directory */
+void le::FileSystem::DeleteDirectory( const std::string& InPath ) const
+{
+	// TODO: Implement recursive deleting files
+
+	std::string			path;
+	ReplaceSlashes( InPath, path );
+
+#ifdef PLATFORM_WINDOWS
+	RemoveDirectoryA( ( rootPath + "/" + path ).c_str() );
+#endif // PLATFORM_WINDOWS
+}
+
+/* Delete file */
+void le::FileSystem::DeleteFile( const std::string& InPath ) const
+{
+	std::string			path;
+	ReplaceSlashes( InPath, path );
+
+#ifdef PLATFORM_WINDOWS
+	::DeleteFileA( ( rootPath + "/" + path ).c_str() );
+#endif // PLATFORM_WINDOWS
 }
 
 /* Write to file */

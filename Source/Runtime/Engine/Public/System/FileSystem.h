@@ -43,6 +43,9 @@ namespace le
 		/* Unmount pack */
 		void Unmount( const std::string& InPath );
 
+		/* Create directory */
+		bool CreateDirectory( const std::string& InPath ) const;
+
 		/* Create file */
 		FFileHandle CreateFile( const std::string& InPath ) const;
 
@@ -51,6 +54,12 @@ namespace le
 
 		/* Close file */
 		void CloseFile( FFileHandle& InFile ) const;
+
+		/* Delete directory */
+		void DeleteDirectory( const std::string& InPath ) const;
+
+		/* Delete file */
+		void DeleteFile( const std::string& InPath ) const;
 
 		/* Write to file */
 		void WriteToFile( FFileHandle InFile, const std::string& InString ) const;
@@ -66,6 +75,12 @@ namespace le
 		
 		/* Set position in file */
 		void SetOffsetInFile( FFileHandle InFile, uint64 InOffset, EFileOffset InOffsetType = FO_Begin ) const;
+
+		/* Set root path */
+		FORCEINLINE void SetRootPath( const std::string& InRootPath )
+		{
+			rootPath = InRootPath;
+		}
 
 		/* Is exist file */
 		bool IsExistFile( const std::string& InPath ) const;
@@ -85,6 +100,7 @@ namespace le
 				if ( OutPath[ index ] == '\\' )		OutPath[ index ] = '/';
 		}
 
+		std::string							rootPath;
 		std::vector< std::string >			searchPaths;
 	};
 }
