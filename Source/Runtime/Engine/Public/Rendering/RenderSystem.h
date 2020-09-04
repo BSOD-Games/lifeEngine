@@ -1,5 +1,6 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHell
+// Authors: Egor Pogulyaka (zombiHello)
+
 #ifndef RENDERSYSTEM_H
 #define RENDERSYSTEM_H
 

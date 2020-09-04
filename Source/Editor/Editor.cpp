@@ -8,6 +8,9 @@
 #include <Logging/LogMacros.h>
 #include <Rendering/RenderSystem.h>
 #include <System/Window.h>
+#include <System/FileSystem.h>
+
+#include <fstream>
 
 // ------------------------------------------------------------------------------------ //
 // Main function
@@ -20,7 +23,13 @@ int main( int argc, char** argv )
 	le::RenderSystem::GetInstance()->MakeCurrentContext( rhiContext );
 
 	LIFEENGINE_LOG_DEBUG( "Editor", "Messa" );
-	
+
+	le::FileSystem::GetInstance()->AddSearchPath( "../../" );
+	le::FFileHandle			fileHandle = le::FileSystem::GetInstance()->CreateFile( "test.txt" );
+	le::FileSystem::GetInstance()->WriteToFile( fileHandle, "Hello world" );
+	LIFEENGINE_LOG_DEBUG( "Editor", "File size %i", le::FileSystem::GetInstance()->GetSizeFile( fileHandle ) );
+	le::FileSystem::GetInstance()->CloseFile( fileHandle );
+
 	while ( le::Window::GetInstance()->IsOpen() ) 
 	{
 		le::Event		event;
