@@ -18,6 +18,24 @@ set( SDL2_PATH ${EXTLIBS_DIR}/SDL2 CACHE PATH "Path to SDL2" )
 file( GLOB PUBLIC_FILES "Public/*.h" )
 source_group( "Public Files" FILES ${PUBLIC_FILES} )
 
+# Platform/<OS> files
+if ( ${PLATFORM_TYPE} STREQUAL "Windows" )
+	file( GLOB PUBLIC_FILES_PLATFORM "Public/Platform/Windows/*.h" )
+	source_group( "Public Files\\Platform" FILES ${PUBLIC_FILES_PLATFORM} )
+endif()
+
+# Misc files
+file( GLOB PUBLIC_FILES_MISC "Public/Misc/*.h" )
+source_group( "Public Files\\Misc" FILES ${PUBLIC_FILES_MISC} )
+
+# Logging files
+file( GLOB PUBLIC_FILES_LOGGING "Public/Logging/*.h" )
+source_group( "Public Files\\Logging" FILES ${PUBLIC_FILES_LOGGING} )
+
+# Templates files
+file( GLOB PUBLIC_FILES_TEMPLATES "Public/Templates/*.h" )
+source_group( "Public Files\\Templates" FILES ${PUBLIC_FILES_TEMPLATES} )
+
 # System files
 file( GLOB PUBLIC_FILES_SYSTEM "Public/System/*.h" )
 source_group( "Public Files\\System" FILES ${PUBLIC_FILES_SYSTEM} )
@@ -35,6 +53,10 @@ source_group( "Public Files\\Rendering\\RHI" FILES ${PUBLIC_FILES_RENDERING_RHI}
 file( GLOB PRIVATE_FILES "Private/*.h" "Private/*.cpp" )
 source_group( "Private Files" FILES ${PRIVATE_FILES} )
 
+# Logging private files
+file( GLOB PRIVATE_FILES_LOGGING "Private/Logging/*.h" "Private/Logging/*.cpp" )
+source_group( "Private Files\\Logging" FILES ${PRIVATE_FILES_LOGGING} )
+
 # System private files
 file( GLOB PRIVATE_FILES_SYSTEM "Private/System/*.h" "Private/System/*.cpp" )
 source_group( "Private Files\\System" FILES ${PRIVATE_FILES_SYSTEM} )
@@ -48,9 +70,8 @@ source_group( "Private Files\\Rendering" FILES ${PRIVATE_FILES_RENDERING} )
 #   --- Project settings ---
 #
 
-set( SOURCE_FILES ${PUBLIC_FILES} ${PRIVATE_FILES} ${PUBLIC_FILES_SYSTEM} ${PRIVATE_FILES_SYSTEM} ${PUBLIC_FILES_RENDERING} ${PRIVATE_FILES_RENDERING} ${PUBLIC_FILES_RENDERING_RHI} )
+set( SOURCE_FILES ${PUBLIC_FILES} ${PUBLIC_FILES_PLATFORM} ${PUBLIC_FILES_MISC} ${PUBLIC_FILES_LOGGING} ${PRIVATE_FILES_LOGGING} ${PUBLIC_FILES_TEMPLATES} ${PRIVATE_FILES} ${PUBLIC_FILES_SYSTEM} ${PRIVATE_FILES_SYSTEM} ${PUBLIC_FILES_RENDERING} ${PRIVATE_FILES_RENDERING} ${PUBLIC_FILES_RENDERING_RHI} )
 add_library( ${MODULE_NAME} STATIC ${SOURCE_FILES} )
-target_link_libraries( ${MODULE_NAME} Core )
 
 set_target_properties( ${MODULE_NAME} PROPERTIES FOLDER Engine )
 set_target_properties( ${MODULE_NAME} PROPERTIES PREFIX "" )
@@ -60,7 +81,6 @@ include_directories( ${CMAKE_BINARY_DIR}/${MODULE_NAME} )
 include_directories( Public )
 include_directories( Private )
 include_directories( ../ )
-include_directories( ../Core/Public )
 
 # OpenGL 4.5 RHI
 include_directories( ../OpenGL4RHI/Public )

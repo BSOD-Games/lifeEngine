@@ -4,7 +4,6 @@
 #ifndef LOGMACROS_H
 #define LOGMACROS_H
 
-#include "Misc/CoreDefines.h"
 #include "Logging/Logger.h"
 
 // If debug configuration - allow print debug info to logs

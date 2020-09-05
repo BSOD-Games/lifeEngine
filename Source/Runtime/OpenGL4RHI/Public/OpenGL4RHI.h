@@ -20,17 +20,26 @@ namespace le
 		/* Create render context */
 		FRHIContext CreateContext( FWindowHandle InWindowHandle, FRHIContext InShareContext = nullptr ) override;
 
+		/* Create shader */
+		IRHIShader* CreateShader() const override;
+
 		/* Make current context */
 		bool MakeCurrentContext( FRHIContext InRHIContext ) override;
 
 		/* Delete context */
 		void DeleteContext( FRHIContext InRHIContext ) override;
 
+		/* Delete shader */
+		void DeleteShader( IRHIShader*& InOutShader ) const override;
+
 		/* Swap buffers */
 		void SwapBuffers( FRHIContext InRHIContext ) override;
 
 		/* Set vertical sync */
 		void SetVerticalSync( bool InIsEnable = true ) override;
+
+		/* Set shader */
+		void SetShader( IRHIShader* InShader = nullptr ) override;
 	};
 }
 

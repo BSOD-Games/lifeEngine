@@ -1,7 +1,10 @@
 // Copyright BSOD-Games, All Rights Reserved.
 // Authors: Egor Pogulyaka (zombiHello)
 
+#include <GL/glew.h>
+
 #include "OpenGL4RHI.h"
+#include "RHIShader.h"
 
 // Windows Context
 #ifdef PLATFORM_WINDOWS
@@ -47,6 +50,14 @@ le::FRHIContext le::OpenGL4RHI::CreateContext( FWindowHandle InWindowHandle, FRH
 }
 
 /**
+ * Create shader
+ */
+le::IRHIShader* le::OpenGL4RHI::CreateShader() const
+{
+	return new RHIShader();
+}
+
+/**
  * Make current context
  */
 bool le::OpenGL4RHI::MakeCurrentContext( FRHIContext InRHIContext )
@@ -69,6 +80,17 @@ void le::OpenGL4RHI::DeleteContext( FRHIContext InRHIContext )
 }
 
 /**
+ * Delete shader
+ */
+void le::OpenGL4RHI::DeleteShader( IRHIShader*& InOutShader ) const
+{
+	LIFEENGINE_ASSERT( InOutShader );
+	
+	delete InOutShader;
+	InOutShader = nullptr;
+}
+
+/**
  * Swap buffers
  */
 void le::OpenGL4RHI::SwapBuffers( FRHIContext InRHIContext )
@@ -86,4 +108,19 @@ void le::OpenGL4RHI::SetVerticalSync( bool InIsEnable )
 #ifdef PLATFORM_WINDOWS
 	return WinGL_SetVerticalSync( InIsEnable );
 #endif // PLATFORM_WINDOWS	
+}
+
+/**
+ * Set shader
+ */
+void le::OpenGL4RHI::SetShader( IRHIShader* InShader )
+{
+	if ( !InShader )
+	{
+		glUseProgram( 0 );
+	}
+	else if ( InShader->IsLoaded() )
+	{
+		glUseProgram( static_cast< RHIShader* >( InShader )->GetHandle() );
+	}
 }

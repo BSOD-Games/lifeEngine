@@ -25,25 +25,6 @@ le::FileSystem::FileSystem()
 le::FileSystem::~FileSystem()
 {}
 
-/* Add search path */
-void le::FileSystem::AddSearchPath( const std::string& InPath )
-{
-	std::string				newPath;
-	ReplaceSlashes( InPath, newPath );
-
-	searchPaths.push_back( newPath );
-	LIFEENGINE_LOG_INFO( "Engine", "Added to search path: %s", newPath.c_str() );
-}
-
-/* Remove search path */
-void le::FileSystem::RemoveSearchPath( uint32 InIndex )
-{
-	if ( InIndex >= searchPaths.size() ) return;
-
-	LIFEENGINE_LOG_INFO( "Engine", "Removed from search path: %s", searchPaths[ InIndex ].c_str() );
-	searchPaths.erase( searchPaths.begin() + InIndex );
-}
-
 /* Mount pack */
 bool le::FileSystem::Mount( const std::string& InPath )
 {
@@ -72,32 +53,19 @@ bool le::FileSystem::CreateDirectory( const std::string& InPath ) const
 #endif // PLATFORM_WINDOWS
 }
 
-/* Create file */
-le::FFileHandle le::FileSystem::CreateFile( const std::string& InPath ) const
-{
-	std::fstream*		file = new std::fstream();
-	std::string			path;
-	ReplaceSlashes( InPath, path );
-
-	file->open( rootPath + "/" + path, std::ios::in | std::ios::out | std::ios::trunc );
-	if ( file->is_open() )		return file;
-
-	delete file;
-	return nullptr;
-}
-
 /* Open file */
-le::FFileHandle le::FileSystem::OpenFile( const std::string& InPath ) const
+le::FFileHandle le::FileSystem::OpenFile( const std::string& InPath, bool InCreateIfNotExist, bool InIsClearFile ) const
 {
 	std::fstream*		file = new std::fstream();
 	std::string			path;
 	ReplaceSlashes( InPath, path );
 
-	for ( uint32 index = 0; index < searchPaths.size(); ++index )
-	{
-		file->open( searchPaths[ index ] + "/" + path, std::ios::in | std::ios::out | std::ios::app );
-		if ( file->is_open() )		return file;
-	}
+	int			flags = std::ios::in | std::ios::out | std::ios::binary;
+	if ( !InCreateIfNotExist )		flags |= std::ios::_Nocreate;
+	if ( InIsClearFile )			flags |= std::ios::trunc;
+
+	file->open( rootPath + "/" + path, flags );
+	if ( file->is_open() )		return file;
 
 	delete file;
 	return nullptr;
@@ -208,11 +176,8 @@ void le::FileSystem::SetOffsetInFile( FFileHandle InFile, uint64 InOffset, EFile
 bool le::FileSystem::IsExistFile( const std::string& InPath ) const
 {
 	std::fstream		file;
-	for ( uint32 index = 0; index < searchPaths.size(); ++index )
-	{
-		file.open( searchPaths[ index ] + "/" + InPath, std::ios::in | std::ios::out | std::ios::app );
-		if ( file.is_open() )		return true;
-	}
+	file.open( rootPath + "/" + InPath, std::ios::_Nocreate );
+	if ( file.is_open() )		return true;
 	
 	return false;
 }

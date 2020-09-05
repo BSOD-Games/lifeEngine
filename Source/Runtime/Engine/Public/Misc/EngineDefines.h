@@ -1,8 +1,8 @@
 // Copyright BSOD-Games, All Rights Reserved.
 // Authors: Egor Pogulyaka (zombiHello)
 
-#ifndef COREDEFINES_H
-#define COREDEFINES_H
+#ifndef ENGINEDEFINES_H
+#define ENGINEDEFINES_H
 
 #define LIFEENGINE_MAJOR			0
 #define LIFEENGINE_MINOR			1
@@ -25,4 +25,4 @@
 	#define LIFEENGINE_ASSERT( X )
 #endif // LIFEENGINE_DEBUG
 
-#endif // !COREDEFINES_H
+#endif // !ENGINEDEFINES_H

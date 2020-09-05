@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string>
 
-#include "Misc/CoreDefines.h"
+#include "Misc/EngineDefines.h"
 #include "Templates/Singleton.h"
 
 namespace le

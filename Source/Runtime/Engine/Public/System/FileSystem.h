@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "Misc/CoreDefines.h"
+#include "Misc/EngineDefines.h"
 #include "Misc/Types.h"
 #include "Templates/Singleton.h"
 
@@ -31,12 +31,6 @@ namespace le
 		/* Destructor */
 		~FileSystem();
 
-		/* Add search path */
-		void AddSearchPath( const std::string& InPath );
-
-		/* Remove search path */
-		void RemoveSearchPath( uint32 InIndex );
-
 		/* Mount pack */
 		bool Mount( const std::string& InPath );
 
@@ -46,11 +40,8 @@ namespace le
 		/* Create directory */
 		bool CreateDirectory( const std::string& InPath ) const;
 
-		/* Create file */
-		FFileHandle CreateFile( const std::string& InPath ) const;
-
 		/* Open file */
-		FFileHandle OpenFile( const std::string& InPath ) const;
+		FFileHandle OpenFile( const std::string& InPath, bool InCreateIfNotExist = false, bool InIsClearFile = false ) const;
 
 		/* Close file */
 		void CloseFile( FFileHandle& InFile ) const;
@@ -101,7 +92,6 @@ namespace le
 		}
 
 		std::string							rootPath;
-		std::vector< std::string >			searchPaths;
 	};
 }
 

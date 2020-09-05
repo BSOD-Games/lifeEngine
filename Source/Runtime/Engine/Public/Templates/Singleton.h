@@ -4,7 +4,7 @@
 #ifndef SINGLETON_H
 #define SINGLETON_H
 
-#include "Misc/CoreDefines.h"
+#include "Misc/EngineDefines.h"
 
 namespace le
 {

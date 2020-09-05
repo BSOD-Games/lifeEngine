@@ -62,7 +62,7 @@ void le::Logger::CloseFile()
 {
 	if ( !file )	return;
 	
-	Logf( LT_Info, "Core", "-- Log file clossed --" );	
+	Logf( LT_Info, "Engine", "-- Log file clossed --" );	
 	fclose( file );
 	file = nullptr;
 }
@@ -75,6 +75,6 @@ void le::Logger::SetFile( const std::string& InPath )
 	if ( file )			CloseFile();
 	file = fopen( InPath.c_str(), "w" );
 	
-	if ( file )		Logf( LT_Info, "Core", "-- Log file openned --" );
-	else			Logf( LT_Info, "Core", "-- Log file [%s] failed open", InPath.c_str() );
+	if ( file )		Logf( LT_Info, "Engine", "-- Log file openned --" );
+	else			Logf( LT_Info, "Engine", "-- Log file [%s] failed open", InPath.c_str() );
 }

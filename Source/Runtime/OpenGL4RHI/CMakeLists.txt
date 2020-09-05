@@ -45,7 +45,6 @@ include_directories( ${CMAKE_BINARY_DIR}/${MODULE_NAME} )
 include_directories( Public )
 include_directories( Private )
 include_directories( ../ )
-include_directories( ../Core/Public )
 include_directories( ../Engine/Public )
 
 # ================================================

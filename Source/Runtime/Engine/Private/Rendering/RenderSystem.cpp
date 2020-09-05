@@ -1,6 +1,7 @@
 // Copyright BSOD-Games, All Rights Reserved.
 // Authors: Egor Pogulyaka (zombiHello)
 
+#include "Logging/LogMacros.h"
 #include "Rendering/RenderSystem.h"
 #include "OpenGL4RHI.h"
 
