@@ -41,7 +41,7 @@ namespace le
 		bool CreateDirectory( const std::string& InPath ) const;
 
 		/* Open file */
-		FFileHandle OpenFile( const std::string& InPath, bool InCreateIfNotExist = false, bool InIsClearFile = false ) const;
+		FFileHandle OpenFile( const std::string& InPath, bool InIsTextMode = false, bool InCreateIfNotExist = false, bool InIsClearFile = false ) const;
 
 		/* Close file */
 		void CloseFile( FFileHandle& InFile ) const;

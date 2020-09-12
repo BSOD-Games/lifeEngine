@@ -23,14 +23,7 @@ int main( int argc, char** argv )
 	le::Window::GetInstance()->Open( "lifeEditor", 800, 600 );
 	le::FRHIContext rhiContext = le::RenderSystem::GetInstance()->CreateContext( le::Window::GetInstance()->GetHandle() );
 	le::RenderSystem::GetInstance()->MakeCurrentContext( rhiContext );
-
-	LIFEENGINE_LOG_DEBUG( "Editor", "Messa" );
-
-	le::FileSystem::GetInstance()->CreateDirectory( "Config" );
-	le::FFileHandle			fileHandle = le::FileSystem::GetInstance()->OpenFile( "Config/test.txt", true );
-	le::FileSystem::GetInstance()->WriteToFile( fileHandle, "Hello world" );
-	LIFEENGINE_LOG_DEBUG( "Editor", "File size %i", le::FileSystem::GetInstance()->GetSizeFile( fileHandle ) );
-	le::FileSystem::GetInstance()->CloseFile( fileHandle );
+	le::RenderSystem::GetInstance()->SetViewport( 0, 0, 800, 600 );
 
 	while ( le::Window::GetInstance()->IsOpen() ) 
 	{

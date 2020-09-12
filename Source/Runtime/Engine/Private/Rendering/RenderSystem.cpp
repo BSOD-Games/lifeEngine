@@ -2,9 +2,18 @@
 // Authors: Egor Pogulyaka (zombiHello)
 
 #include "Logging/LogMacros.h"
+#include "Rendering/RHI/IRHIShader.h"
+#include "Rendering/RHI/IRHIBuffer.h"
+#include "Rendering/RHI/IRHIVertexFormat.h"
+#include "Rendering/RHI/IRHIGeometry.h"
 #include "Rendering/RenderSystem.h"
+#include "System/FileSystem.h"
 #include "OpenGL4RHI.h"
 
+le::IRHIShader*			shader;
+le::IRHIBuffer*			vertexBuffer;
+le::IRHIVertexFormat*	vertexFormat;
+le::IRHIGeometry*		geometry;
 
 /**
  * Constructor
@@ -53,7 +62,7 @@ bool le::RenderSystem::MakeCurrentContext( FRHIContext InRHIContext )
 
 	if ( rhi->MakeCurrentContext( InRHIContext ) )
 	{
-		currentContext = InRHIContext;
+		currentContext = InRHIContext;		
 		return true;
 	}
 
@@ -72,7 +81,9 @@ void le::RenderSystem::DeleteContext( FRHIContext InRHIContext )
  * Start render scene
  */
 void le::RenderSystem::Begin()
-{}
+{
+
+}
 
 /**
  * End render scene
@@ -95,4 +106,12 @@ void le::RenderSystem::Present()
 void le::RenderSystem::SetVerticalSync( bool InIsEnable )
 {
 	rhi->SetVerticalSync( InIsEnable );
+}
+
+/**
+ * Set viewport
+ */
+void le::RenderSystem::SetViewport( uint32 InX, uint32 InY, uint32 InWidth, uint32 InHeight )
+{
+	rhi->SetViewport( InX, InY, InWidth, InHeight );
 }

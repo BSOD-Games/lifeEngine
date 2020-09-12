@@ -8,6 +8,8 @@
 
 namespace le
 {
+	class RHIGeometry;
+
 	class OpenGL4RHI : public IRHI
 	{
 	public:
@@ -21,16 +23,40 @@ namespace le
 		FRHIContext CreateContext( FWindowHandle InWindowHandle, FRHIContext InShareContext = nullptr ) override;
 
 		/* Create shader */
-		IRHIShader* CreateShader() const override;
+		IRHIShader* CreateShader() override;
+
+		/* Create buffer */
+		IRHIBuffer* CreateBuffer( EBufferType InBufferType, EUsageBufferType InUsageBufferType = UBT_Static ) override;
+
+		/* Create vertex format */
+		IRHIVertexFormat* CreateVertexFormat() override;
+
+		/* Create geometry */
+		IRHIGeometry* CreateGeometry() override;
 
 		/* Make current context */
 		bool MakeCurrentContext( FRHIContext InRHIContext ) override;
 
+		/* Draw geometry */
+		void Draw( EDrawOperation InDrawOperation, uint32 InVertexOffset, uint32 InVertexCount, uint32 InInstaceCount = 1 );
+
+		/* Draw indexed geometry */
+		void DrawIndexed( EDrawOperation InDrawOperation, uint32 InStartIndex, uint32 InIndexCount, uint32 InVetexOffset, uint32 InVertexCount, uint32 InInstaceCount = 1 );
+
 		/* Delete context */
-		void DeleteContext( FRHIContext InRHIContext ) override;
+		void DeleteContext( FRHIContext& InRHIContext ) override;
 
 		/* Delete shader */
-		void DeleteShader( IRHIShader*& InOutShader ) const override;
+		void DeleteShader( IRHIShader*& InOutShader ) override;
+
+		/* Delete buffer */
+		void DeleteBuffer( IRHIBuffer*& InOutBuffer ) override;
+
+		/* Delete vertex format */
+		void DeleteVertexFormat( IRHIVertexFormat*& InOutVertexFormat ) override;
+
+		/* Delete geometry */
+		void DeleteGeometry( IRHIGeometry*& InGeometry ) override;
 
 		/* Swap buffers */
 		void SwapBuffers( FRHIContext InRHIContext ) override;
@@ -38,8 +64,14 @@ namespace le
 		/* Set vertical sync */
 		void SetVerticalSync( bool InIsEnable = true ) override;
 
+		/* Set viewport */
+		void SetViewport( uint32 InX, uint32 InY, uint32 InWidth, uint32 InHeight ) override;
+
 		/* Set shader */
 		void SetShader( IRHIShader* InShader = nullptr ) override;
+
+		/* Set geometry */
+		void SetGeometry( IRHIGeometry* InGeometry ) override;
 	};
 }
 

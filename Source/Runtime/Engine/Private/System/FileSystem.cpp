@@ -54,13 +54,14 @@ bool le::FileSystem::CreateDirectory( const std::string& InPath ) const
 }
 
 /* Open file */
-le::FFileHandle le::FileSystem::OpenFile( const std::string& InPath, bool InCreateIfNotExist, bool InIsClearFile ) const
+le::FFileHandle le::FileSystem::OpenFile( const std::string& InPath, bool InIsTextMode, bool InCreateIfNotExist, bool InIsClearFile ) const
 {
 	std::fstream*		file = new std::fstream();
 	std::string			path;
 	ReplaceSlashes( InPath, path );
 
-	int			flags = std::ios::in | std::ios::out | std::ios::binary;
+	int			flags = std::ios::in | std::ios::out;
+	if ( !InIsTextMode )			flags |= std::ios::binary;
 	if ( !InCreateIfNotExist )		flags |= std::ios::_Nocreate;
 	if ( InIsClearFile )			flags |= std::ios::trunc;
 

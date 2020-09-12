@@ -6,6 +6,7 @@
 
 #include "Misc/Types.h"
 #include "Rendering/RHI/IRHIShader.h"
+#include "GLState.h"
 
 namespace le
 {
@@ -24,6 +25,19 @@ namespace le
 		/* Link shader */
 		bool Link( std::string* OutError = nullptr ) override;
 		
+		/* Bind shader */
+		FORCEINLINE void Bind()
+		{
+			if ( !IsLoaded() ) return;
+			GLState::BindShader( gpuProgram );
+		}
+
+		/* Unbind shader */
+		FORCEINLINE static void Unbind()
+		{
+			GLState::BindShader( 0 );
+		}
+
 		/* Destroy shader */
 		void Destroy() override;
 

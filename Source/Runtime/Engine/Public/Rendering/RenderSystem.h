@@ -43,6 +43,9 @@ namespace le
 		/* Set vertical sync */
 		void SetVerticalSync( bool InIsEnable = true );
 
+		/* Set viewport */
+		void SetViewport( uint32 InX, uint32 InY, uint32 InWidth, uint32 InHeight );
+
 	private:
 		IRHI*				rhi;
 		FRHIContext			currentContext;
