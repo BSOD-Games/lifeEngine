@@ -4,6 +4,8 @@
 #ifndef RHISHADER_H
 #define RHISHADER_H
 
+#include <unordered_map>
+
 #include "Misc/Types.h"
 #include "Rendering/RHI/IRHIShader.h"
 #include "GLState.h"
@@ -41,6 +43,11 @@ namespace le
 		/* Destroy shader */
 		void Destroy() override;
 
+		/* Set uniform */
+		void SetUniform( const std::string& InName, int InValue ) override;
+		void SetUniform( const std::string& InName, float InValue ) override;
+		void SetUniform( const std::string& InName, bool InValue ) override;
+
 		/* Is loaded shader */
 		bool IsLoaded() const override;
 
@@ -60,10 +67,21 @@ namespace le
 		/* Get error compilation */
 		void GetErrorCompilation( EShaderType InShaderType, std::string& OutError );
 
+		/* Is uniform exists */
+		FORCEINLINE bool IsUniformExists( std::string& InName )
+		{
+			return GetUniformLocation( InName ) > -1;
+		}
+		
+		/* Get unifrom location */
+		int GetUniformLocation( const std::string& InName );
+
 		uint32		vertexShader;
 		uint32		geometryShader;
 		uint32		pixelShader;
 		uint32		gpuProgram;
+
+		std::unordered_map< std::string, int >		uniforms;
 	};
 }
 

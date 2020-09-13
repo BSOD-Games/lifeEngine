@@ -5,7 +5,7 @@
 
 #include "GLState.h"
 
-le::uint32																	le::GLState::gpuProgram = 0;
+le::uint32																	le::GLState::shader = 0;
 le::uint32																	le::GLState::vao = 0;
 le::uint32																	le::GLState::indecesType = GL_INVALID_ENUM;
 le::uint32																	le::GLState::textureLayer = GL_TEXTURE0;
@@ -28,12 +28,12 @@ void le::GLState::BindBuffer( uint32 InBufferType, uint32 InBuffer )
 /**
  * Bind shader
  */
-void le::GLState::BindShader( uint32 InGpuProgram )
+void le::GLState::BindShader( uint32 InShader )
 {
-	if ( gpuProgram == InGpuProgram ) return;
+	if ( shader == InShader ) return;
 	
-	glUseProgram( InGpuProgram );
-	gpuProgram = InGpuProgram;
+	glUseProgram( InShader );
+	shader = InShader;
 }
 
 /**

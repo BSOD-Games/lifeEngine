@@ -166,6 +166,48 @@ void le::RHIShader::Destroy()
         glDeleteProgram( gpuProgram );
         gpuProgram = 0;
     }
+
+    uniforms.clear();
+}
+
+/**
+ * Set uniform (int)
+ */
+void le::RHIShader::SetUniform( const std::string& InName, int InValue )
+{
+    if ( !IsLoaded() ) return;
+    uint32      currentShader = GLState::GetShader();
+    
+    GLState::BindShader( currentShader );
+    glUniform1i( GetUniformLocation( InName ), InValue );
+    GLState::BindShader( gpuProgram );
+}
+
+/**
+ * Set uniform (float)
+ */
+void le::RHIShader::SetUniform( const std::string& InName, float InValue )
+{
+    if ( !IsLoaded() ) return;
+    uint32      currentShader = GLState::GetShader();
+
+    GLState::BindShader( currentShader );
+    glUniform1f( GetUniformLocation( InName ), InValue );
+    GLState::BindShader( gpuProgram );
+}
+
+
+/**
+ * Set uniform (bool)
+ */
+void le::RHIShader::SetUniform( const std::string& InName, bool InValue )
+{
+    if ( !IsLoaded() ) return;
+    uint32      currentShader = GLState::GetShader();
+
+    GLState::BindShader( currentShader );
+    glUniform1i( GetUniformLocation( InName ), InValue ? 1 : 0 );
+    GLState::BindShader( gpuProgram );
 }
 
 /**
@@ -256,4 +298,28 @@ void le::RHIShader::GetErrorCompilation( EShaderType InShaderType, std::string& 
 
     OutError.resize( lengtMessage );
     glGetShaderInfoLog( shaderHandle, lengtMessage, &lengtMessage, ( char* ) OutError.data() );
+}
+
+/**
+ * Get uniform location
+ */
+int le::RHIShader::GetUniformLocation( const std::string& InName )
+{
+    LIFEENGINE_ASSERT( gpuProgram );
+
+    // Find location uniform in cache
+    auto		it = uniforms.find( InName );
+
+    // If we find location in cache - return
+    if ( it != uniforms.end() )
+        return it->second;
+    else
+    {
+        // If not fined in cache location - get location from OpenGL
+        int			location = glGetUniformLocation( gpuProgram, InName.c_str() );
+        uniforms.insert( std::make_pair( InName, location ) );
+
+        if ( location == -1 ) LIFEENGINE_LOG_ERROR( "OpenGL4RHI", "Uniform [%s] not found in shader", InName.c_str() );
+        return location;
+    }
 }

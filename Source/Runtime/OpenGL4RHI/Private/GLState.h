@@ -18,7 +18,7 @@ namespace le
 		static void BindBuffer( uint32 InBufferType, uint32 InBuffer );
 
 		/* Bind shader */
-		static void BindShader( uint32 InGpuProgram );
+		static void BindShader( uint32 InShader );
 
 		/* Bind VAO */
 		static void BindVAO( uint32 InVAO );
@@ -55,10 +55,10 @@ namespace le
 			return textureLayer;
 		}
 
-		/* Get current GPU program */
-		FORCEINLINE static uint32 GetGPUProgram()
+		/* Get current shader */
+		FORCEINLINE static uint32 GetShader()
 		{
-			return gpuProgram;
+			return shader;
 		}
 
 		/* Get current VAO */
@@ -74,7 +74,7 @@ namespace le
 		}
 
 	private:
-		static uint32														gpuProgram;
+		static uint32														shader;
 		static uint32														vao;
 		static uint32														indecesType;
 		static uint32														textureLayer;

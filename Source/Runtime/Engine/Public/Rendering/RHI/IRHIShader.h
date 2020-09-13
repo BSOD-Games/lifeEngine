@@ -31,6 +31,11 @@ namespace le
 		/* Destroy shader */
 		virtual void Destroy() = 0;
 
+		/* Set uniform */
+		virtual void SetUniform( const std::string& InName, int InValue ) = 0;
+		virtual void SetUniform( const std::string& InName, float InValue ) = 0;
+		virtual void SetUniform( const std::string& InName, bool InValue ) = 0;
+
 		/* Is loaded shader */
 		virtual bool IsLoaded() const = 0;
 	};
