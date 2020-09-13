@@ -8,6 +8,7 @@
 #include "RHIBuffer.h"
 #include "RHIVertexFormat.h"
 #include "RHIGeometry.h"
+#include "RHITexture2D.h"
 
 // Windows Context
 #ifdef PLATFORM_WINDOWS
@@ -117,6 +118,14 @@ le::IRHIGeometry* le::OpenGL4RHI::CreateGeometry()
 }
 
 /**
+ * Create texture 2d
+ */
+le::IRHITexture2D* le::OpenGL4RHI::CreateTexture2D( EImageFormat InImageFormat, uint32 InWidth, uint32 InHeight, uint32 InCountMipmap )
+{
+	return new RHITexture2D( InImageFormat, InWidth, InHeight, InCountMipmap );
+}
+
+/**
  * Make current context
  */
 bool le::OpenGL4RHI::MakeCurrentContext( FRHIContext InRHIContext )
@@ -209,6 +218,17 @@ void le::OpenGL4RHI::DeleteGeometry( IRHIGeometry*& InGeometry )
 }
 
 /**
+ * Delete texture 2d
+ */
+void le::OpenGL4RHI::DeleteTexture2D( IRHITexture2D*& InTexture2D )
+{
+	LIFEENGINE_ASSERT( InTexture2D );
+
+	delete InTexture2D;
+	InTexture2D = nullptr;
+}
+
+/**
  * Swap buffers
  */
 void le::OpenGL4RHI::SwapBuffers( FRHIContext InRHIContext )
@@ -256,4 +276,15 @@ void le::OpenGL4RHI::SetGeometry( IRHIGeometry* InGeometry )
 		static_cast< RHIGeometry* >( InGeometry )->Bind();
 	else
 		RHIGeometry::Unbind();
+}
+
+/**
+ * Set texture 2d
+ */
+void le::OpenGL4RHI::SetTexture2D( IRHITexture2D* InTexture2D, uint32 InTextureLayer )
+{
+	if ( InTexture2D )
+		static_cast< RHITexture2D* >( InTexture2D )->Bind( InTextureLayer );
+	else
+		RHITexture2D::Unbind( InTextureLayer );
 }

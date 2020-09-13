@@ -34,6 +34,9 @@ namespace le
 		/* Create geometry */
 		IRHIGeometry* CreateGeometry() override;
 
+		/* Create texture 2D */
+		IRHITexture2D* CreateTexture2D( EImageFormat InImageFormat, uint32 InWidth, uint32 InHeight, uint32 InCountMipmap = 1 ) override;
+
 		/* Make current context */
 		bool MakeCurrentContext( FRHIContext InRHIContext ) override;
 
@@ -58,6 +61,9 @@ namespace le
 		/* Delete geometry */
 		void DeleteGeometry( IRHIGeometry*& InGeometry ) override;
 
+		/* Delete texture 2D */
+		void DeleteTexture2D( IRHITexture2D*& InTexture2D ) override;
+
 		/* Swap buffers */
 		void SwapBuffers( FRHIContext InRHIContext ) override;
 
@@ -72,6 +78,9 @@ namespace le
 
 		/* Set geometry */
 		void SetGeometry( IRHIGeometry* InGeometry ) override;
+
+		/* Set texture 2D */
+		void SetTexture2D( IRHITexture2D* InTexture2D, uint32 InTextureLayer = 0 ) override;
 	};
 }
 

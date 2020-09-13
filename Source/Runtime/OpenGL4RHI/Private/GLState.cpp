@@ -5,10 +5,12 @@
 
 #include "GLState.h"
 
-le::uint32											le::GLState::gpuProgram = 0;
-le::uint32											le::GLState::vao = 0;
-le::uint32											le::GLState::indecesType = GL_INVALID_ENUM;
-std::unordered_map< le::uint32, le::uint32 >		le::GLState::buffers;
+le::uint32																	le::GLState::gpuProgram = 0;
+le::uint32																	le::GLState::vao = 0;
+le::uint32																	le::GLState::indecesType = GL_INVALID_ENUM;
+le::uint32																	le::GLState::textureLayer = GL_TEXTURE0;
+std::unordered_map< le::uint32, le::uint32 >								le::GLState::buffers;
+std::unordered_map< le::uint32, std::pair< le::uint32, le::uint32 > >		le::GLState::textures;
 
 /**
  * Bind buffer
@@ -46,9 +48,35 @@ void le::GLState::BindVAO( uint32 InVAO )
 }
 
 /**
+ * Bind texture
+ */
+void le::GLState::BindTexture( uint32 InTextureType, uint32 InTexture )
+{
+	auto			it = textures.find( textureLayer );
+	if ( it == textures.end() || InTextureType != it->second.first || InTexture != it->second.second )
+	{
+		if ( !InTexture )		glBindTexture( InTextureType, 0 );
+		else					glBindTexture( InTextureType, InTexture );
+
+		textures[ textureLayer ] = std::make_pair( InTextureType, InTexture );
+	}
+}
+
+/**
  * Set indeces type
  */
 void le::GLState::SetIndecesType( uint32 InIndecesType )
 {
 	indecesType = InIndecesType;
+}
+
+/**
+ * Bind texture layer
+ */
+void le::GLState::SetTextureLayer( uint32 InTextureLayer )
+{
+	if ( textureLayer == InTextureLayer ) return;
+	
+	glActiveTexture( GL_TEXTURE0 + InTextureLayer );
+	textureLayer = InTextureLayer;
 }

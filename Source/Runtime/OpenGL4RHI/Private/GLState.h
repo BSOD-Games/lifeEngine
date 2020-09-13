@@ -23,14 +23,36 @@ namespace le
 		/* Bind VAO */
 		static void BindVAO( uint32 InVAO );
 
+		/* Bind texture */
+		static void BindTexture( uint32 InTextureType, uint32 InTexture );
+
 		/* Set indeces type */
 		static void SetIndecesType( uint32 InIndecesType );
+
+		/* Set texture layer */
+		static void SetTextureLayer( uint32 InTextureLayer );
 
 		/* Get current buffer */
 		FORCEINLINE static uint32 GetBuffer( uint32 InBufferType )
 		{
 			auto it = buffers.find( InBufferType );
 			return it != buffers.end() ? it->second : 0;
+		}
+
+		/* Get current texture */
+		FORCEINLINE static uint32 GetTexture( uint32 InTextureLayer, uint32* OutTextureType = nullptr )
+		{
+			auto it = textures.find( InTextureLayer );
+			if ( it == textures.end() )		return 0;
+			
+			if ( OutTextureType )		*OutTextureType = it->second.first;
+			return it->second.second;
+		}
+
+		/* Get current texture layer */
+		FORCEINLINE static uint32 GetTextureLayer()
+		{
+			return textureLayer;
 		}
 
 		/* Get current GPU program */
@@ -52,10 +74,12 @@ namespace le
 		}
 
 	private:
-		static uint32										gpuProgram;
-		static uint32										vao;
-		static uint32										indecesType;
-		static std::unordered_map< uint32, uint32 >			buffers;
+		static uint32														gpuProgram;
+		static uint32														vao;
+		static uint32														indecesType;
+		static uint32														textureLayer;
+		static std::unordered_map< uint32, uint32 >							buffers;
+		static std::unordered_map< uint32, std::pair< uint32, uint32 > >	textures;
 	};
 }
 

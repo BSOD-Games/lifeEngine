@@ -7,6 +7,7 @@
 #include "Misc/Types.h"
 #include "System/Window.h"
 #include "IRHIBuffer.h"
+#include "IRHITexture2D.h"
 
 namespace le
 {
@@ -47,6 +48,9 @@ namespace le
 		/* Create geometry */
 		virtual IRHIGeometry* CreateGeometry() = 0;
 
+		/* Create texture 2D */
+		virtual IRHITexture2D* CreateTexture2D( EImageFormat InImageFormat, uint32 InWidth, uint32 InHeight, uint32 InCountMipmap = 1 ) = 0;
+
 		/* Make current context */
 		virtual bool MakeCurrentContext( FRHIContext InRHIContext ) = 0;
 
@@ -71,6 +75,9 @@ namespace le
 		/* Delete geometry */
 		virtual void DeleteGeometry( IRHIGeometry*& InGeometry ) = 0;
 
+		/* Delete texture 2D */
+		virtual void DeleteTexture2D( IRHITexture2D*& InTexture2D ) = 0;
+
 		/* Swap buffers */
 		virtual void SwapBuffers( FRHIContext InRHIContext ) = 0;
 
@@ -85,6 +92,9 @@ namespace le
 
 		/* Set geometry */
 		virtual void SetGeometry( IRHIGeometry* InGeometry ) = 0;
+
+		/* Set texture 2D */
+		virtual void SetTexture2D( IRHITexture2D* InTexture2D, uint32 InTextureLayer = 0 ) = 0;
 	};
 }
 
