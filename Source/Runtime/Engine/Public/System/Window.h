@@ -51,7 +51,7 @@ namespace le
 		void Close();
 
 		/* Poll event */
-		bool PollEvent( Event& OutEvent );
+		bool PollEvent( SEvent& OutEvent );
 
 		/* Is open */
 		FORCEINLINE bool IsOpen() const
@@ -69,6 +69,8 @@ namespace le
 		struct SDL_Window*			window;
 		struct SDL_Cursor*			cursor;
 		struct SDL_SysWMinfo*		sysWMinfo;
+		
+		bool						isShowCursor;
 		FWindowHandle				handle;
 	};
 }
