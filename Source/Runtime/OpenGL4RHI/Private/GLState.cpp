@@ -9,6 +9,8 @@ le::uint32																	le::GLState::shader = 0;
 le::uint32																	le::GLState::vao = 0;
 le::uint32																	le::GLState::indecesType = GL_INVALID_ENUM;
 le::uint32																	le::GLState::textureLayer = GL_TEXTURE0;
+le::uint32																	le::GLState::fbo = 0;
+le::SColor																	le::GLState::clearColor;
 std::unordered_map< le::uint32, le::uint32 >								le::GLState::buffers;
 std::unordered_map< le::uint32, std::pair< le::uint32, le::uint32 > >		le::GLState::textures;
 
@@ -48,6 +50,17 @@ void le::GLState::BindVAO( uint32 InVAO )
 }
 
 /**
+ * Bind FBO
+ */
+void le::GLState::BindFBO( uint32 InFBO )
+{
+	if ( fbo == InFBO ) return;
+
+	glBindFramebuffer( GL_FRAMEBUFFER, InFBO );
+	fbo = InFBO;
+}
+
+/**
  * Bind texture
  */
 void le::GLState::BindTexture( uint32 InTextureType, uint32 InTexture )
@@ -79,4 +92,13 @@ void le::GLState::SetTextureLayer( uint32 InTextureLayer )
 	
 	glActiveTexture( GL_TEXTURE0 + InTextureLayer );
 	textureLayer = InTextureLayer;
+}
+
+/**
+ * Set clear color
+ */
+void le::GLState::SetClearColor( const SColor& InColor )
+{
+	if ( clearColor == InColor ) return;
+	glClearColor( InColor.r / 255.f, InColor.g / 255.f, InColor.b / 255.f, InColor.a / 255.f );
 }

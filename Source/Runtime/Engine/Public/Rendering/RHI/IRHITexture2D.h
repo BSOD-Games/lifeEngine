@@ -4,6 +4,8 @@
 #ifndef IRHITEXTURE2D_H
 #define IRHITEXTURE2D_H
 
+#include <memory>
+
 #include "Misc/Types.h"
 
 namespace le

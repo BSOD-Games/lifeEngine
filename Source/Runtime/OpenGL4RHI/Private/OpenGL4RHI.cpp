@@ -9,6 +9,7 @@
 #include "RHIVertexFormat.h"
 #include "RHIGeometry.h"
 #include "RHITexture2D.h"
+#include "RHIRenderTarget.h"
 
 // Windows Context
 #ifdef PLATFORM_WINDOWS
@@ -47,6 +48,18 @@ FORCEINLINE le::uint32 GetIndexSizeof( le::uint32 InIndecesType )
 	case GL_UNSIGNED_INT:		return sizeof( le::uint32 );
 	default:					return 0;
 	}
+}
+
+/**
+ * Get clear flags from EClearType to OpenGL Clear Mask
+ */
+FORCEINLINE le::uint32 GetClearFlags( le::uint32 InClearFlags )
+{
+	le::uint32		clearFlags = 0;
+	if ( InClearFlags & le::CT_Color )		clearFlags |= GL_COLOR_BUFFER_BIT;
+	if ( InClearFlags & le::CT_Depth )		clearFlags |= GL_DEPTH_BUFFER_BIT;
+
+	return clearFlags;
 }
 
 /**
@@ -126,6 +139,14 @@ le::IRHITexture2D* le::OpenGL4RHI::CreateTexture2D( EImageFormat InImageFormat, 
 }
 
 /**
+ * Create render target
+ */
+le::IRHIRenderTarget* le::OpenGL4RHI::CreateRenderTarget( uint32 InWidth, uint32 InHeight )
+{
+	return new RHIRenderTarget( InWidth, InHeight );
+}
+
+/**
  * Make current context
  */
 bool le::OpenGL4RHI::MakeCurrentContext( FRHIContext InRHIContext )
@@ -159,6 +180,15 @@ void le::OpenGL4RHI::DrawIndexed( EDrawOperation InDrawOperation, uint32 InStart
 		glDrawElementsBaseVertex( Convert_EDrawOperationToGLDrawOperation( InDrawOperation ), InIndexCount, indecesType, ( void* )( InStartIndex * GetIndexSizeof( indecesType ) ), InVetexOffset );
 	else
 		glDrawElementsInstancedBaseVertex( Convert_EDrawOperationToGLDrawOperation( InDrawOperation ), InIndexCount, indecesType, ( void* )( InStartIndex * GetIndexSizeof( indecesType ) ), InInstaceCount, InVetexOffset  );
+}
+
+/**
+ * Clear
+ */
+void le::OpenGL4RHI::Clear( const SColor& InColor, uint32 InClearFlags )
+{
+	GLState::SetClearColor( InColor );
+	glClear( GetClearFlags( InClearFlags ) );
 }
 
 /**
@@ -229,6 +259,17 @@ void le::OpenGL4RHI::DeleteTexture2D( IRHITexture2D*& InTexture2D )
 }
 
 /**
+ * Delete render target
+ */
+void le::OpenGL4RHI::DeleteRenderTarget( IRHIRenderTarget*& InRenderTarget )
+{
+	LIFEENGINE_ASSERT( InRenderTarget );
+
+	delete InRenderTarget;
+	InRenderTarget = nullptr;
+}
+
+/**
  * Swap buffers
  */
 void le::OpenGL4RHI::SwapBuffers( FRHIContext InRHIContext )
@@ -287,4 +328,15 @@ void le::OpenGL4RHI::SetTexture2D( IRHITexture2D* InTexture2D, uint32 InTextureL
 		static_cast< RHITexture2D* >( InTexture2D )->Bind( InTextureLayer );
 	else
 		RHITexture2D::Unbind( InTextureLayer );
+}
+
+/**
+ * Set render target
+ */
+void le::OpenGL4RHI::SetRenderTarget( IRHIRenderTarget* InRenderTarget )
+{
+	if ( InRenderTarget )
+		static_cast< RHIRenderTarget* >( InRenderTarget )->Bind();
+	else
+		RHIRenderTarget::Unbind();
 }

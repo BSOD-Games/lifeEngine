@@ -16,6 +16,14 @@ namespace le
 	class IRHIShader;
 	class IRHIVertexFormat;
 	class IRHIGeometry;
+	class IRHIRenderTarget;
+	struct SColor;
+
+	enum EClearType
+	{
+		CT_Color = 1 << 0,
+		CT_Depth = 1 << 1
+	};
 
 	enum EDrawOperation
 	{
@@ -51,6 +59,9 @@ namespace le
 		/* Create texture 2D */
 		virtual IRHITexture2D* CreateTexture2D( EImageFormat InImageFormat, uint32 InWidth, uint32 InHeight, uint32 InCountMipmap = 1 ) = 0;
 
+		/* Create render target */
+		virtual IRHIRenderTarget* CreateRenderTarget( uint32 InWidth, uint32 InHeight ) = 0;
+
 		/* Make current context */
 		virtual bool MakeCurrentContext( FRHIContext InRHIContext ) = 0;
 
@@ -59,6 +70,9 @@ namespace le
 
 		/* Draw indexed geometry */
 		virtual void DrawIndexed( EDrawOperation InDrawOperation, uint32 InStartIndex, uint32 InIndexCount, uint32 InVetexOffset, uint32 InVertexCount, uint32 InInstaceCount = 1 ) = 0;
+
+		/* Clear */
+		virtual void Clear( const SColor& InColor, uint32 InClearFlags = EClearType::CT_Color ) = 0;
 
 		/* Delete context */
 		virtual void DeleteContext( FRHIContext& InOutRHIContext ) = 0;
@@ -78,6 +92,9 @@ namespace le
 		/* Delete texture 2D */
 		virtual void DeleteTexture2D( IRHITexture2D*& InTexture2D ) = 0;
 
+		/* Delete render target */
+		virtual void DeleteRenderTarget( IRHIRenderTarget*& InRenderTarget ) = 0;
+
 		/* Swap buffers */
 		virtual void SwapBuffers( FRHIContext InRHIContext ) = 0;
 
@@ -95,6 +112,9 @@ namespace le
 
 		/* Set texture 2D */
 		virtual void SetTexture2D( IRHITexture2D* InTexture2D, uint32 InTextureLayer = 0 ) = 0;
+
+		/* Set render target */
+		virtual void SetRenderTarget( IRHIRenderTarget* InRenderTarget ) = 0;
 	};
 }
 

@@ -63,6 +63,12 @@ namespace le
 		/* Get sampler */
 		const SSampler& GetSampler() const override;
 
+		/* Get handle */
+		FORCEINLINE uint32 GetHandle() const
+		{
+			return handle;
+		}
+
 	private:	
 		/* Apply sampler */
 		void ApplySampler( const SSampler& InSampler );

@@ -8,6 +8,7 @@
 
 #include "Misc/EngineDefines.h"
 #include "Misc/Types.h"
+#include "Math/Color.h"
 
 namespace le
 {
@@ -26,11 +27,17 @@ namespace le
 		/* Bind texture */
 		static void BindTexture( uint32 InTextureType, uint32 InTexture );
 
+		/* Bind FBO */
+		static void BindFBO( uint32 InFBO );
+
 		/* Set indeces type */
 		static void SetIndecesType( uint32 InIndecesType );
 
 		/* Set texture layer */
 		static void SetTextureLayer( uint32 InTextureLayer );
+
+		/* Set clear color */
+		static void SetClearColor( const SColor& InColor );
 
 		/* Get current buffer */
 		FORCEINLINE static uint32 GetBuffer( uint32 InBufferType )
@@ -73,11 +80,25 @@ namespace le
 			return indecesType;
 		}
 
+		/* Get current FBO */
+		FORCEINLINE static uint32 GetFBO()
+		{
+			return fbo;
+		}
+
+		/* Get clear color */
+		FORCEINLINE static const SColor& GetClearColor()
+		{
+			return clearColor;
+		}
+
 	private:
 		static uint32														shader;
 		static uint32														vao;
 		static uint32														indecesType;
 		static uint32														textureLayer;
+		static uint32														fbo;
+		static SColor														clearColor;
 		static std::unordered_map< uint32, uint32 >							buffers;
 		static std::unordered_map< uint32, std::pair< uint32, uint32 > >	textures;
 	};

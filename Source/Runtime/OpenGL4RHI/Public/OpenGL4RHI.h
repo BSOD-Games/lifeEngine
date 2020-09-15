@@ -37,6 +37,9 @@ namespace le
 		/* Create texture 2D */
 		IRHITexture2D* CreateTexture2D( EImageFormat InImageFormat, uint32 InWidth, uint32 InHeight, uint32 InCountMipmap = 1 ) override;
 
+		/* Create render target */
+		IRHIRenderTarget* CreateRenderTarget( uint32 InWidth, uint32 InHeight ) override;
+
 		/* Make current context */
 		bool MakeCurrentContext( FRHIContext InRHIContext ) override;
 
@@ -45,6 +48,9 @@ namespace le
 
 		/* Draw indexed geometry */
 		void DrawIndexed( EDrawOperation InDrawOperation, uint32 InStartIndex, uint32 InIndexCount, uint32 InVetexOffset, uint32 InVertexCount, uint32 InInstaceCount = 1 );
+
+		/* Clear */
+		void Clear( const SColor& InColor, uint32 InClearFlags = EClearType::CT_Color ) override;
 
 		/* Delete context */
 		void DeleteContext( FRHIContext& InRHIContext ) override;
@@ -64,6 +70,9 @@ namespace le
 		/* Delete texture 2D */
 		void DeleteTexture2D( IRHITexture2D*& InTexture2D ) override;
 
+		/* Delete render target */
+		void DeleteRenderTarget( IRHIRenderTarget*& InRenderTarget ) override;
+
 		/* Swap buffers */
 		void SwapBuffers( FRHIContext InRHIContext ) override;
 
@@ -81,6 +90,9 @@ namespace le
 
 		/* Set texture 2D */
 		void SetTexture2D( IRHITexture2D* InTexture2D, uint32 InTextureLayer = 0 ) override;
+
+		/* Set render target */
+		void SetRenderTarget( IRHIRenderTarget* InRenderTarget ) override;
 	};
 }
 
