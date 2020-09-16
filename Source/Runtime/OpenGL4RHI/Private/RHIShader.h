@@ -47,6 +47,8 @@ namespace le
 		void SetUniform( const std::string& InName, int InValue ) override;
 		void SetUniform( const std::string& InName, float InValue ) override;
 		void SetUniform( const std::string& InName, bool InValue ) override;
+		void SetUniform( const std::string& InName, const SColor& InValue ) override;
+		void SetUniform( const std::string& InName, const SVector2D& InValue ) override;
 
 		/* Is loaded shader */
 		bool IsLoaded() const override;

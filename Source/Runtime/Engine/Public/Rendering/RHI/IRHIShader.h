@@ -9,6 +9,9 @@
 
 namespace le
 {
+	struct SColor;
+	struct SVector2D;
+
 	enum EShaderType
 	{
 		ST_Vertex,
@@ -35,6 +38,8 @@ namespace le
 		virtual void SetUniform( const std::string& InName, int InValue ) = 0;
 		virtual void SetUniform( const std::string& InName, float InValue ) = 0;
 		virtual void SetUniform( const std::string& InName, bool InValue ) = 0;
+		virtual void SetUniform( const std::string& InName, const SColor& InValue ) = 0;
+		virtual void SetUniform( const std::string& InName, const SVector2D& InValue ) = 0;
 
 		/* Is loaded shader */
 		virtual bool IsLoaded() const = 0;

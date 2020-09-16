@@ -35,7 +35,10 @@ void le::InputSystem::ApplyEvent( const SEvent& InEvent )
 	case SEvent::ET_MouseReleased:		buttonEvents[ InEvent.event.mouseButton.code ] = BE_Released;	break;
 
 	case SEvent::ET_MouseMove:
-		// TODO: Add apply mouse move event
+		mouseOffset.x += InEvent.event.mouseMove.xDirection;
+		mouseOffset.y += InEvent.event.mouseMove.yDirection;
+		mousePosition.x = InEvent.event.mouseMove.x;
+		mousePosition.y = InEvent.event.mouseMove.y;
 		break;
 
 	case SEvent::ET_MouseWheel:
@@ -62,6 +65,9 @@ void le::InputSystem::Reset()
 	for ( uint32 index = 0; index < BC_Count; ++index )
 		if ( buttonEvents[ index ] == BE_Released || buttonEvents[ index ] == BE_Scrolled )
 			buttonEvents[ index ] = BE_None;
+
+	mousePosition.Set( 0.f, 0.f );
+	mouseOffset.Set( 0.f, 0.f );
 }
 
 /**
@@ -107,4 +113,20 @@ bool le::InputSystem::IsMouseWheel( EButtonCode InButtonCode ) const
 {
 	LIFEENGINE_ASSERT( InButtonCode == BC_MouseWheelDown || InButtonCode == BC_MouseWheelUp );
 	return buttonEvents[ InButtonCode ] == BE_Scrolled;
+}
+
+/**
+ * Get mouse position
+ */
+const le::SVector2D& le::InputSystem::GetMousePosition() const
+{
+	return mousePosition;
+}
+
+/**
+ * Get mouse offset
+ */
+const le::SVector2D& le::InputSystem::GetMouseOffset() const
+{
+	return mouseOffset;
 }

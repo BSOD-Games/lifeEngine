@@ -4,6 +4,8 @@
 #include <GL/glew.h>
 
 #include "Logging/LogMacros.h"
+#include "Math/Color.h"
+#include "Math/Vector2D.h"
 #include "RHIShader.h"
 
 /**
@@ -178,9 +180,9 @@ void le::RHIShader::SetUniform( const std::string& InName, int InValue )
     if ( !IsLoaded() ) return;
     uint32      currentShader = GLState::GetShader();
     
-    GLState::BindShader( currentShader );
-    glUniform1i( GetUniformLocation( InName ), InValue );
     GLState::BindShader( gpuProgram );
+    glUniform1i( GetUniformLocation( InName ), InValue );
+    GLState::BindShader( currentShader );
 }
 
 /**
@@ -205,9 +207,35 @@ void le::RHIShader::SetUniform( const std::string& InName, bool InValue )
     if ( !IsLoaded() ) return;
     uint32      currentShader = GLState::GetShader();
 
-    GLState::BindShader( currentShader );
-    glUniform1i( GetUniformLocation( InName ), InValue ? 1 : 0 );
     GLState::BindShader( gpuProgram );
+    glUniform1i( GetUniformLocation( InName ), InValue ? 1 : 0 );
+    GLState::BindShader( currentShader );
+}
+
+/**
+ * Set uniform (Color)
+ */
+void le::RHIShader::SetUniform( const std::string& InName, const SColor& InValue )
+{
+    if ( !IsLoaded() ) return;
+    uint32      currentShader = GLState::GetShader();
+
+    GLState::BindShader( gpuProgram );
+    glUniform4f( GetUniformLocation( InName ), InValue.r / 255.f, InValue.g / 255.f, InValue.b / 255.f, InValue.a / 255.f );
+    GLState::BindShader( currentShader );
+}
+
+/**
+ * Set uniform (Vector2D)
+ */
+void le::RHIShader::SetUniform( const std::string& InName, const SVector2D& InValue )
+{
+    if ( !IsLoaded() ) return;
+    uint32      currentShader = GLState::GetShader();
+
+    GLState::BindShader( gpuProgram );
+    glUniform2f( GetUniformLocation( InName ), InValue.x, InValue.y );
+    GLState::BindShader( currentShader );
 }
 
 /**

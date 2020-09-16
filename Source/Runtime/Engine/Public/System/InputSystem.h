@@ -5,6 +5,7 @@
 #define INPUTSYSTEM_H
 
 #include "Templates/Singleton.h"
+#include "Math/Vector2D.h"
 #include "ButtonCode.h"
 
 namespace le
@@ -52,8 +53,16 @@ namespace le
 		/* Is mouse wheel */
 		bool IsMouseWheel( EButtonCode InButtonCode ) const;
 
+		/* Get mouse position */
+		const SVector2D& GetMousePosition() const;
+
+		/* Get mouse offset */
+		const SVector2D& GetMouseOffset() const;
+
 	private:
 		EButtonEvents			buttonEvents[ BC_Count ];
+		SVector2D				mousePosition;
+		SVector2D				mouseOffset;
 	};
 }
 
