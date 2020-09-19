@@ -2,7 +2,6 @@
 // Authors: Egor Pogulyaka (zombiHello)
 
 #include <stdarg.h>
-#include <time.h>
 #include <sstream>
 
 #include "Logging/Logger.h"
@@ -11,7 +10,8 @@
  * Constructor
  */
 le::Logger::Logger() :
-	file( nullptr )
+	file( nullptr ),
+	startLogging( std::chrono::steady_clock::now() )
 {}
 
 /**
@@ -29,8 +29,8 @@ void le::Logger::Logf( ELogType InLogType, const std::string& InCategory, const 
 {
 	va_list					argList = {};
 	std::stringstream		strStream;
-	
-	strStream << "[" << clock() / CLK_TCK << "][" << InCategory << "]";
+
+	strStream << "[" << std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now() - startLogging ).count() << " ms][" << InCategory << "]";
 
 	switch ( InLogType )
 	{

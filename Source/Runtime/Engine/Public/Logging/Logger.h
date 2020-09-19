@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <string>
+#include <chrono>
 
 #include "Misc/EngineDefines.h"
 #include "System/Object.h"
@@ -40,7 +41,8 @@ namespace le
 		void SetFile( const std::string& InPath );
 
 	private:
-		FILE*		file;
+		std::chrono::steady_clock::time_point		startLogging;
+		FILE*										file;
 	};	
 }
 
