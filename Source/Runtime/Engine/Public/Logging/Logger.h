@@ -8,7 +8,7 @@
 #include <string>
 
 #include "Misc/EngineDefines.h"
-#include "Templates/Singleton.h"
+#include "System/Object.h"
 
 namespace le
 {
@@ -21,7 +21,7 @@ namespace le
 		LT_Fail
 	};
 
-	class Logger : public TSingleton<Logger>
+	class Logger : public Object
 	{
 	public:
 		/* Constructor */

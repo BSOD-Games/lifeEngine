@@ -54,7 +54,7 @@ void le::Window::ShowMessageBox( const std::string& InMessage, EMessageBoxType I
 		break;
 	}
 
-	SDL_ShowSimpleMessageBox( flags, title, InMessage.c_str(), Window::GetInstance()->window );
+	SDL_ShowSimpleMessageBox( flags, title, InMessage.c_str(), GWindow->window );
 }
 
 /**

@@ -6,11 +6,11 @@
 
 #include <string>
 
-#include "Templates/Singleton.h"
+#include "System/Object.h"
 
 namespace le
 {
-	class Engine : public TSingleton<Engine>
+	class Engine : public Object
 	{
 	public:
 		/* Constructor */

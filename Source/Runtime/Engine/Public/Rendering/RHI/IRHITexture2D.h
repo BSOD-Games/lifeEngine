@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "Misc/Types.h"
+#include "System/Object.h"
 
 namespace le
 {
@@ -63,7 +64,7 @@ namespace le
 		uint32						maxLod;
 	};
 
-	class IRHITexture2D
+	class IRHITexture2D : public Object
 	{
 	public:
 		/* Constructor */

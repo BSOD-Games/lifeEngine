@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "System/Object.h"
+
 namespace le
 {
 	struct SColor;
@@ -19,7 +21,7 @@ namespace le
 		ST_Pixel
 	};
 
-	class IRHIShader
+	class IRHIShader : public Object
 	{
 	public:
 		/* Destructor */

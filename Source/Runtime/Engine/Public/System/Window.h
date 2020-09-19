@@ -6,8 +6,9 @@
 
 #include <string>
 
+#include "Misc/EngineDefines.h"
 #include "Misc/Types.h"
-#include "Templates/Singleton.h"
+#include "System/Object.h"
 #include "Event.h"
 
 namespace le
@@ -32,7 +33,7 @@ namespace le
 		MBT_Error
 	};
 
-	class Window : public TSingleton<Window>
+	class Window : public Object
 	{
 	public:
 		/* Constructor */

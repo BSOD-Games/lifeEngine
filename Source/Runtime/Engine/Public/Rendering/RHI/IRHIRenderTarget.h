@@ -5,11 +5,12 @@
 #define IRHIRENDERTARGET_H
 
 #include "Misc/Types.h"
+#include "System/Object.h"
 #include "Rendering/RHI/IRHITexture2D.h"
 
 namespace le
 {
-	class IRHIRenderTarget
+	class IRHIRenderTarget : public Object
 	{
 	public:
 		/* Destructor */

@@ -210,7 +210,7 @@ void le::OpenGL4RHI::DeleteShader( IRHIShader*& InOutShader )
 {
 	LIFEENGINE_ASSERT( InOutShader );
 	
-	delete InOutShader;
+	InOutShader->ReleaseRef();
 	InOutShader = nullptr;
 }
 
@@ -221,7 +221,7 @@ void le::OpenGL4RHI::DeleteBuffer( IRHIBuffer*& InOutBuffer )
 {
 	LIFEENGINE_ASSERT( InOutBuffer );
 
-	delete InOutBuffer;
+	InOutBuffer->ReleaseRef();
 	InOutBuffer = nullptr;
 }
 
@@ -232,7 +232,7 @@ void le::OpenGL4RHI::DeleteVertexFormat( IRHIVertexFormat*& InOutVertexFormat )
 {
 	LIFEENGINE_ASSERT( InOutVertexFormat );
 
-	delete InOutVertexFormat;
+	InOutVertexFormat->ReleaseRef();
 	InOutVertexFormat = nullptr;
 }
 
@@ -243,7 +243,7 @@ void le::OpenGL4RHI::DeleteGeometry( IRHIGeometry*& InGeometry )
 {
 	LIFEENGINE_ASSERT( InGeometry );
 
-	delete InGeometry;
+	InGeometry->ReleaseRef();
 	InGeometry = nullptr;
 }
 
@@ -254,7 +254,7 @@ void le::OpenGL4RHI::DeleteTexture2D( IRHITexture2D*& InTexture2D )
 {
 	LIFEENGINE_ASSERT( InTexture2D );
 
-	delete InTexture2D;
+	InTexture2D->ReleaseRef();
 	InTexture2D = nullptr;
 }
 
@@ -265,7 +265,7 @@ void le::OpenGL4RHI::DeleteRenderTarget( IRHIRenderTarget*& InRenderTarget )
 {
 	LIFEENGINE_ASSERT( InRenderTarget );
 
-	delete InRenderTarget;
+	InRenderTarget->ReleaseRef();
 	InRenderTarget = nullptr;
 }
 

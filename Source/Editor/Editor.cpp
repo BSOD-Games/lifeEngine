@@ -5,42 +5,65 @@
 #include <qmessagebox.h>
 
 #include <Engine.h>
+#include <Misc/EngineGlobals.h>
 #include <Logging/LogMacros.h>
 #include <Rendering/RenderSystem.h>
 #include <System/Window.h>
 #include <System/FileSystem.h>
+#include <System/InputSystem.h>
+#include <Resources/ResourceSystem.h>
 
-#include <fstream>
+#include <Resources/Resource.h>
+#include <Resources/Texture2D.h>
 
 // ------------------------------------------------------------------------------------ //
 // Main function
 // ------------------------------------------------------------------------------------ //
 int main( int argc, char** argv )
 {
-	le::FileSystem::GetInstance()->SetRootPath( "../../" );
+	le::GFileSystem->SetRootPath( "../../" );
 
-	le::Engine::GetInstance()->Initialize( "../../Config.json", "../../lifeEditor.log" );
-	le::Window::GetInstance()->Open( "lifeEditor", 800, 600 );
-	le::FRHIContext rhiContext = le::RenderSystem::GetInstance()->CreateContext( le::Window::GetInstance()->GetHandle() );
-	le::RenderSystem::GetInstance()->MakeCurrentContext( rhiContext );
-	le::RenderSystem::GetInstance()->SetViewport( 0, 0, 800, 600 );
+	le::GEngine->Initialize( "../../Config.json", "../../lifeEditor.log" );
+	le::GWindow->Open( "lifeEditor", 800, 600 );
+	le::FRHIContext rhiContext = le::GRenderSystem->CreateContext( le::GWindow->GetHandle() );
+	le::GRenderSystem->MakeCurrentContext( rhiContext );
+	le::GRenderSystem->SetViewport( 0, 0, 800, 600 );
 
-	while ( le::Window::GetInstance()->IsOpen() ) 
+	le::Texture2D*		r = le::Object::Cast< le::Texture2D >( le::GResourceSystem->FindResource( "", le::RT_Texture2D ) );
+
+	while ( le::GWindow->IsOpen() )
 	{
-		le::Event		event;
-		while ( le::Window::GetInstance()->PollEvent( event ) ) 
+		le::SEvent		event;
+		while ( le::GWindow->PollEvent( event ) )
 		{
 			switch ( event.type )
 			{
-			case le::ET_WindowClose:
-				le::Window::GetInstance()->Close();
+			case le::SEvent::ET_WindowClose:
+				le::GWindow->Close();
 				break;
+
+			case le::SEvent::ET_KeyPressed:
+			case le::SEvent::ET_KeyReleased:
+			case le::SEvent::ET_MouseMove:
+			case le::SEvent::ET_MousePressed:
+			case le::SEvent::ET_MouseReleased:
+			case le::SEvent::ET_MouseWheel:
+			case le::SEvent::ET_TextInput:
+				le::GInputSystem->ApplyEvent( event );
+				break;
+
+			case le::SEvent::ET_WindowResize:
+				le::GRenderSystem->SetViewport( 0, 0, event.event.windowResize.width, event.event.windowResize.height );
+				break;
+
+			default: break;
 			}
 		}
 
-		le::RenderSystem::GetInstance()->Begin();
-		le::RenderSystem::GetInstance()->End();
-		le::RenderSystem::GetInstance()->Present();
+		le::GRenderSystem->Begin();
+		le::GRenderSystem->End();
+		le::GRenderSystem->Present();
+		le::GInputSystem->Reset();
 	}
 	
 	return 0;

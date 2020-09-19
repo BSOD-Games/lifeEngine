@@ -4,6 +4,8 @@
 #ifndef IRHIGEOMETRY_H
 #define IRHIGEOMETRY_H
 
+#include "System/Object.h"
+
 namespace le
 {
 	class IRHIBuffer;
@@ -16,7 +18,7 @@ namespace le
 		IT_UInt
 	};
 
-	class IRHIGeometry
+	class IRHIGeometry : public Object
 	{
 	public:
 		/* Destructor */

@@ -6,6 +6,7 @@
 
 #include "Misc/Types.h"
 #include "System/Window.h"
+#include "System/Object.h"
 #include "IRHIBuffer.h"
 #include "IRHITexture2D.h"
 
@@ -35,7 +36,7 @@ namespace le
 		DO_TriangleFan
 	};
 
-	class IRHI
+	class IRHI : public Object
 	{
 	public:
 		/* Destructor */

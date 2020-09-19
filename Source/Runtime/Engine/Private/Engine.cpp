@@ -1,6 +1,7 @@
 // Copyright BSOD-Games, All Rights Reserved.
 // Authors: Egor Pogulyaka (zombiHello)
 
+#include "Misc/EngineGlobals.h"
 #include "Logging/Logger.h"
 #include "Rendering/RenderSystem.h"
 #include "Engine.h"
@@ -16,7 +17,7 @@ le::Engine::Engine()
  */
 le::Engine::~Engine()
 {
-	Logger::GetInstance()->CloseFile();
+	GLogger->CloseFile();
 }
 
 /**
@@ -24,8 +25,8 @@ le::Engine::~Engine()
  */
 bool le::Engine::Initialize( const std::string& InConfigPath, const std::string& InLogPath )
 {
-	Logger::GetInstance()->SetFile( InLogPath );
-	RenderSystem::GetInstance()->Initialize();
+	GLogger->SetFile( InLogPath );
+	GRenderSystem->Initialize();
 
 	return false;
 }

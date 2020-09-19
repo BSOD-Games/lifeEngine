@@ -4,8 +4,8 @@
 #ifndef INPUTSYSTEM_H
 #define INPUTSYSTEM_H
 
-#include "Templates/Singleton.h"
 #include "Math/Vector2D.h"
+#include "System/Object.h"
 #include "ButtonCode.h"
 
 namespace le
@@ -20,7 +20,7 @@ namespace le
 		BE_Scrolled
 	};
 
-	class InputSystem : public TSingleton< InputSystem >
+	class InputSystem : public Object
 	{
 	public:
 		/* Constructor */

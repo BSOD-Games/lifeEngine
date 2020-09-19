@@ -5,10 +5,11 @@
 #define IRHIVERTEXFORMAT_H
 
 #include "Misc/Types.h"
+#include "System/Object.h"
 
 namespace le
 {
-	class IRHIVertexFormat
+	class IRHIVertexFormat : public Object
 	{
 	public:
 		/* Destructor */

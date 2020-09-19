@@ -2,13 +2,7 @@
 // Authors: Egor Pogulyaka (zombiHello)
 
 #include "Logging/LogMacros.h"
-#include "Rendering/RHI/IRHIShader.h"
-#include "Rendering/RHI/IRHIBuffer.h"
-#include "Rendering/RHI/IRHIVertexFormat.h"
-#include "Rendering/RHI/IRHIGeometry.h"
-#include "Rendering/RHI/IRHITexture2D.h"
 #include "Rendering/RenderSystem.h"
-#include "System/FileSystem.h"
 #include "OpenGL4RHI.h"
 
 /**
@@ -77,9 +71,7 @@ void le::RenderSystem::DeleteContext( FRHIContext InRHIContext )
  * Start render scene
  */
 void le::RenderSystem::Begin()
-{
-
-}
+{}
 
 /**
  * End render scene

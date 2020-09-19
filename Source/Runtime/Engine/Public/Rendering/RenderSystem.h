@@ -4,13 +4,13 @@
 #ifndef RENDERSYSTEM_H
 #define RENDERSYSTEM_H
 
-#include "Templates/Singleton.h"
 #include "System/Window.h"
 #include "RHI/IRHI.h"
+#include "System/Object.h"
 
 namespace le
 {
-	class RenderSystem : public TSingleton<RenderSystem>
+	class RenderSystem : public Object
 	{
 	public:
 		/* Constructor */

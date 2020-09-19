@@ -5,6 +5,7 @@
 #define IRHIBUFFER_H
 
 #include "Misc/Types.h"
+#include "System/Object.h"
 
 namespace le
 {
@@ -22,7 +23,7 @@ namespace le
 		UBT_Stream
 	};
 
-	class IRHIBuffer
+	class IRHIBuffer : public Object
 	{
 	public:
 		/* Destructor */

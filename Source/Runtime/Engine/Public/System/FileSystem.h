@@ -9,7 +9,7 @@
 
 #include "Misc/EngineDefines.h"
 #include "Misc/Types.h"
-#include "Templates/Singleton.h"
+#include "System/Object.h"
 
 namespace le
 {
@@ -22,7 +22,7 @@ namespace le
 		FO_End
 	};
 
-	class FileSystem : public TSingleton<FileSystem>
+	class FileSystem : public Object
 	{
 	public:
 		/* Constructor */
