@@ -6,7 +6,7 @@
 
 #include "Misc/Types.h"
 #include "System/Window.h"
-#include "System/Object.h"
+#include "Misc/Object.h"
 #include "IRHIBuffer.h"
 #include "IRHITexture2D.h"
 

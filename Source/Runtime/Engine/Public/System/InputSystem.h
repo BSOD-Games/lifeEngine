@@ -5,7 +5,7 @@
 #define INPUTSYSTEM_H
 
 #include "Math/Vector2D.h"
-#include "System/Object.h"
+#include "Misc/Object.h"
 #include "ButtonCode.h"
 
 namespace le

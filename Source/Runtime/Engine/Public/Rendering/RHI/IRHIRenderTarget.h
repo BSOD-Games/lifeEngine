@@ -5,7 +5,7 @@
 #define IRHIRENDERTARGET_H
 
 #include "Misc/Types.h"
-#include "System/Object.h"
+#include "Misc/Object.h"
 #include "Rendering/RHI/IRHITexture2D.h"
 
 namespace le

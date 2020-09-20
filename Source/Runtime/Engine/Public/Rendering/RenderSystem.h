@@ -6,7 +6,7 @@
 
 #include "System/Window.h"
 #include "RHI/IRHI.h"
-#include "System/Object.h"
+#include "Misc/Object.h"
 
 namespace le
 {
@@ -25,11 +25,17 @@ namespace le
 		/* Create render context */
 		FRHIContext CreateContext( FWindowHandle InWindowHandle, FRHIContext InShareContext = nullptr );
 
+		/* Create texture 2D */
+		IRHITexture2D* CreateTexture2D( EImageFormat InImageFormat, uint32 InWidth, uint32 InHeight, uint32 InCountMipmap = 1 );
+
 		/* Make current context */
 		bool MakeCurrentContext( FRHIContext InRHIContext );
 
 		/* Delete context */
 		void DeleteContext( FRHIContext InRHIContext );
+
+		/* Delete texture 2D */
+		void DeleteTexture2D( IRHITexture2D*& InTexture2D );
 
 		/* Start render scene */
 		void Begin();

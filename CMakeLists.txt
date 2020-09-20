@@ -79,6 +79,13 @@ endif()
 
 # ================================================
 #
+#   --- Install settings ---
+#
+
+install( DIRECTORY Content/Content DESTINATION ${BUILD_DIR}/Engine/ )
+
+# ================================================
+#
 #	--- Add modules ---
 #
 

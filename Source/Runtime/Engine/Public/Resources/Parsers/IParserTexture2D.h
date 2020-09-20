@@ -8,7 +8,6 @@
 #include <vector>
 
 #include "Rendering/RHI/IRHITexture2D.h"
-#include "System/FileSystem.h"
 #include "IParser.h"
 
 namespace le
@@ -19,11 +18,8 @@ namespace le
 		/* Destructor */
 		virtual ~IParserTexture2D() {}
 
-		/* Read */
-		virtual bool Read( std::vector< uint8 >& OutData, uint32 InMipmapLevel = 0 ) const = 0;
-
-		/* Set file */
-		virtual void SetFile( FFileHandle* InFileHandle ) = 0;
+		/* Get data */
+		virtual byte* GetData( uint32 InMipmapLevel = 0 ) const = 0;
 
 		/* Get type image */
 		virtual EImageFormat GetFormat() const = 0;

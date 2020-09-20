@@ -26,7 +26,7 @@ le::FileSystem::~FileSystem()
 {}
 
 /* Mount pack */
-bool le::FileSystem::Mount( const std::string& InPath )
+bool le::FileSystem::Mount( const Path& InPath )
 {
 	// TODO: Implement this
 	LIFEENGINE_LOG_WARNING( "Engine", "bool le::FileSystem::Mount( const std::string& InPath ) :: Not implemented" );
@@ -34,38 +34,33 @@ bool le::FileSystem::Mount( const std::string& InPath )
 }
 
 /* Unmount pack */
-void le::FileSystem::Unmount( const std::string& InPath )
+void le::FileSystem::Unmount( const Path& InPath )
 {
 	// TODO: Implement this
 	LIFEENGINE_LOG_WARNING( "Engine", "bool le::FileSystem::Unmount( const std::string& InPath ) :: Not implemented" );
 }
 
 /* Create directory */
-bool le::FileSystem::CreateDirectory( const std::string& InPath ) const
+bool le::FileSystem::CreateDirectory( const Path& InPath ) const
 {
-	std::string			path;
-	ReplaceSlashes( InPath, path );
-
 #ifdef PLATFORM_WINDOWS
-	return CreateDirectoryA( ( rootPath + "/" + path ).c_str(), 0 );
+	return CreateDirectoryA( ( rootPath + InPath ).GetFullPath().c_str(), 0 );
 #else
 	return false;
 #endif // PLATFORM_WINDOWS
 }
 
 /* Open file */
-le::FFileHandle le::FileSystem::OpenFile( const std::string& InPath, bool InIsTextMode, bool InCreateIfNotExist, bool InIsClearFile ) const
+le::FFileHandle le::FileSystem::OpenFile( const Path& InPath, bool InIsTextMode, bool InCreateIfNotExist, bool InIsClearFile ) const
 {
 	std::fstream*		file = new std::fstream();
-	std::string			path;
-	ReplaceSlashes( InPath, path );
 
 	int			flags = std::ios::in | std::ios::out;
 	if ( !InIsTextMode )			flags |= std::ios::binary;
 	if ( !InCreateIfNotExist )		flags |= std::ios::_Nocreate;
 	if ( InIsClearFile )			flags |= std::ios::trunc;
 
-	file->open( rootPath + "/" + path, flags );
+	file->open( ( rootPath + InPath ).GetFullPath(), flags );
 	if ( file->is_open() )		return file;
 
 	delete file;
@@ -86,26 +81,20 @@ void le::FileSystem::CloseFile( FFileHandle& InFile ) const
 }
 
 /* Delete directory */
-void le::FileSystem::DeleteDirectory( const std::string& InPath ) const
+void le::FileSystem::DeleteDirectory( const Path& InPath ) const
 {
 	// TODO: Implement recursive deleting files
 
-	std::string			path;
-	ReplaceSlashes( InPath, path );
-
 #ifdef PLATFORM_WINDOWS
-	RemoveDirectoryA( ( rootPath + "/" + path ).c_str() );
+	RemoveDirectoryA( ( rootPath + InPath ).GetFullPath().c_str() );
 #endif // PLATFORM_WINDOWS
 }
 
 /* Delete file */
-void le::FileSystem::DeleteFile( const std::string& InPath ) const
+void le::FileSystem::DeleteFile( const Path& InPath ) const
 {
-	std::string			path;
-	ReplaceSlashes( InPath, path );
-
 #ifdef PLATFORM_WINDOWS
-	::DeleteFileA( ( rootPath + "/" + path ).c_str() );
+	::DeleteFileA( ( rootPath + InPath ).GetFullPath().c_str() );
 #endif // PLATFORM_WINDOWS
 }
 
@@ -126,33 +115,43 @@ void le::FileSystem::WriteToFile( FFileHandle InFile, byte* InBuffer, uint64 InS
 }
 
 /* Read from file */
-void le::FileSystem::ReadFromFile( FFileHandle InFile, std::string& OutString ) const
+le::uint32 le::FileSystem::ReadFromFile( FFileHandle InFile, std::string& OutString ) const
 {
 	LIFEENGINE_ASSERT( InFile );
-	*static_cast< std::fstream* >( InFile ) >> OutString;
+
+	std::fstream*	file = static_cast< std::fstream* >( InFile );
+	*file >> OutString;
+	return file->gcount();
 }
 
 /* Read from file */
-void le::FileSystem::ReadFromFile( FFileHandle InFile, byte* InBuffer, uint64 InSize ) const
+le::uint32 le::FileSystem::ReadFromFile( FFileHandle InFile, byte* InBuffer, uint64 InSize ) const
 {
 	LIFEENGINE_ASSERT( InFile && InBuffer && InSize > 0 );
 
 	std::fstream*		file = static_cast< std::fstream* >( InFile );
 	file->read( ( char* ) InBuffer, InSize );
+	return file->gcount();
 }
 
 /* Read line from file */
-void le::FileSystem::ReadLineFromFile( FFileHandle InFile, std::string& OutString, char InDelimiting ) const
+le::uint32 le::FileSystem::ReadLineFromFile( FFileHandle InFile, std::string& OutString, char InDelimiting ) const
 {
 	LIFEENGINE_ASSERT( InFile );
-	std::getline( *static_cast< std::fstream* >( InFile ), OutString, InDelimiting );
+	
+	std::fstream*		file = static_cast< std::fstream* >( InFile );
+	std::getline( *file, OutString, InDelimiting );
+	return file->gcount();
 }
 
 /* Read line from file */
-void le::FileSystem::ReadLineFromFile( FFileHandle InFile, byte* InBuffer, uint64 InSize, char InDelimiting ) const
+le::uint32 le::FileSystem::ReadLineFromFile( FFileHandle InFile, byte* InBuffer, uint64 InSize, char InDelimiting ) const
 {
 	LIFEENGINE_ASSERT( InFile && InBuffer && InSize > 0 );
-	static_cast< std::fstream* >( InFile )->getline( ( char* ) InBuffer, InSize, InDelimiting );
+	
+	std::fstream*		file = static_cast< std::fstream* >( InFile );
+	file->getline( ( char* ) InBuffer, InSize, InDelimiting );
+	return file->gcount();
 }
 
 /* Set offset in file */
@@ -174,13 +173,20 @@ void le::FileSystem::SetOffsetInFile( FFileHandle InFile, uint64 InOffset, EFile
 }
 
 /* Is exist file */
-bool le::FileSystem::IsExistFile( const std::string& InPath ) const
+bool le::FileSystem::IsExistFile( const Path& InPath ) const
 {
 	std::fstream		file;
-	file.open( rootPath + "/" + InPath, std::ios::_Nocreate );
+	file.open( ( rootPath + InPath ).GetFullPath(), std::ios::_Nocreate );
 	if ( file.is_open() )		return true;
 	
 	return false;
+}
+
+/* Is EOF in file */
+bool le::FileSystem::IsEOFFile( FFileHandle InFile ) const
+{
+	LIFEENGINE_ASSERT( InFile );
+	return static_cast< std::fstream* >( InFile )->eof();
 }
 
 /* Get offset in file */

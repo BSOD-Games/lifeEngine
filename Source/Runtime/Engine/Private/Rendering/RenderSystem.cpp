@@ -43,6 +43,14 @@ le::FRHIContext le::RenderSystem::CreateContext( FWindowHandle InWindowHandle, F
 }
 
 /**
+ * Create texture 2D
+ */
+le::IRHITexture2D* le::RenderSystem::CreateTexture2D( EImageFormat InImageFormat, uint32 InWidth, uint32 InHeight, uint32 InCountMipmap )
+{
+	return rhi->CreateTexture2D( InImageFormat, InWidth, InHeight, InCountMipmap );
+}
+
+/**
  * Make current context
  */
 bool le::RenderSystem::MakeCurrentContext( FRHIContext InRHIContext )
@@ -65,6 +73,14 @@ bool le::RenderSystem::MakeCurrentContext( FRHIContext InRHIContext )
 void le::RenderSystem::DeleteContext( FRHIContext InRHIContext )
 {
 	rhi->DeleteContext( InRHIContext );
+}
+
+/**
+ * Delete texture 2D
+ */
+void le::RenderSystem::DeleteTexture2D( IRHITexture2D*& InTexture2D )
+{
+	rhi->DeleteTexture2D( InTexture2D );
 }
 
 /**

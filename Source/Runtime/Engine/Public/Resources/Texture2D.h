@@ -8,6 +8,8 @@
 
 namespace le
 {
+	class IRHITexture2D;
+
 	class Texture2D : public Resource
 	{
 	public:
@@ -18,13 +20,22 @@ namespace le
 		~Texture2D();
 
 		/* Serialize resource */
-		bool Serialize( const std::string& InPath ) override;
+		bool Serialize( const Path& InPath ) override;
 
 		/* Deserialize resource */
-		bool Deserialize( const std::string& InPath ) override;
+		bool Deserialize( const Path& InPath ) override;
 
 		/* Get resource type */
 		EResourceType GetType() const override;
+
+		/* Get handle */
+		FORCEINLINE IRHITexture2D* GetHandle() const
+		{
+			return handle;
+		}
+
+	private:
+		IRHITexture2D*			handle;
 	};
 }
 

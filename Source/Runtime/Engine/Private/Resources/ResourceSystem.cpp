@@ -2,8 +2,13 @@
 // Authors: Egor Pogulyaka (zombiHello)
 
 #include "Misc/EngineDefines.h"
+#include "Misc/EngineGlobals.h"
 #include "Logging/LogMacros.h"
 #include "Resources/ResourceSystem.h"
+#include "Resources/Parsers/ParsersTexture2DFactory.h"
+
+// Register parsers
+#include "Resources/Parsers/ParserTexture2DSTBImage.h"
 
 // Resources
 #include "Resources/Texture2D.h"
@@ -23,34 +28,42 @@ le::ResourceSystem::~ResourceSystem()
 }
 
 /**
+ * Initialize resource system
+ */
+bool le::ResourceSystem::Initialize()
+{
+	GParsersTexture2DFactory->Register( ParserTexture2DSTBImage::GetSupportedExtensions(), []() -> IParserTexture2D* { return new ParserTexture2DSTBImage(); } );	
+	return true;
+}
+
+/**
  * Find resource
  */
-le::Resource* le::ResourceSystem::FindResource( const std::string& InPath, EResourceType InResourceType )
+le::Resource* le::ResourceSystem::FindResource( const Path& InPath, EResourceType InResourceType )
 {
-	auto		it = resources.find( InPath );
+	auto		it = resources.find( InPath.GetFullPath() );
 	if ( it != resources.end() )		return it->second;
 
 	Resource*		resource = nullptr;
 	switch ( InResourceType )
 	{
-	case RT_Texture2D:
-		resource = new Texture2D();
-		break;
-
+	case RT_Texture2D:			resource = new Texture2D();		break;
 	default:	return nullptr;
 	}
 
 	if ( !resource->Deserialize( InPath ) )
 	{
+		LIFEENGINE_LOG_ERROR( "Engine", "Failed loading resource [%s]", InPath.GetFullPath().c_str() );
+
 		delete resource;
-		return nullptr;
+		return FindDefaultResource( InResourceType );
 	}
 
-	LIFEENGINE_LOG_INFO( "Engine", "Loaded resource [%s]", InPath.c_str() );
+	LIFEENGINE_LOG_INFO( "Engine", "Loaded resource [%s]", InPath.GetFullPath().c_str() );
 
-	resource->SetName( InPath );
+	resource->SetName( InPath.GetFullPath() );
 	resource->AddRef();
-	resources.insert( std::make_pair( InPath, resource ) );
+	resources.insert( std::make_pair( InPath.GetFullPath(), resource ) );
 	return resource;
 }
 
@@ -91,4 +104,42 @@ void le::ResourceSystem::UnloadResources()
 		}
 		else
 			++it;
+}
+
+/**
+ * Find default resource
+ */
+le::Resource* le::ResourceSystem::FindDefaultResource( EResourceType InResourceType )
+{
+	auto		it = defaultResources.find( InResourceType );
+	if ( it != defaultResources.end() )		return it->second;
+
+	Resource*		resource = nullptr;
+	Path			path;
+
+	switch ( InResourceType )
+	{
+	case RT_Texture2D:		
+		resource = new Texture2D();	
+		path = "Engine/Content/Textures/Error.jpg";	
+		break;
+
+	default:	return nullptr;
+	}
+
+	if ( !resource->Deserialize( path ) )
+	{
+		LIFEENGINE_LOG_ERROR( "Engine", "Failed loading default resource [%s]", path.GetFullPath().c_str() );
+
+		delete resource;
+		defaultResources.insert( std::make_pair( InResourceType, nullptr ) );
+		return nullptr;
+	}
+
+	LIFEENGINE_LOG_INFO( "Engine", "Loaded default resource [%s]", path.GetFullPath().c_str() );
+
+	resource->SetName( path.GetFullPath() );
+	resource->AddRef();
+	defaultResources.insert( std::make_pair( InResourceType, resource ) );
+	return resource;
 }

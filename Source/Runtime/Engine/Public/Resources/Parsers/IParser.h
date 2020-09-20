@@ -5,7 +5,9 @@
 #define IPARSER_H
 
 #include <string>
-#include "System/Object.h"
+
+#include "Misc/Object.h"
+#include "System/FileSystem.h"
 
 namespace le
 {
@@ -15,8 +17,8 @@ namespace le
 		/* Destructor */
 		virtual ~IParser() {}
 
-		/* Is supported extension */
-		virtual bool IsSupportedExtension( const std::string& InExtension ) const = 0;
+		/* Set file */
+		virtual bool SetFile( FFileHandle InFileHandle ) = 0;
 	};
 }
 

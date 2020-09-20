@@ -7,6 +7,7 @@ set( MODULE_NAME Engine )
 #
 
 set( SDL2_PATH ${EXTLIBS_DIR}/SDL2 CACHE PATH "Path to SDL2" )
+set( STB_PATH ${EXTLIBS_DIR}/STB CACHE PATH "Path to STB" )
 
 #
 #   --- Set values ---
@@ -129,6 +130,15 @@ else()
     target_link_libraries( ${MODULE_NAME} 
 		debug ${SDL2_DEBUG_LIB} debug ${SDL2MAIN_DEBUG_LIB} 
 		optimized ${SDL2_LIB} optimized ${SDL2MAIN_LIB} )
+endif()
+
+# SDL2
+find_package( STB REQUIRED )
+if( NOT STB_FOUND )
+	message( SEND_ERROR "Failed to find STB" )
+	return()
+else()
+	include_directories( ${STB_INCLUDE} )
 endif()
 
 # Other default extlibs

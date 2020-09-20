@@ -8,7 +8,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include "System/Object.h"
+#include "Misc/Object.h"
 #include "Resource.h"
 
 namespace le
@@ -24,8 +24,14 @@ namespace le
 		/* Destructor */
 		~ResourceSystem();
 
+		/* Initialize resource system */
+		bool Initialize();
+
 		/* Find resource in cahce. If not found - loading from FileSystem */
-		Resource* FindResource( const std::string& InPath, EResourceType InResourceType );
+		Resource* FindResource( const Path& InPath, EResourceType InResourceType );
+
+		/* Find default resource */
+		Resource* FindDefaultResource( EResourceType InResourceType );
 
 		/* Unload resource */
 		void UnloadResource( Resource*& InResource );
@@ -35,6 +41,7 @@ namespace le
 
 	private:
 		std::unordered_map< std::string, Resource* >		resources;
+		std::unordered_map< EResourceType, Resource* >		defaultResources;
 	};
 }
 

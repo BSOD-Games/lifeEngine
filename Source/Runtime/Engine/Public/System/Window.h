@@ -8,7 +8,7 @@
 
 #include "Misc/EngineDefines.h"
 #include "Misc/Types.h"
-#include "System/Object.h"
+#include "Misc/Object.h"
 #include "Event.h"
 
 namespace le

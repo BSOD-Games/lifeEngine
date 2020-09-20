@@ -8,7 +8,8 @@
 
 #include "Misc/EngineDefines.h"
 #include "Misc/Types.h"
-#include "System/Object.h"
+#include "Misc/Path.h"
+#include "Misc/Object.h"
 
 namespace le
 {
@@ -24,10 +25,10 @@ namespace le
 		virtual ~Resource() {}
 
 		/* Serialize resource */
-		virtual bool Serialize( const std::string& InPath ) = 0;
+		virtual bool Serialize( const Path& InPath ) = 0;
 
 		/* Deserialize resource */
-		virtual bool Deserialize( const std::string& InPath ) = 0;
+		virtual bool Deserialize( const Path& InPath ) = 0;
 
 		/* Set name */
 		void SetName( const std::string& InName )

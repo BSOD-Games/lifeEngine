@@ -1,15 +1,20 @@
 // Copyright BSOD-Games, All Rights Reserved.
 // Authors: Egor Pogulyaka (zombiHello)
 
+#include "Logging/LogMacros.h"
 #include "Resources/Parsers/ParsersTexture2DFactory.h"
 #include "Resources/Parsers/IParserTexture2D.h"
 
 /**
  * Register parser
  */
-void le::ParsersTexture2DFactory::Register( IParserTexture2D* InParserTexture2D )
+void le::ParsersTexture2DFactory::Register( const std::vector< std::string >& InSupportedExtensions, FCreateParserTexture2DFn InCreateParserTexture2DFunction )
 {
-	parsers.insert( InParserTexture2D );
+	for ( uint32 index = 0, count = InSupportedExtensions.size(); index < count; ++index )
+	{
+		LIFEENGINE_LOG_INFO( "Engine", "Parser texture 2D for [%s] registered", InSupportedExtensions[ index ].c_str() );
+		parsers[ InSupportedExtensions[ index ] ] = InCreateParserTexture2DFunction;
+	}
 }
 
 /**
@@ -17,9 +22,13 @@ void le::ParsersTexture2DFactory::Register( IParserTexture2D* InParserTexture2D 
  */
 le::IParserTexture2D* le::ParsersTexture2DFactory::Get( const std::string& InExtension ) const
 {
-	for ( auto it = parsers.begin(), itEnd = parsers.end(); it != itEnd; ++it )
-		if ( ( *it )->IsSupportedExtension( InExtension ) )
-			return *it;
+	auto		it = parsers.find( InExtension );
+	if ( it == parsers.end() )
+	{
+		LIFEENGINE_LOG_INFO( "Engine", "Parser texture 2D for [%s] not founded", InExtension.c_str() );
+		return nullptr;
+	}
 
-	return nullptr;
+	LIFEENGINE_ASSERT( it->second );
+	return it->second();
 }

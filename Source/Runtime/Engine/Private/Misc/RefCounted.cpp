@@ -1,7 +1,7 @@
 // Copyright BSOD-Games, All Rights Reserved.
 // Authors: Egor Pogulyaka (zombiHello)
 
-#include "System/RefCounted.h"
+#include "Misc/RefCounted.h"
 
 /**
  * Constructor

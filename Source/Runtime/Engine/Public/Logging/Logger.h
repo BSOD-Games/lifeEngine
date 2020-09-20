@@ -9,7 +9,7 @@
 #include <chrono>
 
 #include "Misc/EngineDefines.h"
-#include "System/Object.h"
+#include "Misc/Object.h"
 
 namespace le
 {

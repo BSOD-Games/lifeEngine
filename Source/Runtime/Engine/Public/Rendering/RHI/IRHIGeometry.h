@@ -4,7 +4,7 @@
 #ifndef IRHIGEOMETRY_H
 #define IRHIGEOMETRY_H
 
-#include "System/Object.h"
+#include "Misc/Object.h"
 
 namespace le
 {

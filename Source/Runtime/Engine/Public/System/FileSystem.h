@@ -9,7 +9,8 @@
 
 #include "Misc/EngineDefines.h"
 #include "Misc/Types.h"
-#include "System/Object.h"
+#include "Misc/Path.h"
+#include "Misc/Object.h"
 
 namespace le
 {
@@ -32,49 +33,52 @@ namespace le
 		~FileSystem();
 
 		/* Mount pack */
-		bool Mount( const std::string& InPath );
+		bool Mount( const Path& InPath );
 
 		/* Unmount pack */
-		void Unmount( const std::string& InPath );
+		void Unmount( const Path& InPath );
 
 		/* Create directory */
-		bool CreateDirectory( const std::string& InPath ) const;
+		bool CreateDirectory( const Path& InPath ) const;
 
 		/* Open file */
-		FFileHandle OpenFile( const std::string& InPath, bool InIsTextMode = false, bool InCreateIfNotExist = false, bool InIsClearFile = false ) const;
+		FFileHandle OpenFile( const Path& InPath, bool InIsTextMode = false, bool InCreateIfNotExist = false, bool InIsClearFile = false ) const;
 
 		/* Close file */
 		void CloseFile( FFileHandle& InFile ) const;
 
 		/* Delete directory */
-		void DeleteDirectory( const std::string& InPath ) const;
+		void DeleteDirectory( const Path& InPath ) const;
 
 		/* Delete file */
-		void DeleteFile( const std::string& InPath ) const;
+		void DeleteFile( const Path& InPath ) const;
 
 		/* Write to file */
 		void WriteToFile( FFileHandle InFile, const std::string& InString ) const;
 		void WriteToFile( FFileHandle InFile, byte* InBuffer, uint64 InSize ) const;
 
 		/* Read from file */
-		void ReadFromFile( FFileHandle InFile, std::string& OutString ) const;
-		void ReadFromFile( FFileHandle InFile, byte* InBuffer, uint64 InSize ) const;
+		uint32 ReadFromFile( FFileHandle InFile, std::string& OutString ) const;
+		uint32 ReadFromFile( FFileHandle InFile, byte* InBuffer, uint64 InSize ) const;
 
 		/* Read line from file */
-		void ReadLineFromFile( FFileHandle InFile, std::string& OutString, char InDelimiting = '\n' ) const;
-		void ReadLineFromFile( FFileHandle InFile, byte* InBuffer, uint64 InSize, char InDelimiting = '\n' ) const;
+		uint32 ReadLineFromFile( FFileHandle InFile, std::string& OutString, char InDelimiting = '\n' ) const;
+		uint32 ReadLineFromFile( FFileHandle InFile, byte* InBuffer, uint64 InSize, char InDelimiting = '\n' ) const;
 		
 		/* Set position in file */
 		void SetOffsetInFile( FFileHandle InFile, uint64 InOffset, EFileOffset InOffsetType = FO_Begin ) const;
 
 		/* Set root path */
-		FORCEINLINE void SetRootPath( const std::string& InRootPath )
+		FORCEINLINE void SetRootPath( const Path& InRootPath )
 		{
 			rootPath = InRootPath;
 		}
 
 		/* Is exist file */
-		bool IsExistFile( const std::string& InPath ) const;
+		bool IsExistFile( const Path& InPath ) const;
+
+		/* Is EOF in file */
+		bool IsEOFFile( FFileHandle InFile ) const;
 
 		/* Get offset in file */
 		uint64 GetOffsetInFile( FFileHandle InFile ) const;
@@ -83,15 +87,7 @@ namespace le
 		uint64 GetSizeFile( FFileHandle InFile ) const;
 
 	private:
-		/* Replace slashes */
-		FORCEINLINE void ReplaceSlashes( const std::string& InPath, std::string& OutPath ) const
-		{
-			OutPath = InPath;
-			for ( uint32 index = 0; index < OutPath.size(); ++index )
-				if ( OutPath[ index ] == '\\' )		OutPath[ index ] = '/';
-		}
-
-		std::string							rootPath;
+		Path		rootPath;
 	};
 }
 
