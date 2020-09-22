@@ -10,7 +10,7 @@
  */
 void le::ParsersTexture2DFactory::Register( const std::vector< std::string >& InSupportedExtensions, FCreateParserTexture2DFn InCreateParserTexture2DFunction )
 {
-	for ( uint32 index = 0, count = InSupportedExtensions.size(); index < count; ++index )
+	for ( uint32 index = 0, count = static_cast< uint32 >( InSupportedExtensions.size() ); index < count; ++index )
 	{
 		LIFEENGINE_LOG_INFO( "Engine", "Parser texture 2D for [%s] registered", InSupportedExtensions[ index ].c_str() );
 		parsers[ InSupportedExtensions[ index ] ] = InCreateParserTexture2DFunction;

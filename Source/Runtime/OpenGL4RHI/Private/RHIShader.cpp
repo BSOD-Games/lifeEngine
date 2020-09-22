@@ -254,10 +254,10 @@ void le::RHIShader::InsertDefinesToCode( std::string& InOutCode, const std::stri
     if ( InDefinesSection.empty() ) return;
 
     uint32		    defineInsertPoint = 0;
-    uint32          versionIndex = InOutCode.find( "#version" );
+    uint32          versionIndex = static_cast< uint32 >( InOutCode.find( "#version" ) );
     
     if ( versionIndex != std::string::npos )
-        defineInsertPoint = InOutCode.find( "\n", versionIndex ) + 1;
+        defineInsertPoint = static_cast< uint32 >( InOutCode.find( "\n", versionIndex ) + 1 );
     else
     {
         defineInsertPoint = 0;

@@ -8,6 +8,7 @@ set( MODULE_NAME Engine )
 
 set( SDL2_PATH ${EXTLIBS_DIR}/SDL2 CACHE PATH "Path to SDL2" )
 set( STB_PATH ${EXTLIBS_DIR}/STB CACHE PATH "Path to STB" )
+set( RAPIDJSON_PATH ${EXTLIBS_DIR}/RapidJSON CACHE PATH "Path to RapidJSON" )
 
 #
 #   --- Set values ---
@@ -132,13 +133,22 @@ else()
 		optimized ${SDL2_LIB} optimized ${SDL2MAIN_LIB} )
 endif()
 
-# SDL2
+# STB
 find_package( STB REQUIRED )
 if( NOT STB_FOUND )
 	message( SEND_ERROR "Failed to find STB" )
 	return()
 else()
 	include_directories( ${STB_INCLUDE} )
+endif()
+
+# RapidJSON
+find_package( RapidJSON REQUIRED )
+if( NOT RAPIDJSON_FOUND )
+	message( SEND_ERROR "Failed to find RapidJSON" )
+	return()
+else()
+	include_directories( ${RAPIDJSON_INCLUDE} )
 endif()
 
 # Other default extlibs

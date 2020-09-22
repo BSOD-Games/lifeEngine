@@ -202,8 +202,8 @@ bool le::Window::PollEvent( SEvent& OutEvent )
 		case SDL_WINDOWEVENT_SIZE_CHANGED:
 		case SDL_WINDOWEVENT_RESIZED:
 			OutEvent.type = SEvent::ET_WindowResize;
-			OutEvent.event.windowResize.width = sdlEvent.window.data1;
-			OutEvent.event.windowResize.height = sdlEvent.window.data2;
+			OutEvent.event.windowResize.width = static_cast< float >( sdlEvent.window.data1 );
+			OutEvent.event.windowResize.height = static_cast< float >( sdlEvent.window.data2 );
 			break;
 
 			// Event gained focus

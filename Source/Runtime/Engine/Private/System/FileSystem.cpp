@@ -115,7 +115,7 @@ void le::FileSystem::WriteToFile( FFileHandle InFile, byte* InBuffer, uint64 InS
 }
 
 /* Read from file */
-le::uint32 le::FileSystem::ReadFromFile( FFileHandle InFile, std::string& OutString ) const
+le::uint64 le::FileSystem::ReadFromFile( FFileHandle InFile, std::string& OutString ) const
 {
 	LIFEENGINE_ASSERT( InFile );
 
@@ -125,7 +125,7 @@ le::uint32 le::FileSystem::ReadFromFile( FFileHandle InFile, std::string& OutStr
 }
 
 /* Read from file */
-le::uint32 le::FileSystem::ReadFromFile( FFileHandle InFile, byte* InBuffer, uint64 InSize ) const
+le::uint64 le::FileSystem::ReadFromFile( FFileHandle InFile, byte* InBuffer, uint64 InSize ) const
 {
 	LIFEENGINE_ASSERT( InFile && InBuffer && InSize > 0 );
 
@@ -135,7 +135,7 @@ le::uint32 le::FileSystem::ReadFromFile( FFileHandle InFile, byte* InBuffer, uin
 }
 
 /* Read line from file */
-le::uint32 le::FileSystem::ReadLineFromFile( FFileHandle InFile, std::string& OutString, char InDelimiting ) const
+le::uint64 le::FileSystem::ReadLineFromFile( FFileHandle InFile, std::string& OutString, char InDelimiting ) const
 {
 	LIFEENGINE_ASSERT( InFile );
 	
@@ -145,7 +145,7 @@ le::uint32 le::FileSystem::ReadLineFromFile( FFileHandle InFile, std::string& Ou
 }
 
 /* Read line from file */
-le::uint32 le::FileSystem::ReadLineFromFile( FFileHandle InFile, byte* InBuffer, uint64 InSize, char InDelimiting ) const
+le::uint64 le::FileSystem::ReadLineFromFile( FFileHandle InFile, byte* InBuffer, uint64 InSize, char InDelimiting ) const
 {
 	LIFEENGINE_ASSERT( InFile && InBuffer && InSize > 0 );
 	

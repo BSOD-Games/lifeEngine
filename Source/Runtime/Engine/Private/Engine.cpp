@@ -24,7 +24,7 @@ le::Engine::~Engine()
 /**
  * Initialize engine
  */
-bool le::Engine::Initialize( const std::string& InConfigPath, const std::string& InLogPath )
+bool le::Engine::Initialize( const Path& InLogPath )
 {
 	GLogger->SetFile( InLogPath );
 	GRenderSystem->Initialize();	

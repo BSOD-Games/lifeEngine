@@ -15,6 +15,7 @@ namespace le
 	class Engine;
 
 	class ParsersTexture2DFactory;
+	class ParsersConfigFactory;
 
 	/* Logger */
 	extern Logger*						GLogger;
@@ -39,6 +40,9 @@ namespace le
 
 	/* Parsers Texture2D factory */
 	extern ParsersTexture2DFactory*		GParsersTexture2DFactory;
+
+	/* Parsers Config factory */
+	extern ParsersConfigFactory*		GParsersConfigFactory;
 }
 
 #endif // !ENGINEGLOBALS_H

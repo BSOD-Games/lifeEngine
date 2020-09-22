@@ -15,7 +15,8 @@ namespace le
 {
 	enum EResourceType
 	{
-		RT_Texture2D
+		RT_Texture2D,
+		RT_Config
 	};
 
 	class Resource : public Object

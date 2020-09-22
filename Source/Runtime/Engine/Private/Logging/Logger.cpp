@@ -70,11 +70,11 @@ void le::Logger::CloseFile()
 /**
  * Set file for logs
  */
-void le::Logger::SetFile( const std::string& InPath )
+void le::Logger::SetFile( const Path& InPath )
 {
 	if ( file )			CloseFile();
-	file = fopen( InPath.c_str(), "w" );
+	file = fopen( InPath.GetFullPath().c_str(), "w" );
 	
 	if ( file )		Logf( LT_Info, "Engine", "-- Log file openned --" );
-	else			Logf( LT_Info, "Engine", "-- Log file [%s] failed open", InPath.c_str() );
+	else			Logf( LT_Info, "Engine", "-- Log file [%s] failed open", InPath.GetFullPath().c_str() );
 }

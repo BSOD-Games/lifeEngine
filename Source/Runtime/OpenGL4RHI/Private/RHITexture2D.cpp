@@ -224,7 +224,7 @@ void le::RHITexture2D::GenerateMipmaps()
 {
 	uint32				currentTextureType = 0;
 	uint32				currentTexture = GLState::GetTexture( GLState::GetTextureLayer(), &currentTextureType );
-	countMipmaps = floor( log2( width > height ? width : height ) );
+	countMipmaps = static_cast< uint32 >( floor( log2( width > height ? width : height ) ) );
 
 	GLState::BindTexture( GL_TEXTURE_2D, handle );
 	glGenerateMipmap( GL_TEXTURE_2D );

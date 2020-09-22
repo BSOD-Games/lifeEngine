@@ -35,10 +35,10 @@ void le::InputSystem::ApplyEvent( const SEvent& InEvent )
 	case SEvent::ET_MouseReleased:		buttonEvents[ InEvent.event.mouseButton.code ] = BE_Released;	break;
 
 	case SEvent::ET_MouseMove:
-		mouseOffset.x += InEvent.event.mouseMove.xDirection;
-		mouseOffset.y += InEvent.event.mouseMove.yDirection;
-		mousePosition.x = InEvent.event.mouseMove.x;
-		mousePosition.y = InEvent.event.mouseMove.y;
+		mouseOffset.x += static_cast< float >( InEvent.event.mouseMove.xDirection );
+		mouseOffset.y += static_cast< float >( InEvent.event.mouseMove.yDirection );
+		mousePosition.x = static_cast< float >( InEvent.event.mouseMove.x );
+		mousePosition.y = static_cast< float >( InEvent.event.mouseMove.y );
 		break;
 
 	case SEvent::ET_MouseWheel:

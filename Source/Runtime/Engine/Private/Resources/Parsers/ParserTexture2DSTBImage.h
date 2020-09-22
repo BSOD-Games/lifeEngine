@@ -22,6 +22,7 @@ namespace le
 		/* Set file */
 		bool SetFile( FFileHandle InFileHandle ) override;
 
+		/* Get supported extensions */
 		FORCEINLINE static std::vector< std::string > GetSupportedExtensions()
 		{
 			return { "jpg", "png", "tga", "bmp", "psd", "gif", "hdr", "pic", "pnm" };

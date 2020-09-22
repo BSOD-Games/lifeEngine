@@ -6,6 +6,7 @@
 
 #include <string>
 
+#include "Misc/Path.h"
 #include "Misc/Object.h"
 
 namespace le
@@ -20,7 +21,7 @@ namespace le
 		~Engine();
 
 		/* Initialize engine */
-		bool Initialize( const std::string& InConfigPath, const std::string& InLogPath );
+		bool Initialize( const Path& InLogPath );
 	};
 }
 

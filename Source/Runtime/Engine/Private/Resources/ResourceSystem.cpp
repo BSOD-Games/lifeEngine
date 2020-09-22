@@ -6,12 +6,15 @@
 #include "Logging/LogMacros.h"
 #include "Resources/ResourceSystem.h"
 #include "Resources/Parsers/ParsersTexture2DFactory.h"
+#include "Resources/Parsers/ParsersConfigFactory.h"
 
-// Register parsers
+// Resources parsers
 #include "Resources/Parsers/ParserTexture2DSTBImage.h"
+#include "Resources/Parsers/ParserConfigJSON.h"
 
 // Resources
 #include "Resources/Texture2D.h"
+#include "Resources/Config.h"
 
 /**
  * Constructor
@@ -33,6 +36,8 @@ le::ResourceSystem::~ResourceSystem()
 bool le::ResourceSystem::Initialize()
 {
 	GParsersTexture2DFactory->Register( ParserTexture2DSTBImage::GetSupportedExtensions(), []() -> IParserTexture2D* { return new ParserTexture2DSTBImage(); } );	
+	GParsersConfigFactory->Register( ParserConfigJSON::GetSupportedExtensions(), []() -> IParserConfig* { return new ParserConfigJSON(); } );
+
 	return true;
 }
 
@@ -48,7 +53,8 @@ le::Resource* le::ResourceSystem::FindResource( const Path& InPath, EResourceTyp
 	switch ( InResourceType )
 	{
 	case RT_Texture2D:			resource = new Texture2D();		break;
-	default:	return nullptr;
+	case RT_Config:				resource = new Config();		break;
+	default:					return nullptr;
 	}
 
 	if ( !resource->Deserialize( InPath ) )

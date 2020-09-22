@@ -15,7 +15,7 @@
 int FS_Read( void* InUser, char* InData, int InSize )
 {
 	LIFEENGINE_ASSERT( InUser );
-	return le::GFileSystem->ReadFromFile( InUser, ( le::byte* ) InData, InSize );
+	return static_cast< int >( le::GFileSystem->ReadFromFile( InUser, ( le::byte* ) InData, InSize ) );
 }
 
 /**

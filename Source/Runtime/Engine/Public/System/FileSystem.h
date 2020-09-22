@@ -58,12 +58,12 @@ namespace le
 		void WriteToFile( FFileHandle InFile, byte* InBuffer, uint64 InSize ) const;
 
 		/* Read from file */
-		uint32 ReadFromFile( FFileHandle InFile, std::string& OutString ) const;
-		uint32 ReadFromFile( FFileHandle InFile, byte* InBuffer, uint64 InSize ) const;
+		uint64 ReadFromFile( FFileHandle InFile, std::string& OutString ) const;
+		uint64 ReadFromFile( FFileHandle InFile, byte* InBuffer, uint64 InSize ) const;
 
 		/* Read line from file */
-		uint32 ReadLineFromFile( FFileHandle InFile, std::string& OutString, char InDelimiting = '\n' ) const;
-		uint32 ReadLineFromFile( FFileHandle InFile, byte* InBuffer, uint64 InSize, char InDelimiting = '\n' ) const;
+		uint64 ReadLineFromFile( FFileHandle InFile, std::string& OutString, char InDelimiting = '\n' ) const;
+		uint64 ReadLineFromFile( FFileHandle InFile, byte* InBuffer, uint64 InSize, char InDelimiting = '\n' ) const;
 		
 		/* Set position in file */
 		void SetOffsetInFile( FFileHandle InFile, uint64 InOffset, EFileOffset InOffsetType = FO_Begin ) const;

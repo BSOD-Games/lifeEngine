@@ -77,7 +77,7 @@ namespace le
 		/* Get size */
 		FORCEINLINE float GetSize() const
 		{
-			return sqrt( x * x + y * y );
+			return static_cast< float >( sqrt( x * x + y * y ) );
 		}
 
 		/* Operator + */

@@ -9,6 +9,7 @@
 #include <chrono>
 
 #include "Misc/EngineDefines.h"
+#include "Misc/Path.h"
 #include "Misc/Object.h"
 
 namespace le
@@ -38,7 +39,7 @@ namespace le
 		void CloseFile();
 
 		/* Set path to log file */
-		void SetFile( const std::string& InPath );
+		void SetFile( const Path& InPath );
 
 	private:
 		std::chrono::steady_clock::time_point		startLogging;

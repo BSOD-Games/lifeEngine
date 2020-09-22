@@ -42,7 +42,7 @@ void le::RHIRenderTarget::CreateTexture2D( EImageFormat InImageFormat, const SSa
 	uint32			currentFBO = GLState::GetFBO();
 	GLState::BindFBO( handle );
 
-	uint32				typeAttach = InImageFormat != IF_Depth24_Stencil8 ? GL_COLOR_ATTACHMENT0 + buffers.size() : GL_DEPTH_STENCIL_ATTACHMENT;
+	uint32				typeAttach = InImageFormat != IF_Depth24_Stencil8 ? GL_COLOR_ATTACHMENT0 + static_cast< uint32 >( buffers.size() ) : GL_DEPTH_STENCIL_ATTACHMENT;
 	RHITexture2D*		texture2D = new RHITexture2D( InImageFormat, width, height, 1 );
 	texture2D->Bind();
 	texture2D->Allocate( nullptr );
@@ -80,7 +80,7 @@ void le::RHIRenderTarget::SetSize( uint32 InWidth, uint32 InHeight )
 	width = InWidth;
 	height = InHeight;
 
-	for ( uint32 index = 0, count = buffers.size(); index < count; ++index )
+	for ( uint32 index = 0, count = static_cast< uint32 >( buffers.size() ); index < count; ++index )
 		buffers[ index ]->Resize( InWidth, InHeight );
 }
 
@@ -117,7 +117,7 @@ void le::RHIRenderTarget::Destroy()
 	uint32			currentFBO = GLState::GetFBO();
 	GLState::BindFBO( handle );
 
-	for ( uint32 index = 0, count = buffers.size(); index < count; ++index )
+	for ( uint32 index = 0, count = static_cast< uint32 >( buffers.size() ); index < count; ++index )
 		DestroyTexture2D( 0 );
 
 	glDeleteFramebuffers( 1, &handle );
