@@ -35,22 +35,6 @@ bool le::RenderSystem::Initialize()
 }
 
 /**
- * Create render context
- */
-le::FRHIContext le::RenderSystem::CreateContext( FWindowHandle InWindowHandle, FRHIContext InShareContext )
-{
-	return rhi->CreateContext( InWindowHandle, InShareContext );
-}
-
-/**
- * Create texture 2D
- */
-le::IRHITexture2D* le::RenderSystem::CreateTexture2D( EImageFormat InImageFormat, uint32 InWidth, uint32 InHeight, uint32 InCountMipmap )
-{
-	return rhi->CreateTexture2D( InImageFormat, InWidth, InHeight, InCountMipmap );
-}
-
-/**
  * Make current context
  */
 bool le::RenderSystem::MakeCurrentContext( FRHIContext InRHIContext )
@@ -65,22 +49,6 @@ bool le::RenderSystem::MakeCurrentContext( FRHIContext InRHIContext )
 	}
 
 	return false;
-}
-
-/**
- * Delete context
- */
-void le::RenderSystem::DeleteContext( FRHIContext InRHIContext )
-{
-	rhi->DeleteContext( InRHIContext );
-}
-
-/**
- * Delete texture 2D
- */
-void le::RenderSystem::DeleteTexture2D( IRHITexture2D*& InTexture2D )
-{
-	rhi->DeleteTexture2D( InTexture2D );
 }
 
 /**
@@ -102,20 +70,4 @@ void le::RenderSystem::Present()
 {
 	if ( !currentContext ) return;
 	rhi->SwapBuffers( currentContext );
-}
-
-/**
- * Set vertical sync
- */
-void le::RenderSystem::SetVerticalSync( bool InIsEnable )
-{
-	rhi->SetVerticalSync( InIsEnable );
-}
-
-/**
- * Set viewport
- */
-void le::RenderSystem::SetViewport( uint32 InX, uint32 InY, uint32 InWidth, uint32 InHeight )
-{
-	rhi->SetViewport( InX, InY, InWidth, InHeight );
 }

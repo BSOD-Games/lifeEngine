@@ -4,6 +4,7 @@
 #include "Misc/EngineGlobals.h"
 #include "Logging/Logger.h"
 #include "Rendering/RenderSystem.h"
+#include "Rendering/ShaderFactory.h"
 #include "Resources/ResourceSystem.h"
 #include "Resources/Parsers/ParsersTexture2DFactory.h"
 #include "Resources/Parsers/ParsersConfigFactory.h"
@@ -19,5 +20,6 @@ le::FileSystem*						le::GFileSystem = new le::FileSystem();
 le::InputSystem*					le::GInputSystem = new le::InputSystem();
 le::Window*							le::GWindow = new le::Window();
 le::Engine*							le::GEngine = new le::Engine();
+le::ShaderFactory*					le::GShaderFactory = new le::ShaderFactory();
 le::ParsersTexture2DFactory*		le::GParsersTexture2DFactory = new le::ParsersTexture2DFactory();
 le::ParsersConfigFactory*			le::GParsersConfigFactory = new le::ParsersConfigFactory();

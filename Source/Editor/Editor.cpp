@@ -23,7 +23,7 @@ int main( int argc, char** argv )
 {
 	le::GFileSystem->SetRootPath( "../../" );
 
-	le::GEngine->Initialize( "../../Config.json", "../../lifeEditor.log" );
+	le::GEngine->Initialize( "../../lifeEditor.log" );
 	le::GWindow->Open( "lifeEditor", 800, 600 );
 	le::FRHIContext rhiContext = le::GRenderSystem->CreateContext( le::GWindow->GetHandle() );
 	le::GRenderSystem->MakeCurrentContext( rhiContext );

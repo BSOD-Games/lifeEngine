@@ -23,19 +23,43 @@ namespace le
 		bool Initialize();
 
 		/* Create render context */
-		FRHIContext CreateContext( FWindowHandle InWindowHandle, FRHIContext InShareContext = nullptr );
+		FORCEINLINE FRHIContext CreateContext( FWindowHandle InWindowHandle, FRHIContext InShareContext = nullptr )
+		{
+			return rhi->CreateContext( InWindowHandle, InShareContext );
+		}
+
+		/* Create shader */
+		FORCEINLINE IRHIShader* CreateShader()
+		{
+			return rhi->CreateShader();
+		}
 
 		/* Create texture 2D */
-		IRHITexture2D* CreateTexture2D( EImageFormat InImageFormat, uint32 InWidth, uint32 InHeight, uint32 InCountMipmap = 1 );
+		FORCEINLINE IRHITexture2D* CreateTexture2D( EImageFormat InImageFormat, uint32 InWidth, uint32 InHeight, uint32 InCountMipmap = 1 )
+		{
+			return rhi->CreateTexture2D( InImageFormat, InWidth, InHeight, InCountMipmap );
+		}
 
 		/* Make current context */
 		bool MakeCurrentContext( FRHIContext InRHIContext );
 
 		/* Delete context */
-		void DeleteContext( FRHIContext InRHIContext );
+		FORCEINLINE void DeleteContext( FRHIContext InRHIContext )
+		{
+			rhi->DeleteContext( InRHIContext );
+		}
+
+		/* Delete shader */
+		FORCEINLINE void DeleteShader( IRHIShader*& InShader )
+		{
+			rhi->DeleteShader( InShader );
+		}
 
 		/* Delete texture 2D */
-		void DeleteTexture2D( IRHITexture2D*& InTexture2D );
+		FORCEINLINE void DeleteTexture2D( IRHITexture2D*& InTexture2D )
+		{
+			rhi->DeleteTexture2D( InTexture2D );
+		}
 
 		/* Start render scene */
 		void Begin();
@@ -47,10 +71,16 @@ namespace le
 		void Present();
 
 		/* Set vertical sync */
-		void SetVerticalSync( bool InIsEnable = true );
+		FORCEINLINE void SetVerticalSync( bool InIsEnable = true )
+		{
+			rhi->SetVerticalSync( InIsEnable );
+		}
 
 		/* Set viewport */
-		void SetViewport( uint32 InX, uint32 InY, uint32 InWidth, uint32 InHeight );
+		FORCEINLINE void SetViewport( uint32 InX, uint32 InY, uint32 InWidth, uint32 InHeight )
+		{
+			rhi->SetViewport( InX, InY, InWidth, InHeight );
+		}
 
 	private:
 		IRHI*				rhi;

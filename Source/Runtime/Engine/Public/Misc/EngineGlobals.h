@@ -14,6 +14,7 @@ namespace le
 	class Window;
 	class Engine;
 
+	class ShaderFactory;
 	class ParsersTexture2DFactory;
 	class ParsersConfigFactory;
 
@@ -37,6 +38,9 @@ namespace le
 
 	/* Engine */
 	extern Engine*						GEngine;
+
+	/* Shader factory */
+	extern ShaderFactory*				GShaderFactory;
 
 	/* Parsers Texture2D factory */
 	extern ParsersTexture2DFactory*		GParsersTexture2DFactory;
