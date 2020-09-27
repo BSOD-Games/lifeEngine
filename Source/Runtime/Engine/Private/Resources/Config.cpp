@@ -32,7 +32,7 @@ bool le::Config::Deserialize( const Path& InPath )
 		return false;
 	}
 
-	parser->SetFile( fileHandle );
+	if ( !parser->SetFile( fileHandle ) )	return false;
 	groups = parser->GetGroups();
 
 	parser->ReleaseRef();

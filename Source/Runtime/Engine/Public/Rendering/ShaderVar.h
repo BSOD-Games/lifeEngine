@@ -5,8 +5,10 @@
 #define SHADERVAR_H
 
 #include <string>
+#include <vector>
 
 #include "Misc/EngineDefines.h"
+#include "Misc/Object.h"
 #include "Math/Vector2D.h"
 #include "Math/Color.h"
 
@@ -15,6 +17,7 @@ namespace le
 	struct SColor;
 	struct SVector2D;
 	class Texture2D;
+	class Material;
 
 	enum EShaderVarType
 	{
@@ -27,7 +30,7 @@ namespace le
 		SVT_Texture2D
 	};
 
-	class ShaderVar
+	class ShaderVar : public Object
 	{
 	public:
 		/* Constructor */
@@ -41,6 +44,12 @@ namespace le
 
 		/* Clear value */
 		void Clear();
+
+		/* Subscribe material */
+		void SubscribeMaterial( Material* InMaterial );
+
+		/* Unsubscribe material */
+		void UnsubscribeMaterial( Material* InMaterial );
 
 		/* Set name */
 		FORCEINLINE void SetName( const std::string& InName )		{ name = InName; }
@@ -113,9 +122,14 @@ namespace le
 		}
 
 	private:
-		std::string			name;
-		EShaderVarType		type;
-		void*				value;
+		/* Notify materials for update shader */
+		void NotifyMaterials();
+
+		std::string						name;
+		EShaderVarType					type;
+		void*							value;
+
+		std::vector< Material* >		materials;
 	};
 }
 

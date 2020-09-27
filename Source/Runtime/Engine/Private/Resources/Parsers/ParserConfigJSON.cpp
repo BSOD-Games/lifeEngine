@@ -7,7 +7,6 @@
 #include <rapidjson/writer.h>
 
 #include "Misc/EngineGlobals.h"
-#include "Logging/LogMacros.h"
 #include "System/FileSystem.h"
 #include "ParserConfigJSON.h"
 

@@ -16,7 +16,8 @@ namespace le
 	enum EResourceType
 	{
 		RT_Texture2D,
-		RT_Config
+		RT_Config,
+		RT_Material
 	};
 
 	class Resource : public Object
@@ -24,6 +25,14 @@ namespace le
 	public:
 		/* Destructor */
 		virtual ~Resource() {}
+
+		/* Constructor */
+		Resource() {}
+
+		/* Constructor of copy */
+		Resource( const Resource& InCopy ) :
+			name( InCopy.name )
+		{}
 
 		/* Serialize resource */
 		virtual bool Serialize( const Path& InPath ) = 0;

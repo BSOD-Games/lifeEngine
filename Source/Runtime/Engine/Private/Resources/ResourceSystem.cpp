@@ -7,14 +7,17 @@
 #include "Resources/ResourceSystem.h"
 #include "Resources/Parsers/ParsersTexture2DFactory.h"
 #include "Resources/Parsers/ParsersConfigFactory.h"
+#include "Resources/Parsers/ParsersMaterialFactory.h"
 
 // Resources parsers
 #include "Resources/Parsers/ParserTexture2DSTBImage.h"
 #include "Resources/Parsers/ParserConfigJSON.h"
+#include "Resources/Parsers/ParserMaterialLMT.h"
 
 // Resources
 #include "Resources/Texture2D.h"
 #include "Resources/Config.h"
+#include "Resources/Material.h"
 
 /**
  * Constructor
@@ -37,6 +40,7 @@ bool le::ResourceSystem::Initialize()
 {
 	GParsersTexture2DFactory->Register( ParserTexture2DSTBImage::GetSupportedExtensions(), []() -> IParserTexture2D* { return new ParserTexture2DSTBImage(); } );	
 	GParsersConfigFactory->Register( ParserConfigJSON::GetSupportedExtensions(), []() -> IParserConfig* { return new ParserConfigJSON(); } );
+	GParsersMaterialFactory->Register( ParserMaterialLMT::GetSupportedExtensions(), []() -> IParserMaterial* { return new ParserMaterialLMT(); } );
 
 	return true;
 }
@@ -54,6 +58,7 @@ le::Resource* le::ResourceSystem::FindResource( const Path& InPath, EResourceTyp
 	{
 	case RT_Texture2D:			resource = new Texture2D();		break;
 	case RT_Config:				resource = new Config();		break;
+	case RT_Material:			resource = new Material();		break;
 	default:					return nullptr;
 	}
 
@@ -127,7 +132,12 @@ le::Resource* le::ResourceSystem::FindDefaultResource( EResourceType InResourceT
 	{
 	case RT_Texture2D:		
 		resource = new Texture2D();	
-		path = "Engine/Content/Textures/Error.jpg";	
+		path = "Engine/Content/Textures/DefaultTexture.jpg";	
+		break;
+
+	case RT_Material:
+		resource = new Material();
+		path = "Engine/Content/Materials/DefaultMaterial.lmt";
 		break;
 
 	default:	return nullptr;

@@ -27,6 +27,7 @@ le::Logger::~Logger()
  */
 void le::Logger::Logf( ELogType InLogType, const std::string& InCategory, const char* InMessage, ... )
 {
+#ifndef LIFEENGINE_NO_LOGGING
 	va_list					argList = {};
 	std::stringstream		strStream;
 
@@ -53,6 +54,7 @@ void le::Logger::Logf( ELogType InLogType, const std::string& InCategory, const 
 	vfprintf( file, strStream.str().c_str(), argList );
 	fflush( file );
 	va_end( argList );
+#endif // !LIFEENGINE_NO_LOGGING
 }
 
 /**
@@ -60,11 +62,13 @@ void le::Logger::Logf( ELogType InLogType, const std::string& InCategory, const 
  */
 void le::Logger::CloseFile()
 {
+#ifndef LIFEENGINE_NO_LOGGING
 	if ( !file )	return;
 	
 	Logf( LT_Info, "Engine", "-- Log file clossed --" );	
 	fclose( file );
 	file = nullptr;
+#endif // !LIFEENGINE_NO_LOGGING
 }
 
 /**
@@ -72,9 +76,11 @@ void le::Logger::CloseFile()
  */
 void le::Logger::SetFile( const Path& InPath )
 {
+#ifndef LIFEENGINE_NO_LOGGING
 	if ( file )			CloseFile();
 	file = fopen( InPath.GetFullPath().c_str(), "w" );
 	
 	if ( file )		Logf( LT_Info, "Engine", "-- Log file openned --" );
 	else			Logf( LT_Info, "Engine", "-- Log file [%s] failed open", InPath.GetFullPath().c_str() );
+#endif // !LIFEENGINE_NO_LOGGING
 }

@@ -69,7 +69,7 @@ if( ${PLATFORM_TYPE} MATCHES "Windows" )
 	install( FILES ${QT5_DIR}/bin/Qt5Widgetsd.dll DESTINATION ${BUILD_DIR}/Binaries/${ARCH_TYPE} CONFIGURATIONS Debug )
 
 	# Install Qt DLL's for Release
-	install( FILES ${QT5_DIR}/bin/Qt5Core.dll DESTINATION ${BUILD_DIR}/Binaries/${ARCH_TYPE} CONFIGURATIONS Release )
-	install( FILES ${QT5_DIR}/bin/Qt5Gui.dll DESTINATION ${BUILD_DIR}/Binaries/${ARCH_TYPE} CONFIGURATIONS Release )
-	install( FILES ${QT5_DIR}/bin/Qt5Widgets.dll DESTINATION ${BUILD_DIR}/Binaries/${ARCH_TYPE} CONFIGURATIONS Release )
+	install( FILES ${QT5_DIR}/bin/Qt5Core.dll DESTINATION ${BUILD_DIR}/Binaries/${ARCH_TYPE} CONFIGURATIONS Release Shipping )
+	install( FILES ${QT5_DIR}/bin/Qt5Gui.dll DESTINATION ${BUILD_DIR}/Binaries/${ARCH_TYPE} CONFIGURATIONS Release Shipping )
+	install( FILES ${QT5_DIR}/bin/Qt5Widgets.dll DESTINATION ${BUILD_DIR}/Binaries/${ARCH_TYPE} CONFIGURATIONS Release Shipping )
 endif()

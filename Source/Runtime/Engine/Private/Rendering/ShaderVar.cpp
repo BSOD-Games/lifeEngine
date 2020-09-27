@@ -5,6 +5,7 @@
 #include "Math/Vector2D.h"
 #include "Rendering/ShaderVar.h"
 #include "Resources/Texture2D.h"
+#include "Resources/Material.h"
 
 /**
  * Constructor
@@ -66,6 +67,33 @@ void le::ShaderVar::Clear()
 	}
 
 	value = nullptr;
+	NotifyMaterials();
+}
+
+/**
+ * Subscribe material
+ */
+void le::ShaderVar::SubscribeMaterial( Material* InMaterial )
+{
+	LIFEENGINE_ASSERT( InMaterial );
+
+	InMaterial->AddRef();
+	materials.push_back( InMaterial );
+}
+
+/**
+ * Unsubscribe material
+ */
+void le::ShaderVar::UnsubscribeMaterial( Material* InMaterial )
+{
+	LIFEENGINE_ASSERT( InMaterial );
+	for ( uint32 index = 0, count = static_cast< uint32 >( materials.size() ); index < count; ++index )
+		if ( materials[ index ] == InMaterial )
+		{
+			InMaterial->ReleaseRef();
+			materials.erase( index + materials.begin() );
+			return;
+		}
 }
 
 /**
@@ -78,6 +106,8 @@ void le::ShaderVar::SetValueInt( int InValue )
 
 	*static_cast< int* >( value ) = InValue;
 	type = SVT_Int;
+
+	NotifyMaterials();	
 }
 
 /**
@@ -90,6 +120,8 @@ void le::ShaderVar::SetValueFloat( float InValue )
 
 	*static_cast< float* >( value ) = InValue;
 	type = SVT_Float;
+
+	NotifyMaterials();
 }
 
 /**
@@ -102,6 +134,8 @@ void le::ShaderVar::SetValueBool( bool InValue )
 
 	*static_cast< bool* >( value ) = InValue;
 	type = SVT_Bool;
+
+	NotifyMaterials();
 }
 
 /**
@@ -114,6 +148,8 @@ void le::ShaderVar::SetValueVector2D( const SVector2D& InValue )
 
 	*static_cast< SVector2D* >( value ) = InValue;
 	type = SVT_Vector2D;
+
+	NotifyMaterials();
 }
 
 /**
@@ -126,6 +162,8 @@ void le::ShaderVar::SetValueColor( const SColor& InValue )
 
 	*static_cast< SColor* >( value ) = InValue;
 	type = SVT_Color;
+
+	NotifyMaterials();
 }
 
 /**
@@ -138,6 +176,8 @@ void le::ShaderVar::SetValueTexture2D( Texture2D* InValue )
 
 	value = InValue;
 	type = SVT_Texture2D;
+
+	NotifyMaterials();
 }
 
 /**
@@ -192,4 +232,13 @@ le::Texture2D* le::ShaderVar::GetValueTexture2D() const
 {
 	if ( type != SVT_Texture2D )	return nullptr;
 	return static_cast< Texture2D* >( value );
+}
+
+/**
+ * Notify materials
+ */
+void le::ShaderVar::NotifyMaterials()
+{
+	for ( uint32 index = 0, count = static_cast< uint32 >( materials.size() ); index < count; ++index )
+		materials[ index ]->NeadUpdateShader();
 }

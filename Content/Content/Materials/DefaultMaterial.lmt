@@ -1,0 +1,13 @@
+{
+	"Shader": "UnlitGeneric",
+	
+	"BaseTexture": {
+		"Type": "Texture2D",
+		"Value": "Engine/Content/Textures/DefaultTexture.jpg"
+	},
+	
+	"Color": {
+		"Type": "Color",
+		"Value": { "R": 255, "G": 0, "B": 0, "A": 255 }
+	}
+}

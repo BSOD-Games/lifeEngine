@@ -18,6 +18,8 @@ void le::ShaderFactory::Register( const std::string& InShaderName, FCreateShader
  */
 le::BaseShader* le::ShaderFactory::Create( const std::string& InShaderName ) const
 {
+	if ( InShaderName.empty() )		return nullptr;
+
 	auto		it = shaders.find( InShaderName );
 	if ( it == shaders.end() )
 	{

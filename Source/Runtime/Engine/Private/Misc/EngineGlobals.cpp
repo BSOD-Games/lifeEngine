@@ -8,6 +8,7 @@
 #include "Resources/ResourceSystem.h"
 #include "Resources/Parsers/ParsersTexture2DFactory.h"
 #include "Resources/Parsers/ParsersConfigFactory.h"
+#include "Resources/Parsers/ParsersMaterialFactory.h"
 #include "System/FileSystem.h"
 #include "System/InputSystem.h"
 #include "System/Window.h"
@@ -23,3 +24,4 @@ le::Engine*							le::GEngine = new le::Engine();
 le::ShaderFactory*					le::GShaderFactory = new le::ShaderFactory();
 le::ParsersTexture2DFactory*		le::GParsersTexture2DFactory = new le::ParsersTexture2DFactory();
 le::ParsersConfigFactory*			le::GParsersConfigFactory = new le::ParsersConfigFactory();
+le::ParsersMaterialFactory*			le::GParsersMaterialFactory = new le::ParsersMaterialFactory();

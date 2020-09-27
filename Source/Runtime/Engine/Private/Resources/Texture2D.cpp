@@ -49,7 +49,7 @@ bool le::Texture2D::Deserialize( const Path& InPath )
 		return false;
 	}
 	
-	parser->SetFile( fileHandle );
+	if ( !parser->SetFile( fileHandle ) )		return false;
 	uint32			countMipmaps = parser->GetCountMipmaps();
 	uint32			width = parser->GetWidth();
 	uint32			height = parser->GetHeight();
