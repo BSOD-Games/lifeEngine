@@ -22,11 +22,11 @@ le::Material::Material() :
  * Constructor of copy
  */
 le::Material::Material( const Material& InCopy ) :
-	shader( InCopy.shader ),
+	shader( nullptr ),
 	isNeadUpdateShader( true ),
 	Resource( InCopy )
 {
-	if ( shader )	shader->AddRef();
+	if ( InCopy.shader )	SetShader( InCopy.shader->GetName() );
 	for ( uint32 index = 0, count = static_cast< uint32 >( InCopy.vars.size() ); index < count; ++index )
 		AddVar( InCopy.vars[ index ] );
 }

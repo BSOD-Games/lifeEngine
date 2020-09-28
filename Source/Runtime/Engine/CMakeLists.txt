@@ -62,6 +62,14 @@ source_group( "Public Files\\Resources" FILES ${PUBLIC_FILES_RESOURCES} )
 file( GLOB PUBLIC_FILES_RESOURCES_PARSERS "Public/Resources/Parsers/*.h" )
 source_group( "Public Files\\Resources\\Parsers" FILES ${PUBLIC_FILES_RESOURCES_PARSERS} )
 
+# World files
+file( GLOB PUBLIC_FILES_WORLD "Public/World/*.h" )
+source_group( "Public Files\\World" FILES ${PUBLIC_FILES_WORLD} )
+
+# World/Components files
+file( GLOB PUBLIC_FILES_WORLD_COMPONENTS "Public/World/Components/*.h" )
+source_group( "Public Files\\World\\Components" FILES ${PUBLIC_FILES_WORLD_COMPONENTS} )
+
 # -- Private files --
 # Root private files
 file( GLOB PRIVATE_FILES "Private/*.h" "Private/*.cpp" )
@@ -91,16 +99,35 @@ source_group( "Private Files\\Resources" FILES ${PRIVATE_FILES_RESOURCES} )
 file( GLOB PRIVATE_FILES_RESOURCES_PARSERS "Private/Resources/Parsers/*.h" "Private/Resources/Parsers/*.cpp" )
 source_group( "Private Files\\Resources\\Parsers" FILES ${PRIVATE_FILES_RESOURCES_PARSERS} )
 
-# Misc files
+# Misc private files
 file( GLOB PRIVATE_FILES_MISC "Private/Misc/*.h" "Private/Misc/*.cpp" )
 source_group( "Private Files\\Misc" FILES ${PRIVATE_FILES_MISC} )
+
+# World private files
+file( GLOB PRIVATE_FILES_WORLD "Private/World/*.h" "Private/World/*.cpp" )
+source_group( "Private Files\\World" FILES ${PRIVATE_FILES_WORLD} )
+
+# World/Components private files
+file( GLOB PRIVATE_FILES_WORLD_COMPONENTS "Private/World/Components/*.h" "Private/World/Components/*.cpp" )
+source_group( "Private Files\\World\\Components" FILES ${PRIVATE_FILES_WORLD_COMPONENTS} )
 
 # ================================================
 #
 #   --- Project settings ---
 #
 
-set( SOURCE_FILES ${PUBLIC_FILES} ${PUBLIC_FILES_PLATFORM} ${PUBLIC_FILES_MISC} ${PRIVATE_FILES_MISC} ${PUBLIC_FILES_LOGGING} ${PRIVATE_FILES_LOGGING} ${PUBLIC_FILES_TEMPLATES} ${PRIVATE_FILES} ${PUBLIC_FILES_SYSTEM} ${PRIVATE_FILES_SYSTEM} ${PUBLIC_FILES_RENDERING} ${PRIVATE_FILES_RENDERING} ${PUBLIC_FILES_RENDERING_RHI} ${PUBLIC_FILES_MATH} ${PRIVATE_FILES_MATH} ${PUBLIC_FILES_RESOURCES} ${PRIVATE_FILES_RESOURCES} ${PUBLIC_FILES_RESOURCES_PARSERS} ${PRIVATE_FILES_RESOURCES_PARSERS} )
+set( SOURCE_FILES 	${PUBLIC_FILES} ${PUBLIC_FILES_PLATFORM} 
+					${PUBLIC_FILES_MISC} ${PRIVATE_FILES_MISC} 
+					${PUBLIC_FILES_LOGGING} ${PRIVATE_FILES_LOGGING} 
+					${PUBLIC_FILES_TEMPLATES} ${PRIVATE_FILES} 
+					${PUBLIC_FILES_SYSTEM} ${PRIVATE_FILES_SYSTEM} 
+					${PUBLIC_FILES_RENDERING} ${PRIVATE_FILES_RENDERING} 
+					${PUBLIC_FILES_RENDERING_RHI} ${PUBLIC_FILES_MATH} 
+					${PRIVATE_FILES_MATH} ${PUBLIC_FILES_RESOURCES} 
+					${PRIVATE_FILES_RESOURCES} ${PUBLIC_FILES_RESOURCES_PARSERS} 
+					${PRIVATE_FILES_RESOURCES_PARSERS} 
+					${PUBLIC_FILES_WORLD} ${PUBLIC_FILES_WORLD_COMPONENTS}
+					${PRIVATE_FILES_WORLD} ${PRIVATE_FILES_WORLD_COMPONENTS} )
 add_library( ${MODULE_NAME} STATIC ${SOURCE_FILES} )
 
 set_target_properties( ${MODULE_NAME} PROPERTIES FOLDER Engine )

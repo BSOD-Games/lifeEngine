@@ -13,6 +13,7 @@ namespace le
 	class InputSystem;
 	class Window;
 	class Engine;
+	class World;
 
 	class ShaderFactory;
 	class ParsersTexture2DFactory;
@@ -42,6 +43,9 @@ namespace le
 
 	/* Shader factory */
 	extern ShaderFactory*				GShaderFactory;
+
+	/* World */
+	extern World*						GWorld;
 
 	/* Parsers Texture2D factory */
 	extern ParsersTexture2DFactory*		GParsersTexture2DFactory;
