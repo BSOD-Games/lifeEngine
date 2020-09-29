@@ -32,20 +32,13 @@ namespace le
 		{}
 
 		/* Calculate the dot product of two vectors */
-		FORCEINLINE static float DotProduct( const SVector2D& InLeft, const SVector2D InRight )
-		{
-			return InLeft | InRight;
-		}
+		FORCEINLINE static float DotProduct( const SVector2D& InLeft, const SVector2D InRight )				{ return InLeft | InRight; }
 
 		/* Calculate the cross product of two vectors */
-		FORCEINLINE static float CrossProduct( const SVector2D& InLeft, const SVector2D InRight )
-		{
-			return InLeft ^ InRight;
-		}
+		FORCEINLINE static float CrossProduct( const SVector2D& InLeft, const SVector2D InRight )			{ return InLeft ^ InRight; }
 
 		/* Distance between two 2D points */
-		FORCEINLINE static float Distance( const SVector2D& InLeft, const SVector2D InRight )
-		{}
+		FORCEINLINE static float Distance( const SVector2D& InLeft, const SVector2D InRight )				{ return sqrtf( powf( InRight.x - InLeft.x, 2.f ) + powf( InRight.y - InLeft.y, 2.f ) ); }
 
 		/* Returns a vector with the maximum component for each dimension from the pair of vectors */
 		FORCEINLINE static const SVector2D& Max( const SVector2D& InLeft, const SVector2D InRight )
@@ -64,7 +57,11 @@ namespace le
 		/* Normalize */
 		FORCEINLINE void Normalize()
 		{
-			// TODO: Implement this
+			float		squareSum = x * x + y * y;
+			if ( squareSum == 0.f )		squareSum = 1.f;
+
+			x /= squareSum;
+			y /= squareSum;
 		}
 
 		/* Set values */
@@ -75,10 +72,7 @@ namespace le
 		}
 
 		/* Get size */
-		FORCEINLINE float GetSize() const
-		{
-			return static_cast< float >( sqrt( x * x + y * y ) );
-		}
+		FORCEINLINE float GetSize() const									{ return sqrtf( x * x + y * y ); }
 
 		/* Operator + */
 		FORCEINLINE SVector2D operator+( const SVector2D& InRight )	const	{ return SVector2D( x + InRight.x, y + InRight.y ); }
@@ -185,12 +179,12 @@ namespace le
 		FORCEINLINE float& operator[]( uint32 InIndex )
 		{
 			LIFEENGINE_ASSERT( InIndex < 2 );
-			return InIndex == 0 ? x : y;
+			return ( &x )[ InIndex ];
 		}
 		FORCEINLINE float operator[]( uint32 InIndex ) const
 		{
 			LIFEENGINE_ASSERT( InIndex < 2 );
-			return InIndex == 0 ? x : y;
+			return ( &x )[ InIndex ];
 		}
 
 		float		x;

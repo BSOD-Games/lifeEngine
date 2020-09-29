@@ -13,6 +13,9 @@
 
 namespace le
 {
+	struct SVector2D;
+	class IRHI;
+
 	class BaseShader : public Object
 	{
 	public:
@@ -24,6 +27,9 @@ namespace le
 
 		/* Initialize shader */
 		virtual bool Initialize( const std::vector< ShaderVar >* InShaderVars = nullptr ) = 0;
+
+		/* On draw sprite */
+		virtual void OnDrawSprite( IRHI* InRHI, const SVector2D& InSize );
 
 		/* Get name */
 		virtual std::string GetName() const = 0;

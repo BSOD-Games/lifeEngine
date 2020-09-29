@@ -87,6 +87,10 @@ source_group( "Private Files\\System" FILES ${PRIVATE_FILES_SYSTEM} )
 file( GLOB PRIVATE_FILES_RENDERING "Private/Rendering/*.h" "Private/Rendering/*.cpp" )
 source_group( "Private Files\\Rendering" FILES ${PRIVATE_FILES_RENDERING} )
 
+# Rendering private files
+file( GLOB PRIVATE_FILES_RENDERING_SHADERS "Private/Rendering/Shaders/*.h" "Private/Rendering/Shaders/*.cpp" )
+source_group( "Private Files\\Rendering\\Shaders" FILES ${PRIVATE_FILES_RENDERING_SHADERS} )
+
 # Math private files
 file( GLOB PRIVATE_FILES_MATH "Private/Math/*.h" "Private/Math/*.cpp" )
 source_group( "Private Files\\Math" FILES ${PRIVATE_FILES_MATH} )
@@ -127,7 +131,8 @@ set( SOURCE_FILES 	${PUBLIC_FILES} ${PUBLIC_FILES_PLATFORM}
 					${PRIVATE_FILES_RESOURCES} ${PUBLIC_FILES_RESOURCES_PARSERS} 
 					${PRIVATE_FILES_RESOURCES_PARSERS} 
 					${PUBLIC_FILES_WORLD} ${PUBLIC_FILES_WORLD_COMPONENTS}
-					${PRIVATE_FILES_WORLD} ${PRIVATE_FILES_WORLD_COMPONENTS} )
+					${PRIVATE_FILES_WORLD} ${PRIVATE_FILES_WORLD_COMPONENTS} 
+					${PRIVATE_FILES_RENDERING_SHADERS} )
 add_library( ${MODULE_NAME} STATIC ${SOURCE_FILES} )
 
 set_target_properties( ${MODULE_NAME} PROPERTIES FOLDER Engine )

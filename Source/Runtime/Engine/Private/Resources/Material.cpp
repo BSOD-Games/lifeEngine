@@ -109,6 +109,14 @@ le::ShaderVar* le::Material::FindVar( const std::string& InName ) const
 }
 
 /**
+ * Refresh material
+ */
+void le::Material::Refresh()
+{
+	if ( isNeadUpdateShader )			UpdateShader();
+}
+
+/**
  * Update shader
  */
 bool le::Material::UpdateShader()
@@ -118,6 +126,7 @@ bool le::Material::UpdateShader()
 		shader = GShaderFactory->Create( shader->GetFallbackShader() );
 
 	isNeadUpdateShader = false;
+	return shader;
 }
 
 /**

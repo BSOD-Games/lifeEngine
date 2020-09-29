@@ -56,6 +56,9 @@ namespace le
 		/* Find shader var */
 		ShaderVar* FindVar( const std::string& InName ) const;
 
+		/* Refresh material */
+		void Refresh();
+
 		/* Update shader */
 		FORCEINLINE bool UpdateShader();
 

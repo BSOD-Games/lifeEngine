@@ -29,6 +29,12 @@ le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const 
 	if ( !InShaderPaths.vertexShaderPath.IsEmpty() )
 	{
 		FFileHandle			fileVertexShader = GFileSystem->OpenFile( InShaderPaths.vertexShaderPath, true );
+		if ( !fileVertexShader )
+		{
+			LIFEENGINE_LOG_ERROR( "Engine", "Failed open vertex shader [%s]", InName.c_str() );
+			return nullptr;
+		}
+
 		GFileSystem->ReadLineFromFile( fileVertexShader, code, '\0' );
 		GFileSystem->CloseFile( fileVertexShader );
 
@@ -45,6 +51,12 @@ le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const 
 	if ( !InShaderPaths.geometryShaderPath.IsEmpty() )
 	{
 		FFileHandle		fileGeometryShader = GFileSystem->OpenFile( InShaderPaths.geometryShaderPath, true );
+		if ( !fileGeometryShader )
+		{
+			LIFEENGINE_LOG_ERROR( "Engine", "Failed open geometry shader [%s]", InName.c_str() );
+			return nullptr;
+		}
+
 		GFileSystem->ReadLineFromFile( fileGeometryShader, code, '\0' );
 		GFileSystem->CloseFile( fileGeometryShader );
 
@@ -61,6 +73,12 @@ le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const 
 	if ( !InShaderPaths.pixelShaderPath.IsEmpty() )
 	{
 		FFileHandle		filePixelShader = GFileSystem->OpenFile( InShaderPaths.pixelShaderPath, true );
+		if ( !filePixelShader )
+		{
+			LIFEENGINE_LOG_ERROR( "Engine", "Failed open pixel shader [%s]", InName.c_str() );
+			return nullptr;
+		}
+
 		GFileSystem->ReadLineFromFile( filePixelShader, code, '\0' );
 		GFileSystem->CloseFile( filePixelShader );
 
@@ -100,6 +118,8 @@ void le::ShaderManager::UnloadShader( const std::string& InName, uint32 InFlags 
 	auto		itShader = itShaderGroup->second.find( InFlags );
 	if ( itShader == itShaderGroup->second.end() )		return;
 	
+	if ( itShader->second->GetRefCount() >= 2 )		return;
+
 	LIFEENGINE_LOG_INFO( "Engine", "Unloaded shader [%s] with flags [%X]", itShaderGroup->first.c_str(), itShader->first );
 	
 	itShader->second->ReleaseRef();

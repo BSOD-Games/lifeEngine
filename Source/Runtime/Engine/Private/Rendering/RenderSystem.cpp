@@ -7,6 +7,9 @@
 #include "World/Components/SpriteComponent.h"
 #include "OpenGL4RHI.h"
 
+// Engine shaders
+#include "Rendering/Shaders/UnlitGeneric.h"
+
 /**
  * Constructor
  */
@@ -33,6 +36,8 @@ le::RenderSystem::~RenderSystem()
 bool le::RenderSystem::Initialize()
 {
 	rhi = new OpenGL4RHI();
+
+	UnlitGeneric::Register();
 	return true;
 }
 
@@ -57,7 +62,9 @@ bool le::RenderSystem::MakeCurrentContext( FRHIContext InRHIContext )
  * Start render scene
  */
 void le::RenderSystem::Begin()
-{}
+{
+	rhi->Clear( SColor( 0, 0, 0, 0 ), CT_Color );
+}
 
 /**
  * End render scene
@@ -114,7 +121,7 @@ le::SSpriteRenderObject::SSpriteRenderObject( const SSpriteRenderObject& InCopy 
 
 /**
  * Destructor
- */
+ */ 
 le::SSpriteRenderObject::~SSpriteRenderObject()
 {
 	if ( material )			material->ReleaseRef();
