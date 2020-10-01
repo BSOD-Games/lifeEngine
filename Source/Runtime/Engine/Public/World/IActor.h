@@ -14,8 +14,8 @@ namespace le
 		/* Destructor */
 		virtual ~IActor() {}
 
-		/* Update */
-		virtual void Update() = 0;
+		/* Tick */
+		virtual void Tick() = 0;
 
 		/* Render */
 		virtual void Render() = 0;

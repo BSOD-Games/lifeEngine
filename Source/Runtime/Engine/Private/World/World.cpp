@@ -22,7 +22,7 @@ le::World::~World()
 /**
  * Spawn actor
  */
-void le::World::SpawnActor( IActor* InActor )
+void le::World::Spawn( IActor* InActor )
 {
 	LIFEENGINE_ASSERT( InActor );
 
@@ -33,7 +33,7 @@ void le::World::SpawnActor( IActor* InActor )
 /**
  * Kill actor
  */
-void le::World::KillActor( IActor* InActor )
+void le::World::Kill( IActor* InActor )
 {
 	LIFEENGINE_ASSERT( InActor );
 	for ( uint32 index = 0, count = static_cast< uint32 >( actors.size() ); index < count; ++index )
@@ -58,12 +58,12 @@ void le::World::KillAllActors()
 }
 
 /**
- * Update
+ * Tick
  */
-void le::World::Update()
+void le::World::Tick()
 {
 	for ( uint32 index = 0, count = static_cast< uint32 >( actors.size() ); index < count; ++index )
-		actors[ index ]->Update();
+		actors[ index ]->Tick();
 }
 
 /**

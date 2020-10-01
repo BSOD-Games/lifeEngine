@@ -12,26 +12,83 @@
 #include <System/FileSystem.h>
 #include <System/InputSystem.h>
 #include <Resources/ResourceSystem.h>
+#include <World/IActor.h>
+#include <World/World.h>
+#include <World/Components/SpriteComponent.h>
 
 #include <Resources/Resource.h>
 #include <Resources/Texture2D.h>
+#include <Resources/Material.h>
+
+class Player : public le::IActor
+{
+public:
+	/* Contructor */
+	Player() :
+		size( 0.5f, 0.5f )
+	{
+		spriteComponent.SetSize( size );
+		spriteComponent.SetType( le::ST_Static );
+		spriteComponent.SetMaterial( Cast< le::Material >( le::GResourceSystem->FindResource( "Content/M.lmt", le::RT_Material ) ) );
+	}
+
+	/* Tick */
+	void Tick() override
+	{
+		size -= 0.001f;
+		if ( size.x <= 0.1f || size.y <= 0.1f )		size.Set( 0.5f, 0.5f );
+
+		spriteComponent.SetSize( size );
+	}
+
+	/* Render */
+	void Render() override
+	{
+		spriteComponent.Render();
+	}
+
+private:
+	le::SVector2D				size;
+	le::SpriteComponent			spriteComponent;
+};
+
+class Game : public le::IGame
+{
+public:
+	/* Initialize game */
+	bool Initialize()
+	{
+		le::GWorld->Spawn<Player>();
+		return true;
+	}
+
+	/* Tick game */
+	void Tick()
+	{
+		le::GWorld->Tick();
+	}
+
+	/* Render frame */
+	void RenderFrame()
+	{
+		le::GWorld->Render();
+	}
+};
 
 // ------------------------------------------------------------------------------------ //
 // Main function
 // ------------------------------------------------------------------------------------ //
 int main( int argc, char** argv )
 {
-	le::GFileSystem->SetRootPath( "../../" );
+	le::GEngine->Initialize( "Parterya", 800, 600, "../../Parterya.log", "../../" );
+	
+	Game		game;
+	bool        isFocus = true;
+	
+	game.Initialize();
+	le::GEngine->StartGame( &game );
 
-	le::GEngine->Initialize( "../../lifeEditor.log" );
-	le::GWindow->Open( "lifeEditor", 800, 600 );
-	le::FRHIContext rhiContext = le::GRenderSystem->CreateContext( le::GWindow->GetHandle() );
-	le::GRenderSystem->MakeCurrentContext( rhiContext );
-	le::GRenderSystem->SetViewport( 0, 0, 800, 600 );
-
-	le::Texture2D*		r = le::Object::Cast< le::Texture2D >( le::GResourceSystem->FindResource( "", le::RT_Texture2D ) );
-
-	while ( le::GWindow->IsOpen() )
+	while ( le::GEngine->IsPlayedGame() )
 	{
 		le::SEvent		event;
 		while ( le::GWindow->PollEvent( event ) )
@@ -39,7 +96,16 @@ int main( int argc, char** argv )
 			switch ( event.type )
 			{
 			case le::SEvent::ET_WindowClose:
+				le::GEngine->StopGame();
 				le::GWindow->Close();
+				break;
+
+			case le::SEvent::ET_WindowFocusGained:
+				isFocus = true;
+				break;
+
+			case le::SEvent::ET_WindowFocusLost:
+				isFocus = false;
 				break;
 
 			case le::SEvent::ET_KeyPressed:
@@ -60,12 +126,13 @@ int main( int argc, char** argv )
 			}
 		}
 
-		le::GRenderSystem->Begin();
-		le::GRenderSystem->End();
-		le::GRenderSystem->Present();
-		le::GInputSystem->Reset();
+		if ( isFocus )
+		{
+			le::GEngine->Tick();
+			le::GEngine->RenderFrame();
+		}
 	}
-	
+
 	return 0;
 }
 

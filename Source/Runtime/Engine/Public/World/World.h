@@ -21,17 +21,20 @@ namespace le
 		/* Destructor */
 		~World();
 
-		/* Spawn actor */
-		void SpawnActor( IActor* InActor );
+		/* Template spawn */
+		template< typename T > FORCEINLINE void Spawn()			{ Spawn( new T() ); }
 
+		/* Spawn actor */
+		void Spawn( IActor* InActor );
+		
 		/* Kill actor */
-		void KillActor( IActor* InActor );
+		void Kill( IActor* InActor );
 
 		/* Kill all actors */
 		void KillAllActors();
 
-		/* Update */
-		void Update();
+		/* Tick */
+		void Tick();
 
 		/* Render */
 		void Render();

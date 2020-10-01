@@ -21,11 +21,6 @@ le::RefCounted::~RefCounted()
  */
 void le::RefCounted::ReleaseRef()
 {
-	if ( !countReferences )
-	{
+	if ( !countReferences || !--countReferences )		
 		delete this;
-		return;
-	}
-
-	--countReferences;
 }
