@@ -2,11 +2,11 @@
 // Authors: Egor Pogulyaka (zombiHello)
 
 #include "Misc/EngineInternalGlobals.h"
-#include "Math/Vector2D.h"
 #include "Rendering/RHI/IRHI.h"
 #include "Rendering/RHI/IRHIShader.h"
 #include "Rendering/ShaderManager.h"
 #include "Resources/Texture2D.h"
+#include "World/Components/CameraComponent.h"
 #include "UnlitGeneric.h"
 
 /**
@@ -68,13 +68,15 @@ bool le::UnlitGeneric::Initialize( const std::vector< ShaderVar >* InShaderVars 
 /**
  * On draw sprite
  */
-void le::UnlitGeneric::OnDrawSprite( IRHI* InRHI, const SVector2D& InSize )
+void le::UnlitGeneric::OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const FVector3D& InPosition, CameraComponent* InCameraComponent )
 {
 	if ( !rhiShader )		return;
 	if ( baseTexture )		InRHI->SetTexture2D( baseTexture->GetHandle() );
 
 	InRHI->SetShader( rhiShader );
+	if ( InCameraComponent )		rhiShader->SetUniform( "PVTMatrix", InCameraComponent->GetProjectionMatrix() * InCameraComponent->GetViewMatrix() );
 	rhiShader->SetUniform( "baseTexture", 0 );
+	rhiShader->SetUniform( "position", InPosition );
 	rhiShader->SetUniform( "spriteSize", InSize );
 }
 

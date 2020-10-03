@@ -12,7 +12,7 @@
 namespace le
 {
 	struct SSpriteRenderObject;
-	class SpriteComponent;
+	class CameraComponent;
 	class IRHIBuffer;
 	class IRHIVertexFormat;
 	class IRHIGeometry;
@@ -27,7 +27,7 @@ namespace le
 		bool Initialize();
 
 		/* Render sprite */
-		void Render( const SSpriteRenderObject& InSpriteRenderObject );
+		void Render( const SSpriteRenderObject& InSpriteRenderObject, CameraComponent* InCameraComponent );
 
 		/* Is initialized */
 		FORCEINLINE bool IsInitialized() const				{ return rhiGeometry && rhiVertexBuffer && rhiVertexFormat && rhiIndexBuffer; }

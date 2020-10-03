@@ -9,13 +9,12 @@
 
 #include "Misc/EngineDefines.h"
 #include "Misc/Object.h"
-#include "Math/Vector2D.h"
+#include "Math/Math.h"
 #include "Math/Color.h"
 
 namespace le
 {
 	struct SColor;
-	struct SVector2D;
 	class Texture2D;
 	class Material;
 
@@ -64,7 +63,7 @@ namespace le
 		void SetValueBool( bool InValue );
 
 		/* Set value vector 2D */
-		void SetValueVector2D( const SVector2D& InValue );
+		void SetValueVector2D( const FVector2D& InValue );
 
 		/* Set value color */
 		void SetValueColor( const SColor& InValue );
@@ -91,7 +90,7 @@ namespace le
 		bool GetValueBool() const;
 
 		/* Get value vector 2D */
-		SVector2D GetValueVector2D() const;
+		FVector2D GetValueVector2D() const;
 
 		/* Get value color */
 		SColor GetValueColor() const;

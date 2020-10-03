@@ -30,7 +30,7 @@ namespace le
 		bool Initialize( const std::vector< ShaderVar >* InShaderVars = nullptr ) override;
 
 		/* On draw sprite */
-		void OnDrawSprite( IRHI* InRHI, const SVector2D& InSize ) override;
+		void OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const FVector3D& InPosition, CameraComponent* InCameraComponent ) override;
 
 		/* Clear vars */
 		void ClearVars();

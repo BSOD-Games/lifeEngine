@@ -66,8 +66,7 @@ void le::InputSystem::Reset()
 		if ( buttonEvents[ index ] == BE_Released || buttonEvents[ index ] == BE_Scrolled )
 			buttonEvents[ index ] = BE_None;
 
-	mousePosition.Set( 0.f, 0.f );
-	mouseOffset.Set( 0.f, 0.f );
+	mousePosition = mouseOffset = FVector2D( 0.f, 0.f );
 }
 
 /**
@@ -118,7 +117,7 @@ bool le::InputSystem::IsMouseWheel( EButtonCode InButtonCode ) const
 /**
  * Get mouse position
  */
-const le::SVector2D& le::InputSystem::GetMousePosition() const
+const le::FVector2D& le::InputSystem::GetMousePosition() const
 {
 	return mousePosition;
 }
@@ -126,7 +125,7 @@ const le::SVector2D& le::InputSystem::GetMousePosition() const
 /**
  * Get mouse offset
  */
-const le::SVector2D& le::InputSystem::GetMouseOffset() const
+const le::FVector2D& le::InputSystem::GetMouseOffset() const
 {
 	return mouseOffset;
 }

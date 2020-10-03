@@ -12,33 +12,52 @@
 #include <System/FileSystem.h>
 #include <System/InputSystem.h>
 #include <Resources/ResourceSystem.h>
-#include <World/IActor.h>
+#include <World/Actor.h>
 #include <World/World.h>
 #include <World/Components/SpriteComponent.h>
+#include <World/Components/CameraComponent.h>
 
 #include <Resources/Resource.h>
 #include <Resources/Texture2D.h>
 #include <Resources/Material.h>
 
-class Player : public le::IActor
+class Player : public le::Actor
 {
 public:
 	/* Contructor */
 	Player() :
-		size( 0.5f, 0.5f )
+		size( 50.f, 50.f )
+	{}
+
+	/* Initialize */
+	void Initialize() override
 	{
+		cameraComponent.SetOrthoProjection( 0, 800, 0, 600, 0, 10 );
+		cameraComponent.SetActor( this );
+		le::GRenderSystem->SetCamera( &cameraComponent );
+
+		spriteComponent.SetActor( this );
 		spriteComponent.SetSize( size );
 		spriteComponent.SetType( le::ST_Static );
-		spriteComponent.SetMaterial( Cast< le::Material >( le::GResourceSystem->FindResource( "Content/M.lmt", le::RT_Material ) ) );
+		spriteComponent.SetMaterial( Cast< le::Material >( le::GResourceSystem->FindResource( "Content/Materials/Player.lmt", le::RT_Material ) ) );
+	
+		isInitialized = true;
 	}
 
 	/* Tick */
 	void Tick() override
 	{
-		size -= 0.001f;
-		if ( size.x <= 0.1f || size.y <= 0.1f )		size.Set( 0.5f, 0.5f );
+		if ( le::GInputSystem->IsKeyDown( le::BC_KeyA ) )
+			position.x -= 1.f;
 
-		spriteComponent.SetSize( size );
+		if ( le::GInputSystem->IsKeyDown( le::BC_KeyD ) )
+			position.x += 1.f;
+
+		if ( le::GInputSystem->IsKeyDown( le::BC_KeyW ) )
+			position.y += 1.f;
+
+		if ( le::GInputSystem->IsKeyDown( le::BC_KeyS ) )
+			position.y -= 1.f;
 	}
 
 	/* Render */
@@ -48,8 +67,9 @@ public:
 	}
 
 private:
-	le::SVector2D				size;
+	le::FVector2D				size;
 	le::SpriteComponent			spriteComponent;
+	le::CameraComponent			cameraComponent;
 };
 
 class Game : public le::IGame
@@ -58,7 +78,7 @@ public:
 	/* Initialize game */
 	bool Initialize()
 	{
-		le::GWorld->Spawn<Player>();
+		le::GWorld->Spawn<Player>( le::FVector3D( 400, 300, 1.f ) );
 		return true;
 	}
 

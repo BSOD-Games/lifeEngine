@@ -4,8 +4,7 @@
 #include <GL/glew.h>
 
 #include "Logging/LogMacros.h"
-#include "Math/Color.h"
-#include "Math/Vector2D.h"
+#include "Math/Math.h"
 #include "RHIShader.h"
 
 /**
@@ -228,13 +227,65 @@ void le::RHIShader::SetUniform( const std::string& InName, const SColor& InValue
 /**
  * Set uniform (Vector2D)
  */
-void le::RHIShader::SetUniform( const std::string& InName, const SVector2D& InValue )
+void le::RHIShader::SetUniform( const std::string& InName, const FVector2D& InValue )
 {
     if ( !IsLoaded() ) return;
     uint32      currentShader = GLState::GetShader();
 
     GLState::BindShader( gpuProgram );
     glUniform2f( GetUniformLocation( InName ), InValue.x, InValue.y );
+    GLState::BindShader( currentShader );
+}
+
+/**
+ * Set uniform (Vector3D)
+ */
+void le::RHIShader::SetUniform( const std::string& InName, const FVector3D& InValue )
+{
+    if ( !IsLoaded() ) return;
+    uint32      currentShader = GLState::GetShader();
+
+    GLState::BindShader( gpuProgram );
+    glUniform3f( GetUniformLocation( InName ), InValue.x, InValue.y, InValue.z );
+    GLState::BindShader( currentShader );
+}
+
+/**
+ * Set uniform (Vector4D)
+ */
+void le::RHIShader::SetUniform( const std::string& InName, const FVector4D& InValue )
+{
+    if ( !IsLoaded() ) return;
+    uint32      currentShader = GLState::GetShader();
+
+    GLState::BindShader( gpuProgram );
+    glUniform4f( GetUniformLocation( InName ), InValue.x, InValue.y, InValue.z, InValue.w );
+    GLState::BindShader( currentShader );
+}
+
+/**
+ * Set uniform (Quaternion)
+ */
+void le::RHIShader::SetUniform( const std::string& InName, const FQuaternion& InValue )
+{
+    if ( !IsLoaded() ) return;
+    uint32      currentShader = GLState::GetShader();
+
+    GLState::BindShader( gpuProgram );
+    glUniform4f( GetUniformLocation( InName ), InValue.x, InValue.y, InValue.z, InValue.w );
+    GLState::BindShader( currentShader );
+}
+
+/**
+ * Set uniform (Matrix4x4)
+ */
+void le::RHIShader::SetUniform( const std::string& InName, const FMatrix4x4& InValue )
+{
+    if ( !IsLoaded() ) return;
+    uint32      currentShader = GLState::GetShader();
+
+    GLState::BindShader( gpuProgram );
+    glUniformMatrix4fv( GetUniformLocation( InName ), 1, GL_FALSE, glm::value_ptr( InValue ) );
     GLState::BindShader( currentShader );
 }
 

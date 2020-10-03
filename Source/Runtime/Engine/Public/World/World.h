@@ -7,10 +7,11 @@
 #include <vector>
 
 #include "Misc/Object.h"
+#include "Math/Math.h"
 
 namespace le
 {
-	class IActor;
+	class Actor;
 
 	class World : public Object
 	{
@@ -22,13 +23,19 @@ namespace le
 		~World();
 
 		/* Template spawn */
-		template< typename T > FORCEINLINE void Spawn()			{ Spawn( new T() ); }
+		template< typename T > FORCEINLINE void Spawn( const FVector3D& InPosition = FVector3D( 0.f, 0.f, 0.f ) )			
+		{ 
+			T*		newActor = new T();
+			newActor->SetPosition( InPosition );
+			
+			Spawn( newActor );
+		}
 
 		/* Spawn actor */
-		void Spawn( IActor* InActor );
+		void Spawn( Actor* InActor );
 		
 		/* Kill actor */
-		void Kill( IActor* InActor );
+		void Kill( Actor* InActor );
 
 		/* Kill all actors */
 		void KillAllActors();
@@ -40,7 +47,7 @@ namespace le
 		void Render();
 
 	private:
-		std::vector< IActor* >			actors;
+		std::vector< Actor* >			actors;
 	};
 }
 

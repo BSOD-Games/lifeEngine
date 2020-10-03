@@ -2,7 +2,7 @@
 // Authors: Egor Pogulyaka (zombiHello)
 
 #include "Misc/EngineDefines.h"
-#include "World/IActor.h"
+#include "World/Actor.h"
 #include "World/World.h"
 
 /**
@@ -22,23 +22,24 @@ le::World::~World()
 /**
  * Spawn actor
  */
-void le::World::Spawn( IActor* InActor )
+void le::World::Spawn( Actor* InActor )
 {
 	LIFEENGINE_ASSERT( InActor );
 
 	InActor->AddRef();
+	if ( !InActor->IsInitialized() )		InActor->Initialize();
 	actors.push_back( InActor );
 }
 
 /**
  * Kill actor
  */
-void le::World::Kill( IActor* InActor )
+void le::World::Kill( Actor* InActor )
 {
 	LIFEENGINE_ASSERT( InActor );
 	for ( uint32 index = 0, count = static_cast< uint32 >( actors.size() ); index < count; ++index )
 	{
-		IActor*		actor = actors[ index ];
+		Actor*		actor = actors[ index ];
 		
 		actor->ReleaseRef();
 		actors.erase( index + actors.begin() );

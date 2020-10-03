@@ -2,7 +2,6 @@
 // Authors: Egor Pogulyaka (zombiHello)
 
 #include "Math/Color.h"
-#include "Math/Vector2D.h"
 #include "Rendering/ShaderVar.h"
 #include "Resources/Texture2D.h"
 #include "Resources/Material.h"
@@ -57,7 +56,7 @@ void le::ShaderVar::Clear()
 	case SVT_Int:		delete static_cast< int* >( value );		break;
 	case SVT_Float:		delete static_cast< float* >( value );		break;
 	case SVT_Bool:		delete static_cast< bool* >( value );		break;
-	case SVT_Vector2D:	delete static_cast< SVector2D* >( value );	break;
+	case SVT_Vector2D:	delete static_cast< FVector2D* >( value );	break;
 	case SVT_Color:		delete static_cast< SColor* >( value );		break;
 	case SVT_Texture2D:
 	{
@@ -141,12 +140,12 @@ void le::ShaderVar::SetValueBool( bool InValue )
 /**
  * Set value vector 2D
  */
-void le::ShaderVar::SetValueVector2D( const SVector2D& InValue )
+void le::ShaderVar::SetValueVector2D( const FVector2D& InValue )
 {
 	if ( value && type != SVT_Vector2D )	Clear();
-	if ( !value )							value = new SVector2D();
+	if ( !value )							value = new FVector2D();
 
-	*static_cast< SVector2D* >( value ) = InValue;
+	*static_cast< FVector2D* >( value ) = InValue;
 	type = SVT_Vector2D;
 
 	NotifyMaterials();
@@ -210,10 +209,10 @@ bool le::ShaderVar::GetValueBool() const
 /**
  * Get value vector
  */
-le::SVector2D le::ShaderVar::GetValueVector2D() const
+le::FVector2D le::ShaderVar::GetValueVector2D() const
 {
-	if ( type != SVT_Vector2D )		return SVector2D();
-	return *static_cast< SVector2D* >( value );
+	if ( type != SVT_Vector2D )		return FVector2D();
+	return *static_cast< FVector2D* >( value );
 }
 
 /**

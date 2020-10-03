@@ -1,8 +1,7 @@
 // Copyright BSOD-Games, All Rights Reserved.
 // Authors: Egor Pogulyaka (zombiHello)
 
-#include "Math/Vector2D.h"
-#include "Math/Vector3D.h"
+#include "Math/Math.h"
 #include "Rendering/RHI/IRHI.h"
 #include "Rendering/RHI/IRHIGeometry.h"
 #include "Rendering/RHI/IRHIVertexFormat.h"
@@ -11,9 +10,9 @@
 
 struct SSpriteVertex
 {
-	le::SVector3D		position;
-	le::SVector3D		normal;
-	le::SVector2D		texCoord;
+	le::FVector3D		position;
+	le::FVector3D		normal;
+	le::FVector2D		texCoord;
 };
 
 /**
@@ -36,10 +35,10 @@ bool le::SpriteRenderer::Initialize()
 
 	SSpriteVertex		verteces[] =
 	{
-		{ SVector3D( x0, y0, 1.f ), SVector3D( x0, y0, 0.f ), SVector2D( 0.f, 0.f ) },
-		{ SVector3D( x0, y1, 1.0f ), SVector3D( x0, y1, 0.0f ), SVector2D( 0.0f, 1.0f ) },
-		{ SVector3D( x1, y1, 1.0f ), SVector3D( x1, y1, 0.0f ), SVector2D( 1.0f, 1.0f ) },
-		{ SVector3D( x1, y0, 1.0f ), SVector3D( x1, y0, 0.0f ), SVector2D( 1.0f, 0.0f ) }
+		{ FVector3D( x0, y0, 0.f ), FVector3D( x0, y0, 0.f ), FVector2D( 0.f, 0.f ) },
+		{ FVector3D( x0, y1, 0.f ), FVector3D( x0, y1, 0.f ), FVector2D( 0.f, 1.f ) },
+		{ FVector3D( x1, y1, 0.f ), FVector3D( x1, y1, 0.f ), FVector2D( 1.f, 1.f ) },
+		{ FVector3D( x1, y0, 0.f ), FVector3D( x1, y0, 0.f ), FVector2D( 1.f, 0.f ) }
 	};
 
 	uint32			indeces[] =	{ 3, 2, 1, 0 };
@@ -65,7 +64,7 @@ bool le::SpriteRenderer::Initialize()
 /**
  * Render sprite
  */
-void le::SpriteRenderer::Render( const SSpriteRenderObject& InSpriteRenderObject )
+void le::SpriteRenderer::Render( const SSpriteRenderObject& InSpriteRenderObject, CameraComponent* InCameraComponent )
 {
 	GRenderSystem->rhi->SetGeometry( rhiGeometry );	
 	InSpriteRenderObject.material->Refresh();
@@ -73,7 +72,7 @@ void le::SpriteRenderer::Render( const SSpriteRenderObject& InSpriteRenderObject
 	BaseShader*			shader = InSpriteRenderObject.material->GetShader();
 	if ( shader )
 	{
-		shader->OnDrawSprite( GRenderSystem->rhi, InSpriteRenderObject.size );
+		shader->OnDrawSprite( GRenderSystem->rhi, InSpriteRenderObject.size, InSpriteRenderObject.position, InCameraComponent );
 		GRenderSystem->rhi->DrawIndexed( DO_TriangleFan, 0, 4, 0, 4 );
 	}
 }

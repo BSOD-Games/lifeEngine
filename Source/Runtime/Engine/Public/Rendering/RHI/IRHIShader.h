@@ -8,11 +8,11 @@
 #include <vector>
 
 #include "Misc/Object.h"
+#include "Math/Math.h"
 
 namespace le
 {
 	struct SColor;
-	struct SVector2D;
 
 	enum EShaderType
 	{
@@ -41,7 +41,11 @@ namespace le
 		virtual void SetUniform( const std::string& InName, float InValue ) = 0;
 		virtual void SetUniform( const std::string& InName, bool InValue ) = 0;
 		virtual void SetUniform( const std::string& InName, const SColor& InValue ) = 0;
-		virtual void SetUniform( const std::string& InName, const SVector2D& InValue ) = 0;
+		virtual void SetUniform( const std::string& InName, const FVector2D& InValue ) = 0;
+		virtual void SetUniform( const std::string& InName, const FVector3D& InValue ) = 0;
+		virtual void SetUniform( const std::string& InName, const FVector4D& InValue ) = 0;
+		virtual void SetUniform( const std::string& InName, const FQuaternion& InValue ) = 0;
+		virtual void SetUniform( const std::string& InName, const FMatrix4x4& InValue ) = 0;
 
 		/* Is loaded shader */
 		virtual bool IsLoaded() const = 0;

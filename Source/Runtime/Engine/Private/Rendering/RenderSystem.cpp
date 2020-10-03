@@ -15,7 +15,8 @@
  */
 le::RenderSystem::RenderSystem() :
 	rhi( nullptr ),
-	currentContext( nullptr )
+	currentContext( nullptr ),
+	currentCamera( nullptr )
 {}
 
 /**
@@ -23,6 +24,8 @@ le::RenderSystem::RenderSystem() :
  */
 le::RenderSystem::~RenderSystem()
 {
+	if ( currentCamera )			currentCamera->ReleaseRef();
+
 	if ( rhi )
 	{
 		if ( currentContext )		rhi->DeleteContext( currentContext );
@@ -82,7 +85,7 @@ void le::RenderSystem::Present()
 	// Render sprites
 	for ( auto it = sprites.begin(); it != sprites.end(); )
 	{
-		spriteRenderer.Render( *it );
+		spriteRenderer.Render( *it, currentCamera );
 		it = sprites.erase( it );
 	}
 
@@ -100,10 +103,11 @@ le::SSpriteRenderObject::SSpriteRenderObject() :
 /**
  * Constructor
  */
-le::SSpriteRenderObject::SSpriteRenderObject( ESpriteType InSpriteType, Material* InMaterial, const SVector2D& InSize ) :
+le::SSpriteRenderObject::SSpriteRenderObject( ESpriteType InSpriteType, Material* InMaterial, const FVector2D& InSize, const FVector3D& InPosition ) :
 	type( InSpriteType ),
 	material( InMaterial ),
-	size( InSize )
+	size( InSize ),
+	position( InPosition )
 {
 	if ( material )			material->AddRef();
 }
@@ -114,7 +118,8 @@ le::SSpriteRenderObject::SSpriteRenderObject( ESpriteType InSpriteType, Material
 le::SSpriteRenderObject::SSpriteRenderObject( const SSpriteRenderObject& InCopy ) :
 	type( InCopy.type ),
 	material( InCopy.material ),
-	size( InCopy.size )
+	size( InCopy.size ),
+	position( InCopy.position )
 {
 	if ( material )			material->AddRef();
 }

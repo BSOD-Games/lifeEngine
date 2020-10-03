@@ -10,17 +10,16 @@
 #include "RHI/IRHI.h"
 #include "Misc/Object.h"
 #include "World/Components/SpriteComponent.h"
+#include "World/Components/CameraComponent.h"
 #include "Rendering/SpriteRenderer.h"
 
 namespace le
 {
-	class SpriteComponent;
-
 	struct SSpriteRenderObject
 	{
 		/* Constructor */
 		SSpriteRenderObject();
-		SSpriteRenderObject( ESpriteType InSpriteType, Material* InMaterial, const SVector2D& InSize );
+		SSpriteRenderObject( ESpriteType InSpriteType, Material* InMaterial, const FVector2D& InSize, const FVector3D& InPosition );
 
 		/* Constructor of copy */
 		SSpriteRenderObject( const SSpriteRenderObject& InCopy );
@@ -33,7 +32,8 @@ namespace le
 
 		ESpriteType		type;
 		Material*		material;
-		SVector2D		size;
+		FVector2D		size;
+		FVector3D		position;
 	};
 
 	class RenderSystem : public Object
@@ -72,10 +72,10 @@ namespace le
 		FORCEINLINE void DeleteTexture2D( IRHITexture2D*& InTexture2D )			{ rhi->DeleteTexture2D( InTexture2D ); }
 
 		/* Draw sprite */
-		FORCEINLINE void DrawSprite( ESpriteType InSpriteType, Material* InMaterial, const SVector2D& InSize )
+		FORCEINLINE void DrawSprite( ESpriteType InSpriteType, Material* InMaterial, const FVector2D& InSize, const FVector3D& InPosition )
 		{
 			LIFEENGINE_ASSERT( InMaterial );
-			sprites.push_back( SSpriteRenderObject( InSpriteType, InMaterial, InSize ) );
+			sprites.push_back( SSpriteRenderObject( InSpriteType, InMaterial, InSize, InPosition ) );
 		}
 
 		/* Start render scene */
@@ -93,10 +93,20 @@ namespace le
 		/* Set viewport */
 		FORCEINLINE void SetViewport( uint32 InX, uint32 InY, uint32 InWidth, uint32 InHeight )			{ rhi->SetViewport( InX, InY, InWidth, InHeight ); }
 
+		/* Set camera */
+		FORCEINLINE void SetCamera( CameraComponent* InCameraComponent )
+		{
+			if ( currentCamera )		currentCamera->ReleaseRef();
+
+			currentCamera = InCameraComponent;
+			if ( InCameraComponent )	InCameraComponent->AddRef();
+		}
+
 	private:
 		IRHI*									rhi;
 		FRHIContext								currentContext;
 		SpriteRenderer							spriteRenderer;
+		CameraComponent*						currentCamera;
 
 		std::list< SSpriteRenderObject >		sprites;
 	};

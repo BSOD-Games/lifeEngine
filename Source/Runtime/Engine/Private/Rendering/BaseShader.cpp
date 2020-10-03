@@ -19,7 +19,7 @@ le::BaseShader::~BaseShader()
 /**
  * On draw sprite
  */
-void le::BaseShader::OnDrawSprite( IRHI* InRHI, const SVector2D& InSize )
+void le::BaseShader::OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const FVector3D& InPosition, CameraComponent* InCameraComponent )
 {
 	static bool			isPrintedWarning = false;
 	if ( !isPrintedWarning )

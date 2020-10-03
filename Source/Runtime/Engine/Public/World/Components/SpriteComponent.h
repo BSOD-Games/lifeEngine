@@ -5,8 +5,7 @@
 #define SPRITECOMPONENT_H
 
 #include "Misc/EngineDefines.h"
-#include "Misc/Object.h"
-#include "Math/Vector2D.h"
+#include "World/Components/BaseComponent.h"
 #include "Resources/Material.h"
 
 namespace le
@@ -20,7 +19,7 @@ namespace le
 		ST_RotatingOnlyVertical
 	};
 
-	class SpriteComponent : public Object
+	class SpriteComponent : public BaseComponent
 	{
 	public:
 		/* Constructor */
@@ -33,7 +32,7 @@ namespace le
 		void Render();
 
 		/* Set type */
-		FORCEINLINE void SetType( ESpriteType InType )			{ type = InType; }
+		FORCEINLINE void SetType( ESpriteType InType )					{ type = InType; }
 
 		/* Set material */
 		FORCEINLINE void SetMaterial( Material* InMaterial )
@@ -45,21 +44,21 @@ namespace le
 		}
 
 		/* Set size */
-		FORCEINLINE void SetSize( const SVector2D& InSize )		{ size = InSize; }
+		FORCEINLINE void SetSize( const FVector2D& InSize )				{ size = InSize; }
 
 		/* Get type */
-		FORCEINLINE ESpriteType GetType() const					{ return type; }
+		FORCEINLINE ESpriteType GetType() const							{ return type; }
 
 		/* Get material */
-		FORCEINLINE Material* GetMaterial() const				{ return material; }
+		FORCEINLINE Material* GetMaterial() const						{ return material; }
 
 		/* Get size */
-		FORCEINLINE const SVector2D& GetSize() const			{ return size; }
+		FORCEINLINE const FVector2D& GetSize() const					{ return size; }
 
 	private:
 		ESpriteType		type;
 		Material*		material;
-		SVector2D		size;
+		FVector2D		size;
 	};
 }
 

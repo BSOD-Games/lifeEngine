@@ -7,9 +7,11 @@ layout( location = 2 ) 		in vec2 vertex_texCoords;
 out vec2		texCoord;
 
 uniform vec2	spriteSize;
+uniform vec3	position;
+uniform mat4	PVTMatrix;
 
 void main()
 {
 	texCoord = vertex_texCoords;
-	gl_Position = vec4( vertex_position * vec3( spriteSize, 1.f ), 1.f );
+	gl_Position = PVTMatrix * vec4( position + vertex_position * vec3( spriteSize, 1.f ), 1.f );
 }

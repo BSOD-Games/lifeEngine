@@ -97,7 +97,7 @@ bool le::Window::Open( const std::string& InTitle, uint32 InWidth, uint32 InHeig
 #ifdef PLATFORM_WINDOWS
 	handle = sysWMinfo->info.win.window;
 #else
-#error Unknown platform
+	#error Unknown platform
 #endif
 
 	return true;

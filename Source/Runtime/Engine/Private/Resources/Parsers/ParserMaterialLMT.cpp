@@ -7,8 +7,7 @@
 #include <rapidjson/writer.h>
 
 #include "Misc/EngineGlobals.h"
-#include "Math/Vector2D.h"
-#include "Math/Color.h"
+#include "Math/Math.h"
 #include "System/FileSystem.h"
 #include "Rendering/ShaderVar.h"
 #include "Resources/Texture2D.h"
@@ -114,7 +113,7 @@ std::vector< le::ShaderVar > le::ParserMaterialLMT::GetShaderVars() const
 				// Vector2D type
 				if ( type == "Vector2D" )
 				{
-					SVector2D		vector2D;
+					FVector2D		vector2D;
 					for ( auto itObject = jsonValue.GetObject().MemberBegin(), itObjectEnd = jsonValue.GetObject().MemberEnd(); itObject != itObjectEnd; ++itObject )
 						if ( itObject->value.IsInt() || itObject->value.IsFloat() )
 						{
