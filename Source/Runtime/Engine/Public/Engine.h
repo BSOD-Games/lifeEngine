@@ -25,8 +25,8 @@ namespace le
 		~Engine();
 
 		/* Initialize engine */
-		bool Initialize( const std::string& InWindowTitle, uint32 InWindowWidth, uint32 InWindowHeight, const Path& InLogPath, const Path& InRootPath = "./", FRHIContext* OutRHIContext = nullptr );
-		bool Initialize( FWindowHandle InWindowHandle, const Path& InLogPath, const Path& InRootPath = "./", FRHIContext* OutRHIContext = nullptr );
+		bool Initialize( const std::string& InWindowTitle, uint32 InWindowWidth, uint32 InWindowHeight, const Path& InLogPath, const Path& InRootPath = "./" );
+		bool Initialize( FWindowHandle InWindowHandle, const Path& InLogPath, const Path& InRootPath = "./" );
 	
 		/* Start game */
 		FORCEINLINE void StartGame( IGame* InGame )			
@@ -45,16 +45,21 @@ namespace le
 		void RenderFrame();
 
 		/* Is played game */
-		FORCEINLINE bool IsPlayedGame() const		{ return game; }
+		FORCEINLINE bool IsPlayedGame() const					{ return game; }
+
+		/* Get main RHIContext */
+		FORCEINLINE FRHIContext GetMainRHIContext() const		{ return mainRHIContext; }
 
 		/* Get game */
-		FORCEINLINE IGame* GetGame() const			{ return game; }
+		FORCEINLINE IGame* GetGame() const						{ return game; }
 
 	private:
 		float           currentTick;
 		float           lastTick;
 		float           delayFrame;
 		float			deltaTime;
+		
+		FRHIContext		mainRHIContext;
 		IGame*			game;
 	};
 }

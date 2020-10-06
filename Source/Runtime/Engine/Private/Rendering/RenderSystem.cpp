@@ -2,10 +2,10 @@
 // Authors: Egor Pogulyaka (zombiHello)
 
 #include "Misc/EngineDefines.h"
+#include "Misc/EngineGlobals.h"
 #include "Logging/LogMacros.h"
 #include "Rendering/RenderSystem.h"
 #include "World/Components/SpriteComponent.h"
-#include "OpenGL4RHI.h"
 
 // Engine shaders
 #include "Rendering/Shaders/UnlitGeneric.h"
@@ -14,8 +14,6 @@
  * Constructor
  */
 le::RenderSystem::RenderSystem() :
-	rhi( nullptr ),
-	currentContext( nullptr ),
 	currentCamera( nullptr )
 {}
 
@@ -25,12 +23,6 @@ le::RenderSystem::RenderSystem() :
 le::RenderSystem::~RenderSystem()
 {
 	if ( currentCamera )			currentCamera->ReleaseRef();
-
-	if ( rhi )
-	{
-		if ( currentContext )		rhi->DeleteContext( currentContext );
-		delete rhi;
-	}
 }
 
 /**
@@ -38,26 +30,9 @@ le::RenderSystem::~RenderSystem()
  */
 bool le::RenderSystem::Initialize()
 {
-	rhi = new OpenGL4RHI();
-
-	UnlitGeneric::Register();
-	return true;
-}
-
-/**
- * Make current context
- */
-bool le::RenderSystem::MakeCurrentContext( FRHIContext InRHIContext )
-{
-	if ( currentContext != InRHIContext && !rhi->MakeCurrentContext( InRHIContext ) )
-		return false;
-
-	if ( InRHIContext )
-	{
-		if ( !spriteRenderer.IsInitialized() )		spriteRenderer.Initialize();
-	}
+	spriteRenderer.Initialize();
 	
-	currentContext = InRHIContext;
+	UnlitGeneric::Register();
 	return true;
 }
 
@@ -66,7 +41,8 @@ bool le::RenderSystem::MakeCurrentContext( FRHIContext InRHIContext )
  */
 void le::RenderSystem::Begin()
 {
-	rhi->Clear( SColor( 0, 0, 0, 0 ), CT_Color );
+	LIFEENGINE_ASSERT( GRHI );
+	GRHI->Clear( SColor( 0, 0, 0, 0 ), CT_Color );
 }
 
 /**
@@ -78,10 +54,10 @@ void le::RenderSystem::End()
 /**
  * Present scene
  */
-void le::RenderSystem::Present()
+void le::RenderSystem::Present( FRHIContext InRHIContext )
 {
-	if ( !currentContext ) return;
-	
+	LIFEENGINE_ASSERT( GRHI && InRHIContext );
+
 	// Render sprites
 	for ( auto it = sprites.begin(); it != sprites.end(); )
 	{
@@ -89,7 +65,7 @@ void le::RenderSystem::Present()
 		it = sprites.erase( it );
 	}
 
-	rhi->SwapBuffers( currentContext );
+	GRHI->SwapBuffers( InRHIContext );
 }
 
 /**

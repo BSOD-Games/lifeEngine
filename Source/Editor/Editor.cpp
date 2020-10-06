@@ -7,6 +7,7 @@
 #include <Engine.h>
 #include <Misc/EngineGlobals.h>
 #include <Logging/LogMacros.h>
+#include <Rendering/RHI/IRHI.h>
 #include <Rendering/RenderSystem.h>
 #include <System/Window.h>
 #include <System/FileSystem.h>
@@ -26,7 +27,7 @@ class Player : public le::Actor
 public:
 	/* Contructor */
 	Player() :
-		size( 50.f, 50.f )
+		size( 25.f, 25.f )
 	{}
 
 	/* Initialize */
@@ -139,7 +140,8 @@ int main( int argc, char** argv )
 				break;
 
 			case le::SEvent::ET_WindowResize:
-				le::GRenderSystem->SetViewport( 0, 0, event.event.windowResize.width, event.event.windowResize.height );
+				LIFEENGINE_ASSERT( le::GRHI );
+				le::GRHI->SetViewport( 0, 0, event.event.windowResize.width, event.event.windowResize.height );
 				break;
 
 			default: break;

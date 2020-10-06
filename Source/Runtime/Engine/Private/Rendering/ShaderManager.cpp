@@ -4,9 +4,9 @@
 #include "Misc/EngineGlobals.h"
 #include "Logging/LogMacros.h"
 #include "System/FileSystem.h"
+#include "Rendering/RHI/IRHI.h"
 #include "Rendering/RHI/IRHIShader.h"
 #include "Rendering/ShaderManager.h"
-#include "Rendering/RenderSystem.h"
 
 /**
  * Find shader
@@ -22,8 +22,10 @@ le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const 
 			return itShader->second;
 	}
 
+	LIFEENGINE_ASSERT( GRHI );
+
 	std::string			error, code;
-	IRHIShader*			shader = GRenderSystem->CreateShader();
+	IRHIShader*			shader = GRHI->CreateShader();
 	
 	// Compiling vertex shader
 	if ( !InShaderPaths.vertexShaderPath.IsEmpty() )
@@ -41,7 +43,7 @@ le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const 
 		if ( !shader->Compile( code, ST_Vertex, InDefines, &error ) )
 		{
 			LIFEENGINE_LOG_ERROR( "Engine", "Failed compile vertex shader [%s] :: %s", InName.c_str(), code.c_str() );
-			GRenderSystem->DeleteShader( shader );
+			GRHI->DeleteShader( shader );
 			
 			return nullptr;
 		}
@@ -63,7 +65,7 @@ le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const 
 		if ( !shader->Compile( code, ST_Geometry, InDefines, &error ) )
 		{
 			LIFEENGINE_LOG_ERROR( "Engine", "Failed compile geometry shader [%s] :: %s", InName.c_str(), code.c_str() );
-			GRenderSystem->DeleteShader( shader );
+			GRHI->DeleteShader( shader );
 
 			return nullptr;
 		}
@@ -85,7 +87,7 @@ le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const 
 		if ( !shader->Compile( code, ST_Pixel, InDefines, &error ) )
 		{
 			LIFEENGINE_LOG_ERROR( "Engine", "Failed compile pixel shader [%s] :: %s", InName.c_str(), code.c_str() );
-			GRenderSystem->DeleteShader( shader );
+			GRHI->DeleteShader( shader );
 
 			return nullptr;
 		}
@@ -95,7 +97,7 @@ le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const 
 	if ( !shader->Link( &code ) )
 	{
 		LIFEENGINE_LOG_ERROR( "Engine", "Failed linking shader [%s] :: %s", InName.c_str(), code.c_str() );
-		GRenderSystem->DeleteShader( shader );
+		GRHI->DeleteShader( shader );
 
 		return nullptr;
 	}

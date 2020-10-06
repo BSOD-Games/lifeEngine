@@ -7,6 +7,7 @@
 namespace le
 {
 	class Logger;
+	class IRHI;
 	class RenderSystem;
 	class ResourceSystem;
 	class FileSystem;
@@ -22,6 +23,9 @@ namespace le
 
 	/* Logger */
 	extern Logger*						GLogger;
+
+	/* RHI */
+	extern IRHI*						GRHI;
 
 	/* Render system */
 	extern RenderSystem*				GRenderSystem;

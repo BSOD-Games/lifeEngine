@@ -12,6 +12,13 @@
 #include "World/World.h"
 #include "Engine.h"
 
+// RHI depending on the platform
+#ifdef PLATFORM_WINDOWS
+	#include "OpenGL4RHI.h"
+#else
+	#error Unsopported platform
+#endif // PLATFORM_WINDOWS
+
 #define	FIXED_TIME_TICK		( 1 / 60.f )
 
 /**
@@ -22,6 +29,7 @@ le::Engine::Engine() :
 	lastTick( 0.f ),
 	delayFrame( 0.f ),
 	deltaTime( 0.f ),
+	mainRHIContext( nullptr ),
 	game( nullptr )
 {}
 
@@ -31,27 +39,36 @@ le::Engine::Engine() :
 le::Engine::~Engine()
 {
 	StopGame();
+	
+	if ( GRHI )
+	{
+		if ( mainRHIContext )		GRHI->DeleteContext( mainRHIContext );
+		
+		delete GRHI;
+		GRHI = nullptr;
+	}
+
 	GLogger->CloseFile();
 }
 
 /**
  * Initialize engine with creating window
  */
-bool le::Engine::Initialize( const std::string& InWindowTitle, uint32 InWindowWidth, uint32 InWindowHeight, const Path& InLogPath, const Path& InRootPath, FRHIContext* OutRHIContext )
+bool le::Engine::Initialize( const std::string& InWindowTitle, uint32 InWindowWidth, uint32 InWindowHeight, const Path& InLogPath, const Path& InRootPath )
 {
 	GFileSystem->SetRootPath( InRootPath );
 	GLogger->SetFile( InLogPath );
 
 	GWindow->Open( InWindowTitle, InWindowWidth, InWindowHeight );
 	
-	// Initialize render system
-	if ( !GRenderSystem->Initialize() )		return false;
+	// Create RHI and initialize render system
+	GRHI = new OpenGL4RHI();
 	
-	FRHIContext				rhiContext = GRenderSystem->CreateContext( GWindow->GetHandle() );
-	if ( !rhiContext )		return false;
-
-	GRenderSystem->MakeCurrentContext( rhiContext );
-	if ( OutRHIContext )		*OutRHIContext = rhiContext;
+	mainRHIContext = GRHI->CreateContext( GWindow->GetHandle() );
+	if ( !mainRHIContext )		return false;
+	GRHI->MakeCurrentContext( mainRHIContext );
+	
+	if ( !GRenderSystem->Initialize() )		return false;
 
 	// Initialize resource system
 	if ( !GResourceSystem->Initialize() )	return false;
@@ -61,16 +78,16 @@ bool le::Engine::Initialize( const std::string& InWindowTitle, uint32 InWindowWi
 /**
  * Initialize engine with native window
  */
-bool le::Engine::Initialize( FWindowHandle InWindowHandle, const Path& InLogPath, const Path& InRootPath, FRHIContext* OutRHIContext )
+bool le::Engine::Initialize( FWindowHandle InWindowHandle, const Path& InLogPath, const Path& InRootPath )
 {
-	// Initialize render system
+	// Create RHI and initialize render system
+	GRHI = new OpenGL4RHI();
+
+	mainRHIContext = GRHI->CreateContext( GWindow->GetHandle() );
+	if ( !mainRHIContext )		return false;
+	GRHI->MakeCurrentContext( mainRHIContext );
+
 	if ( !GRenderSystem->Initialize() )		return false;
-
-	FRHIContext				rhiContext = GRenderSystem->CreateContext( InWindowHandle );
-	if ( !rhiContext )		return false;
-
-	GRenderSystem->MakeCurrentContext( rhiContext );
-	if ( OutRHIContext )		*OutRHIContext = rhiContext;
 
 	// Initialize resource system
 	if ( !GResourceSystem->Initialize() )	return false;
@@ -120,5 +137,5 @@ void le::Engine::RenderFrame()
 	GRenderSystem->Begin();
 	game->RenderFrame();
 	GRenderSystem->End();
-	GRenderSystem->Present();
+	GRenderSystem->Present( mainRHIContext );
 }

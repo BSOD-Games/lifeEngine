@@ -1,6 +1,7 @@
 // Copyright BSOD-Games, All Rights Reserved.
 // Authors: Egor Pogulyaka (zombiHello)
 
+#include "Misc/EngineGlobals.h"
 #include "Math/Math.h"
 #include "Rendering/RHI/IRHI.h"
 #include "Rendering/RHI/IRHIGeometry.h"
@@ -44,10 +45,10 @@ bool le::SpriteRenderer::Initialize()
 	uint32			indeces[] =	{ 3, 2, 1, 0 };
 
 	// Creating geometry for render sprite
-	rhiGeometry = GRenderSystem->rhi->CreateGeometry();
-	rhiVertexFormat = GRenderSystem->rhi->CreateVertexFormat();
-	rhiVertexBuffer = GRenderSystem->rhi->CreateBuffer( BT_Vertex );
-	rhiIndexBuffer = GRenderSystem->rhi->CreateBuffer( BT_Index );
+	rhiGeometry = GRHI->CreateGeometry();
+	rhiVertexFormat = GRHI->CreateVertexFormat();
+	rhiVertexBuffer = GRHI->CreateBuffer( BT_Vertex );
+	rhiIndexBuffer = GRHI->CreateBuffer( BT_Index );
 
 	rhiVertexBuffer->Allocate( verteces, sizeof( verteces ) );
 	rhiIndexBuffer->Allocate( indeces, sizeof( indeces ) );
@@ -66,13 +67,13 @@ bool le::SpriteRenderer::Initialize()
  */
 void le::SpriteRenderer::Render( const SSpriteRenderObject& InSpriteRenderObject, CameraComponent* InCameraComponent )
 {
-	GRenderSystem->rhi->SetGeometry( rhiGeometry );	
+	GRHI->SetGeometry( rhiGeometry );
 	InSpriteRenderObject.material->Refresh();
 
 	BaseShader*			shader = InSpriteRenderObject.material->GetShader();
 	if ( shader )
 	{
-		shader->OnDrawSprite( GRenderSystem->rhi, InSpriteRenderObject.size, InSpriteRenderObject.position, InCameraComponent );
-		GRenderSystem->rhi->DrawIndexed( DO_TriangleFan, 0, 4, 0, 4 );
+		shader->OnDrawSprite( GRHI, InSpriteRenderObject.size, InSpriteRenderObject.position, InCameraComponent );
+		GRHI->DrawIndexed( DO_TriangleFan, 0, 4, 0, 4 );
 	}
 }

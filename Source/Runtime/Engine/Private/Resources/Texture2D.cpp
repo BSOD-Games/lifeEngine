@@ -4,7 +4,7 @@
 #include "Misc/EngineGlobals.h"
 #include "Logging/LogMacros.h"
 #include "System/FileSystem.h"
-#include "Rendering/RenderSystem.h"
+#include "Rendering/RHI/IRHI.h"
 #include "Resources/Parsers/ParsersTexture2DFactory.h"
 #include "Resources/Parsers/IParserTexture2D.h"
 #include "Resources/Texture2D.h"
@@ -21,7 +21,8 @@ le::Texture2D::Texture2D() :
  */
 le::Texture2D::~Texture2D()
 {
-	if ( handle )		GRenderSystem->DeleteTexture2D( handle );
+	LIFEENGINE_ASSERT( GRHI );
+	if ( handle )		GRHI->DeleteTexture2D( handle );
 }
 
 /**
@@ -39,6 +40,7 @@ bool le::Texture2D::Serialize( const Path& InPath )
 bool le::Texture2D::Deserialize( const Path& InPath )
 {
 	if ( InPath.IsEmpty() )		return false;
+	LIFEENGINE_ASSERT( GRHI );
 
 	IParserTexture2D*		parser = GParsersTexture2DFactory->Get( InPath.GetExtension() );
 	FFileHandle				fileHandle = GFileSystem->OpenFile( InPath );
@@ -54,8 +56,8 @@ bool le::Texture2D::Deserialize( const Path& InPath )
 	uint32			width = parser->GetWidth();
 	uint32			height = parser->GetHeight();
 	EImageFormat	format = parser->GetFormat();
-	
-	handle = GRenderSystem->CreateTexture2D( format, width, height, countMipmaps );
+		
+	handle = GRHI->CreateTexture2D( format, width, height, countMipmaps );
 	for ( uint32 mipmap = 0; mipmap < countMipmaps; ++mipmap )
 		handle->Allocate( parser->GetData( mipmap ), mipmap );
 	

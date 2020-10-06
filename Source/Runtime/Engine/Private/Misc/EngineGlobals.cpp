@@ -16,6 +16,7 @@
 #include "Engine.h"
 
 le::Logger*							le::GLogger = new le::Logger();
+le::IRHI*							le::GRHI = nullptr;
 le::RenderSystem*					le::GRenderSystem = new le::RenderSystem();
 le::ResourceSystem*					le::GResourceSystem = new le::ResourceSystem();
 le::FileSystem*						le::GFileSystem = new le::FileSystem();
