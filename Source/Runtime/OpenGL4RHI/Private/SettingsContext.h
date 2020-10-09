@@ -1,5 +1,5 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #ifndef SETTINGSCONTEXT_H
 #define SETTINGSCONTEXT_H

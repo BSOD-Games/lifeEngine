@@ -1,5 +1,5 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #ifndef RHISHADER_H
 #define RHISHADER_H
@@ -53,7 +53,9 @@ namespace le
 		void SetUniform( const std::string& InName, const FVector4D& InValue ) override;
 		void SetUniform( const std::string& InName, const FQuaternion& InValue ) override;
 		void SetUniform( const std::string& InName, const FMatrix4x4& InValue ) override;
-		
+		void SetUniform( const std::string& InName, const FSRectFloat& InValue ) override;
+		void SetUniform( const std::string& InName, const FSRectInt& InValue ) override;
+
 		/* Is loaded shader */
 		bool IsLoaded() const override;
 

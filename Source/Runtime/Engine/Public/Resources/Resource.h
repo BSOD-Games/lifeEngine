@@ -1,5 +1,5 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #ifndef RESOURCE_H
 #define RESOURCE_H
@@ -17,7 +17,8 @@ namespace le
 	{
 		RT_Texture2D,
 		RT_Config,
-		RT_Material
+		RT_Material,
+		RT_World
 	};
 
 	class Resource : public Object

@@ -1,5 +1,5 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #ifndef FILESYSTEM_H
 #define FILESYSTEM_H
@@ -69,10 +69,7 @@ namespace le
 		void SetOffsetInFile( FFileHandle InFile, uint64 InOffset, EFileOffset InOffsetType = FO_Begin ) const;
 
 		/* Set root path */
-		FORCEINLINE void SetRootPath( const Path& InRootPath )
-		{
-			rootPath = InRootPath;
-		}
+		FORCEINLINE void SetRootPath( const Path& InRootPath )		{ rootPath = InRootPath; }
 
 		/* Is exist file */
 		bool IsExistFile( const Path& InPath ) const;
@@ -85,6 +82,9 @@ namespace le
 
 		/* Get file size */
 		uint64 GetSizeFile( FFileHandle InFile ) const;
+
+		/* Get root path */
+		FORCEINLINE const Path& GetRootPath() const					{ return rootPath; }
 
 	private:
 		Path		rootPath;

@@ -1,5 +1,5 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #ifndef IRHISHADER_H
 #define IRHISHADER_H
@@ -46,6 +46,8 @@ namespace le
 		virtual void SetUniform( const std::string& InName, const FVector4D& InValue ) = 0;
 		virtual void SetUniform( const std::string& InName, const FQuaternion& InValue ) = 0;
 		virtual void SetUniform( const std::string& InName, const FMatrix4x4& InValue ) = 0;
+		virtual void SetUniform( const std::string& InName, const FSRectFloat& InValue ) = 0;
+		virtual void SetUniform( const std::string& InName, const FSRectInt& InValue ) = 0;
 
 		/* Is loaded shader */
 		virtual bool IsLoaded() const = 0;

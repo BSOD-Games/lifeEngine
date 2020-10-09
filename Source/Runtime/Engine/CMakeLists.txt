@@ -9,6 +9,7 @@ set( MODULE_NAME Engine )
 set( SDL2_PATH ${EXTLIBS_DIR}/SDL2 CACHE PATH "Path to SDL2" )
 set( STB_PATH ${EXTLIBS_DIR}/STB CACHE PATH "Path to STB" )
 set( RAPIDJSON_PATH ${EXTLIBS_DIR}/RapidJSON CACHE PATH "Path to RapidJSON" )
+set( TMXLITE_PATH ${EXTLIBS_DIR}/TMXLite CACHE PATH "Path to TMXLite" )
 
 #
 #   --- Set values ---
@@ -181,6 +182,16 @@ if( NOT RAPIDJSON_FOUND )
 	return()
 else()
 	include_directories( ${RAPIDJSON_INCLUDE} )
+endif()
+
+# TMXLite
+find_package( TMXLite REQUIRED )
+if ( NOT TMXLITE_FOUND )
+	message( SEND_ERROR "Failed to find TMXLite" )
+	return()	
+else()
+	include_directories( ${TMXLITE_INCLUDE} )
+	target_link_libraries( ${MODULE_NAME} debug ${TMXLITE_DEBUG_LIB} optimized ${TMXLITE_LIB} )
 endif()
 
 # Other default extlibs

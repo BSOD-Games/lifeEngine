@@ -1,5 +1,5 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #ifndef SPRITECOMPONENT_H
 #define SPRITECOMPONENT_H
@@ -32,7 +32,7 @@ namespace le
 		void Render();
 
 		/* Set type */
-		FORCEINLINE void SetType( ESpriteType InType )					{ type = InType; }
+		FORCEINLINE void SetType( ESpriteType InType )							{ type = InType; }
 
 		/* Set material */
 		FORCEINLINE void SetMaterial( Material* InMaterial )
@@ -44,16 +44,16 @@ namespace le
 		}
 
 		/* Set size */
-		FORCEINLINE void SetSize( const FVector2D& InSize )				{ size = InSize; }
+		FORCEINLINE void SetSize( const FVector2D& InSize )						{ size = InSize; }
 
 		/* Get type */
-		FORCEINLINE ESpriteType GetType() const							{ return type; }
+		FORCEINLINE ESpriteType GetType() const									{ return type; }
 
 		/* Get material */
-		FORCEINLINE Material* GetMaterial() const						{ return material; }
+		FORCEINLINE Material* GetMaterial() const								{ return material; }
 
 		/* Get size */
-		FORCEINLINE const FVector2D& GetSize() const					{ return size; }
+		FORCEINLINE const FVector2D& GetSize() const							{ return size; }
 
 	private:
 		ESpriteType		type;

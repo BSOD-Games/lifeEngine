@@ -1,5 +1,5 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #include <GL/glew.h>
 
@@ -286,6 +286,32 @@ void le::RHIShader::SetUniform( const std::string& InName, const FMatrix4x4& InV
 
     GLState::BindShader( gpuProgram );
     glUniformMatrix4fv( GetUniformLocation( InName ), 1, GL_FALSE, glm::value_ptr( InValue ) );
+    GLState::BindShader( currentShader );
+}
+
+/**
+ * Set uniform (FSRectFloat)
+ */
+void le::RHIShader::SetUniform( const std::string& InName, const FSRectFloat& InValue )
+{
+    if ( !IsLoaded() ) return;
+    uint32      currentShader = GLState::GetShader();
+
+    GLState::BindShader( gpuProgram );
+    glUniform4f( GetUniformLocation( InName ), InValue.left, InValue.bottom, InValue.width, InValue.height );
+    GLState::BindShader( currentShader );
+}
+
+/**
+ * Set uniform (FSRectInt)
+ */
+void le::RHIShader::SetUniform( const std::string& InName, const FSRectInt& InValue )
+{
+    if ( !IsLoaded() ) return;
+    uint32      currentShader = GLState::GetShader();
+
+    GLState::BindShader( gpuProgram );
+    glUniform4i( GetUniformLocation( InName ), InValue.left, InValue.bottom, InValue.width, InValue.height );
     GLState::BindShader( currentShader );
 }
 

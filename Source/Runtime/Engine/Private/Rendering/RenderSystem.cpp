@@ -1,5 +1,5 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #include "Misc/EngineDefines.h"
 #include "Misc/EngineGlobals.h"
@@ -116,6 +116,7 @@ le::SSpriteRenderObject& le::SSpriteRenderObject::operator=( const SSpriteRender
 	type = InRight.type;
 	size = InRight.size;
 	material = InRight.material;
+	position = InRight.position;
 
 	if ( material )		material->AddRef();
 	return *this;

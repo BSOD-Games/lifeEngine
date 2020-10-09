@@ -1,5 +1,5 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #ifndef MATH_H
 #define MATH_H
@@ -10,6 +10,7 @@
 #include "glm/gtx/quaternion.hpp"
 
 #include "Color.h"
+#include "Rect.h"
 
 namespace le
 {

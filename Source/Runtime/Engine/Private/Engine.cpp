@@ -1,5 +1,5 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #include <SDL2/SDL.h>
 
@@ -9,14 +9,13 @@
 #include "System/InputSystem.h"
 #include "Rendering/RenderSystem.h"
 #include "Resources/ResourceSystem.h"
-#include "World/World.h"
 #include "Engine.h"
 
 // RHI depending on the platform
 #ifdef PLATFORM_WINDOWS
 	#include "OpenGL4RHI.h"
 #else
-	#error Unsopported platform
+	#error For this platform absent RHI
 #endif // PLATFORM_WINDOWS
 
 #define	FIXED_TIME_TICK		( 1 / 60.f )
@@ -101,7 +100,6 @@ void le::Engine::StopGame()
 {
 	if ( !game )	return;
 
-	GWorld->KillAllActors();
 	GResourceSystem->UnloadResources();
 	game = nullptr;
 }

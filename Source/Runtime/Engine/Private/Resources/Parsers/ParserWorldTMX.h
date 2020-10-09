@@ -1,24 +1,24 @@
 // Copyright BSOD-Games, All Rights Reserved.
 // Authors: Yehor Pohuliaka (zombiHello)
 
-#ifndef PARSERCONFIGJSON_H
-#define PARSERCONFIGJSON_H
+#ifndef PARSERWORLDTMX_H
+#define PARSERWORLDTMX_H
 
 #include <string>
 #include <vector>
 
-#include "Resources/Parsers/IParserConfig.h"
+#include "Resources/Parsers/IParserWorld.h"
 
 namespace le
 {
-	class ParserConfigJSON : public IParserConfig
+	class ParserWorldTMX : public IParserWorld
 	{
 	public:
 		/* Constructor */
-		ParserConfigJSON();
+		ParserWorldTMX();
 
 		/* Destructor */
-		~ParserConfigJSON();
+		~ParserWorldTMX();
 
 		/* Set file */
 		bool SetFile( FFileHandle InFileHandle ) override;
@@ -26,24 +26,27 @@ namespace le
 		/* Get supported extensions */
 		FORCEINLINE static std::vector< std::string > GetSupportedExtensions()
 		{
-			return { "json" };
+			return { "tmx" };
 		}
 
 		/* Is oppened */
 		FORCEINLINE bool IsOppened() const
 		{
-			return jsonDocument;
+			return tmxMap;
 		}
 
-		/* Get groups */
-		std::vector< Config::Group > GetGroups() const override;
+		/* Get sprite components */
+		std::vector< SpriteComponent > GetSpriteComponents() const override;
+
+		/* Get actors */
+		std::vector< Actor* > GetActors() const override;
 
 	private:
-		/* Clear */
+		/* Clear parser */
 		void Clear();
 
-		void*			jsonDocument;
+		void*			tmxMap;
 	};
 }
 
-#endif // !PARSERCONFIGJSON_H
+#endif // !PARSERWORLDTMX_H

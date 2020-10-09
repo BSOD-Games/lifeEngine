@@ -1,5 +1,5 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #ifndef ENGINEGLOBALS_H
 #define ENGINEGLOBALS_H
@@ -14,12 +14,12 @@ namespace le
 	class InputSystem;
 	class Window;
 	class Engine;
-	class World;
 
 	class ShaderFactory;
 	class ParsersTexture2DFactory;
 	class ParsersConfigFactory;
 	class ParsersMaterialFactory;
+	class ParsersWorldFactory;
 
 	/* Logger */
 	extern Logger*						GLogger;
@@ -48,9 +48,6 @@ namespace le
 	/* Shader factory */
 	extern ShaderFactory*				GShaderFactory;
 
-	/* World */
-	extern World*						GWorld;
-
 	/* Parsers Texture2D factory */
 	extern ParsersTexture2DFactory*		GParsersTexture2DFactory;
 
@@ -59,6 +56,9 @@ namespace le
 
 	/* Parsers Material factory */
 	extern ParsersMaterialFactory*		GParsersMaterialFactory;
+
+	/* Parsers World factory */
+	extern ParsersWorldFactory*			GParsersWorldFactory;
 }
 
 #endif // !ENGINEGLOBALS_H

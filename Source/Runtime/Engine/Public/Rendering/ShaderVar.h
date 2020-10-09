@@ -1,5 +1,5 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #ifndef SHADERVAR_H
 #define SHADERVAR_H
@@ -25,6 +25,8 @@ namespace le
 		SVT_Float,
 		SVT_Bool,
 		SVT_Vector2D,
+		SVT_Vector3D,
+		SVT_Vector4D,
 		SVT_Color,
 		SVT_Texture2D
 	};
@@ -65,6 +67,12 @@ namespace le
 		/* Set value vector 2D */
 		void SetValueVector2D( const FVector2D& InValue );
 
+		/* Set value vector 3D */
+		void SetValueVector3D( const FVector3D& InValue );
+
+		/* Set value vector 4D */
+		void SetValueVector4D( const FVector4D& InValue );
+
 		/* Set value color */
 		void SetValueColor( const SColor& InValue );
 
@@ -92,6 +100,12 @@ namespace le
 		/* Get value vector 2D */
 		FVector2D GetValueVector2D() const;
 
+		/* Get value vector 3D */
+		FVector3D GetValueVector3D() const;
+
+		/* Get value vector 4D */
+		FVector4D GetValueVector4D() const;
+
 		/* Get value color */
 		SColor GetValueColor() const;
 
@@ -108,6 +122,8 @@ namespace le
 			case SVT_Float:		SetValueFloat( InRight.GetValueFloat() );			break;
 			case SVT_Bool:		SetValueBool( InRight.GetValueBool() );				break;
 			case SVT_Vector2D:	SetValueVector2D( InRight.GetValueVector2D() );		break;
+			case SVT_Vector3D:	SetValueVector3D( InRight.GetValueVector3D() );		break;
+			case SVT_Vector4D:	SetValueVector4D( InRight.GetValueVector4D() );		break;
 			case SVT_Color:		SetValueColor( InRight.GetValueColor() );			break;
 			case SVT_Texture2D:	SetValueTexture2D( InRight.GetValueTexture2D() );	break;
 			

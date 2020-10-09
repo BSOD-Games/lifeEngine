@@ -1,5 +1,5 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #include <qapplication.h>
 #include <qmessagebox.h>
@@ -14,20 +14,20 @@
 #include <System/InputSystem.h>
 #include <Resources/ResourceSystem.h>
 #include <World/Actor.h>
-#include <World/World.h>
 #include <World/Components/SpriteComponent.h>
 #include <World/Components/CameraComponent.h>
 
 #include <Resources/Resource.h>
 #include <Resources/Texture2D.h>
 #include <Resources/Material.h>
+#include <Resources/World.h>
 
 class Player : public le::Actor
 {
 public:
 	/* Contructor */
 	Player() :
-		size( 25.f, 25.f )
+		size( 64.f, 64.f )
 	{}
 
 	/* Initialize */
@@ -41,7 +41,7 @@ public:
 		spriteComponent.SetSize( size );
 		spriteComponent.SetType( le::ST_Static );
 		spriteComponent.SetMaterial( Cast< le::Material >( le::GResourceSystem->FindResource( "Content/Materials/Player.lmt", le::RT_Material ) ) );
-	
+
 		isInitialized = true;
 	}
 
@@ -76,24 +76,45 @@ private:
 class Game : public le::IGame
 {
 public:
+	/* Constructor */
+	Game() :
+		world( nullptr )
+	{}
+
+	/* Destructor */
+	~Game()
+	{
+		if ( world )		world->ReleaseRef();
+	}
+
 	/* Initialize game */
 	bool Initialize()
 	{
-		le::GWorld->Spawn<Player>( le::FVector3D( 400, 300, 1.f ) );
+		world = Cast< le::World >( le::GResourceSystem->FindResource( "Content/test.tmx", le::RT_World ) );
+		if ( !world )
+		{
+			world = new le::World();
+			LIFEENGINE_LOG_ERROR( "Parterya", "World [Content/test.tmx] not founded or not readed" );
+		}
+
+		world->Spawn< Player >( le::FVector3D( 400, 300, 1.f ) );	
 		return true;
 	}
 
 	/* Tick game */
 	void Tick()
 	{
-		le::GWorld->Tick();
+		if ( world )	world->Tick();
 	}
 
 	/* Render frame */
 	void RenderFrame()
 	{
-		le::GWorld->Render();
+		if ( world )	world->Render();
 	}
+
+private:
+	le::World*		world;
 };
 
 // ------------------------------------------------------------------------------------ //

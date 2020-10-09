@@ -1,10 +1,11 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #ifndef CAMERACOMPONENT_H
 #define CAMERACOMPONENT_H
 
 #include "Misc/EngineDefines.h"
+#include "Math/Rect.h"
 #include "World/Components/BaseComponent.h"
 
 namespace le

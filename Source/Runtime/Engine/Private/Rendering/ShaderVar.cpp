@@ -1,5 +1,5 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #include "Math/Color.h"
 #include "Rendering/ShaderVar.h"
@@ -26,6 +26,8 @@ le::ShaderVar::ShaderVar( const ShaderVar& InCopy ) :
 	case SVT_Float:		SetValueFloat( InCopy.GetValueFloat() );			break;
 	case SVT_Bool:		SetValueBool( InCopy.GetValueBool() );				break;
 	case SVT_Vector2D:	SetValueVector2D( InCopy.GetValueVector2D() );		break;
+	case SVT_Vector3D:	SetValueVector3D( InCopy.GetValueVector3D() );		break;
+	case SVT_Vector4D:	SetValueVector4D( InCopy.GetValueVector4D() );		break;
 	case SVT_Color:		SetValueColor( InCopy.GetValueColor() );			break;
 	case SVT_Texture2D:	SetValueTexture2D( InCopy.GetValueTexture2D() );	break;
 
@@ -57,6 +59,8 @@ void le::ShaderVar::Clear()
 	case SVT_Float:		delete static_cast< float* >( value );		break;
 	case SVT_Bool:		delete static_cast< bool* >( value );		break;
 	case SVT_Vector2D:	delete static_cast< FVector2D* >( value );	break;
+	case SVT_Vector3D:	delete static_cast< FVector3D* >( value );	break;
+	case SVT_Vector4D:	delete static_cast< FVector4D* >( value );	break;
 	case SVT_Color:		delete static_cast< SColor* >( value );		break;
 	case SVT_Texture2D:
 	{
@@ -152,6 +156,34 @@ void le::ShaderVar::SetValueVector2D( const FVector2D& InValue )
 }
 
 /**
+ * Set value vector 3D
+ */
+void le::ShaderVar::SetValueVector3D( const FVector3D& InValue )
+{
+	if ( value && type != SVT_Vector3D )	Clear();
+	if ( !value )							value = new FVector3D();
+
+	*static_cast< FVector3D* >( value ) = InValue;
+	type = SVT_Vector3D;
+
+	NotifyMaterials();
+}
+
+/**
+ * Set value vector 4D
+ */
+void le::ShaderVar::SetValueVector4D( const FVector4D& InValue )
+{
+	if ( value && type != SVT_Vector4D )	Clear();
+	if ( !value )							value = new FVector4D();
+
+	*static_cast< FVector4D* >( value ) = InValue;
+	type = SVT_Vector4D;
+
+	NotifyMaterials();
+}
+
+/**
  * Set value color
  */
 void le::ShaderVar::SetValueColor( const SColor& InValue )
@@ -207,12 +239,30 @@ bool le::ShaderVar::GetValueBool() const
 }
 
 /**
- * Get value vector
+ * Get value vector 2D
  */
 le::FVector2D le::ShaderVar::GetValueVector2D() const
 {
 	if ( type != SVT_Vector2D )		return FVector2D();
 	return *static_cast< FVector2D* >( value );
+}
+
+/**
+ * Get value vector 3D
+ */
+le::FVector3D le::ShaderVar::GetValueVector3D() const
+{
+	if ( type != SVT_Vector3D )		return FVector3D();
+	return *static_cast< FVector3D* >( value );
+}
+
+/**
+ * Get value vector 4D
+ */
+le::FVector4D le::ShaderVar::GetValueVector4D() const
+{
+	if ( type != SVT_Vector4D )		return FVector4D();
+	return *static_cast< FVector4D* >( value );
 }
 
 /**

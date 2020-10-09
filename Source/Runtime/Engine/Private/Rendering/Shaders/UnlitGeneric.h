@@ -1,5 +1,5 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #ifndef UNLITGENERIC_H
 #define UNLITGENERIC_H
@@ -43,6 +43,7 @@ namespace le
 
 	private:
 		uint32			flags;
+		FSRectFloat		textureRect;
 		Texture2D*		baseTexture;
 		IRHIShader*		rhiShader;
 	};

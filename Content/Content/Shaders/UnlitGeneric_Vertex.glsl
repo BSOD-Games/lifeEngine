@@ -8,10 +8,11 @@ out vec2		texCoord;
 
 uniform vec2	spriteSize;
 uniform vec3	position;
+uniform vec4    textureRect;
 uniform mat4	PVTMatrix;
 
 void main()
 {
-	texCoord = vertex_texCoords;
+	texCoord = textureRect.xy + ( vertex_texCoords * textureRect.zw );
 	gl_Position = PVTMatrix * vec4( position + vertex_position * vec3( spriteSize, 1.f ), 1.f );
 }

@@ -1,23 +1,28 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #include "Misc/EngineDefines.h"
 #include "Misc/EngineGlobals.h"
 #include "Logging/LogMacros.h"
 #include "Resources/ResourceSystem.h"
+
+// Parsers factory
 #include "Resources/Parsers/ParsersTexture2DFactory.h"
 #include "Resources/Parsers/ParsersConfigFactory.h"
 #include "Resources/Parsers/ParsersMaterialFactory.h"
+#include "Resources/Parsers/ParsersWorldFactory.h"
 
 // Resources parsers
 #include "Resources/Parsers/ParserTexture2DSTBImage.h"
 #include "Resources/Parsers/ParserConfigJSON.h"
 #include "Resources/Parsers/ParserMaterialLMT.h"
+#include "Resources/Parsers/ParserWorldTMX.h"
 
 // Resources
 #include "Resources/Texture2D.h"
 #include "Resources/Config.h"
 #include "Resources/Material.h"
+#include "Resources/World.h"
 
 /**
  * Constructor
@@ -41,6 +46,7 @@ bool le::ResourceSystem::Initialize()
 	GParsersTexture2DFactory->Register( ParserTexture2DSTBImage::GetSupportedExtensions(), []() -> IParserTexture2D* { return new ParserTexture2DSTBImage(); } );	
 	GParsersConfigFactory->Register( ParserConfigJSON::GetSupportedExtensions(), []() -> IParserConfig* { return new ParserConfigJSON(); } );
 	GParsersMaterialFactory->Register( ParserMaterialLMT::GetSupportedExtensions(), []() -> IParserMaterial* { return new ParserMaterialLMT(); } );
+	GParsersWorldFactory->Register( ParserWorldTMX::GetSupportedExtensions(), []() -> IParserWorld* { return new ParserWorldTMX(); } );
 
 	return true;
 }
@@ -59,6 +65,7 @@ le::Resource* le::ResourceSystem::FindResource( const Path& InPath, EResourceTyp
 	case RT_Texture2D:			resource = new Texture2D();		break;
 	case RT_Config:				resource = new Config();		break;
 	case RT_Material:			resource = new Material();		break;
+	case RT_World:				resource = new World();			break;
 	default:					return nullptr;
 	}
 

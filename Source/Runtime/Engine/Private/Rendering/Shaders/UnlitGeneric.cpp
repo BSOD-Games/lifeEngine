@@ -1,5 +1,5 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #include "Misc/EngineInternalGlobals.h"
 #include "Rendering/RHI/IRHI.h"
@@ -15,6 +15,7 @@
 le::UnlitGeneric::UnlitGeneric() :
 	flags( 0 ),
 	baseTexture( nullptr ),
+	textureRect( 0.f, 0.f, 1.f, 1.f ),
 	rhiShader( nullptr )
 {}
 
@@ -52,6 +53,14 @@ bool le::UnlitGeneric::Initialize( const std::vector< ShaderVar >* InShaderVars 
 					baseTexture->AddRef();
 				}
 				break;
+
+			case SVT_Vector4D:
+				if ( shaderVar.GetName() == "TextureRect" )
+				{
+					FVector4D		rect = shaderVar.GetValueVector4D();
+					textureRect = FSRectFloat( rect.x, rect.y, rect.z, rect.w );
+				}
+				break;
 			}
 		}
 
@@ -78,6 +87,7 @@ void le::UnlitGeneric::OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const
 	rhiShader->SetUniform( "baseTexture", 0 );
 	rhiShader->SetUniform( "position", InPosition );
 	rhiShader->SetUniform( "spriteSize", InSize );
+	rhiShader->SetUniform( "textureRect", textureRect );
 }
 
 /**
@@ -100,6 +110,7 @@ void le::UnlitGeneric::ClearVars()
 	}
 
 	flags = 0;
+	textureRect = FSRectFloat( 0.f, 0.f, 1.f, 1.f );
 }
 
 /**

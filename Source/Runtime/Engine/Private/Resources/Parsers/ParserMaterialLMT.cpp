@@ -1,5 +1,5 @@
 // Copyright BSOD-Games, All Rights Reserved.
-// Authors: Egor Pogulyaka (zombiHello)
+// Authors: Yehor Pohuliaka (zombiHello)
 
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
@@ -122,6 +122,37 @@ std::vector< le::ShaderVar > le::ParserMaterialLMT::GetShaderVars() const
 						}
 
 					shaderVar.SetValueVector2D( vector2D );
+				}
+
+				// Vector3D type
+				else if ( type == "Vector3D" )
+				{
+					FVector3D		vector3D; 
+					for ( auto itObject = jsonValue.GetObject().MemberBegin(), itObjectEnd = jsonValue.GetObject().MemberEnd(); itObject != itObjectEnd; ++itObject )
+						if ( itObject->value.IsInt() || itObject->value.IsFloat() )
+						{
+							if ( !strcmp( itObject->name.GetString(), "X" ) )			vector3D.x = itObject->value.GetFloat();
+							else if ( !strcmp( itObject->name.GetString(), "Y" ) )		vector3D.y = itObject->value.GetFloat();
+							else if ( !strcmp( itObject->name.GetString(), "Z" ) )		vector3D.z = itObject->value.GetFloat();
+						}
+
+					shaderVar.SetValueVector3D( vector3D );
+				}
+
+				// Vector4D type
+				else if ( type == "Vector4D" )
+				{
+					FVector4D		vector4D;
+					for ( auto itObject = jsonValue.GetObject().MemberBegin(), itObjectEnd = jsonValue.GetObject().MemberEnd(); itObject != itObjectEnd; ++itObject )
+						if ( itObject->value.IsInt() || itObject->value.IsFloat() )
+						{
+							if ( !strcmp( itObject->name.GetString(), "X" ) )			vector4D.x = itObject->value.GetFloat();
+							else if ( !strcmp( itObject->name.GetString(), "Y" ) )		vector4D.y = itObject->value.GetFloat();
+							else if ( !strcmp( itObject->name.GetString(), "Z" ) )		vector4D.z = itObject->value.GetFloat();
+							else if ( !strcmp( itObject->name.GetString(), "W" ) )		vector4D.w = itObject->value.GetFloat();
+						}
+
+					shaderVar.SetValueVector4D( vector4D );
 				}
 
 				// Color type
