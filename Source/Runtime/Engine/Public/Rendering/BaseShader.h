@@ -30,7 +30,7 @@ namespace le
 		virtual bool Initialize( const std::vector< ShaderVar >* InShaderVars = nullptr ) = 0;
 
 		/* On draw sprite */
-		virtual void OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const FVector3D& InPosition, CameraComponent* InCameraComponent );
+		virtual void OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition, CameraComponent* InCameraComponent );
 
 		/* Get name */
 		virtual std::string GetName() const = 0;

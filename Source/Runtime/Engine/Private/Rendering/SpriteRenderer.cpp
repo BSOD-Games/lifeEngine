@@ -31,7 +31,7 @@ le::SpriteRenderer::SpriteRenderer() :
  */
 bool le::SpriteRenderer::Initialize()
 {
-	float	x0 = -1.f,	y0 = -1.f;
+	float	x0 = 0.f,	y0 = 0.f;
 	float	x1 = 1.f,	y1 = 1.f;
 
 	SSpriteVertex		verteces[] =
@@ -73,7 +73,7 @@ void le::SpriteRenderer::Render( const SSpriteRenderObject& InSpriteRenderObject
 	BaseShader*			shader = InSpriteRenderObject.material->GetShader();
 	if ( shader )
 	{
-		shader->OnDrawSprite( GRHI, InSpriteRenderObject.size, InSpriteRenderObject.position, InCameraComponent );
+		shader->OnDrawSprite( GRHI, InSpriteRenderObject.size, InSpriteRenderObject.textureRect, InSpriteRenderObject.position, InCameraComponent );
 		GRHI->DrawIndexed( DO_TriangleFan, 0, 4, 0, 4 );
 	}
 }

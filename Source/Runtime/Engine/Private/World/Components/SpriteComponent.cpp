@@ -9,7 +9,8 @@
  * Constructor
  */
 le::SpriteComponent::SpriteComponent() :
-	material( nullptr )
+	material( nullptr ),
+	textureRect( 0.f, 0.f, 1.f, 1.f )
 {}
 
 /**
@@ -25,5 +26,5 @@ le::SpriteComponent::~SpriteComponent()
  */
 void le::SpriteComponent::Render()
 {
-	GRenderSystem->DrawSprite( type, material, size, GetGlobalPosition() );
+	GRenderSystem->DrawSprite( type, material, size, textureRect, GetGlobalPosition() );
 }

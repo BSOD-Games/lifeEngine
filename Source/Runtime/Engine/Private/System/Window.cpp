@@ -35,7 +35,7 @@ void le::Window::ShowMessageBox( const std::string& InMessage, EMessageBoxType I
 {
 	uint32				flags = 0;
 	const char* title = "Unknown";
-
+	
 	switch ( InType )
 	{
 	case MBT_Info:

@@ -21,6 +21,7 @@ le::RefCounted::~RefCounted()
  */
 void le::RefCounted::ReleaseRef()
 {
-	if ( !countReferences || !--countReferences )		
-		delete this;
+	// TODO: [yehor.pohuliaka] - Fix this when the deleting object is not a pointer
+	//if ( !countReferences || !--countReferences )		
+	//	delete this;
 }

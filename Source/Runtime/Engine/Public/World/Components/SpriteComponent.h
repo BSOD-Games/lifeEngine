@@ -46,6 +46,9 @@ namespace le
 		/* Set size */
 		FORCEINLINE void SetSize( const FVector2D& InSize )						{ size = InSize; }
 
+		/* Set texture rect. He must be from 0 to 1 in dependencies texture size */
+		FORCEINLINE void SetTextureRect( const FSRectFloat& InTextureRect )		{ textureRect = InTextureRect; }
+
 		/* Get type */
 		FORCEINLINE ESpriteType GetType() const									{ return type; }
 
@@ -55,8 +58,12 @@ namespace le
 		/* Get size */
 		FORCEINLINE const FVector2D& GetSize() const							{ return size; }
 
+		/* Get texture rect */
+		FORCEINLINE const FSRectFloat& GetTextureRect() const					{ return textureRect; }
+
 	private:
 		ESpriteType		type;
+		FSRectFloat		textureRect;
 		Material*		material;
 		FVector2D		size;
 	};

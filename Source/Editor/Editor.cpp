@@ -27,20 +27,23 @@ class Player : public le::Actor
 public:
 	/* Contructor */
 	Player() :
-		size( 64.f, 64.f )
+		size( 64.f, 64.f ),
+		move( 0.f, 0.f )
 	{}
 
 	/* Initialize */
 	void Initialize() override
 	{
 		cameraComponent.SetOrthoProjection( 0, 800, 0, 600, 0, 10 );
-		cameraComponent.SetActor( this );
+		cameraComponent.SetPosition( le::FVector3D( -300, 0, 0 ) ); /*5800*/
+		//cameraComponent.SetActor( this );
 		le::GRenderSystem->SetCamera( &cameraComponent );
 
 		spriteComponent.SetActor( this );
 		spriteComponent.SetSize( size );
 		spriteComponent.SetType( le::ST_Static );
 		spriteComponent.SetMaterial( Cast< le::Material >( le::GResourceSystem->FindResource( "Content/Materials/Player.lmt", le::RT_Material ) ) );
+		spriteComponent.SetTextureRect( le::FSRectFloat( 0.5410f, 0.2935f, 0.1343f, 0.3134f ) );
 
 		isInitialized = true;
 	}
@@ -49,16 +52,18 @@ public:
 	void Tick() override
 	{
 		if ( le::GInputSystem->IsKeyDown( le::BC_KeyA ) )
-			position.x -= 1.f;
+			move.x -= 1.f;
 
 		if ( le::GInputSystem->IsKeyDown( le::BC_KeyD ) )
-			position.x += 1.f;
+			move.x += 1.f;
 
 		if ( le::GInputSystem->IsKeyDown( le::BC_KeyW ) )
-			position.y += 1.f;
+			move.y += 1.f;
 
 		if ( le::GInputSystem->IsKeyDown( le::BC_KeyS ) )
-			position.y -= 1.f;
+			move.y -= 1.f;
+
+		position = le::FVector3D( move.x - move.y, ( move.x + move.y ) / 2.f, 1.f );
 	}
 
 	/* Render */
@@ -69,6 +74,7 @@ public:
 
 private:
 	le::FVector2D				size;
+	le::FVector2D move;
 	le::SpriteComponent			spriteComponent;
 	le::CameraComponent			cameraComponent;
 };
@@ -90,14 +96,14 @@ public:
 	/* Initialize game */
 	bool Initialize()
 	{
-		world = Cast< le::World >( le::GResourceSystem->FindResource( "Content/test.tmx", le::RT_World ) );
+		world = Cast< le::World >( le::GResourceSystem->FindResource( "Content/untitled.tmx", le::RT_World ) );
 		if ( !world )
 		{
 			world = new le::World();
-			LIFEENGINE_LOG_ERROR( "Parterya", "World [Content/test.tmx] not founded or not readed" );
+			LIFEENGINE_LOG_ERROR( "Parterya", "World [Content/untitled.tmx] not founded or not readed" );
 		}
 
-		world->Spawn< Player >( le::FVector3D( 400, 300, 1.f ) );	
+		world->Spawn< Player >( le::FVector3D( 0, 0, 1.f ) );	
 		return true;
 	}
 

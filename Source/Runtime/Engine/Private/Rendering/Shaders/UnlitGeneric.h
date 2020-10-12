@@ -30,7 +30,7 @@ namespace le
 		bool Initialize( const std::vector< ShaderVar >* InShaderVars = nullptr ) override;
 
 		/* On draw sprite */
-		void OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const FVector3D& InPosition, CameraComponent* InCameraComponent ) override;
+		void OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition, CameraComponent* InCameraComponent ) override;
 
 		/* Clear vars */
 		void ClearVars();
@@ -43,7 +43,6 @@ namespace le
 
 	private:
 		uint32			flags;
-		FSRectFloat		textureRect;
 		Texture2D*		baseTexture;
 		IRHIShader*		rhiShader;
 	};

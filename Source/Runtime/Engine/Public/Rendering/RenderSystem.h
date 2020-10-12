@@ -19,7 +19,7 @@ namespace le
 	{
 		/* Constructor */
 		SSpriteRenderObject();
-		SSpriteRenderObject( ESpriteType InSpriteType, Material* InMaterial, const FVector2D& InSize, const FVector3D& InPosition );
+		SSpriteRenderObject( ESpriteType InSpriteType, Material* InMaterial, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition );
 
 		/* Constructor of copy */
 		SSpriteRenderObject( const SSpriteRenderObject& InCopy );
@@ -33,6 +33,7 @@ namespace le
 		ESpriteType		type;
 		Material*		material;
 		FVector2D		size;
+		FSRectFloat		textureRect;
 		FVector3D		position;
 	};
 
@@ -49,10 +50,10 @@ namespace le
 		bool Initialize();
 
 		/* Draw sprite */
-		FORCEINLINE void DrawSprite( ESpriteType InSpriteType, Material* InMaterial, const FVector2D& InSize, const FVector3D& InPosition )
+		FORCEINLINE void DrawSprite( ESpriteType InSpriteType, Material* InMaterial, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition )
 		{
 			LIFEENGINE_ASSERT( InMaterial );
-			sprites.push_back( SSpriteRenderObject( InSpriteType, InMaterial, InSize, InPosition ) );
+			sprites.push_back( SSpriteRenderObject( InSpriteType, InMaterial, InSize, InTextureRect, InPosition ) );
 		}
 
 		/* Start render scene */

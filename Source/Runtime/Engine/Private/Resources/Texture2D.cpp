@@ -64,8 +64,8 @@ bool le::Texture2D::Deserialize( const Path& InPath )
 	if ( countMipmaps == 1 )		handle->GenerateMipmaps();
 
 	SSampler		sampler;
-	sampler.magFilter = SF_LinearMipmapLinear;
-	sampler.minFilter = SF_LinearMipmapLinear;
+	sampler.magFilter = SF_Nearest;
+	sampler.minFilter = SF_Nearest;
 	handle->SetSampler( sampler );
 
 	parser->ReleaseRef();

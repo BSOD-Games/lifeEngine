@@ -15,7 +15,6 @@
 le::UnlitGeneric::UnlitGeneric() :
 	flags( 0 ),
 	baseTexture( nullptr ),
-	textureRect( 0.f, 0.f, 1.f, 1.f ),
 	rhiShader( nullptr )
 {}
 
@@ -53,14 +52,6 @@ bool le::UnlitGeneric::Initialize( const std::vector< ShaderVar >* InShaderVars 
 					baseTexture->AddRef();
 				}
 				break;
-
-			case SVT_Vector4D:
-				if ( shaderVar.GetName() == "TextureRect" )
-				{
-					FVector4D		rect = shaderVar.GetValueVector4D();
-					textureRect = FSRectFloat( rect.x, rect.y, rect.z, rect.w );
-				}
-				break;
 			}
 		}
 
@@ -77,7 +68,7 @@ bool le::UnlitGeneric::Initialize( const std::vector< ShaderVar >* InShaderVars 
 /**
  * On draw sprite
  */
-void le::UnlitGeneric::OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const FVector3D& InPosition, CameraComponent* InCameraComponent )
+void le::UnlitGeneric::OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition, CameraComponent* InCameraComponent )
 {
 	if ( !rhiShader )		return;
 	if ( baseTexture )		InRHI->SetTexture2D( baseTexture->GetHandle() );
@@ -87,7 +78,7 @@ void le::UnlitGeneric::OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const
 	rhiShader->SetUniform( "baseTexture", 0 );
 	rhiShader->SetUniform( "position", InPosition );
 	rhiShader->SetUniform( "spriteSize", InSize );
-	rhiShader->SetUniform( "textureRect", textureRect );
+	rhiShader->SetUniform( "textureRect", InTextureRect );
 }
 
 /**
@@ -110,7 +101,6 @@ void le::UnlitGeneric::ClearVars()
 	}
 
 	flags = 0;
-	textureRect = FSRectFloat( 0.f, 0.f, 1.f, 1.f );
 }
 
 /**

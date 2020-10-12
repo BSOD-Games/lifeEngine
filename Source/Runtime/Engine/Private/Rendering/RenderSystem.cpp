@@ -42,7 +42,7 @@ bool le::RenderSystem::Initialize()
 void le::RenderSystem::Begin()
 {
 	LIFEENGINE_ASSERT( GRHI );
-	GRHI->Clear( SColor( 0, 0, 0, 0 ), CT_Color );
+	GRHI->Clear( SColor( 0, 0, 0, 0 ), CT_Color | CT_Depth );
 }
 
 /**
@@ -79,10 +79,11 @@ le::SSpriteRenderObject::SSpriteRenderObject() :
 /**
  * Constructor
  */
-le::SSpriteRenderObject::SSpriteRenderObject( ESpriteType InSpriteType, Material* InMaterial, const FVector2D& InSize, const FVector3D& InPosition ) :
+le::SSpriteRenderObject::SSpriteRenderObject( ESpriteType InSpriteType, Material* InMaterial, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition ) :
 	type( InSpriteType ),
 	material( InMaterial ),
 	size( InSize ),
+	textureRect( InTextureRect ),
 	position( InPosition )
 {
 	if ( material )			material->AddRef();
@@ -95,6 +96,7 @@ le::SSpriteRenderObject::SSpriteRenderObject( const SSpriteRenderObject& InCopy 
 	type( InCopy.type ),
 	material( InCopy.material ),
 	size( InCopy.size ),
+	textureRect( InCopy.textureRect ),
 	position( InCopy.position )
 {
 	if ( material )			material->AddRef();
@@ -117,6 +119,7 @@ le::SSpriteRenderObject& le::SSpriteRenderObject::operator=( const SSpriteRender
 	size = InRight.size;
 	material = InRight.material;
 	position = InRight.position;
+	textureRect = InRight.textureRect;
 
 	if ( material )		material->AddRef();
 	return *this;

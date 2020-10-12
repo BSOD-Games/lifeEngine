@@ -42,10 +42,22 @@ namespace le
 		std::vector< Actor* > GetActors() const override;
 
 	private:
+
+		struct STMXTileset
+		{
+			le::uint32						firstGID;
+			le::uint32						lastGID;
+			le::FVector2D					tileSize;
+			le::FVector2D					tileOffset;
+			le::Material*					material;
+			std::vector< FSRectFloat >		textureRects;
+		};
+
 		/* Clear parser */
 		void Clear();
 
-		void*			tmxMap;
+		void*							tmxMap;
+		std::vector< STMXTileset >		tilesets;
 	};
 }
 
