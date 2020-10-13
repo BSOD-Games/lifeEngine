@@ -29,7 +29,7 @@ namespace le
 		~SpriteComponent();
 
 		/* Render */
-		void Render();
+		void Render() const;
 
 		/* Set type */
 		FORCEINLINE void SetType( ESpriteType InType )							{ type = InType; }

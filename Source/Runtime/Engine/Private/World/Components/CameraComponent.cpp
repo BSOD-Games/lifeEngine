@@ -3,6 +3,10 @@
 
 #include "World/Components/CameraComponent.h"
 
+ // ------------------
+ // CAMERA COMPONENT
+ // ------------------
+
 /**
  * Constructor
  */
@@ -120,6 +124,79 @@ void le::CameraComponent::UpdateViewMatrix() const
 	axisUp = localAxisUp * quatRotation;
 	axisRight = glm::normalize( glm::cross( targetDirection, FVector3D( 0.f, 1.f, 0.f ) ) );
 	viewMatrix = glm::lookAt( globalPosition, globalPosition + targetDirection, axisUp );
+	frustum.Update( projectionMatrix, viewMatrix );
 
 	isNeedUpdateViewMatrix = false;
+}
+
+// ------------------
+// FRUSTUM
+// ------------------
+
+enum EFrustumSide
+{
+	FS_Right,
+	FS_Left,
+	FS_Bottom,
+	FS_Top,
+	FS_Back,
+	FS_Front
+};
+
+/**
+ * Update frustum
+ */
+void le::CameraComponent::Frustum::Update( const FMatrix4x4& InProjectionMatrix, const FMatrix4x4& InViewMatrix )
+{
+	FMatrix4x4				clippingPlane = InProjectionMatrix * InViewMatrix;
+
+	planes[ FS_Right ].x = clippingPlane[ 0 ].w - clippingPlane[ 0 ].x;
+	planes[ FS_Right ].y = clippingPlane[ 1 ].w - clippingPlane[ 1 ].x;
+	planes[ FS_Right ].z = clippingPlane[ 2 ].w - clippingPlane[ 2 ].x;
+	planes[ FS_Right ].w = clippingPlane[ 3 ].w - clippingPlane[ 3 ].x;
+
+	planes[ FS_Left ].x = clippingPlane[ 0 ].w + clippingPlane[ 0 ].x;
+	planes[ FS_Left ].y = clippingPlane[ 1 ].w + clippingPlane[ 1 ].x;
+	planes[ FS_Left ].z = clippingPlane[ 2 ].w + clippingPlane[ 2 ].x;
+	planes[ FS_Left ].w = clippingPlane[ 3 ].w + clippingPlane[ 3 ].x;
+
+	planes[ FS_Bottom ].x = clippingPlane[ 0 ].w + clippingPlane[ 0 ].y;
+	planes[ FS_Bottom ].y = clippingPlane[ 1 ].w + clippingPlane[ 1 ].y;
+	planes[ FS_Bottom ].z = clippingPlane[ 2 ].w + clippingPlane[ 2 ].y;
+	planes[ FS_Bottom ].w = clippingPlane[ 3 ].w + clippingPlane[ 3 ].y;
+
+	planes[ FS_Top ].x = clippingPlane[ 0 ].w - clippingPlane[ 0 ].y;
+	planes[ FS_Top ].y = clippingPlane[ 1 ].w - clippingPlane[ 1 ].y;
+	planes[ FS_Top ].z = clippingPlane[ 2 ].w - clippingPlane[ 2 ].y;
+	planes[ FS_Top ].w = clippingPlane[ 3 ].w - clippingPlane[ 3 ].y;
+
+	planes[ FS_Back ].x = clippingPlane[ 0 ].w + clippingPlane[ 0 ].z;
+	planes[ FS_Back ].y = clippingPlane[ 1 ].w + clippingPlane[ 1 ].z;
+	planes[ FS_Back ].z = clippingPlane[ 2 ].w + clippingPlane[ 2 ].z;
+	planes[ FS_Back ].w = clippingPlane[ 3 ].w + clippingPlane[ 3 ].z;
+
+	planes[ FS_Front ].x = clippingPlane[ 0 ].w - clippingPlane[ 0 ].z;
+	planes[ FS_Front ].y = clippingPlane[ 1 ].w - clippingPlane[ 1 ].z;
+	planes[ FS_Front ].z = clippingPlane[ 2 ].w - clippingPlane[ 2 ].z;
+	planes[ FS_Front ].w = clippingPlane[ 3 ].w - clippingPlane[ 3 ].z;
+
+	NormalizePlanes();
+}
+
+/**
+ * Normalize planes
+ */
+void le::CameraComponent::Frustum::NormalizePlanes()
+{
+	for ( uint32 side = 0; side < 6; ++side )
+	{
+		float		magnitude = glm::sqrt(  planes[ side ].x * planes[ side ].x +
+											planes[ side ].y * planes[ side ].y +
+											planes[ side ].z * planes[ side ].z );
+
+		planes[ side ].x /= magnitude;
+		planes[ side ].y /= magnitude;
+		planes[ side ].z /= magnitude;
+		planes[ side ].w /= magnitude;
+	}
 }

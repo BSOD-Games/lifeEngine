@@ -13,6 +13,40 @@ namespace le
 	class CameraComponent : public BaseComponent
 	{
 	public:
+
+		class Frustum
+		{
+		public:
+			/* Update frustum */
+			void Update( const FMatrix4x4& InProjectionMatrix, const FMatrix4x4& InViewMatrix );
+
+			/* Is object visible */
+			FORCEINLINE bool IsVisible( const FVector3D& InMinPosition, const FVector3D& InMaxPosition ) const
+			{
+				for ( uint32 side = 0; side < 6; ++side )
+				{
+					if ( planes[ side ].x * InMinPosition.x + planes[ side ].y * InMinPosition.y + planes[ side ].z * InMinPosition.z + planes[ side ].w > 0 )  continue;
+					if ( planes[ side ].x * InMaxPosition.x + planes[ side ].y * InMinPosition.y + planes[ side ].z * InMinPosition.z + planes[ side ].w > 0 )  continue;
+					if ( planes[ side ].x * InMaxPosition.x + planes[ side ].y * InMaxPosition.y + planes[ side ].z * InMinPosition.z + planes[ side ].w > 0 )  continue;
+					if ( planes[ side ].x * InMinPosition.x + planes[ side ].y * InMaxPosition.y + planes[ side ].z * InMinPosition.z + planes[ side ].w > 0 )  continue;
+					if ( planes[ side ].x * InMinPosition.x + planes[ side ].y * InMinPosition.y + planes[ side ].z * InMaxPosition.z + planes[ side ].w > 0 )  continue;
+					if ( planes[ side ].x * InMaxPosition.x + planes[ side ].y * InMinPosition.y + planes[ side ].z * InMaxPosition.z + planes[ side ].w > 0 )  continue;
+					if ( planes[ side ].x * InMaxPosition.x + planes[ side ].y * InMaxPosition.y + planes[ side ].z * InMaxPosition.z + planes[ side ].w > 0 )  continue;
+					if ( planes[ side ].x * InMinPosition.x + planes[ side ].y * InMaxPosition.y + planes[ side ].z * InMaxPosition.z + planes[ side ].w > 0 )  continue;
+
+					return false;
+				}
+
+				return true;
+			}
+
+		private:
+			/* Normalize planes in frustum */
+			void NormalizePlanes();
+
+			FVector4D		planes[ 6 ];
+		};
+
 		/* Constructor */
 		CameraComponent();
 
@@ -100,6 +134,9 @@ namespace le
 		/* Get projection matrix */
 		FORCEINLINE const FMatrix4x4& GetProjectionMatrix() const		{ return projectionMatrix; }
  
+		/* Get frustum */
+		FORCEINLINE const Frustum& GetFrustum() const					{ return frustum; }
+
 	private:
 		/* Update view matrix */
 		void UpdateViewMatrix() const;
@@ -113,7 +150,8 @@ namespace le
 		mutable FVector3D		axisRight;
 		FVector3D				eulerRotation;
 		FQuaternion				quatRotation;
-		
+		mutable Frustum			frustum;
+
 		FVector3D				localTargetDirection;
 		FVector3D				localAxisUp;
 

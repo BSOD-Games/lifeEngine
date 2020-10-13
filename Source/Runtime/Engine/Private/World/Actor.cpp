@@ -31,4 +31,12 @@ void le::Actor::Tick()
 void le::Actor::Render()
 {}
 
+/**
+ * Is visible actor
+ */
+bool le::Actor::IsVisible( const CameraComponent& InCameraComponent ) const
+{
+	return true;
+}
+
 

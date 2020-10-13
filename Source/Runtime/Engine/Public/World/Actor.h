@@ -10,6 +10,8 @@
 
 namespace le
 {
+	class CameraComponent;
+
 	class Actor : public Object
 	{
 	public:
@@ -33,6 +35,9 @@ namespace le
 
 		/* Is initialized */
 		FORCEINLINE bool IsInitialized() const								{ return isInitialized; }
+
+		/* Is visible */
+		virtual bool IsVisible( const CameraComponent& InCameraComponent ) const;
 
 		/* Get position */
 		FORCEINLINE const FVector3D& GetPosition()							{ return position; }

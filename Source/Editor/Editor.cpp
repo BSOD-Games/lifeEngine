@@ -72,6 +72,15 @@ public:
 		spriteComponent.Render();
 	}
 
+	/* Is visible */
+	bool IsVisible( const le::CameraComponent& InCameraComponent ) const override
+	{
+		le::FVector3D		position = spriteComponent.GetGlobalPosition();
+		le::FVector2D		size = spriteComponent.GetSize();
+
+		return InCameraComponent.GetFrustum().IsVisible( position, le::FVector3D( position.x + size.x, position.y + size.y, position.z ) );
+	}
+
 private:
 	le::FVector2D				size;
 	le::FVector2D move;

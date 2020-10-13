@@ -24,7 +24,7 @@ le::SpriteComponent::~SpriteComponent()
 /**
  * Render sprite
  */
-void le::SpriteComponent::Render()
+void le::SpriteComponent::Render() const
 {
 	GRenderSystem->DrawSprite( type, material, size, textureRect, GetGlobalPosition() );
 }

@@ -3,6 +3,7 @@
 
 #include "Logging/LogMacros.h"
 #include "System/FileSystem.h"
+#include "Rendering/RenderSystem.h"
 #include "Resources/Parsers/IParserWorld.h"
 #include "Resources/Parsers/ParsersWorldFactory.h"
 #include "Resources/World.h"
@@ -86,11 +87,24 @@ void le::World::Tick()
  */
 void le::World::Render()
 {
+	// TODO: [yehor.pohuliaka] Implement place for storage scene cameras (example: player camera, ui camera, camera for mirror and etc). Idea: storage and set cameras implement in World (SetMainCamera, SetUICamera, etc)
+	CameraComponent*		cameraComponent = GRenderSystem->GetCamera();
 	for ( uint32 index = 0, count = static_cast< uint32 >( spriteComponents.size() ); index < count; ++index )
-		spriteComponents[ index ].Render();
+	{
+		const SpriteComponent&		spriteComponent = spriteComponents[ index ];
+		FVector3D					position = spriteComponent.GetGlobalPosition();
+		FVector2D					size = spriteComponent.GetSize();
+
+		// Rendering visible sprites
+		if ( !cameraComponent || cameraComponent->GetFrustum().IsVisible( position, FVector3D( position.x + size.x, position.y + size.y, position.z ) ) )
+			spriteComponent.Render();
+	}
 
 	for ( uint32 index = 0, count = static_cast< uint32 >( actors.size() ); index < count; ++index )
+	{
+		// Rendering actors
 		actors[ index ]->Render();
+	}
 }
 
 /**

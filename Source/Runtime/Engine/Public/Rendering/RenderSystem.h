@@ -74,6 +74,9 @@ namespace le
 			if ( InCameraComponent )	InCameraComponent->AddRef();
 		}
 
+		/* Get camera */
+		FORCEINLINE CameraComponent* GetCamera() const			{ return currentCamera; }
+
 	private:
 		SpriteRenderer							spriteRenderer;
 		CameraComponent*						currentCamera;
