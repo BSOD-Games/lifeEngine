@@ -151,6 +151,14 @@ target_link_libraries( ${MODULE_NAME} OpenGL4RHI )
 
 # ================================================
 #
+#
+# --- Install ---
+
+install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/Lib/${ARCH_TYPE} )
+install( DIRECTORY Public/ DESTINATION ${BUILD_DIR}/Include/Engine/ )
+
+# ================================================
+#
 #   --- Find and link extlibs ---
 #
 

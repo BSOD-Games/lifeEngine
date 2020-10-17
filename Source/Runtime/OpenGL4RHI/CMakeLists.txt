@@ -49,6 +49,14 @@ include_directories( ../Engine/Public )
 
 # ================================================
 #
+#
+# --- Install ---
+
+install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/Lib/${ARCH_TYPE} )
+install( DIRECTORY Public/ DESTINATION ${BUILD_DIR}/Include/OpenGL4RHI/ )
+
+# ================================================
+#
 #   --- Find and link extlibs ---
 #
 

@@ -17,7 +17,6 @@ git_init()
 
 set( MODULE_ENGINE Source/Runtime/Engine )
 set( MODULE_OPENGL4RHI Source/Runtime/OpenGL4RHI )
-set( EDITOR Source/Editor )
 
 # ================================================
 #
@@ -42,6 +41,7 @@ if ( EXISTS ${EXTLIBS_DIR} )
 
 	include( ${EXTLIBS_DIR}/cmake/install_extlibs.cmake )
 	set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${EXTLIBS_DIR}/CMake" )
+	install_extlibs( ${EXTLIBS_DIR} ${CMAKE_INSTALL_PREFIX}/Extlibs )
 endif()
 
 # Get OS name
@@ -89,7 +89,8 @@ endif()
 #   --- Install settings ---
 #
 
-install( DIRECTORY Content/Content DESTINATION ${BUILD_DIR}/Engine/ )
+install( DIRECTORY Content/Content DESTINATION ${BUILD_DIR}/Content/Engine/ )
+install( FILES CMake/FindlifeEngine.cmake DESTINATION ${BUILD_DIR}/CMake )
 
 # ================================================
 #
@@ -97,5 +98,4 @@ install( DIRECTORY Content/Content DESTINATION ${BUILD_DIR}/Engine/ )
 #
 
 add_subdirectory( ${MODULE_ENGINE} )
-add_subdirectory( ${EDITOR} )
 add_subdirectory( ${MODULE_OPENGL4RHI} )
