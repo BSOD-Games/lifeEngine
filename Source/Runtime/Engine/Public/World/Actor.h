@@ -4,9 +4,12 @@
 #ifndef ACTOR_H
 #define ACTOR_H
 
+#include <vector>
+
 #include "Misc/EngineDefines.h"
 #include "Misc/Object.h"
 #include "Math/Math.h"
+#include "World/ActorVar.h"
 
 namespace le
 {
@@ -22,7 +25,7 @@ namespace le
 		virtual ~Actor() {}
 
 		/* Initialize */
-		virtual void Initialize();
+		virtual void Initialize( std::vector< ActorVar >* InActorVars = nullptr );
 
 		/* Tick */
 		virtual void Tick();

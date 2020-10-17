@@ -14,6 +14,7 @@ namespace le
 	class InputSystem;
 	class Window;
 	class Engine;
+	class ActorFactory;
 
 	class ShaderFactory;
 	class ParsersTexture2DFactory;
@@ -59,6 +60,9 @@ namespace le
 
 	/* Parsers World factory */
 	extern ParsersWorldFactory*			GParsersWorldFactory;
+
+	/* Actor factory */
+	extern ActorFactory*				GActorFactory;
 }
 
 #endif // !ENGINEGLOBALS_H

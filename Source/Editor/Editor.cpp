@@ -16,6 +16,7 @@
 #include <World/Actor.h>
 #include <World/Components/SpriteComponent.h>
 #include <World/Components/CameraComponent.h>
+#include <World/ActorFactory.h>
 
 #include <Resources/Resource.h>
 #include <Resources/Texture2D.h>
@@ -27,15 +28,24 @@ class Player : public le::Actor
 public:
 	/* Contructor */
 	Player() :
-		size( 64.f, 64.f ),
-		move( 0.f, 0.f )
+		size( 64.f, 64.f )
 	{}
 
 	/* Initialize */
-	void Initialize() override
+	void Initialize( std::vector< le::ActorVar >* InActorVars ) override
 	{
+		for ( le::uint32 index = 0, count = InActorVars->size(); index < count; ++index )
+		{
+			const le::ActorVar&		actorVar = InActorVars->at( index );
+			if ( actorVar.GetName() == "Position" )
+			{
+				position = actorVar.GetValueVector3D();
+				cameraComponent.SetPosition( le::FVector3D( position.x-400, position.y-300, 0 ) );
+			}
+		}
+
 		cameraComponent.SetOrthoProjection( 0, 800, 0, 600, 0, 10 );
-		cameraComponent.SetPosition( le::FVector3D( -300, 0, 0 ) ); /*5800*/
+		//cameraComponent.SetPosition( le::FVector3D( -300, 0, 0 ) ); /*5800*/
 		//cameraComponent.SetActor( this );
 		le::GRenderSystem->SetCamera( &cameraComponent );
 
@@ -51,10 +61,12 @@ public:
 	/* Tick */
 	void Tick() override
 	{
-		if ( le::GInputSystem->IsKeyDown( le::BC_KeyA ) )
-			move.x -= 1.f;
+		le::FVector2D	move( 0.f, 0.f );
 
 		if ( le::GInputSystem->IsKeyDown( le::BC_KeyD ) )
+			move.x -= 1.f;
+
+		if ( le::GInputSystem->IsKeyDown( le::BC_KeyA ) )
 			move.x += 1.f;
 
 		if ( le::GInputSystem->IsKeyDown( le::BC_KeyW ) )
@@ -63,7 +75,8 @@ public:
 		if ( le::GInputSystem->IsKeyDown( le::BC_KeyS ) )
 			move.y -= 1.f;
 
-		position = le::FVector3D( move.x - move.y, ( move.x + move.y ) / 2.f, 1.f );
+		position += le::FVector3D( move.x - move.y, ( move.x + move.y ) / 2.f, 0.f );
+		cameraComponent.SetPosition( le::FVector3D( position.x - 400, position.y - 300, 0 ) );
 	}
 
 	/* Render */
@@ -82,10 +95,60 @@ public:
 	}
 
 private:
-	le::FVector2D				size;
-	le::FVector2D move;
+	le::FVector2D				size;	
 	le::SpriteComponent			spriteComponent;
 	le::CameraComponent			cameraComponent;
+};
+
+class StaticProp : public le::Actor
+{
+public:
+	/* Initialize */
+	void Initialize( std::vector< le::ActorVar >* InActorVars ) override
+	{
+		for ( le::uint32 index = 0, count = InActorVars->size(); index < count; ++index )
+		{
+			const le::ActorVar& actorVar = InActorVars->at( index );
+			if ( actorVar.GetName() == "Position" )
+			{
+				position = actorVar.GetValueVector3D();
+			}
+			else if ( actorVar.GetName() == "Size" )
+			{
+				spriteComponent.SetSize( actorVar.GetValueVector2D() );
+			}
+			else if ( actorVar.GetName() == "Material" )
+			{
+				spriteComponent.SetMaterial( actorVar.GetValueMaterial() );
+			}
+			else if ( actorVar.GetName() == "TextureRect" )
+			{
+				spriteComponent.SetTextureRect( actorVar.GetValueRectFloat() );
+			}
+		}
+
+		spriteComponent.SetActor( this );
+		spriteComponent.SetType( le::ST_Static );
+
+		isInitialized = true;
+	}
+
+	/* Render */
+	void Render() override
+	{
+		spriteComponent.Render();
+	}
+
+	/* Is visible */
+	bool IsVisible( const le::CameraComponent& InCameraComponent ) const override
+	{
+		le::FVector3D		position = spriteComponent.GetGlobalPosition();
+		le::FVector2D		size = spriteComponent.GetSize();
+
+		return InCameraComponent.GetFrustum().IsVisible( position, le::FVector3D( position.x + size.x, position.y + size.y, position.z ) );
+	}
+private:
+	le::SpriteComponent			spriteComponent;
 };
 
 class Game : public le::IGame
@@ -105,14 +168,16 @@ public:
 	/* Initialize game */
 	bool Initialize()
 	{
+		le::GActorFactory->Register( "Player", []() -> le::Actor* { return new Player(); } );
+		le::GActorFactory->Register( "StaticProp", []() -> le::Actor* { return new StaticProp(); } );
+
 		world = Cast< le::World >( le::GResourceSystem->FindResource( "Content/untitled.tmx", le::RT_World ) );
 		if ( !world )
 		{
 			world = new le::World();
 			LIFEENGINE_LOG_ERROR( "Parterya", "World [Content/untitled.tmx] not founded or not readed" );
 		}
-
-		world->Spawn< Player >( le::FVector3D( 0, 0, 1.f ) );	
+		
 		return true;
 	}
 

@@ -127,7 +127,7 @@ void le::World::Kill( Actor* InActor )
 	LIFEENGINE_ASSERT( InActor );
 	for ( uint32 index = 0, count = static_cast< uint32 >( actors.size() ); index < count; ++index )
 	{
-		Actor* actor = actors[ index ];
+		Actor*		actor = actors[ index ];
 
 		actor->ReleaseRef();
 		actors.erase( index + actors.begin() );

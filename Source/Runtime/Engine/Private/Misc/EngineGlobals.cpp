@@ -13,6 +13,7 @@
 #include "Resources/Parsers/ParsersConfigFactory.h"
 #include "Resources/Parsers/ParsersMaterialFactory.h"
 #include "Resources/Parsers/ParsersWorldFactory.h"
+#include "World/ActorFactory.h"
 #include "Engine.h"
 
 le::Logger*							le::GLogger = new le::Logger();
@@ -28,3 +29,4 @@ le::ParsersTexture2DFactory*		le::GParsersTexture2DFactory = new le::ParsersText
 le::ParsersConfigFactory*			le::GParsersConfigFactory = new le::ParsersConfigFactory();
 le::ParsersMaterialFactory*			le::GParsersMaterialFactory = new le::ParsersMaterialFactory();
 le::ParsersWorldFactory*			le::GParsersWorldFactory = new le::ParsersWorldFactory();
+le::ActorFactory*					le::GActorFactory = new le::ActorFactory();

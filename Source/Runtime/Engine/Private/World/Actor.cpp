@@ -14,7 +14,7 @@ le::Actor::Actor() :
 /**
  * Initialize
  */
-void le::Actor::Initialize()
+void le::Actor::Initialize( std::vector< ActorVar >* InActorVars )
 {
 	isInitialized = true;
 }
