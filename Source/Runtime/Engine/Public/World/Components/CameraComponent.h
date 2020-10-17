@@ -21,24 +21,7 @@ namespace le
 			void Update( const FMatrix4x4& InProjectionMatrix, const FMatrix4x4& InViewMatrix );
 
 			/* Is object visible */
-			FORCEINLINE bool IsVisible( const FVector3D& InMinPosition, const FVector3D& InMaxPosition ) const
-			{
-				for ( uint32 side = 0; side < 6; ++side )
-				{
-					if ( planes[ side ].x * InMinPosition.x + planes[ side ].y * InMinPosition.y + planes[ side ].z * InMinPosition.z + planes[ side ].w > 0 )  continue;
-					if ( planes[ side ].x * InMaxPosition.x + planes[ side ].y * InMinPosition.y + planes[ side ].z * InMinPosition.z + planes[ side ].w > 0 )  continue;
-					if ( planes[ side ].x * InMaxPosition.x + planes[ side ].y * InMaxPosition.y + planes[ side ].z * InMinPosition.z + planes[ side ].w > 0 )  continue;
-					if ( planes[ side ].x * InMinPosition.x + planes[ side ].y * InMaxPosition.y + planes[ side ].z * InMinPosition.z + planes[ side ].w > 0 )  continue;
-					if ( planes[ side ].x * InMinPosition.x + planes[ side ].y * InMinPosition.y + planes[ side ].z * InMaxPosition.z + planes[ side ].w > 0 )  continue;
-					if ( planes[ side ].x * InMaxPosition.x + planes[ side ].y * InMinPosition.y + planes[ side ].z * InMaxPosition.z + planes[ side ].w > 0 )  continue;
-					if ( planes[ side ].x * InMaxPosition.x + planes[ side ].y * InMaxPosition.y + planes[ side ].z * InMaxPosition.z + planes[ side ].w > 0 )  continue;
-					if ( planes[ side ].x * InMinPosition.x + planes[ side ].y * InMaxPosition.y + planes[ side ].z * InMaxPosition.z + planes[ side ].w > 0 )  continue;
-
-					return false;
-				}
-
-				return true;
-			}
+			bool IsVisible( const FVector3D& InMinPosition, const FVector3D& InMaxPosition ) const;
 
 		private:
 			/* Normalize planes in frustum */
