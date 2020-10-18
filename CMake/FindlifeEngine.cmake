@@ -7,6 +7,8 @@
 #	[out]	LIFEENGINE_ENGINE_DEBUG_LIB		- lib Engine module for debug
 #	[out]	LIFEENGINE_OPENGL4RHI_LIB		- lib OpenGL4RHI module
 #	[out]	LIFEENGINE_OPENGL4RHI_DEBUG_LIB	- lib OpenGL4RHI module for debug
+#	[out]	LIFEENGINE_LAUNCHER_LIB			- lib Launcher module
+#	[out]	LIFEENGINE_LAUNCHER_DEBUG_LIB	- lib Launcher module for debug
 #	[out]	LIFEENGINE_EXTLIBS_INCLUDE		- extlibs include
 #	[out]	LIFEENGINE_EXTLIBS_LIB			- extlibs
 #	[out]	LIFEENGINE_EXTLIBS_DEBUG_LIB	- extlibs for debug
@@ -55,12 +57,25 @@ find_library( 	LIFEENGINE_OPENGL4RHI_DEBUG_LIB
                 NAMES OpenGL4RHI-Debug
                 PATH_SUFFIXES Lib/${ARCH_TYPE} lib/${ARCH_TYPE} lib lib32 lib64 lib/x86_64-linux-gnu
                 PATHS ${LIFEENGINE_SEARCH_PATHS} )
+
+find_library( 	LIFEENGINE_LAUNCHER_LIB 
+                NAMES Launcher
+                PATH_SUFFIXES Lib/${ARCH_TYPE} lib/${ARCH_TYPE} lib lib32 lib64 lib/x86_64-linux-gnu
+                PATHS ${LIFEENGINE_SEARCH_PATHS} )			
+
+find_library( 	LIFEENGINE_LAUNCHER_DEBUG_LIB 
+                NAMES Launcher-Debug
+                PATH_SUFFIXES Lib/${ARCH_TYPE} lib/${ARCH_TYPE} lib lib32 lib64 lib/x86_64-linux-gnu
+                PATHS ${LIFEENGINE_SEARCH_PATHS} )
 		
-if ( LIFEENGINE_INCLUDE AND LIFEENGINE_CONTENT AND LIFEENGINE_ENGINE_LIB AND LIFEENGINE_ENGINE_DEBUG_LIB AND LIFEENGINE_OPENGL4RHI_LIB AND LIFEENGINE_OPENGL4RHI_DEBUG_LIB )
+if ( 	LIFEENGINE_INCLUDE AND LIFEENGINE_CONTENT AND LIFEENGINE_ENGINE_LIB AND 
+		LIFEENGINE_ENGINE_DEBUG_LIB AND LIFEENGINE_OPENGL4RHI_LIB AND LIFEENGINE_OPENGL4RHI_DEBUG_LIB AND 
+		LIFEENGINE_LAUNCHER_LIB AND LIFEENGINE_LAUNCHER_DEBUG_LIB )
+	
 	set( LIFEENGINE_FOUND true )
 	
 	# Set includ paths
-	set( LIFEENGINE_INCLUDE ${LIFEENGINE_INCLUDE_DIR}/Engine )
+	set( LIFEENGINE_INCLUDE ${LIFEENGINE_INCLUDE_DIR}/Engine ${LIFEENGINE_INCLUDE_DIR}/Launcher )
 	
 	# ================================================
 	#

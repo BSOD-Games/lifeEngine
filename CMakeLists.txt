@@ -17,6 +17,7 @@ git_init()
 
 set( MODULE_ENGINE Source/Runtime/Engine )
 set( MODULE_OPENGL4RHI Source/Runtime/OpenGL4RHI )
+set( MODULE_LAUNCHER Source/Runtime/Launcher )
 
 # ================================================
 #
@@ -99,3 +100,4 @@ install( FILES CMake/FindlifeEngine.cmake DESTINATION ${BUILD_DIR}/CMake )
 
 add_subdirectory( ${MODULE_ENGINE} )
 add_subdirectory( ${MODULE_OPENGL4RHI} )
+add_subdirectory( ${MODULE_LAUNCHER} )

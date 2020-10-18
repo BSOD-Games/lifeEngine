@@ -35,7 +35,5 @@ Win32/*
 build/*
 src/build/*
 build-*/*
-src/extlibs/*
 src/.vscode/*
-src/stdshaders/shaders/*
 CMakeLists.txt.user
