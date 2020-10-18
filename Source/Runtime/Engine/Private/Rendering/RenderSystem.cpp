@@ -1,6 +1,8 @@
 // Copyright BSOD-Games, All Rights Reserved.
 // Authors: Yehor Pohuliaka (zombiHello)
 
+#include <algorithm>
+
 #include "Misc/EngineDefines.h"
 #include "Misc/EngineGlobals.h"
 #include "Logging/LogMacros.h"
@@ -49,7 +51,14 @@ void le::RenderSystem::Begin()
  * End render scene
  */
 void le::RenderSystem::End()
-{}
+{
+	// Sorting sprites by Z coord
+	std::sort( sprites.begin(), sprites.end(),
+			   []( const SSpriteRenderObject& Left, const SSpriteRenderObject& Right ) -> bool
+			   {
+				   return Left.position.z < Right.position.z;
+			   } );
+}
 
 /**
  * Present scene

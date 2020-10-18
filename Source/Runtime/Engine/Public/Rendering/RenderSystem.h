@@ -4,7 +4,7 @@
 #ifndef RENDERSYSTEM_H
 #define RENDERSYSTEM_H
 
-#include <list>
+#include <vector>
 
 #include "System/Window.h"
 #include "RHI/IRHI.h"
@@ -81,7 +81,7 @@ namespace le
 		SpriteRenderer							spriteRenderer;
 		CameraComponent*						currentCamera;
 
-		std::list< SSpriteRenderObject >		sprites;
+		std::vector< SSpriteRenderObject >		sprites;
 	};
 }
 
