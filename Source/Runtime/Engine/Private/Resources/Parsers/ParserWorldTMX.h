@@ -39,7 +39,7 @@ namespace le
 		std::vector< SpriteComponent > GetSpriteComponents() const override;
 
 		/* Get actors */
-		std::vector< Actor* > GetActors() const override;
+		std::vector< SWorldObject > GetObjects() const override;
 
 	private:
 

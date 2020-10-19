@@ -14,6 +14,13 @@
 namespace le
 {
 	class CameraComponent;
+	class World;
+
+	enum EActorStatus
+	{
+		AS_Live,
+		AS_Dead
+	};
 
 	class Actor : public Object
 	{
@@ -25,7 +32,7 @@ namespace le
 		virtual ~Actor() {}
 
 		/* Initialize */
-		virtual void Initialize( std::vector< ActorVar >* InActorVars = nullptr );
+		virtual void Initialize( World* InWorld, const std::vector< ActorVar >* InActorVars = nullptr );
 
 		/* Tick */
 		virtual void Tick();
@@ -45,9 +52,13 @@ namespace le
 		/* Get position */
 		FORCEINLINE const FVector3D& GetPosition()							{ return position; }
 
+		/* Get actor status */
+		FORCEINLINE EActorStatus GetStatus() const							{ return status; }
+
 	protected:
 		bool				isInitialized;
-		FVector3D			position;		
+		FVector3D			position;
+		EActorStatus		status;
 	};
 }
 

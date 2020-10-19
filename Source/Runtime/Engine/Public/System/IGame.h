@@ -8,6 +8,8 @@
 
 namespace le
 {
+	class PlayerController;
+
 	class IGame : public Object
 	{
 	public:
@@ -22,6 +24,9 @@ namespace le
 
 		/* Render frame */
 		virtual void RenderFrame() = 0;
+
+		/* Get player controller */
+		virtual PlayerController* GetPlayerController() const = 0;
 	};
 }
 

@@ -118,7 +118,11 @@ namespace le
 		FORCEINLINE const FMatrix4x4& GetProjectionMatrix() const		{ return projectionMatrix; }
  
 		/* Get frustum */
-		FORCEINLINE const Frustum& GetFrustum() const					{ return frustum; }
+		FORCEINLINE const Frustum& GetFrustum() const					
+		{ 
+			if ( isNeedUpdateViewMatrix )		UpdateViewMatrix();
+			return frustum; 
+		}
 
 	private:
 		/* Update view matrix */

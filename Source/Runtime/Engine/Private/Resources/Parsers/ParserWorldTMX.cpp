@@ -9,7 +9,6 @@
 #include "Logging/LogMacros.h"
 #include "System/FileSystem.h"
 #include "Resources/ResourceSystem.h"
-#include "World/ActorFactory.h"
 #include "ParserWorldTMX.h"
 
 /**
@@ -185,13 +184,13 @@ std::vector< le::SpriteComponent > le::ParserWorldTMX::GetSpriteComponents() con
 /**
  * Get actors on level 
  */
-std::vector< le::Actor* > le::ParserWorldTMX::GetActors() const
+std::vector< le::SWorldObject > le::ParserWorldTMX::GetObjects() const
 {
-	if ( !tmxMap )	return std::vector< Actor* >();
+	if ( !tmxMap )	return std::vector< SWorldObject >();
 
 	tmx::Map*									tmxMap = static_cast< tmx::Map* >( this->tmxMap );
 	const std::vector< tmx::Layer::Ptr >&		tmxLayers = tmxMap->getLayers();
-	std::vector< Actor* >						actors;
+	std::vector< SWorldObject >					worldObjects;
 
 	// Getting max coord XY in coords system of Tiled Map Editor
 	FVector2D					tmxMaxXY;
@@ -215,11 +214,10 @@ std::vector< le::Actor* > le::ParserWorldTMX::GetActors() const
 				const std::string&			objectName = object.getName();
 				if ( objectName.empty() )	continue;
 
-				Actor*			actor = GActorFactory->Create( objectName );
-				if ( !actor )		continue;
+				SWorldObject		worldObject;
+				worldObject.name = objectName;
 
 				// Getting transformation and settings from object
-				std::vector< ActorVar >		actorVars;
 				{
 					const tmx::FloatRect&	objectAABB = object.getAABB();
 					
@@ -228,7 +226,7 @@ std::vector< le::Actor* > le::ParserWorldTMX::GetActors() const
 						ActorVar		actorVar;
 						actorVar.SetName( "Position" );
 						actorVar.SetValueVector3D( MathCartesianToIsometric( tmxMaxXY.x - objectAABB.top, tmxMaxXY.y - objectAABB.left, static_cast< float >( indexLayer ) ) );
-						actorVars.push_back( actorVar );
+						worldObject.actorVars.push_back( actorVar );
 					}
 
 					// Getting size
@@ -236,7 +234,7 @@ std::vector< le::Actor* > le::ParserWorldTMX::GetActors() const
 						ActorVar		actorVar;
 						actorVar.SetName( "Size" );
 						actorVar.SetValueVector2D( FVector2D( objectAABB.width, objectAABB.height ) );
-						actorVars.push_back( actorVar );
+						worldObject.actorVars.push_back( actorVar );
 					}
 
 					// If tile id in object more 0 - getting tile for seting actor view
@@ -258,8 +256,8 @@ std::vector< le::Actor* > le::ParserWorldTMX::GetActors() const
 							varTextureRect.SetName( "TextureRect" );
 							varTextureRect.SetValueRectFloat( tileset.textureRects[ tileID - tileset.firstGID ] );
 							
-							actorVars.push_back( varMaterial );
-							actorVars.push_back( varTextureRect );
+							worldObject.actorVars.push_back( varMaterial );
+							worldObject.actorVars.push_back( varTextureRect );
 							break;
 						}
 					}
@@ -299,15 +297,14 @@ std::vector< le::Actor* > le::ParserWorldTMX::GetActors() const
 						break;
 					}
 
-					actorVars.push_back( actorVar );
+					worldObject.actorVars.push_back( actorVar );
 				}
 				
-				actor->Initialize( &actorVars );
-				actors.push_back( actor );
+				worldObjects.push_back( worldObject );
 			}
 		}
 
-	return actors;
+	return worldObjects;
 }
 
 /**

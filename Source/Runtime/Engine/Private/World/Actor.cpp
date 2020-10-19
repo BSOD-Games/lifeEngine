@@ -8,13 +8,14 @@
  */
 le::Actor::Actor() :
 	isInitialized( false ),
-	position( 0.f, 0.f, 0.f )
+	position( 0.f, 0.f, 0.f ),
+	status( AS_Live )
 {}
 
 /**
  * Initialize
  */
-void le::Actor::Initialize( std::vector< ActorVar >* InActorVars )
+void le::Actor::Initialize( World* InWorld, const std::vector< ActorVar >* InActorVars )
 {
 	isInitialized = true;
 }

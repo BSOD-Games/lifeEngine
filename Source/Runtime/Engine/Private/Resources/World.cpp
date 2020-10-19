@@ -1,12 +1,14 @@
 // Copyright BSOD-Games, All Rights Reserved.
 // Authors: Yehor Pohuliaka (zombiHello)
 
+#include "Misc/EngineGlobals.h"
 #include "Logging/LogMacros.h"
 #include "System/FileSystem.h"
 #include "Rendering/RenderSystem.h"
 #include "Resources/Parsers/IParserWorld.h"
 #include "Resources/Parsers/ParsersWorldFactory.h"
 #include "Resources/World.h"
+#include "World/ActorFactory.h"
 
 /**
  * Constructor
@@ -63,10 +65,18 @@ bool le::World::Deserialize( const Path& InPath )
 
 	if ( !parser->SetFile( fileHandle ) )	return false;
 	spriteComponents = parser->GetSpriteComponents();
-	actors = parser->GetActors();
+	
+	std::vector< SWorldObject >		worldObjects = parser->GetObjects();
+	for ( uint32 index = 0, count = static_cast< uint32 >( worldObjects.size() ); index < count; ++index )
+	{
+		const SWorldObject&		worldObject = worldObjects[ index ];
+		Actor*					actor = GActorFactory->Create( worldObject.name );
+		if ( !actor )	continue;
 
-	for ( uint32 index = 0, count = static_cast< uint32 >( actors.size() ); index < count; ++index )
-		actors[ index ]->AddRef();
+		actor->AddRef();
+		actor->Initialize( this, &worldObject.actorVars );
+		actors.push_back( actor );
+	}
 
 	parser->ReleaseRef();
 	GFileSystem->CloseFile( fileHandle );
@@ -78,8 +88,20 @@ bool le::World::Deserialize( const Path& InPath )
  */
 void le::World::Tick()
 {
-	for ( uint32 index = 0, count = static_cast< uint32 >( actors.size() ); index < count; ++index )
-		actors[ index ]->Tick();
+	for ( uint32 index = 0, count = static_cast< uint32 >( actors.size() ); index < count; )
+	{
+		Actor*		actor = actors[ index ];
+		
+		actor->Tick();
+		if ( actor->GetStatus() == AS_Dead )
+		{
+			actor->ReleaseRef();
+			actors.erase( actors.begin() + index );
+			count = static_cast< uint32 >( actors.size() );
+		}
+		else
+			++index;
+	}
 }
 
 /**
@@ -115,7 +137,6 @@ void le::World::Spawn( Actor* InActor )
 	LIFEENGINE_ASSERT( InActor );
 
 	InActor->AddRef();
-	if ( !InActor->IsInitialized() )		InActor->Initialize();
 	actors.push_back( InActor );
 }
 

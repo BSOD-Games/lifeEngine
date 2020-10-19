@@ -4,8 +4,10 @@
 #ifndef IPARSERWORLD_H
 #define IPARSERWORLD_H
 
+#include <string>
 #include <vector>
 
+#include "World/ActorVar.h"
 #include "World/Components/SpriteComponent.h"
 #include "IParser.h"
 
@@ -13,6 +15,12 @@ namespace le
 {
 	class SpriteComponent;
 	class Actor;
+
+	struct SWorldObject
+	{
+		std::string						name;
+		std::vector< ActorVar >			actorVars;
+	};
 
 	class IParserWorld : public IParser
 	{
@@ -24,7 +32,7 @@ namespace le
 		virtual std::vector< SpriteComponent > GetSpriteComponents() const = 0;
 
 		/* Get actors */
-		virtual std::vector< Actor* > GetActors() const = 0;
+		virtual std::vector< SWorldObject > GetObjects() const = 0;
 	};
 }
 
