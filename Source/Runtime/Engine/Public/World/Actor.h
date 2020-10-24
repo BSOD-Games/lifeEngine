@@ -14,6 +14,7 @@
 namespace le
 {
 	class CameraComponent;
+	class BaseComponent;
 	class World;
 
 	enum EActorStatus
@@ -40,24 +41,24 @@ namespace le
 		/* Render */
 		virtual void Render();
 
-		/* Set position */
-		FORCEINLINE void SetPosition( const FVector3D& InPosition )			{ position = InPosition; }
-
 		/* Is initialized */
 		FORCEINLINE bool IsInitialized() const								{ return isInitialized; }
 
 		/* Is visible */
 		virtual bool IsVisible( const CameraComponent& InCameraComponent ) const;
 
-		/* Get position */
-		FORCEINLINE const FVector3D& GetPosition()							{ return position; }
+		/* Get component */
+		template< typename T >
+		FORCEINLINE T* GetComponent() const									{ return static_cast< T* >( GetComponent( T::GetTypeName() ) ); }
 
 		/* Get actor status */
 		FORCEINLINE EActorStatus GetStatus() const							{ return status; }
 
 	protected:
+		/* Get component */
+		virtual BaseComponent* GetComponent( const std::string& InTypeName ) const;
+
 		bool				isInitialized;
-		FVector3D			position;
 		EActorStatus		status;
 	};
 }

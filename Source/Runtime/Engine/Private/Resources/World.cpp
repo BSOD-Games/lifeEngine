@@ -114,7 +114,7 @@ void le::World::Render()
 	for ( uint32 index = 0, count = static_cast< uint32 >( spriteComponents.size() ); index < count; ++index )
 	{
 		const SpriteComponent&		spriteComponent = spriteComponents[ index ];
-		FVector3D					position = spriteComponent.GetGlobalPosition();
+		FVector3D					position = spriteComponent.GetTransformComponent().GetGlobalPosition();
 		FVector2D					size = spriteComponent.GetSize();
 
 		// Rendering visible sprites

@@ -26,5 +26,5 @@ le::SpriteComponent::~SpriteComponent()
  */
 void le::SpriteComponent::Render() const
 {
-	GRenderSystem->DrawSprite( type, material, size, textureRect, GetGlobalPosition() );
+	GRenderSystem->DrawSprite( type, material, size, textureRect, transformComponent.GetGlobalPosition() );
 }

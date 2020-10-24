@@ -7,12 +7,14 @@
 #include "Misc/EngineDefines.h"
 #include "Math/Rect.h"
 #include "World/Components/BaseComponent.h"
+#include "World/Components/TransformComponent.h"
 
 namespace le
 {
 	class CameraComponent : public BaseComponent
 	{
 	public:
+		DECLARE_COMPONENT( CameraComponent )
 
 		class Frustum
 		{
@@ -37,14 +39,27 @@ namespace le
 		FORCEINLINE void Move( const FVector3D& InFactorMove )
 		{
 			isNeedUpdateViewMatrix = true;
-			position += InFactorMove;
+			transformComponent.Move( InFactorMove );
 		}
 
 		/* Rotate camera */
-		void Rotate( const FVector3D& InFactorRotate );
+		FORCEINLINE void Rotate( const FQuaternion& InFactorRotate )
+		{
+			// TODO: [yehor.pohuliaka] - Add min and max angles rotations
+
+			isNeedUpdateViewMatrix = true;
+			transformComponent.Rotate( InFactorRotate );
+		}
 		
 		/* Rotate by mouse */
 		void RotateByMouse( const FVector2D& InMouseOffset, float InSensitivity, bool InConstrainYaw = true );
+
+		/* Set owner */
+		FORCEINLINE void SetOwner( TransformComponent* InOwner )
+		{ 
+			isNeedUpdateViewMatrix = true;
+			transformComponent.SetOwner( InOwner ); 
+		}
 
 		/* Set perspective projection */
 		FORCEINLINE void SetPerspectiveProjection( float InFOV, float InAspect, float InNear, float InFar )
@@ -66,11 +81,17 @@ namespace le
 		FORCEINLINE void SetPosition( const FVector3D& InPosition )
 		{
 			isNeedUpdateViewMatrix = true;
-			position = InPosition;
+			transformComponent.SetPosition( InPosition );
 		}
 
 		/* Set rotation */
-		void SetRotation( const FVector3D& InRotation );
+		FORCEINLINE void SetRotation( const FQuaternion& InRotation )
+		{
+			// TODO: [yehor.pohuliaka] - Add min and max angles rotations
+
+			isNeedUpdateViewMatrix = true;
+			transformComponent.SetRotation( InRotation );
+		}
 
 		/* Set target direction */
 		FORCEINLINE void SetTargetDirection( const FVector3D& InTargetDirection )
@@ -98,12 +119,6 @@ namespace le
 		/* Get axis right */
 		FORCEINLINE const FVector3D& GetAxisRight() const				{ return axisRight; }
 
-		/* Get quaterion rotation */
-		FORCEINLINE const FQuaternion& GetQuatRotation() const			{ return quatRotation; }
-
-		/* Get euler rotation */
-		FORCEINLINE const FVector3D& GetEulerRotation() const			{ return eulerRotation; }
-
 		/* Get target direction */
 		FORCEINLINE const FVector3D& GetTargetDirection() const			{ return targetDirection; }
 
@@ -124,26 +139,28 @@ namespace le
 			return frustum; 
 		}
 
+		/* Get transformation */
+		FORCEINLINE const TransformComponent& GetTransformComponent() const			{ return transformComponent; }
+
 	private:
 		/* Update view matrix */
 		void UpdateViewMatrix() const;
 
-		mutable bool			isNeedUpdateViewMatrix;
-		float					near;
-		float					far;
+		mutable bool					isNeedUpdateViewMatrix;
+		float							near;
+		float							far;
 
-		mutable FVector3D		targetDirection;
-		mutable FVector3D		axisUp;
-		mutable FVector3D		axisRight;
-		FVector3D				eulerRotation;
-		FQuaternion				quatRotation;
-		mutable Frustum			frustum;
+		mutable FVector3D				targetDirection;
+		mutable FVector3D				axisUp;
+		mutable FVector3D				axisRight;
+		mutable Frustum					frustum;
+		mutable TransformComponent		transformComponent;
 
-		FVector3D				localTargetDirection;
-		FVector3D				localAxisUp;
+		FVector3D						localTargetDirection;
+		FVector3D						localAxisUp;
 
-		mutable FMatrix4x4		viewMatrix;
-		FMatrix4x4				projectionMatrix;
+		mutable FMatrix4x4				viewMatrix;
+		FMatrix4x4						projectionMatrix;
 	};
 }
 

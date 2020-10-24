@@ -14,42 +14,11 @@ namespace le
 	class BaseComponent : public Object
 	{
 	public:
-		/* Constructor */
-		BaseComponent();
-
 		/* Destructor */
 		virtual ~BaseComponent() {}
-
-		/* Set actor */
-		FORCEINLINE void SetActor( Actor* InActor )
-		{
-			if ( actor )	actor->ReleaseRef();
-
-			actor = InActor;
-			if ( InActor )	InActor->AddRef();
-		}
-
-		/* Set local position */
-		// TODO: Implement Trasformation class
-		FORCEINLINE void SetLocalPosition( const FVector3D& InPositin )			{ position = InPositin; }
-
-		/* Get actor */
-		FORCEINLINE Actor* GetActor() const										{ return actor; }
-
-		/* Get global position */
-		FORCEINLINE FVector3D GetGlobalPosition() const
-		{
-			if ( actor )		return actor->GetPosition() + position;
-			else				return position;
-		}
-
-		/* Get local position */
-		FORCEINLINE const FVector3D& GetLocalPosition() const					{ return position; }
-
-	protected:
-		Actor*			actor;
-		FVector3D		position;
 	};
 }
+
+#define DECLARE_COMPONENT( Class )		FORCEINLINE static std::string GetTypeName()		{ return #Class; }
 
 #endif // !BASECOMPONENT_H

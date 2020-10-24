@@ -42,7 +42,7 @@ le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const 
 
 		if ( !shader->Compile( code, ST_Vertex, InDefines, &error ) )
 		{
-			LIFEENGINE_LOG_ERROR( "Engine", "Failed compile vertex shader [%s] :: %s", InName.c_str(), code.c_str() );
+			LIFEENGINE_LOG_ERROR( "Engine", "Failed compile vertex shader [%s] :: %s", InName.c_str(), error.c_str() );
 			GRHI->DeleteShader( shader );
 			
 			return nullptr;
@@ -64,7 +64,7 @@ le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const 
 
 		if ( !shader->Compile( code, ST_Geometry, InDefines, &error ) )
 		{
-			LIFEENGINE_LOG_ERROR( "Engine", "Failed compile geometry shader [%s] :: %s", InName.c_str(), code.c_str() );
+			LIFEENGINE_LOG_ERROR( "Engine", "Failed compile geometry shader [%s] :: %s", InName.c_str(), error.c_str() );
 			GRHI->DeleteShader( shader );
 
 			return nullptr;
@@ -86,7 +86,7 @@ le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const 
 
 		if ( !shader->Compile( code, ST_Pixel, InDefines, &error ) )
 		{
-			LIFEENGINE_LOG_ERROR( "Engine", "Failed compile pixel shader [%s] :: %s", InName.c_str(), code.c_str() );
+			LIFEENGINE_LOG_ERROR( "Engine", "Failed compile pixel shader [%s] :: %s", InName.c_str(), error.c_str() );
 			GRHI->DeleteShader( shader );
 
 			return nullptr;
@@ -94,9 +94,9 @@ le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const 
 	}
 
 	// Linking shader
-	if ( !shader->Link( &code ) )
+	if ( !shader->Link( &error ) )
 	{
-		LIFEENGINE_LOG_ERROR( "Engine", "Failed linking shader [%s] :: %s", InName.c_str(), code.c_str() );
+		LIFEENGINE_LOG_ERROR( "Engine", "Failed linking shader [%s] :: %s", InName.c_str(), error.c_str() );
 		GRHI->DeleteShader( shader );
 
 		return nullptr;

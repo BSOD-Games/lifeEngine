@@ -6,6 +6,7 @@
 
 #include "Misc/EngineDefines.h"
 #include "World/Components/BaseComponent.h"
+#include "World/Components/TransformComponent.h"
 #include "Resources/Material.h"
 
 namespace le
@@ -22,6 +23,8 @@ namespace le
 	class SpriteComponent : public BaseComponent
 	{
 	public:
+		DECLARE_COMPONENT( SpriteComponent )
+
 		/* Constructor */
 		SpriteComponent();
 
@@ -61,11 +64,16 @@ namespace le
 		/* Get texture rect */
 		FORCEINLINE const FSRectFloat& GetTextureRect() const					{ return textureRect; }
 
+		/* Get transformation component */
+		FORCEINLINE const TransformComponent& GetTransformComponent() const		{ return transformComponent; }
+		FORCEINLINE TransformComponent& GetTransformComponent()					{ return transformComponent; }
+
 	private:
-		ESpriteType		type;
-		FSRectFloat		textureRect;
-		Material*		material;
-		FVector2D		size;
+		ESpriteType				type;
+		FSRectFloat				textureRect;
+		Material*				material;
+		FVector2D				size;
+		TransformComponent		transformComponent;
 	};
 }
 

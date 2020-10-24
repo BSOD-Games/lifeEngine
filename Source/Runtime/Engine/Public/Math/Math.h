@@ -35,6 +35,10 @@ namespace le
 	FORCEINLINE FVector2D MathIsometricToCartesian( const FVector2D& InIsometricCoords )												{ return MathIsometricToCartesian( InIsometricCoords.x, InIsometricCoords.y ); }
 	FORCEINLINE FVector3D MathIsometricToCartesian( const FVector3D& InIsometricCoords )												{ return MathIsometricToCartesian( InIsometricCoords.x, InIsometricCoords.y, InIsometricCoords.z ); }
 	FORCEINLINE FVector4D MathIsometricToCartesian( const FVector4D& InIsometricCoords )												{ return MathIsometricToCartesian( InIsometricCoords.x, InIsometricCoords.y, InIsometricCoords.z, InIsometricCoords.w ); }
+
+	/* Converting Euler angles to Quaternion */
+	FORCEINLINE FQuaternion MathEulerAnglesToQuaternion( float InEulerAngleX, float InEulerAngleY, float InEulerAngleZ )				{ return glm::angleAxis( InEulerAngleX, FVector3D( 1.f, 0.f, 0.f ) ) * glm::angleAxis( InEulerAngleY, FVector3D( 0.f, 1.f, 0.f ) ) * glm::angleAxis( InEulerAngleZ, FVector3D( 0.f, 0.f, 1.f ) ); }
+	FORCEINLINE FQuaternion MathEulerAnglesToQuaternion( const FVector3D& InEulerAngles )												{ return MathEulerAnglesToQuaternion( InEulerAngles.x, InEulerAngles.y, InEulerAngles.z ); }
 }
 
 #endif // !MATH_H

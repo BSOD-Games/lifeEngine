@@ -156,7 +156,7 @@ std::vector< le::SpriteComponent > le::ParserWorldTMX::GetSpriteComponents() con
 					}
 
 					spriteComponent.SetMaterial( tileset.material ? tileset.material : Cast< Material >( GResourceSystem->FindDefaultResource( RT_Material ) ) );
-					spriteComponent.SetLocalPosition( FVector3D( x * mapTileSize.x / tileset.tileOffset.x, y * mapTileSize.y / tileset.tileOffset.y, indexLayer ) );
+					spriteComponent.GetTransformComponent().SetPosition( FVector3D( x * mapTileSize.x / tileset.tileOffset.x, y * mapTileSize.y / tileset.tileOffset.y, indexLayer ) );
 					spriteComponent.SetSize( FVector2D( mapTileSize.x, mapTileSize.y ) );				
 					if ( tileset.material )
 						spriteComponent.SetTextureRect( rect );		
@@ -265,7 +265,7 @@ std::vector< le::SWorldObject > le::ParserWorldTMX::GetObjects() const
 
 				// Getting all parameters from object
 				const std::vector< tmx::Property >&		objectProperties = object.getProperties();
-				for ( uint32 indexPropery = 0, countProperties = objectProperties.size(); indexPropery < countProperties; ++indexPropery )
+				for ( uint32 indexPropery = 0, countProperties = static_cast< uint32 >( objectProperties.size() ); indexPropery < countProperties; ++indexPropery )
 				{
 					const tmx::Property&		objectProperty = objectProperties[ indexPropery ];
 					ActorVar					actorVar;

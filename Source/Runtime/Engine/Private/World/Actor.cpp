@@ -8,7 +8,6 @@
  */
 le::Actor::Actor() :
 	isInitialized( false ),
-	position( 0.f, 0.f, 0.f ),
 	status( AS_Live )
 {}
 
@@ -40,4 +39,11 @@ bool le::Actor::IsVisible( const CameraComponent& InCameraComponent ) const
 	return true;
 }
 
+/**
+ * Get component
+ */
+le::BaseComponent* le::Actor::GetComponent( const std::string& InTypeName ) const
+{
+	return nullptr;
+}
 
