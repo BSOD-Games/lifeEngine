@@ -35,6 +35,9 @@ namespace le
 		/* Constructor */
 		CameraComponent();
 
+		/* Destructor */
+		~CameraComponent();
+
 		/* Move camera */
 		FORCEINLINE void Move( const FVector3D& InFactorMove )
 		{
@@ -145,6 +148,9 @@ namespace le
 	private:
 		/* Update view matrix */
 		void UpdateViewMatrix() const;
+
+		/* Event: Update transform component */
+		void OnUpdateTransformComponent( const TransformComponent::SEventUpdate& InEventUpdate );
 
 		mutable bool					isNeedUpdateViewMatrix;
 		float							near;

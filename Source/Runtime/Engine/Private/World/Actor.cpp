@@ -2,7 +2,8 @@
 // Authors: Yehor Pohuliaka (zombiHello)
 
 #include "World/Actor.h"
-
+#include "System/EventChannel.h"
+#include "Logging/LogMacros.h"
 /**
  * Constructor
  */

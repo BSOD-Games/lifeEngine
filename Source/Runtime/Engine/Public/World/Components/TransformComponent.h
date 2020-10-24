@@ -5,14 +5,29 @@
 #define TRANSFORMCOMPONENT_H
 
 #include "Math/Math.h"
+#include "System/EventChannel.h"
 #include "World/Components/BaseComponent.h"
-
+#include "Logging/LogMacros.h"
 namespace le
 {
 	class TransformComponent : public BaseComponent
 	{
 	public:
 		DECLARE_COMPONENT( TransformComponent )
+
+		enum EEventUpdateType
+		{
+			EUT_None,
+			EUT_Move,
+			EUT_Rotate,
+			EUT_Scale,
+			EUT_Owner
+		};
+
+		struct SEventUpdate
+		{
+			EEventUpdateType		type;
+		};
 
 		/* Constructor */
 		TransformComponent();
@@ -23,54 +38,69 @@ namespace le
 		/* Move */
 		FORCEINLINE void Move( const FVector3D& InFactorMove )
 		{
-			isNeedUpdate = true;
+			isNeedUpdate = true;			
 			position += InFactorMove;
+			eventUpdate.Emit( SEventUpdate{ EUT_Move } );
 		}
 
 		/* Rotate */
 		FORCEINLINE void Rotate( const FQuaternion& InFactorRotate )
 		{
-			isNeedUpdate = true;
+			isNeedUpdate = true;			
 			rotation *= InFactorRotate;
+			eventUpdate.Emit( SEventUpdate{ EUT_Rotate } );
 		}
 
 		/* Scale */
 		FORCEINLINE void Scale( const FVector3D& InFactorScale )
 		{
-			isNeedUpdate = true;
+			isNeedUpdate = true;			
 			scale += InFactorScale;
+			eventUpdate.Emit( SEventUpdate{ EUT_Scale } );
 		}
 
 		/* Set owner */
 		FORCEINLINE void SetOwner( TransformComponent* InOwner )		
 		{ 
-			if ( owner )		owner->ReleaseRef();
+			if ( owner )
+			{
+				owner->GetEventChannelUpdate().Unsubscribe( this, &TransformComponent::OnOwnerUpdate );
+				owner->ReleaseRef();
+			}
 
-			isNeedUpdate = true;
+			isNeedUpdate = true;			
 			owner = InOwner; 
+			eventUpdate.Emit( SEventUpdate{ EUT_Owner } );
 
-			if ( InOwner )		InOwner->AddRef();
+			if ( InOwner )
+			{
+				InOwner->GetEventChannelUpdate().Subscribe( this, &TransformComponent::OnOwnerUpdate );
+				InOwner->AddRef();
+			}
 		}
 
 		/* Set position */
 		FORCEINLINE void SetPosition( const FVector3D& InPosition ) 
 		{ 
-			isNeedUpdate = true; 
+			isNeedUpdate = true; 			
 			position = InPosition;
+			eventUpdate.Emit( SEventUpdate{ EUT_Move } );
 		}
 
 		/* Set rotation */
 		FORCEINLINE void SetRotation( const FQuaternion& InRotation )
 		{
-			isNeedUpdate = true;
+			isNeedUpdate = true;			
 			rotation = InRotation;
+			eventUpdate.Emit( SEventUpdate{ EUT_Rotate } );
 		}
 
 		/* Set scale */
 		FORCEINLINE void SetScale( const FVector3D& InScale )
 		{
-			isNeedUpdate = true;
+			isNeedUpdate = true;		
 			scale = InScale;
+			eventUpdate.Emit( SEventUpdate{ EUT_Scale } );
 		}
 
 		/* Get owner */
@@ -116,22 +146,29 @@ namespace le
 		/* Get global matrix transformation */
 		FORCEINLINE FMatrix4x4 GetGlobalMatrixTransformation() const
 		{
-			if ( !owner )		return GetGlobalMatrixTransformation();
+			if ( !owner )		return GetLocalMatrixTransformation();
 			return owner->transformation * transformation;
 		}
+
+		/* Get event channel "Update transformation" */
+		FORCEINLINE TEventChannel< SEventUpdate >& GetEventChannelUpdate()			{ return eventUpdate; }
 
 	private:
 		/* Update matrix transformation */
 		void UpdateMatrix() const;
 
-		mutable bool			isNeedUpdate;
+		/* Event: Owner transformation is updated */
+		void OnOwnerUpdate( const SEventUpdate& InEventUpdate );
 
-		FVector3D				position;
-		FQuaternion				rotation;
-		FVector3D				scale;
-		mutable FMatrix4x4		transformation;
+		mutable bool					isNeedUpdate;
 
-		TransformComponent*		owner;
+		TEventChannel< SEventUpdate >	eventUpdate;
+		FVector3D						position;
+		FQuaternion						rotation;
+		FVector3D						scale;
+		mutable FMatrix4x4				transformation;
+
+		TransformComponent*				owner;
 	};
 }
 

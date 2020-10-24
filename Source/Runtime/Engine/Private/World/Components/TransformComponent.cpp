@@ -20,7 +20,11 @@ le::TransformComponent::TransformComponent() :
  */
 le::TransformComponent::~TransformComponent()
 {
-	if ( owner )		owner->ReleaseRef();
+	if ( owner )
+	{
+		owner->GetEventChannelUpdate().Unsubscribe( this, &TransformComponent::OnOwnerUpdate );
+		owner->ReleaseRef();
+	}
 }
 
 /**
@@ -30,4 +34,13 @@ void le::TransformComponent::UpdateMatrix() const
 {
 	transformation = glm::translate( position ) * glm::mat4_cast( rotation ) * glm::scale( scale );
 	isNeedUpdate = false;
+}
+
+/**
+ * Event: Owner transformation is updated
+ */
+void le::TransformComponent::OnOwnerUpdate( const SEventUpdate& InEventUpdate )
+{
+	isNeedUpdate = true;
+	eventUpdate.Emit( InEventUpdate );
 }

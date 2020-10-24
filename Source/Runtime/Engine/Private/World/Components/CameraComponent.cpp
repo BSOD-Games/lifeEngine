@@ -21,7 +21,17 @@ le::CameraComponent::CameraComponent() :
 	localTargetDirection( 0.f, 0.f, -1.f ),
 	projectionMatrix( 1.f ),
 	viewMatrix( 1.f )
-{}
+{
+	transformComponent.GetEventChannelUpdate().Subscribe( this, &CameraComponent::OnUpdateTransformComponent );
+}
+
+/**
+ * Destructor
+ */
+le::CameraComponent::~CameraComponent()
+{
+	transformComponent.GetEventChannelUpdate().Unsubscribe( this, &CameraComponent::OnUpdateTransformComponent );
+}
 
 /**
  * Rotate by mouse
@@ -71,6 +81,14 @@ void le::CameraComponent::UpdateViewMatrix() const
 	frustum.Update( projectionMatrix, viewMatrix );
 
 	isNeedUpdateViewMatrix = false;
+}
+
+/**
+ * Event: Update transform component
+ */
+void le::CameraComponent::OnUpdateTransformComponent( const TransformComponent::SEventUpdate& InEventUpdate )
+{
+	isNeedUpdateViewMatrix = true;
 }
 
 // ------------------
