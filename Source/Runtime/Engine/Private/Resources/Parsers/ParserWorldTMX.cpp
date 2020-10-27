@@ -80,7 +80,7 @@ bool le::ParserWorldTMX::SetFile( FFileHandle InFileHandle )
 		STMXTileset					tileset;
 		tileset.firstGID = tmxTileset.getFirstGID();
 		tileset.lastGID = tmxTileset.getLastGID();
-		tileset.material = Cast< Material >( GResourceSystem->FindResource( tmxTileset.getImagePath(), RT_Material ) );
+		tileset.material = GResourceSystem->FindResource( tmxTileset.getImagePath(), RT_Material );
 		tileset.tileSize = FVector2D( tmxTileSize.x, tmxTileSize.y );
 		tileset.tileOffset = FVector2D( ( float ) tmxTileSize.x / mapTileSize.x, ( float ) tmxTileSize.y / mapTileSize.y );
 
@@ -113,13 +113,13 @@ bool le::ParserWorldTMX::SetFile( FFileHandle InFileHandle )
 /**
  * Get sprite components on level
  */
-std::vector< le::SpriteComponent > le::ParserWorldTMX::GetSpriteComponents() const
+std::vector< le::FSpriteComponentRef > le::ParserWorldTMX::GetSpriteComponents() const
 {
-	if ( !tmxMap )		return std::vector< SpriteComponent >();
+	if ( !tmxMap )		return std::vector< FSpriteComponentRef >();
 	
 	tmx::Map*									tmxMap = static_cast< tmx::Map* >( this->tmxMap );
 	const std::vector< tmx::Layer::Ptr >&		tmxLayers = tmxMap->getLayers();
-	std::vector< SpriteComponent >				spriteComponents;
+	std::vector< FSpriteComponentRef >			spriteComponents;
 
 	// Getting tiles from map
 	const tmx::Vector2u&		mapSize = tmxMap->getTileCount();
@@ -138,9 +138,9 @@ std::vector< le::SpriteComponent > le::ParserWorldTMX::GetSpriteComponents() con
 				const tmx::TileLayer::Tile&		tile = tmxTiles[ indexTitle ];
 				if ( tile.ID != 0 )
 				{
-					STMXTileset			tileset = { 0, 0, FVector2D( 0.f, 0.f ), FVector2D( 0.f, 0.f ), nullptr };
-					FSRectFloat			rect;
-					SpriteComponent		spriteComponent;
+					STMXTileset				tileset = { 0, 0, FVector2D( 0.f, 0.f ), FVector2D( 0.f, 0.f ), nullptr };
+					FSRectFloat				rect;
+					FSpriteComponentRef		spriteComponent( new SpriteComponent() );
 
 					// Find material for tile
 					for ( uint32 indexTileset = 0, countTilesets = static_cast< uint32 >( tilesets.size() ); indexTileset < countTilesets; ++indexTileset )
@@ -155,11 +155,11 @@ std::vector< le::SpriteComponent > le::ParserWorldTMX::GetSpriteComponents() con
 						break;
 					}
 
-					spriteComponent.SetMaterial( tileset.material ? tileset.material : Cast< Material >( GResourceSystem->FindDefaultResource( RT_Material ) ) );
-					spriteComponent.GetTransformComponent().SetPosition( FVector3D( x * mapTileSize.x / tileset.tileOffset.x, y * mapTileSize.y / tileset.tileOffset.y, indexLayer ) );
-					spriteComponent.SetSize( FVector2D( mapTileSize.x, mapTileSize.y ) );				
+					spriteComponent->SetMaterial( tileset.material ? tileset.material : GResourceSystem->FindDefaultResource( RT_Material ) );
+					spriteComponent->GetTransformComponent()->SetPosition( FVector3D( x * mapTileSize.x / tileset.tileOffset.x, y * mapTileSize.y / tileset.tileOffset.y, indexLayer ) );
+					spriteComponent->SetSize( FVector2D( mapTileSize.x, mapTileSize.y ) );				
 					if ( tileset.material )
-						spriteComponent.SetTextureRect( rect );		
+						spriteComponent->SetTextureRect( rect );		
 					
 					spriteComponents.push_back( spriteComponent );
 				}

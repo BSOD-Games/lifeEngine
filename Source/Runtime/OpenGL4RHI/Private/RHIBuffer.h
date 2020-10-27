@@ -4,11 +4,12 @@
 #ifndef RHIBUFFER_H
 #define RHIBUFFER_H
 
-#include <unordered_set>
+#include <vector>
 
 #include "Misc/EngineDefines.h"
 #include "Rendering/RHI/IRHIBuffer.h"
 #include "GLState.h"
+#include "Types.h"
 
 namespace le
 {
@@ -43,10 +44,10 @@ namespace le
 		void Update( const void* InData, uint32 InSize, uint32 InOffset ) override;
 
 		/* Usage in geometry */
-		void UsageInGeometry( RHIGeometry* InGeometry );
+		void UsageInGeometry( FRHIGeometryConstRef& InGeometry );
 
 		/* Notify of destroy geometry */
-		void NotifyDestroyGeometry( RHIGeometry* InGeometry );
+		void NotifyDestroyGeometry( FRHIGeometryConstRef& InGeometry );
 
 		/* Get handle buffer */
 		FORCEINLINE uint32 GetHandle() const
@@ -69,7 +70,7 @@ namespace le
 		uint32		size;
 		uint32		handle;
 
-		std::unordered_set< RHIGeometry* >		usagedInGeometries;
+		std::vector< FRHIGeometryRef >		usagedInGeometries;
 	};
 }
 

@@ -55,18 +55,14 @@ void le::ShaderVar::Clear()
 
 	switch ( type )
 	{
-	case SVT_Int:		delete static_cast< int* >( value );		break;
-	case SVT_Float:		delete static_cast< float* >( value );		break;
-	case SVT_Bool:		delete static_cast< bool* >( value );		break;
-	case SVT_Vector2D:	delete static_cast< FVector2D* >( value );	break;
-	case SVT_Vector3D:	delete static_cast< FVector3D* >( value );	break;
-	case SVT_Vector4D:	delete static_cast< FVector4D* >( value );	break;
-	case SVT_Color:		delete static_cast< SColor* >( value );		break;
-	case SVT_Texture2D:
-	{
-		Texture2D*			texture2D = static_cast< Texture2D* >( value );
-		texture2D->ReleaseRef();
-	}
+	case SVT_Int:		delete static_cast< int* >( value );			break;
+	case SVT_Float:		delete static_cast< float* >( value );			break;
+	case SVT_Bool:		delete static_cast< bool* >( value );			break;
+	case SVT_Vector2D:	delete static_cast< FVector2D* >( value );		break;
+	case SVT_Vector3D:	delete static_cast< FVector3D* >( value );		break;
+	case SVT_Vector4D:	delete static_cast< FVector4D* >( value );		break;
+	case SVT_Color:		delete static_cast< SColor* >( value );			break;
+	case SVT_Texture2D:	delete static_cast< FTexture2DRef* >( value );	break;
 	}
 
 	value = nullptr;
@@ -76,24 +72,21 @@ void le::ShaderVar::Clear()
 /**
  * Subscribe material
  */
-void le::ShaderVar::SubscribeMaterial( Material* InMaterial )
+void le::ShaderVar::SubscribeMaterial( FMaterialConstRef& InMaterial )
 {
 	LIFEENGINE_ASSERT( InMaterial );
-
-	InMaterial->AddRef();
 	materials.push_back( InMaterial );
 }
 
 /**
  * Unsubscribe material
  */
-void le::ShaderVar::UnsubscribeMaterial( Material* InMaterial )
+void le::ShaderVar::UnsubscribeMaterial( FMaterialConstRef& InMaterial )
 {
 	LIFEENGINE_ASSERT( InMaterial );
 	for ( uint32 index = 0, count = static_cast< uint32 >( materials.size() ); index < count; ++index )
 		if ( materials[ index ] == InMaterial )
 		{
-			InMaterial->ReleaseRef();
 			materials.erase( index + materials.begin() );
 			return;
 		}
@@ -200,12 +193,12 @@ void le::ShaderVar::SetValueColor( const SColor& InValue )
 /**
  * Set value texture 2D
  */
-void le::ShaderVar::SetValueTexture2D( Texture2D* InValue )
+void le::ShaderVar::SetValueTexture2D( FTexture2DConstRef& InValue )
 {
-	if ( value )		Clear();
-	if ( InValue )		InValue->AddRef();
+	if ( value && type != SVT_Texture2D )	Clear();
+	if ( !value )							value = new FTexture2DRef();
 
-	value = InValue;
+	*static_cast< FTexture2DRef* >( value ) = InValue;
 	type = SVT_Texture2D;
 
 	NotifyMaterials();
@@ -277,10 +270,10 @@ le::SColor le::ShaderVar::GetValueColor() const
 /**
  * Get value texture 2D
  */
-le::Texture2D* le::ShaderVar::GetValueTexture2D() const
+le::FTexture2DRef le::ShaderVar::GetValueTexture2D() const
 {
-	if ( type != SVT_Texture2D )	return nullptr;
-	return static_cast< Texture2D* >( value );
+	if ( type != SVT_Texture2D )	return FTexture2DRef();
+	return *static_cast< FTexture2DRef* >( value );
 }
 
 /**

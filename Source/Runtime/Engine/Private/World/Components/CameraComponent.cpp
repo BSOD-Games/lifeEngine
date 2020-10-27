@@ -20,9 +20,10 @@ le::CameraComponent::CameraComponent() :
 	targetDirection( 0.f, 0.f, -1.f ),
 	localTargetDirection( 0.f, 0.f, -1.f ),
 	projectionMatrix( 1.f ),
-	viewMatrix( 1.f )
+	viewMatrix( 1.f ),
+	transformComponent( new TransformComponent() )
 {
-	transformComponent.GetEventChannelUpdate().Subscribe( this, &CameraComponent::OnUpdateTransformComponent );
+	transformComponent->GetEventChannelUpdate().Subscribe( this, &CameraComponent::OnUpdateTransformComponent );
 }
 
 /**
@@ -30,7 +31,7 @@ le::CameraComponent::CameraComponent() :
  */
 le::CameraComponent::~CameraComponent()
 {
-	transformComponent.GetEventChannelUpdate().Unsubscribe( this, &CameraComponent::OnUpdateTransformComponent );
+	transformComponent->GetEventChannelUpdate().Unsubscribe( this, &CameraComponent::OnUpdateTransformComponent );
 }
 
 /**
@@ -62,7 +63,7 @@ void le::CameraComponent::RotateByMouse( const FVector2D& InMouseOffset, float I
 
 	if ( eulerRotation.x == 0 && eulerRotation.y == 0 )		return;
 
-	transformComponent.Rotate( MathEulerAnglesToQuaternion( eulerRotation.x, eulerRotation.y, 0.f ) );
+	transformComponent->Rotate( MathEulerAnglesToQuaternion( eulerRotation.x, eulerRotation.y, 0.f ) );
 	isNeedUpdateViewMatrix = true;
 }
 
@@ -71,8 +72,8 @@ void le::CameraComponent::RotateByMouse( const FVector2D& InMouseOffset, float I
  */
 void le::CameraComponent::UpdateViewMatrix() const
 {
-	FVector3D		position = transformComponent.GetGlobalPosition();
-	FQuaternion		rotation = transformComponent.GetGlobalRotation();
+	FVector3D		position = transformComponent->GetGlobalPosition();
+	FQuaternion		rotation = transformComponent->GetGlobalRotation();
 
 	targetDirection = localTargetDirection * rotation;
 	axisUp = localAxisUp * rotation;

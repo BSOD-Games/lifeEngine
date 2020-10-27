@@ -8,11 +8,11 @@
 #include <unordered_map>
 
 #include "Misc/Object.h"
+#include "Misc/Types.h"
 
 namespace le
 {
-	class IParserTexture2D;
-	typedef IParserTexture2D*		( *FCreateParserTexture2DFn )();
+	typedef FIParserTexture2DRef		( *FCreateParserTexture2DFn )();
 
 	class ParsersTexture2DFactory : public Object
 	{
@@ -21,7 +21,7 @@ namespace le
 		void Register( const std::vector< std::string >& InSupportedExtensions, FCreateParserTexture2DFn InCreateParserTexture2DFunction );
 
 		/* Get parser by extension */
-		IParserTexture2D* Get( const std::string& InExtension ) const;
+		FIParserTexture2DRef Get( const std::string& InExtension ) const;
 
 	private:
 		mutable std::unordered_map< std::string, FCreateParserTexture2DFn >			parsers;

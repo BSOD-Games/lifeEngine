@@ -6,14 +6,13 @@
 
 #include <vector>
 
+#include "Misc/Types.h"
 #include "World/Components/SpriteComponent.h"
 #include "World/Actor.h"
 #include "Resources/Resource.h"
 
 namespace le
 {
-	class Actor;
-
 	class World : public Resource
 	{
 	public:
@@ -41,17 +40,17 @@ namespace le
 		/* Template spawn */
 		template< typename T > FORCEINLINE void Spawn( const FVector3D& InPosition = FVector3D( 0.f, 0.f, 0.f ) )
 		{
-			T*		newActor = new T();
+			TRefCountPtr< T >		newActor( new T() );
 			newActor->SetPosition( InPosition );
 
-			Spawn( newActor );
+			Spawn( FActorRef( static_cast< Actor* >( newActor.GetPtr() ) ) );
 		}
 
 		/* Spawn actor */
-		void Spawn( Actor* InActor );
+		void Spawn( FActorConstRef& InActor );
 
 		/* Kill actor */
-		void Kill( Actor* InActor );
+		void Kill( FActorConstRef& InActor );
 
 		/* Kill all actors */
 		void KillAllActors();
@@ -68,19 +67,13 @@ namespace le
 			Clear();
 
 			spriteComponents = InRight.spriteComponents;
-			for ( uint32 index = 0, count = static_cast< uint32 >( InRight.actors.size() ); index < count; ++index )
-			{
-				Actor*		actor = InRight.actors[ index ];
-				actor->AddRef();
-				actors.push_back( actor );
-			}
-
+			actors = InRight.actors;
 			return *this;
 		}
 
 	private:
-		std::vector< SpriteComponent >			spriteComponents;
-		std::vector< Actor* >					actors;
+		std::vector< FSpriteComponentRef >		spriteComponents;
+		std::vector< FActorRef >				actors;
 	};
 }
 

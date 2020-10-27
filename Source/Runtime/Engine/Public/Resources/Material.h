@@ -87,7 +87,7 @@ namespace le
 		EResourceType GetType() const override;
 
 		/* Get shader name */
-		FORCEINLINE BaseShader* GetShader() const							{ return shader; }
+		FORCEINLINE FBaseShaderRef GetShader() const						{ return shader; }
 
 		/* Get vars */
 		FORCEINLINE const std::vector< ShaderVar >& GetVars() const			{ return vars; }
@@ -106,7 +106,7 @@ namespace le
 
 	private:
 		bool							isNeadUpdateShader;
-		BaseShader*						shader;
+		FBaseShaderRef					shader;
 		std::vector< ShaderVar >		vars;
 	};
 }

@@ -7,14 +7,14 @@
 #include <string>
 
 #include "Misc/Object.h"
+#include "Misc/Types.h"
 #include "Math/Math.h"
 #include "Math/Color.h"
 #include "Math/Rect.h"
+#include "Resources/Material.h"
 
 namespace le
 {
-	class Material;
-
 	enum EActorVarType
 	{
 		AVT_Unknown,
@@ -76,7 +76,7 @@ namespace le
 		void SetValueColor( const SColor& InValue );
 
 		/* Set value material */
-		void SetValueMaterial( Material* InValue );
+		void SetValueMaterial( FMaterialConstRef& InValue );
 
 		/* Is defined */
 		FORCEINLINE bool IsDefined() const				{ return value; }
@@ -115,7 +115,7 @@ namespace le
 		SColor GetValueColor() const;
 
 		/* Get value material */
-		Material* GetValueMaterial() const;
+		FMaterialRef GetValueMaterial() const;
 
 		/* Operator = */
 		FORCEINLINE ActorVar& operator=( const ActorVar& InRight )

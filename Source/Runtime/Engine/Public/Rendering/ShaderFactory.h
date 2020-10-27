@@ -8,11 +8,11 @@
 #include <unordered_map>
 
 #include "Misc/Object.h"
+#include "Misc/Types.h"
 
 namespace le
 {
-	class BaseShader;
-	typedef BaseShader*			( *FCreateShaderFn )( );
+	typedef FBaseShaderRef			( *FCreateShaderFn )( );
 
 	class ShaderFactory : public Object
 	{
@@ -21,7 +21,7 @@ namespace le
 		void Register( const std::string& InShaderName, FCreateShaderFn InCreateShaderFunction );
 
 		/* Create shader */
-		BaseShader* Create( const std::string& InShaderName ) const;
+		FBaseShaderRef Create( const std::string& InShaderName ) const;
 
 	private:
 		mutable std::unordered_map< std::string, FCreateShaderFn >		shaders;

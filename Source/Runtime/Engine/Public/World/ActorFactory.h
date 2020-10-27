@@ -9,11 +9,11 @@
 
 #include "Misc/EngineGlobals.h"
 #include "Misc/Object.h"
+#include "Misc/Types.h"
 
 namespace le
 {
-	class Actor;
-	typedef Actor*			( *FCreateActorFn )( );
+	typedef FActorRef		( *FCreateActorFn )( );
 
 	class ActorFactory : public Object
 	{
@@ -22,7 +22,7 @@ namespace le
 		void Register( const std::string& InName, FCreateActorFn InCreateActorFunction );
 
 		/* Create actor */
-		Actor* Create( const std::string& InName ) const;
+		FActorRef Create( const std::string& InName ) const;
 
 	private:
 		std::unordered_map< std::string, FCreateActorFn >		actors;

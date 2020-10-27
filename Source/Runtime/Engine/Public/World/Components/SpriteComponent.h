@@ -38,13 +38,7 @@ namespace le
 		FORCEINLINE void SetType( ESpriteType InType )							{ type = InType; }
 
 		/* Set material */
-		FORCEINLINE void SetMaterial( Material* InMaterial )
-		{
-			if ( material )			material->ReleaseRef();
-
-			material = InMaterial;
-			if ( InMaterial )		InMaterial->AddRef();
-		}
+		FORCEINLINE void SetMaterial( FMaterialConstRef& InMaterial )			{ material = InMaterial; }
 
 		/* Set size */
 		FORCEINLINE void SetSize( const FVector2D& InSize )						{ size = InSize; }
@@ -56,7 +50,7 @@ namespace le
 		FORCEINLINE ESpriteType GetType() const									{ return type; }
 
 		/* Get material */
-		FORCEINLINE Material* GetMaterial() const								{ return material; }
+		FORCEINLINE FMaterialRef GetMaterial() const							{ return material; }
 
 		/* Get size */
 		FORCEINLINE const FVector2D& GetSize() const							{ return size; }
@@ -65,15 +59,15 @@ namespace le
 		FORCEINLINE const FSRectFloat& GetTextureRect() const					{ return textureRect; }
 
 		/* Get transformation component */
-		FORCEINLINE const TransformComponent& GetTransformComponent() const		{ return transformComponent; }
-		FORCEINLINE TransformComponent& GetTransformComponent()					{ return transformComponent; }
+		FORCEINLINE FTransformComponentConstRef& GetTransformComponent() const		{ return transformComponent; }
+		FORCEINLINE FTransformComponentRef& GetTransformComponent()					{ return transformComponent; }
 
 	private:
-		ESpriteType				type;
-		FSRectFloat				textureRect;
-		Material*				material;
-		FVector2D				size;
-		TransformComponent		transformComponent;
+		ESpriteType					type;
+		FSRectFloat					textureRect;
+		FMaterialRef				material;
+		FVector2D					size;
+		FTransformComponentRef		transformComponent;
 	};
 }
 

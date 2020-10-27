@@ -20,7 +20,7 @@ void le::ParsersTexture2DFactory::Register( const std::vector< std::string >& In
 /**
  * Get parser by extension
  */
-le::IParserTexture2D* le::ParsersTexture2DFactory::Get( const std::string& InExtension ) const
+le::FIParserTexture2DRef le::ParsersTexture2DFactory::Get( const std::string& InExtension ) const
 {
 	auto		it = parsers.find( InExtension );
 	if ( it == parsers.end() )

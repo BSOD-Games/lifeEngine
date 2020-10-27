@@ -12,8 +12,7 @@
 
 namespace le
 {
-	class IParserConfig;
-	typedef IParserConfig*		( *FCreateParserConfigFn )();
+	typedef FIParserConfigRef		( *FCreateParserConfigFn )();
 
 	class ParsersConfigFactory : public Object
 	{
@@ -22,7 +21,7 @@ namespace le
 		void Register( const std::vector< std::string >& InSupportedExtensions, FCreateParserConfigFn InCreateParserConfigFunction );
 
 		/* Get parser by extension */
-		IParserConfig* Get( const std::string& InExtension ) const;
+		FIParserConfigRef Get( const std::string& InExtension ) const;
 
 	private:
 		mutable std::unordered_map< std::string, FCreateParserConfigFn >			parsers;

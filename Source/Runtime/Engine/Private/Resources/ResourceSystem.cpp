@@ -43,23 +43,22 @@ le::ResourceSystem::~ResourceSystem()
  */
 bool le::ResourceSystem::Initialize()
 {
-	GParsersTexture2DFactory->Register( ParserTexture2DSTBImage::GetSupportedExtensions(), []() -> IParserTexture2D* { return new ParserTexture2DSTBImage(); } );	
-	GParsersConfigFactory->Register( ParserConfigJSON::GetSupportedExtensions(), []() -> IParserConfig* { return new ParserConfigJSON(); } );
-	GParsersMaterialFactory->Register( ParserMaterialLMT::GetSupportedExtensions(), []() -> IParserMaterial* { return new ParserMaterialLMT(); } );
-	GParsersWorldFactory->Register( ParserWorldTMX::GetSupportedExtensions(), []() -> IParserWorld* { return new ParserWorldTMX(); } );
-
+	GParsersTexture2DFactory->Register( ParserTexture2DSTBImage::GetSupportedExtensions(), []() -> FIParserTexture2DRef { return new ParserTexture2DSTBImage(); } );
+	GParsersConfigFactory->Register( ParserConfigJSON::GetSupportedExtensions(), []() -> FIParserConfigRef { return new ParserConfigJSON(); } );
+	GParsersMaterialFactory->Register( ParserMaterialLMT::GetSupportedExtensions(), []() -> FIParserMaterialRef { return new ParserMaterialLMT(); } );
+	GParsersWorldFactory->Register( ParserWorldTMX::GetSupportedExtensions(), []() -> FIParserWorldRef { return new ParserWorldTMX(); } );
 	return true;
 }
 
 /**
  * Find resource
  */
-le::Resource* le::ResourceSystem::FindResource( const Path& InPath, EResourceType InResourceType )
+le::FResourceRef le::ResourceSystem::FindResource( const Path& InPath, EResourceType InResourceType )
 {
 	auto		it = resources.find( InPath.GetFullPath() );
 	if ( it != resources.end() )		return it->second;
 
-	Resource*		resource = nullptr;
+	FResourceRef		resource;
 	switch ( InResourceType )
 	{
 	case RT_Texture2D:			resource = new Texture2D();		break;
@@ -72,15 +71,12 @@ le::Resource* le::ResourceSystem::FindResource( const Path& InPath, EResourceTyp
 	if ( !resource->Deserialize( InPath ) )
 	{
 		LIFEENGINE_LOG_ERROR( "Engine", "Failed loading resource [%s]", InPath.GetFullPath().c_str() );
-
-		delete resource;
 		return FindDefaultResource( InResourceType );
 	}
 
 	LIFEENGINE_LOG_INFO( "Engine", "Loaded resource [%s]", InPath.GetFullPath().c_str() );
 
 	resource->SetName( InPath.GetFullPath() );
-	resource->AddRef();
 	resources.insert( std::make_pair( InPath.GetFullPath(), resource ) );
 	return resource;
 }
@@ -88,11 +84,10 @@ le::Resource* le::ResourceSystem::FindResource( const Path& InPath, EResourceTyp
 /**
  * Unload resource
  */
-void le::ResourceSystem::UnloadResource( Resource*& InResource )
+void le::ResourceSystem::UnloadResource( FResourceConstRef& InResource )
 {
 	LIFEENGINE_ASSERT( InResource );
-
-	if ( InResource->GetRefCount() <= 1 )
+	if ( InResource->GetRefCount() <= 2 )
 	{
 		auto		it = resources.find( InResource->GetName() );
 		if ( it != resources.end() )
@@ -101,9 +96,6 @@ void le::ResourceSystem::UnloadResource( Resource*& InResource )
 			resources.erase( it );
 		}
 	}
-
-	InResource->ReleaseRef();
-	InResource = nullptr;
 }
 
 /**
@@ -112,11 +104,10 @@ void le::ResourceSystem::UnloadResource( Resource*& InResource )
 void le::ResourceSystem::UnloadResources()
 {
 	for ( auto it = resources.begin(), itEnd = resources.end(); it != itEnd; )
-		if ( it->second->GetRefCount() <= 1 )
+		if ( it->second->GetRefCount() <= 2 )
 		{
 			LIFEENGINE_LOG_INFO( "Engine", "Unloaded resource [%s]", it->first.c_str() );
-			it->second->ReleaseRef();
-			
+
 			it = resources.erase( it );
 			itEnd = resources.end();
 		}
@@ -127,12 +118,12 @@ void le::ResourceSystem::UnloadResources()
 /**
  * Find default resource
  */
-le::Resource* le::ResourceSystem::FindDefaultResource( EResourceType InResourceType )
+le::FResourceRef le::ResourceSystem::FindDefaultResource( EResourceType InResourceType )
 {
 	auto		it = defaultResources.find( InResourceType );
 	if ( it != defaultResources.end() )		return it->second;
 
-	Resource*		resource = nullptr;
+	FResourceRef	resource;
 	Path			path;
 
 	switch ( InResourceType )
@@ -154,7 +145,6 @@ le::Resource* le::ResourceSystem::FindDefaultResource( EResourceType InResourceT
 	{
 		LIFEENGINE_LOG_ERROR( "Engine", "Failed loading default resource [%s]", path.GetFullPath().c_str() );
 
-		delete resource;
 		defaultResources.insert( std::make_pair( InResourceType, nullptr ) );
 		return nullptr;
 	}
@@ -162,7 +152,6 @@ le::Resource* le::ResourceSystem::FindDefaultResource( EResourceType InResourceT
 	LIFEENGINE_LOG_INFO( "Engine", "Loaded default resource [%s]", path.GetFullPath().c_str() );
 
 	resource->SetName( path.GetFullPath() );
-	resource->AddRef();
 	defaultResources.insert( std::make_pair( InResourceType, resource ) );
 	return resource;
 }

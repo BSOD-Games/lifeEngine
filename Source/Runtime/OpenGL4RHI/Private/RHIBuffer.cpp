@@ -112,17 +112,26 @@ void le::RHIBuffer::Update( const void* InData, uint32 InSize, uint32 InOffset )
 /**
  * Usage in geometry
  */
-void le::RHIBuffer::UsageInGeometry( RHIGeometry* InGeometry )
+void le::RHIBuffer::UsageInGeometry( FRHIGeometryConstRef& InGeometry )
 {
-	usagedInGeometries.insert( InGeometry );
+	for ( uint32 index = 0, count = static_cast< uint32 >( usagedInGeometries.size() ); index < count; ++index )
+		if ( usagedInGeometries[ index ] == InGeometry )
+			return;
+
+	usagedInGeometries.push_back( InGeometry );
 }
 
 /**
  * Notify destroy geometry
  */
-void le::RHIBuffer::NotifyDestroyGeometry( RHIGeometry* InGeometry )
+void le::RHIBuffer::NotifyDestroyGeometry( FRHIGeometryConstRef& InGeometry )
 {
-	usagedInGeometries.erase( InGeometry );
+	for ( uint32 index = 0, count = static_cast< uint32 >( usagedInGeometries.size() ); index < count; ++index )
+		if ( usagedInGeometries[ index ] == InGeometry )
+		{
+			usagedInGeometries.erase( index + usagedInGeometries.begin() );
+			return;
+		}
 }
 
 /**

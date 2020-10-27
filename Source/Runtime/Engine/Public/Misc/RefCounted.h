@@ -19,20 +19,14 @@ namespace le
 		virtual ~RefCounted();
 
 		/* Increment reference count */
-		FORCEINLINE void AddRef()
-		{
-			++countReferences;
-		}
+		FORCEINLINE void AddRef()					{ ++countReferences; }
 
 		/* Decrement reference count and delete self if no more references */
 		void ReleaseRef();
 
 		/* Get reference count */
-		FORCEINLINE uint32 GetRefCount() const
-		{
-			return countReferences;
-		}
-
+		FORCEINLINE uint32 GetRefCount() const		{ return countReferences; }
+	
 	private:
 		uint32		countReferences;
 	};

@@ -9,15 +9,13 @@
 
 #include "Misc/EngineDefines.h"
 #include "Misc/Object.h"
+#include "Misc/Types.h"
 #include "Math/Math.h"
 #include "Math/Color.h"
+#include "Resources/Texture2D.h"
 
 namespace le
 {
-	struct SColor;
-	class Texture2D;
-	class Material;
-
 	enum EShaderVarType
 	{
 		SVT_Unknown,
@@ -47,10 +45,10 @@ namespace le
 		void Clear();
 
 		/* Subscribe material */
-		void SubscribeMaterial( Material* InMaterial );
+		void SubscribeMaterial( FMaterialConstRef& InMaterial );
 
 		/* Unsubscribe material */
-		void UnsubscribeMaterial( Material* InMaterial );
+		void UnsubscribeMaterial( FMaterialConstRef& InMaterial );
 
 		/* Set name */
 		FORCEINLINE void SetName( const std::string& InName )		{ name = InName; }
@@ -77,7 +75,7 @@ namespace le
 		void SetValueColor( const SColor& InValue );
 
 		/* Set value texture 2D */
-		void SetValueTexture2D( Texture2D* InValue );
+		void SetValueTexture2D( FTexture2DConstRef& InValue );
 
 		/* Is defined */
 		FORCEINLINE bool IsDefined() const							{ return value; }
@@ -110,7 +108,7 @@ namespace le
 		SColor GetValueColor() const;
 
 		/* Get value texture 2D */
-		Texture2D* GetValueTexture2D() const;
+		FTexture2DRef GetValueTexture2D() const;
 
 		/* Operator = */
 		FORCEINLINE ShaderVar& operator=( const ShaderVar& InRight )
@@ -144,7 +142,7 @@ namespace le
 		EShaderVarType					type;
 		void*							value;
 
-		std::vector< Material* >		materials;
+		std::vector< FMaterialRef >		materials;
 	};
 }
 

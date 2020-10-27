@@ -8,6 +8,7 @@
 
 #include "Misc/Types.h"
 #include "Misc/Object.h"
+#include "Misc/RefCounted.h"
 
 namespace le
 {
@@ -64,7 +65,7 @@ namespace le
 		uint32						maxLod;
 	};
 
-	class IRHITexture2D : public Object
+	class IRHITexture2D : public Object, public RefCounted
 	{
 	public:
 		/* Constructor */

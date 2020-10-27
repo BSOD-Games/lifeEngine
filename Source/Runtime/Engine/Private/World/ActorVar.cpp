@@ -64,11 +64,7 @@ void le::ActorVar::Clear()
 	case AVT_RectInt:	delete static_cast< FSRectInt* >( value );		break;
 	case AVT_RectFloat:	delete static_cast< FSRectFloat* >( value );	break;
 	case AVT_Color:		delete static_cast< SColor* >( value );			break;
-	case AVT_Material:
-	{
-		Material*		material = static_cast< Material* >( value );
-		material->ReleaseRef();
-	}
+	case AVT_Material:	delete static_cast< FMaterialRef* >( value );	break;
 	}
 
 	value = nullptr;
@@ -186,12 +182,12 @@ void le::ActorVar::SetValueColor( const SColor& InValue )
 /**
  * Set value material
  */
-void le::ActorVar::SetValueMaterial( Material* InValue )
+void le::ActorVar::SetValueMaterial( FMaterialConstRef& InValue )
 {
-	if ( value )		Clear();
-	if ( InValue )		InValue->AddRef();
+	if ( value && type != AVT_Material )	Clear();
+	if ( !value )							value = new FMaterialRef();
 
-	value = InValue;
+	*static_cast< FMaterialRef* >( value ) = InValue;
 	type = AVT_Material;
 }
 
@@ -279,8 +275,8 @@ le::SColor le::ActorVar::GetValueColor() const
 /**
  * Get value material
  */
-le::Material* le::ActorVar::GetValueMaterial() const
+le::FMaterialRef le::ActorVar::GetValueMaterial() const
 {
-	if ( type != AVT_Material )		return nullptr;
-	return static_cast< Material* >( value );
+	if ( type != AVT_Material )		return FMaterialRef();
+	return *static_cast< FMaterialRef* >( value );
 }

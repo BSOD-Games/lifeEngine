@@ -8,14 +8,15 @@
 
 #include "Misc/EngineDefines.h"
 #include "Misc/Object.h"
+#include "Misc/Types.h"
+
+#include "Rendering/RHI/IRHIGeometry.h"
+#include "Rendering/RHI/IRHIBuffer.h"
+#include "Rendering/RHI/IRHIVertexFormat.h"
 
 namespace le
 {
 	struct SSpriteRenderObject;
-	class CameraComponent;
-	class IRHIBuffer;
-	class IRHIVertexFormat;
-	class IRHIGeometry;
 
 	class SpriteRenderer : public Object
 	{
@@ -27,16 +28,16 @@ namespace le
 		bool Initialize();
 
 		/* Render sprite */
-		void Render( const SSpriteRenderObject& InSpriteRenderObject, CameraComponent* InCameraComponent );
+		void Render( const SSpriteRenderObject& InSpriteRenderObject, FCameraComponentConstRef& InCameraComponent );
 
 		/* Is initialized */
 		FORCEINLINE bool IsInitialized() const				{ return rhiGeometry && rhiVertexBuffer && rhiVertexFormat && rhiIndexBuffer; }
 
 	private:
-		IRHIGeometry*			rhiGeometry;
-		IRHIBuffer*				rhiVertexBuffer;
-		IRHIBuffer*				rhiIndexBuffer;
-		IRHIVertexFormat*		rhiVertexFormat;
+		FIRHIGeometryRef			rhiGeometry;
+		FIRHIBufferRef				rhiVertexBuffer;
+		FIRHIBufferRef				rhiIndexBuffer;
+		FIRHIVertexFormatRef		rhiVertexFormat;
 	};
 }
 

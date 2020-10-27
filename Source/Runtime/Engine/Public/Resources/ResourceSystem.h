@@ -13,8 +13,6 @@
 
 namespace le
 {
-	class Resource;
-
 	class ResourceSystem : public Object
 	{
 	public:
@@ -28,20 +26,20 @@ namespace le
 		bool Initialize();
 
 		/* Find resource in cahce. If not found - loading from FileSystem */
-		Resource* FindResource( const Path& InPath, EResourceType InResourceType );
+		FResourceRef FindResource( const Path& InPath, EResourceType InResourceType );
 
 		/* Find default resource */
-		Resource* FindDefaultResource( EResourceType InResourceType );
+		FResourceRef FindDefaultResource( EResourceType InResourceType );
 
 		/* Unload resource */
-		void UnloadResource( Resource*& InResource );
+		void UnloadResource( FResourceConstRef& InResource );
 
 		/* Unload all resources */
 		void UnloadResources();
 
 	private:
-		std::unordered_map< std::string, Resource* >		resources;
-		std::unordered_map< EResourceType, Resource* >		defaultResources;
+		std::unordered_map< std::string, FResourceRef >			resources;
+		std::unordered_map< EResourceType, FResourceRef >		defaultResources;
 	};
 }
 

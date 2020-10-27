@@ -2,6 +2,7 @@
 // Authors: Yehor Pohuliaka (zombiHello)
 
 #include "Logging/LogMacros.h"
+#include "Rendering/BaseShader.h"
 #include "Rendering/ShaderFactory.h"
 
 /**
@@ -16,7 +17,7 @@ void le::ShaderFactory::Register( const std::string& InShaderName, FCreateShader
 /**
  * Create shader
  */
-le::BaseShader* le::ShaderFactory::Create( const std::string& InShaderName ) const
+le::FBaseShaderRef le::ShaderFactory::Create( const std::string& InShaderName ) const
 {
 	if ( InShaderName.empty() )		return nullptr;
 

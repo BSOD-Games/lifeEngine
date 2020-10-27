@@ -6,6 +6,7 @@
 
 #include "Misc/Types.h"
 #include "Misc/Object.h"
+#include "Misc/RefCounted.h"
 
 namespace le
 {
@@ -23,7 +24,7 @@ namespace le
 		UBT_Stream
 	};
 
-	class IRHIBuffer : public Object
+	class IRHIBuffer : public Object, public RefCounted
 	{
 	public:
 		/* Destructor */

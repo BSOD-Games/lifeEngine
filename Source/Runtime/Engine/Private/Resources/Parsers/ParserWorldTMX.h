@@ -36,7 +36,7 @@ namespace le
 		}
 
 		/* Get sprite components */
-		std::vector< SpriteComponent > GetSpriteComponents() const override;
+		std::vector< FSpriteComponentRef > GetSpriteComponents() const override;
 
 		/* Get actors */
 		std::vector< SWorldObject > GetObjects() const override;
@@ -45,11 +45,11 @@ namespace le
 
 		struct STMXTileset
 		{
-			le::uint32						firstGID;
-			le::uint32						lastGID;
-			le::FVector2D					tileSize;
-			le::FVector2D					tileOffset;
-			le::Material*					material;
+			uint32							firstGID;
+			uint32							lastGID;
+			FVector2D						tileSize;
+			FVector2D						tileOffset;
+			FMaterialRef					material;
 			std::vector< FSRectFloat >		textureRects;
 		};
 

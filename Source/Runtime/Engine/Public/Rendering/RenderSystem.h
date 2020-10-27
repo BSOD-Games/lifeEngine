@@ -19,7 +19,7 @@ namespace le
 	{
 		/* Constructor */
 		SSpriteRenderObject();
-		SSpriteRenderObject( ESpriteType InSpriteType, Material* InMaterial, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition );
+		SSpriteRenderObject( ESpriteType InSpriteType, FMaterialConstRef& InMaterial, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition );
 
 		/* Constructor of copy */
 		SSpriteRenderObject( const SSpriteRenderObject& InCopy );
@@ -31,7 +31,7 @@ namespace le
 		SSpriteRenderObject& operator=( const SSpriteRenderObject& InRight );
 
 		ESpriteType		type;
-		Material*		material;
+		FMaterialRef	material;
 		FVector2D		size;
 		FSRectFloat		textureRect;
 		FVector3D		position;
@@ -50,7 +50,7 @@ namespace le
 		bool Initialize();
 
 		/* Draw sprite */
-		FORCEINLINE void DrawSprite( ESpriteType InSpriteType, Material* InMaterial, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition )
+		FORCEINLINE void DrawSprite( ESpriteType InSpriteType, FMaterialConstRef& InMaterial, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition )
 		{
 			LIFEENGINE_ASSERT( InMaterial );
 			sprites.push_back( SSpriteRenderObject( InSpriteType, InMaterial, InSize, InTextureRect, InPosition ) );
@@ -66,20 +66,14 @@ namespace le
 		void Present( FRHIContext InRHIContext );
 
 		/* Set camera */
-		FORCEINLINE void SetCamera( CameraComponent* InCameraComponent )
-		{
-			if ( currentCamera )		currentCamera->ReleaseRef();
-
-			currentCamera = InCameraComponent;
-			if ( InCameraComponent )	InCameraComponent->AddRef();
-		}
+		FORCEINLINE void SetCamera( FCameraComponentConstRef& InCameraComponent )	{ currentCamera = InCameraComponent; }
 
 		/* Get camera */
-		FORCEINLINE CameraComponent* GetCamera() const			{ return currentCamera; }
+		FORCEINLINE FCameraComponentConstRef& GetCamera() const						{ return currentCamera; }
 
 	private:
 		SpriteRenderer							spriteRenderer;
-		CameraComponent*						currentCamera;
+		FCameraComponentRef						currentCamera;
 
 		std::vector< SSpriteRenderObject >		sprites;
 	};

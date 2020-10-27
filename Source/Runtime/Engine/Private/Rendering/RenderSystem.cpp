@@ -15,17 +15,14 @@
 /**
  * Constructor
  */
-le::RenderSystem::RenderSystem() :
-	currentCamera( nullptr )
+le::RenderSystem::RenderSystem()
 {}
 
 /**
  * Destructor
  */
 le::RenderSystem::~RenderSystem()
-{
-	if ( currentCamera )			currentCamera->ReleaseRef();
-}
+{}
 
 /**
  * Initialize render system
@@ -88,15 +85,13 @@ le::SSpriteRenderObject::SSpriteRenderObject() :
 /**
  * Constructor
  */
-le::SSpriteRenderObject::SSpriteRenderObject( ESpriteType InSpriteType, Material* InMaterial, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition ) :
+le::SSpriteRenderObject::SSpriteRenderObject( ESpriteType InSpriteType, FMaterialConstRef& InMaterial, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition ) :
 	type( InSpriteType ),
 	material( InMaterial ),
 	size( InSize ),
 	textureRect( InTextureRect ),
 	position( InPosition )
-{
-	if ( material )			material->AddRef();
-}
+{}
 
 /**
  * Constructor of copy
@@ -107,17 +102,13 @@ le::SSpriteRenderObject::SSpriteRenderObject( const SSpriteRenderObject& InCopy 
 	size( InCopy.size ),
 	textureRect( InCopy.textureRect ),
 	position( InCopy.position )
-{
-	if ( material )			material->AddRef();
-}
+{}
 
 /**
  * Destructor
  */ 
 le::SSpriteRenderObject::~SSpriteRenderObject()
-{
-	if ( material )			material->ReleaseRef();
-}
+{}
 
 /**
  * Operator =
@@ -129,7 +120,5 @@ le::SSpriteRenderObject& le::SSpriteRenderObject::operator=( const SSpriteRender
 	material = InRight.material;
 	position = InRight.position;
 	textureRect = InRight.textureRect;
-
-	if ( material )		material->AddRef();
 	return *this;
 }

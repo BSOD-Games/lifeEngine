@@ -12,18 +12,14 @@
 /**
  * Constructor
  */
-le::Texture2D::Texture2D() :
-	handle( nullptr )
+le::Texture2D::Texture2D()
 {}
 
 /**
  * Destructor
  */
 le::Texture2D::~Texture2D()
-{
-	LIFEENGINE_ASSERT( GRHI );
-	if ( handle )		GRHI->DeleteTexture2D( handle );
-}
+{}
 
 /**
  * Serialize resource
@@ -42,11 +38,10 @@ bool le::Texture2D::Deserialize( const Path& InPath )
 	if ( InPath.IsEmpty() )		return false;
 	LIFEENGINE_ASSERT( GRHI );
 
-	IParserTexture2D*		parser = GParsersTexture2DFactory->Get( InPath.GetExtension() );
+	FIParserTexture2DRef	parser = GParsersTexture2DFactory->Get( InPath.GetExtension() );
 	FFileHandle				fileHandle = GFileSystem->OpenFile( InPath );
 	if ( !fileHandle || !parser )
 	{
-		if ( parser )			parser->ReleaseRef();
 		if ( fileHandle )		GFileSystem->CloseFile( fileHandle );
 		return false;
 	}
@@ -68,7 +63,6 @@ bool le::Texture2D::Deserialize( const Path& InPath )
 	sampler.minFilter = SF_Nearest;
 	handle->SetSampler( sampler );
 
-	parser->ReleaseRef();
 	GFileSystem->CloseFile( fileHandle );
 	return true;
 }

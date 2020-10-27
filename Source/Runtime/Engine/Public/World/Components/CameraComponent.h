@@ -42,7 +42,7 @@ namespace le
 		FORCEINLINE void Move( const FVector3D& InFactorMove )
 		{
 			isNeedUpdateViewMatrix = true;
-			transformComponent.Move( InFactorMove );
+			transformComponent->Move( InFactorMove );
 		}
 
 		/* Rotate camera */
@@ -51,17 +51,17 @@ namespace le
 			// TODO: [yehor.pohuliaka] - Add min and max angles rotations
 
 			isNeedUpdateViewMatrix = true;
-			transformComponent.Rotate( InFactorRotate );
+			transformComponent->Rotate( InFactorRotate );
 		}
 		
 		/* Rotate by mouse */
 		void RotateByMouse( const FVector2D& InMouseOffset, float InSensitivity, bool InConstrainYaw = true );
 
 		/* Set owner */
-		FORCEINLINE void SetOwner( TransformComponent* InOwner )
+		FORCEINLINE void SetOwner( FTransformComponentConstRef& InOwner )
 		{ 
 			isNeedUpdateViewMatrix = true;
-			transformComponent.SetOwner( InOwner ); 
+			transformComponent->SetOwner( InOwner ); 
 		}
 
 		/* Set perspective projection */
@@ -84,7 +84,7 @@ namespace le
 		FORCEINLINE void SetPosition( const FVector3D& InPosition )
 		{
 			isNeedUpdateViewMatrix = true;
-			transformComponent.SetPosition( InPosition );
+			transformComponent->SetPosition( InPosition );
 		}
 
 		/* Set rotation */
@@ -93,7 +93,7 @@ namespace le
 			// TODO: [yehor.pohuliaka] - Add min and max angles rotations
 
 			isNeedUpdateViewMatrix = true;
-			transformComponent.SetRotation( InRotation );
+			transformComponent->SetRotation( InRotation );
 		}
 
 		/* Set target direction */
@@ -143,7 +143,7 @@ namespace le
 		}
 
 		/* Get transformation */
-		FORCEINLINE const TransformComponent& GetTransformComponent() const			{ return transformComponent; }
+		FORCEINLINE FTransformComponentRef GetTransformComponent() const			{ return transformComponent; }
 
 	private:
 		/* Update view matrix */
@@ -152,21 +152,21 @@ namespace le
 		/* Event: Update transform component */
 		void OnUpdateTransformComponent( const TransformComponent::SEventUpdate& InEventUpdate );
 
-		mutable bool					isNeedUpdateViewMatrix;
-		float							near;
-		float							far;
+		mutable bool						isNeedUpdateViewMatrix;
+		float								near;
+		float								far;
 
-		mutable FVector3D				targetDirection;
-		mutable FVector3D				axisUp;
-		mutable FVector3D				axisRight;
-		mutable Frustum					frustum;
-		mutable TransformComponent		transformComponent;
+		mutable FVector3D					targetDirection;
+		mutable FVector3D					axisUp;
+		mutable FVector3D					axisRight;
+		mutable Frustum						frustum;
+		mutable FTransformComponentRef		transformComponent;
 
-		FVector3D						localTargetDirection;
-		FVector3D						localAxisUp;
+		FVector3D							localTargetDirection;
+		FVector3D							localAxisUp;
 
-		mutable FMatrix4x4				viewMatrix;
-		FMatrix4x4						projectionMatrix;
+		mutable FMatrix4x4					viewMatrix;
+		FMatrix4x4							projectionMatrix;
 	};
 }
 

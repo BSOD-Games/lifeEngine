@@ -9,6 +9,7 @@
 
 #include "Misc/Object.h"
 #include "Misc/Types.h"
+#include "Misc/RefCounted.h"
 #include "Math/Math.h"
 #include "ShaderVar.h"
 
@@ -17,7 +18,7 @@ namespace le
 	class IRHI;
 	class CameraComponent;
 
-	class BaseShader : public Object
+	class BaseShader : public Object, public RefCounted
 	{
 	public:
 		/* Constructor */
@@ -30,7 +31,7 @@ namespace le
 		virtual bool Initialize( const std::vector< ShaderVar >* InShaderVars = nullptr ) = 0;
 
 		/* On draw sprite */
-		virtual void OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition, CameraComponent* InCameraComponent );
+		virtual void OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition, FCameraComponentConstRef& InCameraComponent );
 
 		/* Get name */
 		virtual std::string GetName() const = 0;

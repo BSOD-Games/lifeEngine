@@ -4,7 +4,9 @@
 #ifndef IRHIGEOMETRY_H
 #define IRHIGEOMETRY_H
 
+#include "Misc/Types.h"
 #include "Misc/Object.h"
+#include "Misc/RefCounted.h"
 
 namespace le
 {
@@ -18,20 +20,20 @@ namespace le
 		IT_UInt
 	};
 
-	class IRHIGeometry : public Object
+	class IRHIGeometry : public Object, public RefCounted
 	{
 	public:
 		/* Destructor */
 		virtual ~IRHIGeometry() {}
 
 		/* Set vertex buffer */
-		virtual void SetVertexBuffer( IRHIBuffer* InVertexBuffer ) = 0;
+		virtual void SetVertexBuffer( FIRHIBufferConstRef& InVertexBuffer ) = 0;
 
 		/* Set vertex format */
-		virtual void SetVertexFormat( IRHIVertexFormat* InVertexFormat ) = 0;
+		virtual void SetVertexFormat( FIRHIVertexFormatConstRef& InVertexFormat ) = 0;
 
 		/* Set index buffer */
-		virtual void SetIndexBuffer( IRHIBuffer* InIndexBuffer, EIndecesType InIndecesType ) = 0;
+		virtual void SetIndexBuffer( FIRHIBufferConstRef& InIndexBuffer, EIndecesType InIndecesType ) = 0;
 
 		/* Get indeces type */
 		virtual EIndecesType GetIndecesType() const = 0;

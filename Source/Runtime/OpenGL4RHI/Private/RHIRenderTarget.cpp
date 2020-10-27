@@ -60,15 +60,13 @@ void le::RHIRenderTarget::CreateTexture2D( EImageFormat InImageFormat, const SSa
 void le::RHIRenderTarget::DestroyTexture2D( uint32 InIndex )
 {
 	LIFEENGINE_ASSERT( InIndex < buffers.size() );
-	RHITexture2D*	texture2D = buffers[ InIndex ];
-	uint32			typeAttach = texture2D->GetFormat() != IF_Depth24_Stencil8 ? GL_COLOR_ATTACHMENT0 + InIndex : GL_DEPTH_STENCIL_ATTACHMENT;
+	uint32			typeAttach = buffers[ InIndex ]->GetFormat() != IF_Depth24_Stencil8 ? GL_COLOR_ATTACHMENT0 + InIndex : GL_DEPTH_STENCIL_ATTACHMENT;
 
 	uint32			currentFBO = GLState::GetFBO();
 	GLState::BindFBO( handle );
 	glFramebufferTexture2D( GL_FRAMEBUFFER, typeAttach, GL_TEXTURE_2D, 0, 0 );
 	GLState::BindFBO( currentFBO );
 
-	delete texture2D;
 	buffers.erase( buffers.begin() + InIndex );
 }
 
@@ -103,10 +101,10 @@ le::uint32 le::RHIRenderTarget::GetHeight() const
 /**
  * Get texture 2D
  */
-le::IRHITexture2D* le::RHIRenderTarget::GetTexture2D( uint32 InIndex ) const
+le::FIRHITexture2DRef le::RHIRenderTarget::GetTexture2D( uint32 InIndex ) const
 {
 	LIFEENGINE_ASSERT( InIndex < buffers.size() );
-	return buffers[ InIndex ];
+	return FIRHITexture2DRef( buffers[ InIndex ].GetPtr() );
 }
 
 /**

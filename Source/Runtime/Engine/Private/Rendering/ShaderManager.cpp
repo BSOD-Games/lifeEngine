@@ -11,7 +11,7 @@
 /**
  * Find shader
  */
-le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const SShaderPaths& InShaderPaths, std::vector< std::string >* InDefines, uint32 InFlags )
+le::FIRHIShaderRef le::ShaderManager::FindShader( const std::string& InName, const SShaderPaths& InShaderPaths, std::vector< std::string >* InDefines, uint32 InFlags )
 {
 	// Find shader in cache
 	auto		itShaderGroup = shaders.find( InName );
@@ -25,7 +25,7 @@ le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const 
 	LIFEENGINE_ASSERT( GRHI );
 
 	std::string			error, code;
-	IRHIShader*			shader = GRHI->CreateShader();
+	FIRHIShaderRef		shader = GRHI->CreateShader();
 	
 	// Compiling vertex shader
 	if ( !InShaderPaths.vertexShaderPath.IsEmpty() )
@@ -42,9 +42,7 @@ le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const 
 
 		if ( !shader->Compile( code, ST_Vertex, InDefines, &error ) )
 		{
-			LIFEENGINE_LOG_ERROR( "Engine", "Failed compile vertex shader [%s] :: %s", InName.c_str(), error.c_str() );
-			GRHI->DeleteShader( shader );
-			
+			LIFEENGINE_LOG_ERROR( "Engine", "Failed compile vertex shader [%s] :: %s", InName.c_str(), error.c_str() );		
 			return nullptr;
 		}
 	}
@@ -65,8 +63,6 @@ le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const 
 		if ( !shader->Compile( code, ST_Geometry, InDefines, &error ) )
 		{
 			LIFEENGINE_LOG_ERROR( "Engine", "Failed compile geometry shader [%s] :: %s", InName.c_str(), error.c_str() );
-			GRHI->DeleteShader( shader );
-
 			return nullptr;
 		}
 	}
@@ -87,8 +83,6 @@ le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const 
 		if ( !shader->Compile( code, ST_Pixel, InDefines, &error ) )
 		{
 			LIFEENGINE_LOG_ERROR( "Engine", "Failed compile pixel shader [%s] :: %s", InName.c_str(), error.c_str() );
-			GRHI->DeleteShader( shader );
-
 			return nullptr;
 		}
 	}
@@ -97,14 +91,10 @@ le::IRHIShader* le::ShaderManager::FindShader( const std::string& InName, const 
 	if ( !shader->Link( &error ) )
 	{
 		LIFEENGINE_LOG_ERROR( "Engine", "Failed linking shader [%s] :: %s", InName.c_str(), error.c_str() );
-		GRHI->DeleteShader( shader );
-
 		return nullptr;
 	}
 
 	shaders[ InName ][ InFlags ] = shader;
-	shader->AddRef();
-	
 	LIFEENGINE_LOG_INFO( "Engine", "Shader loaded [%s]", InName.c_str() );
 	return shader;
 }
@@ -123,8 +113,6 @@ void le::ShaderManager::UnloadShader( const std::string& InName, uint32 InFlags 
 	if ( itShader->second->GetRefCount() >= 2 )		return;
 
 	LIFEENGINE_LOG_INFO( "Engine", "Unloaded shader [%s] with flags [%X]", itShaderGroup->first.c_str(), itShader->first );
-	
-	itShader->second->ReleaseRef();
 	itShaderGroup->second.erase( itShader );
 }
 
@@ -139,7 +127,6 @@ void le::ShaderManager::UnloadShaders()
 			if ( itShader->second->GetRefCount() <= 1 )
 			{
 				LIFEENGINE_LOG_INFO( "Engine", "Unloaded shader [%s] with flags [%X]", itShaderGroup->first.c_str(), itShader->first );
-				itShader->second->ReleaseRef();
 
 				itShader = itShaderGroup->second.erase( itShader );
 				itShaderEnd = itShaderGroup->second.end();

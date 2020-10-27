@@ -19,11 +19,7 @@ struct SSpriteVertex
 /**
  * Constructor
  */
-le::SpriteRenderer::SpriteRenderer() :
-	rhiGeometry( nullptr ),
-	rhiIndexBuffer( nullptr ),
-	rhiVertexBuffer( nullptr ),
-	rhiVertexFormat( nullptr )
+le::SpriteRenderer::SpriteRenderer()
 {}
 
 /**
@@ -65,12 +61,12 @@ bool le::SpriteRenderer::Initialize()
 /**
  * Render sprite
  */
-void le::SpriteRenderer::Render( const SSpriteRenderObject& InSpriteRenderObject, CameraComponent* InCameraComponent )
+void le::SpriteRenderer::Render( const SSpriteRenderObject& InSpriteRenderObject, FCameraComponentConstRef& InCameraComponent )
 {
 	GRHI->SetGeometry( rhiGeometry );
 	InSpriteRenderObject.material->Refresh();
 
-	BaseShader*			shader = InSpriteRenderObject.material->GetShader();
+	FBaseShaderRef			shader = InSpriteRenderObject.material->GetShader();
 	if ( shader )
 	{
 		shader->OnDrawSprite( GRHI, InSpriteRenderObject.size, InSpriteRenderObject.textureRect, InSpriteRenderObject.position, InCameraComponent );

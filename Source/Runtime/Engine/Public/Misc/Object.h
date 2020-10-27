@@ -4,11 +4,12 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include "RefCounted.h"
+#include "Misc/EngineDefines.h"
+#include "Misc/RefCountPtr.h"
 
 namespace le
 {
-	class Object : public RefCounted
+	class Object
 	{
 	public:
 		/* Destructor */
@@ -16,9 +17,16 @@ namespace le
 
 		/* Cast to type */
 		template< typename T >
-		static T* Cast( Object* InObject )
+		FORCEINLINE static T* Cast( Object* InObject )
 		{
 			return dynamic_cast< T* >( InObject );
+		}
+
+		/* Cast to type */
+		template< typename T >
+		FORCEINLINE static TRefCountPtr< T > Cast( const TRefCountPtr< Object >& InObject )
+		{
+			return TRefCountPtr< T >( dynamic_cast< T* >( InObject.GetPtr() ) );
 		}
 	};
 }

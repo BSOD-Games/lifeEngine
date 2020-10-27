@@ -10,6 +10,7 @@
 #include "Misc/Types.h"
 #include "Rendering/RHI/IRHIGeometry.h"
 #include "GLState.h"
+#include "Types.h"
 
 namespace le
 {
@@ -38,28 +39,28 @@ namespace le
 		}
 
 		/* Notify of destroy */
-		void NotifyDestroy( RHIBuffer* InBuffer );
-		void NotifyDestroy( RHIVertexFormat* InVertexFormat );
+		void NotifyDestroy( FRHIBufferConstRef& InBuffer );
+		void NotifyDestroy( FRHIVertexFormatConstRef& InVertexFormat );
 
 		/* Set vertex buffer */
-		void SetVertexBuffer( IRHIBuffer* InVertexBuffer ) override;
+		void SetVertexBuffer( FIRHIBufferConstRef& InVertexBuffer ) override;
 
 		/* Set vertex format */
-		void SetVertexFormat( IRHIVertexFormat* InVertexFormat ) override;
+		void SetVertexFormat( FIRHIVertexFormatConstRef& InVertexFormat ) override;
 
 		/* Set index buffer */
-		void SetIndexBuffer( IRHIBuffer* InIndexBuffer, EIndecesType InIndecesType ) override;
+		void SetIndexBuffer( FIRHIBufferConstRef& InIndexBuffer, EIndecesType InIndecesType ) override;
 
 		/* Is valid */
 		FORCEINLINE bool IsValid() const
 		{
-			return vao > 0 || ( vertexBuffer && vertexFormat );
+			return vao > 0 || ( vertexBuffer.IsValid() && vertexFormat.IsValid() );
 		}
 
 		/* Is indexed */
 		FORCEINLINE bool IsIndexed() const
 		{
-			return indexBuffer;
+			return indexBuffer.IsValid();
 		}
 
 		/* Get indeces type */
@@ -80,9 +81,9 @@ namespace le
 		uint32					vao;
 		EIndecesType			indecesType;
 
-		RHIBuffer*				vertexBuffer;
-		RHIVertexFormat*		vertexFormat;
-		RHIBuffer*				indexBuffer;
+		FRHIBufferRef			vertexBuffer;
+		FRHIVertexFormatRef		vertexFormat;
+		FRHIBufferRef			indexBuffer;
 	};
 }
 

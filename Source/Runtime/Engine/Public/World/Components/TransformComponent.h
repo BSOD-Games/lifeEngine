@@ -7,7 +7,7 @@
 #include "Math/Math.h"
 #include "System/EventChannel.h"
 #include "World/Components/BaseComponent.h"
-#include "Logging/LogMacros.h"
+
 namespace le
 {
 	class TransformComponent : public BaseComponent
@@ -60,23 +60,17 @@ namespace le
 		}
 
 		/* Set owner */
-		FORCEINLINE void SetOwner( TransformComponent* InOwner )		
+		FORCEINLINE void SetOwner( FTransformComponentConstRef& InOwner )		
 		{ 
 			if ( owner )
-			{
 				owner->GetEventChannelUpdate().Unsubscribe( this, &TransformComponent::OnOwnerUpdate );
-				owner->ReleaseRef();
-			}
 
 			isNeedUpdate = true;			
 			owner = InOwner; 
 			eventUpdate.Emit( SEventUpdate{ EUT_Owner } );
 
-			if ( InOwner )
-			{
-				InOwner->GetEventChannelUpdate().Subscribe( this, &TransformComponent::OnOwnerUpdate );
-				InOwner->AddRef();
-			}
+			if ( owner )
+				owner->GetEventChannelUpdate().Subscribe( this, &TransformComponent::OnOwnerUpdate );
 		}
 
 		/* Set position */
@@ -104,7 +98,7 @@ namespace le
 		}
 
 		/* Get owner */
-		FORCEINLINE TransformComponent* GetOwner() const				{ return owner; }
+		FORCEINLINE FTransformComponentRef GetOwner() const				{ return owner; }
 
 		/* Get local position */
 		FORCEINLINE const FVector3D& GetLocalPosition() const			{ return position; }
@@ -168,7 +162,7 @@ namespace le
 		FVector3D						scale;
 		mutable FMatrix4x4				transformation;
 
-		TransformComponent*				owner;
+		FTransformComponentRef			owner;
 	};
 }
 

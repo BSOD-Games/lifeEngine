@@ -7,11 +7,12 @@
 #include <string>
 
 #include "Misc/Object.h"
+#include "Misc/RefCounted.h"
 #include "System/FileSystem.h"
 
 namespace le
 {
-	class IParser : public Object
+	class IParser : public Object, public RefCounted
 	{
 	public:
 		/* Destructor */

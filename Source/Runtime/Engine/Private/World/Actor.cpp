@@ -3,7 +3,8 @@
 
 #include "World/Actor.h"
 #include "System/EventChannel.h"
-#include "Logging/LogMacros.h"
+#include "World/Components/BaseComponent.h"
+
 /**
  * Constructor
  */
@@ -15,7 +16,7 @@ le::Actor::Actor() :
 /**
  * Initialize
  */
-void le::Actor::Initialize( World* InWorld, const std::vector< ActorVar >* InActorVars )
+void le::Actor::Initialize( FWorldConstRef& InWorld, const std::vector< ActorVar >* InActorVars )
 {
 	isInitialized = true;
 }
@@ -35,7 +36,7 @@ void le::Actor::Render()
 /**
  * Is visible actor
  */
-bool le::Actor::IsVisible( const CameraComponent& InCameraComponent ) const
+bool le::Actor::IsVisible( FCameraComponentConstRef& InCameraComponent ) const
 {
 	return true;
 }
@@ -43,8 +44,8 @@ bool le::Actor::IsVisible( const CameraComponent& InCameraComponent ) const
 /**
  * Get component
  */
-le::BaseComponent* le::Actor::GetComponent( const std::string& InTypeName ) const
+le::FBaseComponentRef le::Actor::GetComponent( const std::string& InTypeName ) const
 {
-	return nullptr;
+	return FBaseComponentRef();
 }
 

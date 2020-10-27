@@ -27,20 +27,13 @@ namespace le
 		virtual void Tick();
 
 		/* Set actor for controlling by the player */
-		FORCEINLINE virtual void SetActor( Actor* InActor )
-		{ 
-			if ( actor )	actor->ReleaseRef();
-			
-			actor = InActor; 
-			if ( InActor )	InActor->AddRef();
-		}
+		FORCEINLINE virtual void SetActor( FActorConstRef& InActor )	{ actor = InActor; }
 
 		/* Get an actor controlled by the player */
-		FORCEINLINE Actor* GetActor() const					{ return actor; }
+		FORCEINLINE FActorRef GetActor() const							{ return actor; }
 
 	protected:
-		Actor*				actor;
-		CameraComponent		cameraComponent;
+		FActorRef				actor;
 	};
 }
 

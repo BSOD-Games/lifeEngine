@@ -6,10 +6,11 @@
 
 #include "Misc/Types.h"
 #include "Misc/Object.h"
+#include "Misc/RefCounted.h"
 
 namespace le
 {
-	class IRHIVertexFormat : public Object
+	class IRHIVertexFormat : public Object, public RefCounted
 	{
 	public:
 		/* Destructor */

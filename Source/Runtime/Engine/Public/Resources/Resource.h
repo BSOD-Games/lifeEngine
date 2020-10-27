@@ -10,6 +10,7 @@
 #include "Misc/Types.h"
 #include "Misc/Path.h"
 #include "Misc/Object.h"
+#include "Misc/RefCounted.h"
 
 namespace le
 {
@@ -21,7 +22,7 @@ namespace le
 		RT_World
 	};
 
-	class Resource : public Object
+	class Resource : public Object, public RefCounted
 	{
 	public:
 		/* Destructor */

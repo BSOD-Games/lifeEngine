@@ -12,8 +12,7 @@
 
 namespace le
 {
-	class IParserWorld;
-	typedef IParserWorld*		( *FCreateParserWorldFn )( );
+	typedef FIParserWorldRef		( *FCreateParserWorldFn )( );
 
 	class ParsersWorldFactory : public Object
 	{
@@ -22,7 +21,7 @@ namespace le
 		void Register( const std::vector< std::string >& InSupportedExtensions, FCreateParserWorldFn InCreateParserWorldFunction );
 
 		/* Get parser by extension */
-		IParserWorld* Get( const std::string& InExtension ) const;
+		FIParserWorldRef Get( const std::string& InExtension ) const;
 
 	private:
 		mutable std::unordered_map< std::string, FCreateParserWorldFn >			parsers;

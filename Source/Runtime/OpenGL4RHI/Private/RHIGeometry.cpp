@@ -45,8 +45,8 @@ void le::RHIGeometry::Bind()
 {
 	if ( isNeedRefresh )
 	{
-		if ( vao > 0 )							Destroy();
-		if ( vertexBuffer && vertexFormat )		Create();
+		if ( vao > 0 )												Destroy();
+		if ( vertexBuffer.IsValid() && vertexFormat.IsValid() )		Create();
 
 		isNeedRefresh = false;
 	}
@@ -58,9 +58,9 @@ void le::RHIGeometry::Bind()
 /**
  * Notify destroy
  */
-void le::RHIGeometry::NotifyDestroy( RHIBuffer* InBuffer )
+void le::RHIGeometry::NotifyDestroy( FRHIBufferConstRef& InBuffer )
 {
-	LIFEENGINE_ASSERT( InBuffer );
+	LIFEENGINE_ASSERT( InBuffer.IsValid() );
 
 	switch ( InBuffer->GetType() )
 	{
@@ -85,9 +85,9 @@ void le::RHIGeometry::NotifyDestroy( RHIBuffer* InBuffer )
 /**
  * Notify destroy
  */
-void le::RHIGeometry::NotifyDestroy( RHIVertexFormat* InVertexFormat )
+void le::RHIGeometry::NotifyDestroy( FRHIVertexFormatConstRef& InVertexFormat )
 {
-	LIFEENGINE_ASSERT( InVertexFormat );
+	LIFEENGINE_ASSERT( InVertexFormat.IsValid() );
 	if ( InVertexFormat != vertexFormat )		return;
 	
 	vertexFormat = nullptr;
@@ -97,38 +97,38 @@ void le::RHIGeometry::NotifyDestroy( RHIVertexFormat* InVertexFormat )
 /**
  * Set vertex buffer
  */
-void le::RHIGeometry::SetVertexBuffer( IRHIBuffer* InVertexBuffer )
+void le::RHIGeometry::SetVertexBuffer( FIRHIBufferConstRef& InVertexBuffer )
 {
 	LIFEENGINE_ASSERT( InVertexBuffer );
 	if ( InVertexBuffer->GetType() != BT_Vertex )	return;
 	if ( vertexBuffer )		vertexBuffer->NotifyDestroyGeometry( this );
 
-	vertexBuffer = static_cast< RHIBuffer* >( InVertexBuffer );
+	vertexBuffer = FRHIBufferRef( static_cast< RHIBuffer* >( InVertexBuffer.GetPtr() ) );
 	isNeedRefresh = true;
 }
 
 /**
  * Set vertex format
  */
-void le::RHIGeometry::SetVertexFormat( IRHIVertexFormat* InVertexFormat )
+void le::RHIGeometry::SetVertexFormat( FIRHIVertexFormatConstRef& InVertexFormat )
 {
 	LIFEENGINE_ASSERT( InVertexFormat );
 	if ( vertexFormat )		vertexFormat->NotifyDestroyGeometry( this );
 
-	vertexFormat = static_cast< RHIVertexFormat* >( InVertexFormat );
+	vertexFormat = FRHIVertexFormatRef( static_cast< RHIVertexFormat* >( InVertexFormat.GetPtr() ) );
 	isNeedRefresh = true;
 }
 
 /**
  * Set index buffer
  */
-void le::RHIGeometry::SetIndexBuffer( IRHIBuffer* InIndexBuffer, EIndecesType InIndecesType )
+void le::RHIGeometry::SetIndexBuffer( FIRHIBufferConstRef& InIndexBuffer, EIndecesType InIndecesType )
 {
 	LIFEENGINE_ASSERT( InIndexBuffer );
 	if ( InIndexBuffer->GetType() != BT_Index )	return;
 	if ( indexBuffer )		indexBuffer->NotifyDestroyGeometry( this );
 
-	indexBuffer = static_cast< RHIBuffer* >( InIndexBuffer );
+	indexBuffer = FRHIBufferRef( static_cast< RHIBuffer* >( InIndexBuffer.GetPtr() ) );
 	indecesType = InIndecesType;
 	isNeedRefresh = true;
 }

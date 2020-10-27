@@ -7,13 +7,13 @@
 #include <string>
 #include <vector>
 
+#include "Misc/Types.h"
 #include "World/ActorVar.h"
 #include "World/Components/SpriteComponent.h"
 #include "IParser.h"
 
 namespace le
 {
-	class SpriteComponent;
 	class Actor;
 
 	struct SWorldObject
@@ -29,7 +29,7 @@ namespace le
 		virtual ~IParserWorld() {}
 
 		/* Get sprite components */
-		virtual std::vector< SpriteComponent > GetSpriteComponents() const = 0;
+		virtual std::vector< FSpriteComponentRef > GetSpriteComponents() const = 0;
 
 		/* Get actors */
 		virtual std::vector< SWorldObject > GetObjects() const = 0;

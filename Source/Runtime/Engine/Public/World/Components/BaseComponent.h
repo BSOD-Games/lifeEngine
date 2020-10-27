@@ -6,12 +6,13 @@
 
 #include "Misc/EngineDefines.h"
 #include "Misc/Object.h"
+#include "Misc/RefCounted.h"
 #include "Math/Math.h"
 #include "World/Actor.h"
 
 namespace le
 {
-	class BaseComponent : public Object
+	class BaseComponent : public Object, public RefCounted
 	{
 	public:
 		/* Destructor */

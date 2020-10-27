@@ -47,10 +47,7 @@ bool le::UnlitGeneric::Initialize( const std::vector< ShaderVar >* InShaderVars 
 			{
 			case SVT_Texture2D:
 				if ( shaderVar.GetName() == "BaseTexture" )
-				{
 					baseTexture = shaderVar.GetValueTexture2D();
-					baseTexture->AddRef();
-				}
 				break;
 			}
 		}
@@ -68,7 +65,7 @@ bool le::UnlitGeneric::Initialize( const std::vector< ShaderVar >* InShaderVars 
 /**
  * On draw sprite
  */
-void le::UnlitGeneric::OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition, CameraComponent* InCameraComponent )
+void le::UnlitGeneric::OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition, FCameraComponentConstRef& InCameraComponent )
 {
 	if ( !rhiShader )		return;
 	if ( baseTexture )		InRHI->SetTexture2D( baseTexture->GetHandle() );
@@ -87,16 +84,11 @@ void le::UnlitGeneric::OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const
 void le::UnlitGeneric::ClearVars()
 {
 	if ( baseTexture )
-	{
-		baseTexture->ReleaseRef();
 		baseTexture = nullptr;
-	}
 
 	if ( rhiShader )
 	{
-		rhiShader->ReleaseRef();
 		rhiShader = nullptr;
-
 		GShaderManager->UnloadShader( "UnlitGeneric", flags );
 	}
 

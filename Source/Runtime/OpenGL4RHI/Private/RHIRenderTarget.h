@@ -9,6 +9,7 @@
 #include "Misc/EngineDefines.h"
 #include "Rendering/RHI/IRHIRenderTarget.h"
 #include "GLState.h"
+#include "Types.h"
 
 namespace le
 {
@@ -53,16 +54,16 @@ namespace le
 		uint32 GetHeight() const override;
 
 		/* Get texture 2D */
-		IRHITexture2D* GetTexture2D( uint32 InIndex ) const override;
+		FIRHITexture2DRef GetTexture2D( uint32 InIndex ) const override;
 
 	private:
 		/* Destroy */
 		void Destroy();
 
-		uint32							handle;
-		uint32							width;
-		uint32							height;
-		std::vector< RHITexture2D* >	buffers;
+		uint32								handle;
+		uint32								width;
+		uint32								height;
+		std::vector< FRHITexture2DRef >		buffers;
 	};
 }
 

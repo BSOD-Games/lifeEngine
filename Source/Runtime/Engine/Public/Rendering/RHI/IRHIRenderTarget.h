@@ -6,11 +6,12 @@
 
 #include "Misc/Types.h"
 #include "Misc/Object.h"
+#include "Misc/RefCounted.h"
 #include "Rendering/RHI/IRHITexture2D.h"
 
 namespace le
 {
-	class IRHIRenderTarget : public Object
+	class IRHIRenderTarget : public Object, public RefCounted
 	{
 	public:
 		/* Destructor */
@@ -32,7 +33,7 @@ namespace le
 		virtual uint32 GetHeight() const = 0;
 
 		/* Get texture 2D */
-		virtual IRHITexture2D* GetTexture2D( uint32 InIndex ) const = 0;
+		virtual FIRHITexture2DRef GetTexture2D( uint32 InIndex ) const = 0;
 	};
 }
 

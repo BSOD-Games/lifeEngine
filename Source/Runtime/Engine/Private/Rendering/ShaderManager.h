@@ -11,11 +11,10 @@
 #include "Misc/Object.h"
 #include "Misc/Types.h"
 #include "Misc/Path.h"
+#include "Rendering/RHI/IRHIShader.h"
 
 namespace le
 {
-	class IRHIShader;
-
 	struct SShaderPaths
 	{
 		Path			vertexShaderPath;
@@ -27,7 +26,7 @@ namespace le
 	{
 	public:
 		/* Find shader */
-		IRHIShader* FindShader( const std::string& InName, const SShaderPaths& InShaderPaths, std::vector< std::string >* InDefines = nullptr, uint32 InFlags = 0 );
+		FIRHIShaderRef FindShader( const std::string& InName, const SShaderPaths& InShaderPaths, std::vector< std::string >* InDefines = nullptr, uint32 InFlags = 0 );
 
 		/* Unload shader */
 		void UnloadShader( const std::string& InName, uint32 InFlags = 0 );
@@ -36,7 +35,7 @@ namespace le
 		void UnloadShaders();
 
 	private:
-		std::unordered_map< std::string, std::unordered_map< uint32, IRHIShader* > >		shaders;
+		std::unordered_map< std::string, std::unordered_map< uint32, FIRHIShaderRef > >		shaders;
 	};
 }
 

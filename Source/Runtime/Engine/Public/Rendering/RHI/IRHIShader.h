@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Misc/Object.h"
+#include "Misc/RefCounted.h"
 #include "Math/Math.h"
 
 namespace le
@@ -21,7 +22,7 @@ namespace le
 		ST_Pixel
 	};
 
-	class IRHIShader : public Object
+	class IRHIShader : public Object, public RefCounted
 	{
 	public:
 		/* Destructor */

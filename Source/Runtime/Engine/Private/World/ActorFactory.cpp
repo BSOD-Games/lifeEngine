@@ -2,6 +2,7 @@
 // Authors: Yehor Pohuliaka (zombiHello)
 
 #include "Logging/LogMacros.h"
+#include "World/Actor.h"
 #include "World/ActorFactory.h"
 
 /**
@@ -16,7 +17,7 @@ void le::ActorFactory::Register( const std::string& InName, FCreateActorFn InCre
 /**
  * Create actor
  */
-le::Actor* le::ActorFactory::Create( const std::string& InName ) const
+le::FActorRef le::ActorFactory::Create( const std::string& InName ) const
 {
 	auto		it = actors.find( InName );
 	if ( it == actors.end() )

@@ -23,22 +23,22 @@ namespace le
 		FRHIContext CreateContext( FWindowHandle InWindowHandle, FRHIContext InShareContext = nullptr ) override;
 
 		/* Create shader */
-		IRHIShader* CreateShader() override;
+		FIRHIShaderRef CreateShader() override;
 
 		/* Create buffer */
-		IRHIBuffer* CreateBuffer( EBufferType InBufferType, EUsageBufferType InUsageBufferType = UBT_Static ) override;
+		FIRHIBufferRef CreateBuffer( EBufferType InBufferType, EUsageBufferType InUsageBufferType = UBT_Static ) override;
 
 		/* Create vertex format */
-		IRHIVertexFormat* CreateVertexFormat() override;
+		FIRHIVertexFormatRef CreateVertexFormat() override;
 
 		/* Create geometry */
-		IRHIGeometry* CreateGeometry() override;
+		FIRHIGeometryRef CreateGeometry() override;
 
 		/* Create texture 2D */
-		IRHITexture2D* CreateTexture2D( EImageFormat InImageFormat, uint32 InWidth, uint32 InHeight, uint32 InCountMipmap = 1 ) override;
+		FIRHITexture2DRef CreateTexture2D( EImageFormat InImageFormat, uint32 InWidth, uint32 InHeight, uint32 InCountMipmap = 1 ) override;
 
 		/* Create render target */
-		IRHIRenderTarget* CreateRenderTarget( uint32 InWidth, uint32 InHeight ) override;
+		FIRHIRenderTargetRef CreateRenderTarget( uint32 InWidth, uint32 InHeight ) override;
 
 		/* Make current context */
 		bool MakeCurrentContext( FRHIContext InRHIContext ) override;
@@ -55,24 +55,6 @@ namespace le
 		/* Delete context */
 		void DeleteContext( FRHIContext& InRHIContext ) override;
 
-		/* Delete shader */
-		void DeleteShader( IRHIShader*& InOutShader ) override;
-
-		/* Delete buffer */
-		void DeleteBuffer( IRHIBuffer*& InOutBuffer ) override;
-
-		/* Delete vertex format */
-		void DeleteVertexFormat( IRHIVertexFormat*& InOutVertexFormat ) override;
-
-		/* Delete geometry */
-		void DeleteGeometry( IRHIGeometry*& InGeometry ) override;
-
-		/* Delete texture 2D */
-		void DeleteTexture2D( IRHITexture2D*& InTexture2D ) override;
-
-		/* Delete render target */
-		void DeleteRenderTarget( IRHIRenderTarget*& InRenderTarget ) override;
-
 		/* Swap buffers */
 		void SwapBuffers( FRHIContext InRHIContext ) override;
 
@@ -83,16 +65,28 @@ namespace le
 		void SetViewport( uint32 InX, uint32 InY, uint32 InWidth, uint32 InHeight ) override;
 
 		/* Set shader */
-		void SetShader( IRHIShader* InShader = nullptr ) override;
+		void SetShader( FIRHIShaderConstRef& InShader )override;
+
+		/* Unset shader */
+		void UnsetShader() override;
 
 		/* Set geometry */
-		void SetGeometry( IRHIGeometry* InGeometry ) override;
+		void SetGeometry( FIRHIGeometryConstRef& InGeometry ) override;
+
+		/* Unset geometry */
+		void UnsetGeometry() override;
 
 		/* Set texture 2D */
-		void SetTexture2D( IRHITexture2D* InTexture2D, uint32 InTextureLayer = 0 ) override;
+		void SetTexture2D( FIRHITexture2DConstRef& InTexture2D, uint32 InTextureLayer = 0 ) override;
+
+		/* Unset texture 2D */
+		void UnsetTexture2D( uint32 InTextureLayer = 0 ) override;
 
 		/* Set render target */
-		void SetRenderTarget( IRHIRenderTarget* InRenderTarget ) override;
+		void SetRenderTarget( FIRHIRenderTargetConstRef& InRenderTarget ) override;
+
+		/* Unset render target */
+		void UnsetRenderTarget() override;
 	};
 }
 

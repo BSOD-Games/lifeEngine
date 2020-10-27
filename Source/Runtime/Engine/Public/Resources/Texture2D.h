@@ -4,6 +4,7 @@
 #ifndef TEXTURE_2D_H
 #define TEXTURE_2D_H
 
+#include "Misc/Types.h"
 #include "Resources/Resource.h"
 
 namespace le
@@ -29,13 +30,13 @@ namespace le
 		EResourceType GetType() const override;
 
 		/* Get handle */
-		FORCEINLINE IRHITexture2D* GetHandle() const
+		FORCEINLINE FIRHITexture2DConstRef& GetHandle() const
 		{
 			return handle;
 		}
 
 	private:
-		IRHITexture2D*			handle;
+		FIRHITexture2DRef		handle;
 	};
 }
 

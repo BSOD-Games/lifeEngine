@@ -8,11 +8,11 @@
 #include <unordered_map>
 
 #include "Misc/Object.h"
+#include "Misc/Types.h"
 
 namespace le
 {
-	class IParserMaterial;
-	typedef IParserMaterial*			( *FCreateParserMaterialFn )( );
+	typedef FIParserMaterialRef			( *FCreateParserMaterialFn )( );
 
 	class ParsersMaterialFactory : public Object
 	{
@@ -21,7 +21,7 @@ namespace le
 		void Register( const std::vector< std::string >& InSupportedExtensions, FCreateParserMaterialFn InCreateParserMaterialFunction );
 
 		/* Get parser by extension */
-		IParserMaterial* Get( const std::string& InExtension ) const;
+		FIParserMaterialRef Get( const std::string& InExtension ) const;
 
 	private:
 		mutable std::unordered_map< std::string, FCreateParserMaterialFn >			parsers;

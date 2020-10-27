@@ -23,11 +23,10 @@ bool le::Config::Deserialize( const Path& InPath )
 {
 	if ( InPath.IsEmpty() )		return false;
 
-	IParserConfig*			parser = GParsersConfigFactory->Get( InPath.GetExtension() );
+	FIParserConfigRef		parser = GParsersConfigFactory->Get( InPath.GetExtension() );
 	FFileHandle				fileHandle = GFileSystem->OpenFile( InPath );
 	if ( !fileHandle || !parser )
 	{
-		if ( parser )			parser->ReleaseRef();
 		if ( fileHandle )		GFileSystem->CloseFile( fileHandle );
 		return false;
 	}
@@ -35,7 +34,6 @@ bool le::Config::Deserialize( const Path& InPath )
 	if ( !parser->SetFile( fileHandle ) )	return false;
 	groups = parser->GetGroups();
 
-	parser->ReleaseRef();
 	GFileSystem->CloseFile( fileHandle );
 	return true;
 }

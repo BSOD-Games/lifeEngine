@@ -24,13 +24,13 @@ namespace le
 		~UnlitGeneric();
 
 		/* Register shader */
-		FORCEINLINE static void Register()				{ GShaderFactory->Register( "UnlitGeneric", []() -> BaseShader* { return new UnlitGeneric(); } ); }
+		FORCEINLINE static void Register()				{ GShaderFactory->Register( "UnlitGeneric", []() -> FBaseShaderRef { return new UnlitGeneric(); } ); }
 
 		/* Initialize shader */
 		bool Initialize( const std::vector< ShaderVar >* InShaderVars = nullptr ) override;
 
 		/* On draw sprite */
-		void OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition, CameraComponent* InCameraComponent ) override;
+		void OnDrawSprite( IRHI* InRHI, const FVector2D& InSize, const FSRectFloat& InTextureRect, const FVector3D& InPosition, FCameraComponentConstRef& InCameraComponent ) override;
 
 		/* Clear vars */
 		void ClearVars();
@@ -42,9 +42,9 @@ namespace le
 		std::string GetFallbackShader() const override;
 
 	private:
-		uint32			flags;
-		Texture2D*		baseTexture;
-		IRHIShader*		rhiShader;
+		uint32				flags;
+		FTexture2DRef		baseTexture;
+		FIRHIShaderRef		rhiShader;
 	};
 }
 

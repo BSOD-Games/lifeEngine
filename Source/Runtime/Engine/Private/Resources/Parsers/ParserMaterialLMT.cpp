@@ -105,7 +105,7 @@ std::vector< le::ShaderVar > le::ParserMaterialLMT::GetShaderVars() const
 
 			// Texture2D value
 			else if ( type == "Texture2D" && jsonValue.IsString() )
-				shaderVar.SetValueTexture2D( Cast< Texture2D >( GResourceSystem->FindResource( jsonValue.GetString(), RT_Texture2D ) ) );
+				shaderVar.SetValueTexture2D( GResourceSystem->FindResource( jsonValue.GetString(), RT_Texture2D ) );
 
 			// Object types
 			else if ( jsonValue.IsObject() )

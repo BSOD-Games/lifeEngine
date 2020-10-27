@@ -6,17 +6,14 @@
 /**
  * Constructor 
  */
-le::PlayerController::PlayerController() :
-	actor( nullptr )
+le::PlayerController::PlayerController()
 {}
 
 /**
  * Destructor
  */
 le::PlayerController::~PlayerController()
-{
-	if ( actor )	actor->ReleaseRef();
-}
+{}
 
 /**
  * Initialize controller

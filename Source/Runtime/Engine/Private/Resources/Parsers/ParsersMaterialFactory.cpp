@@ -20,7 +20,7 @@ void le::ParsersMaterialFactory::Register( const std::vector<std::string>& InSup
 /**
  * Get parser by extension
  */
-le::IParserMaterial* le::ParsersMaterialFactory::Get( const std::string& InExtension ) const
+le::FIParserMaterialRef le::ParsersMaterialFactory::Get( const std::string& InExtension ) const
 {
 	auto		it = parsers.find( InExtension );
 	if ( it == parsers.end() )

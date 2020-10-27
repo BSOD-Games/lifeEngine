@@ -101,49 +101,49 @@ le::FRHIContext le::OpenGL4RHI::CreateContext( FWindowHandle InWindowHandle, FRH
 /**
  * Create shader
  */
-le::IRHIShader* le::OpenGL4RHI::CreateShader()
+le::FIRHIShaderRef le::OpenGL4RHI::CreateShader()
 {
-	return new RHIShader();
+	return FIRHIShaderRef( new RHIShader() );
 }
 
 /**
  * Create buffer
  */
-le::IRHIBuffer* le::OpenGL4RHI::CreateBuffer( EBufferType InBufferType, EUsageBufferType InUsageBufferType )
+le::FIRHIBufferRef le::OpenGL4RHI::CreateBuffer( EBufferType InBufferType, EUsageBufferType InUsageBufferType )
 {
-	return new RHIBuffer( InBufferType, InUsageBufferType );
+	return FIRHIBufferRef( new RHIBuffer( InBufferType, InUsageBufferType ) );
 }
 
 /**
  * Create vertex format
  */
-le::IRHIVertexFormat* le::OpenGL4RHI::CreateVertexFormat()
+le::FIRHIVertexFormatRef le::OpenGL4RHI::CreateVertexFormat()
 {
-	return new RHIVertexFormat();
+	return FIRHIVertexFormatRef( new RHIVertexFormat() );
 }
 
 /**
  * Create geometry
  */
-le::IRHIGeometry* le::OpenGL4RHI::CreateGeometry()
+le::FIRHIGeometryRef le::OpenGL4RHI::CreateGeometry()
 {
-	return new RHIGeometry();
+	return FIRHIGeometryRef( new RHIGeometry() );
 }
 
 /**
  * Create texture 2d
  */
-le::IRHITexture2D* le::OpenGL4RHI::CreateTexture2D( EImageFormat InImageFormat, uint32 InWidth, uint32 InHeight, uint32 InCountMipmap )
+le::FIRHITexture2DRef le::OpenGL4RHI::CreateTexture2D( EImageFormat InImageFormat, uint32 InWidth, uint32 InHeight, uint32 InCountMipmap )
 {
-	return new RHITexture2D( InImageFormat, InWidth, InHeight, InCountMipmap );
+	return FIRHITexture2DRef( new RHITexture2D( InImageFormat, InWidth, InHeight, InCountMipmap ) );
 }
 
 /**
  * Create render target
  */
-le::IRHIRenderTarget* le::OpenGL4RHI::CreateRenderTarget( uint32 InWidth, uint32 InHeight )
+le::FIRHIRenderTargetRef le::OpenGL4RHI::CreateRenderTarget( uint32 InWidth, uint32 InHeight )
 {
-	return new RHIRenderTarget( InWidth, InHeight );
+	return FIRHIRenderTargetRef( new RHIRenderTarget( InWidth, InHeight ) );
 }
 
 /**
@@ -204,72 +204,6 @@ void le::OpenGL4RHI::DeleteContext( FRHIContext& InRHIContext )
 }
 
 /**
- * Delete shader
- */
-void le::OpenGL4RHI::DeleteShader( IRHIShader*& InOutShader )
-{
-	LIFEENGINE_ASSERT( InOutShader );
-	
-	InOutShader->ReleaseRef();
-	InOutShader = nullptr;
-}
-
-/**
- * Delete buffer
- */
-void le::OpenGL4RHI::DeleteBuffer( IRHIBuffer*& InOutBuffer )
-{
-	LIFEENGINE_ASSERT( InOutBuffer );
-
-	InOutBuffer->ReleaseRef();
-	InOutBuffer = nullptr;
-}
-
-/**
- * Delete vertex format
- */
-void le::OpenGL4RHI::DeleteVertexFormat( IRHIVertexFormat*& InOutVertexFormat )
-{
-	LIFEENGINE_ASSERT( InOutVertexFormat );
-
-	InOutVertexFormat->ReleaseRef();
-	InOutVertexFormat = nullptr;
-}
-
-/**
- * Delete geometry
- */
-void le::OpenGL4RHI::DeleteGeometry( IRHIGeometry*& InGeometry )
-{
-	LIFEENGINE_ASSERT( InGeometry );
-
-	InGeometry->ReleaseRef();
-	InGeometry = nullptr;
-}
-
-/**
- * Delete texture 2d
- */
-void le::OpenGL4RHI::DeleteTexture2D( IRHITexture2D*& InTexture2D )
-{
-	LIFEENGINE_ASSERT( InTexture2D );
-
-	InTexture2D->ReleaseRef();
-	InTexture2D = nullptr;
-}
-
-/**
- * Delete render target
- */
-void le::OpenGL4RHI::DeleteRenderTarget( IRHIRenderTarget*& InRenderTarget )
-{
-	LIFEENGINE_ASSERT( InRenderTarget );
-
-	InRenderTarget->ReleaseRef();
-	InRenderTarget = nullptr;
-}
-
-/**
  * Swap buffers
  */
 void le::OpenGL4RHI::SwapBuffers( FRHIContext InRHIContext )
@@ -300,43 +234,67 @@ void le::OpenGL4RHI::SetViewport( uint32 InX, uint32 InY, uint32 InWidth, uint32
 /**
  * Set shader
  */
-void le::OpenGL4RHI::SetShader( IRHIShader* InShader )
+void le::OpenGL4RHI::SetShader( FIRHIShaderConstRef& InShader )
 {
-	if ( !InShader )
-		RHIShader::Unbind();
-	else if ( InShader->IsLoaded() )
-		static_cast< RHIShader* >( InShader )->Bind() ;
+	LIFEENGINE_ASSERT( InShader.IsValid() );
+	static_cast< RHIShader* >( InShader.GetPtr() )->Bind() ;
+}
+
+/**
+ * Unset shader
+ */
+void le::OpenGL4RHI::UnsetShader()
+{
+	RHIShader::Unbind();
 }
 
 /**
  * Set geometry for draw
  */
-void le::OpenGL4RHI::SetGeometry( IRHIGeometry* InGeometry )
+void le::OpenGL4RHI::SetGeometry( FIRHIGeometryConstRef& InGeometry )
 {
-	if ( InGeometry )
-		static_cast< RHIGeometry* >( InGeometry )->Bind();
-	else
-		RHIGeometry::Unbind();
+	LIFEENGINE_ASSERT( InGeometry.IsValid() );
+	static_cast< RHIGeometry* >( InGeometry.GetPtr() )->Bind();
+}
+
+/**
+ * Unset geometry
+ */
+void le::OpenGL4RHI::UnsetGeometry()
+{
+	RHIGeometry::Unbind();
 }
 
 /**
  * Set texture 2d
  */
-void le::OpenGL4RHI::SetTexture2D( IRHITexture2D* InTexture2D, uint32 InTextureLayer )
+void le::OpenGL4RHI::SetTexture2D( FIRHITexture2DConstRef& InTexture2D, uint32 InTextureLayer )
 {
-	if ( InTexture2D )
-		static_cast< RHITexture2D* >( InTexture2D )->Bind( InTextureLayer );
-	else
-		RHITexture2D::Unbind( InTextureLayer );
+	LIFEENGINE_ASSERT( InTexture2D.IsValid() );
+	static_cast< RHITexture2D* >( InTexture2D.GetPtr() )->Bind( InTextureLayer );
+}
+
+/**
+ * Unset texture 2D
+ */
+void le::OpenGL4RHI::UnsetTexture2D( uint32 InTextureLayer )
+{
+	RHITexture2D::Unbind( InTextureLayer );
 }
 
 /**
  * Set render target
  */
-void le::OpenGL4RHI::SetRenderTarget( IRHIRenderTarget* InRenderTarget )
+void le::OpenGL4RHI::SetRenderTarget( FIRHIRenderTargetConstRef& InRenderTarget )
 {
-	if ( InRenderTarget )
-		static_cast< RHIRenderTarget* >( InRenderTarget )->Bind();
-	else
-		RHIRenderTarget::Unbind();
+	LIFEENGINE_ASSERT( InRenderTarget.IsValid() );
+	static_cast< RHIRenderTarget* >( InRenderTarget.GetPtr() )->Bind();
+}
+
+/**
+ * Unset render target
+ */
+void le::OpenGL4RHI::UnsetRenderTarget()
+{
+	RHIRenderTarget::Unbind();
 }

@@ -12,12 +12,7 @@
 
 namespace le
 {
-	typedef void* FRHIContext;
-
-	class IRHIShader;
-	class IRHIVertexFormat;
-	class IRHIGeometry;
-	class IRHIRenderTarget;
+	typedef		void*	FRHIContext;
 	struct SColor;
 
 	enum EClearType
@@ -46,22 +41,22 @@ namespace le
 		virtual FRHIContext CreateContext( FWindowHandle InWindowHandle, FRHIContext InShareContext = nullptr ) = 0;
 
 		/* Create shader */
-		virtual IRHIShader* CreateShader() = 0;
+		virtual FIRHIShaderRef CreateShader() = 0;
 
 		/* Create buffer */
-		virtual IRHIBuffer* CreateBuffer( EBufferType InBufferType, EUsageBufferType InUsageBufferType = UBT_Static ) = 0;
+		virtual FIRHIBufferRef CreateBuffer( EBufferType InBufferType, EUsageBufferType InUsageBufferType = UBT_Static ) = 0;
 
 		/* Create vertex format */
-		virtual IRHIVertexFormat* CreateVertexFormat() = 0;
+		virtual FIRHIVertexFormatRef CreateVertexFormat() = 0;
 
 		/* Create geometry */
-		virtual IRHIGeometry* CreateGeometry() = 0;
+		virtual FIRHIGeometryRef CreateGeometry() = 0;
 
 		/* Create texture 2D */
-		virtual IRHITexture2D* CreateTexture2D( EImageFormat InImageFormat, uint32 InWidth, uint32 InHeight, uint32 InCountMipmap = 1 ) = 0;
+		virtual FIRHITexture2DRef CreateTexture2D( EImageFormat InImageFormat, uint32 InWidth, uint32 InHeight, uint32 InCountMipmap = 1 ) = 0;
 
 		/* Create render target */
-		virtual IRHIRenderTarget* CreateRenderTarget( uint32 InWidth, uint32 InHeight ) = 0;
+		virtual FIRHIRenderTargetRef CreateRenderTarget( uint32 InWidth, uint32 InHeight ) = 0;
 
 		/* Make current context */
 		virtual bool MakeCurrentContext( FRHIContext InRHIContext ) = 0;
@@ -78,24 +73,6 @@ namespace le
 		/* Delete context */
 		virtual void DeleteContext( FRHIContext& InOutRHIContext ) = 0;
 
-		/* Delete shader */
-		virtual void DeleteShader( IRHIShader*& InOutShader ) = 0;
-
-		/* Delete buffer */
-		virtual void DeleteBuffer( IRHIBuffer*& InOutBuffer ) = 0;
-
-		/* Delete vertex format */
-		virtual void DeleteVertexFormat( IRHIVertexFormat*& InOutVertexFormat ) = 0;
-
-		/* Delete geometry */
-		virtual void DeleteGeometry( IRHIGeometry*& InGeometry ) = 0;
-
-		/* Delete texture 2D */
-		virtual void DeleteTexture2D( IRHITexture2D*& InTexture2D ) = 0;
-
-		/* Delete render target */
-		virtual void DeleteRenderTarget( IRHIRenderTarget*& InRenderTarget ) = 0;
-
 		/* Swap buffers */
 		virtual void SwapBuffers( FRHIContext InRHIContext ) = 0;
 
@@ -106,16 +83,28 @@ namespace le
 		virtual void SetViewport( uint32 InX, uint32 InY, uint32 InWidth, uint32 InHeight ) = 0;
 
 		/* Set shader */
-		virtual void SetShader( IRHIShader* InShader = nullptr ) = 0;
+		virtual void SetShader( FIRHIShaderConstRef& InShader ) = 0;
+
+		/* Unset shader */
+		virtual void UnsetShader() = 0;
 
 		/* Set geometry */
-		virtual void SetGeometry( IRHIGeometry* InGeometry ) = 0;
+		virtual void SetGeometry( FIRHIGeometryConstRef& InGeometry ) = 0;
+
+		/* Unset geometry */
+		virtual void UnsetGeometry() = 0;
 
 		/* Set texture 2D */
-		virtual void SetTexture2D( IRHITexture2D* InTexture2D, uint32 InTextureLayer = 0 ) = 0;
+		virtual void SetTexture2D( FIRHITexture2DConstRef& InTexture2D, uint32 InTextureLayer = 0 ) = 0;
+
+		/* Unset texture 2D */
+		virtual void UnsetTexture2D( uint32 InTextureLayer = 0 ) = 0;
 
 		/* Set render target */
-		virtual void SetRenderTarget( IRHIRenderTarget* InRenderTarget ) = 0;
+		virtual void SetRenderTarget( FIRHIRenderTargetConstRef& InRenderTarget ) = 0;
+
+		/* Unset render target */
+		virtual void UnsetRenderTarget() = 0;
 	};
 }
 

@@ -14,7 +14,6 @@
  * Constructor
  */
 le::Material::Material() :
-	shader( nullptr ),
 	isNeadUpdateShader( true )
 {}
 
@@ -22,7 +21,6 @@ le::Material::Material() :
  * Constructor of copy
  */
 le::Material::Material( const Material& InCopy ) :
-	shader( nullptr ),
 	isNeadUpdateShader( true ),
 	Resource( InCopy )
 {
@@ -55,11 +53,10 @@ bool le::Material::Deserialize( const Path& InPath )
 {
 	if ( InPath.IsEmpty() )		return false;
 
-	IParserMaterial*		parser = GParsersMaterialFactory->Get( InPath.GetExtension() );
+	FIParserMaterialRef		parser = GParsersMaterialFactory->Get( InPath.GetExtension() );
 	FFileHandle				fileHandle = GFileSystem->OpenFile( InPath );
 	if ( !fileHandle || !parser )
 	{
-		if ( parser )			parser->ReleaseRef();
 		if ( fileHandle )		GFileSystem->CloseFile( fileHandle );
 		return false;
 	}
@@ -73,7 +70,6 @@ bool le::Material::Deserialize( const Path& InPath )
 	for ( uint32 index = 0, count = static_cast< uint32 >( vars.size() ); index < count; ++index )
 		AddVar( vars[ index ] );
 
-	parser->ReleaseRef();
 	GFileSystem->CloseFile( fileHandle );
 	return true;
 }

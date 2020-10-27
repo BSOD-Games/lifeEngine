@@ -20,7 +20,7 @@ void le::ParsersWorldFactory::Register( const std::vector<std::string>& InSuppor
 /**
  * Get parser by extension
  */
-le::IParserWorld* le::ParsersWorldFactory::Get( const std::string& InExtension ) const
+le::FIParserWorldRef le::ParsersWorldFactory::Get( const std::string& InExtension ) const
 {
 	auto		it = parsers.find( InExtension );
 	if ( it == parsers.end() )
