@@ -100,7 +100,7 @@ void le::Engine::StopGame()
 {
 	if ( !game )	return;
 
-	GResourceSystem->UnloadResources();
+	game->Destroy();
 	game = nullptr;
 }
 

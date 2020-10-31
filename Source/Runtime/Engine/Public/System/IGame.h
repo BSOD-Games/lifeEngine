@@ -19,6 +19,9 @@ namespace le
 		/* Initialize game */
 		virtual bool Initialize() = 0;
 
+		/* Destroy game */
+		virtual void Destroy() = 0;
+
 		/* Tick game */
 		virtual void Tick() = 0;
 

@@ -11,6 +11,9 @@
 #include "Misc/Path.h"
 #include "Misc/Object.h"
 #include "Misc/RefCounted.h"
+#include "System/EventChannel.h"
+
+#include "Logging/LogMacros.h"
 
 namespace le
 {
@@ -25,8 +28,16 @@ namespace le
 	class Resource : public Object, public RefCounted
 	{
 	public:
+		struct EventDelete
+		{
+			Resource*		resource;
+		};
+
 		/* Destructor */
-		virtual ~Resource() {}
+		virtual ~Resource() 
+		{
+			eventDelete.Emit( EventDelete{ this } );
+		}
 
 		/* Constructor */
 		Resource() {}
@@ -57,8 +68,12 @@ namespace le
 			return name;
 		}
 
+		/* Get channel event 'Delete' */
+		FORCEINLINE TEventChannel< EventDelete >& GetEventChannelDelete()		{ return eventDelete; }
+
 	protected:
-		std::string			name;
+		TEventChannel< EventDelete >		eventDelete;
+		std::string							name;
 	};
 }
 

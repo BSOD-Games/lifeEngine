@@ -31,15 +31,12 @@ namespace le
 		/* Find default resource */
 		FResourceRef FindDefaultResource( EResourceType InResourceType );
 
-		/* Unload resource */
-		void UnloadResource( FResourceConstRef& InResource );
-
-		/* Unload all resources */
-		void UnloadResources();
-
 	private:
-		std::unordered_map< std::string, FResourceRef >			resources;
-		std::unordered_map< EResourceType, FResourceRef >		defaultResources;
+		/* On resource delete */
+		void OnResourceDelete( const Resource::EventDelete& InEvent );
+
+		std::unordered_map< std::string, Resource* >			resources;
+		std::unordered_map< EResourceType, Resource* >		defaultResources;
 	};
 }
 

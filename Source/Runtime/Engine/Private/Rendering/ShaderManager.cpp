@@ -95,7 +95,7 @@ le::FIRHIShaderRef le::ShaderManager::FindShader( const std::string& InName, con
 	}
 
 	shaders[ InName ][ InFlags ] = shader;
-	LIFEENGINE_LOG_INFO( "Engine", "Shader loaded [%s]", InName.c_str() );
+	LIFEENGINE_LOG_INFO( "Engine", "Shader loaded [%s] with flags [0x%X]", InName.c_str(), InFlags );
 	return shader;
 }
 
@@ -112,7 +112,7 @@ void le::ShaderManager::UnloadShader( const std::string& InName, uint32 InFlags 
 	
 	if ( itShader->second->GetRefCount() >= 2 )		return;
 
-	LIFEENGINE_LOG_INFO( "Engine", "Unloaded shader [%s] with flags [%X]", itShaderGroup->first.c_str(), itShader->first );
+	LIFEENGINE_LOG_INFO( "Engine", "Unloaded shader [%s] with flags [0x%X]", itShaderGroup->first.c_str(), itShader->first );
 	itShaderGroup->second.erase( itShader );
 }
 
@@ -126,7 +126,7 @@ void le::ShaderManager::UnloadShaders()
 		for ( auto itShader = itShaderGroup->second.begin(), itShaderEnd = itShaderGroup->second.end(); itShader != itShaderEnd; )
 			if ( itShader->second->GetRefCount() <= 1 )
 			{
-				LIFEENGINE_LOG_INFO( "Engine", "Unloaded shader [%s] with flags [%X]", itShaderGroup->first.c_str(), itShader->first );
+				LIFEENGINE_LOG_INFO( "Engine", "Unloaded shader [%s] with flags [0x%X]", itShaderGroup->first.c_str(), itShader->first );
 
 				itShader = itShaderGroup->second.erase( itShader );
 				itShaderEnd = itShaderGroup->second.end();

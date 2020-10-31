@@ -23,6 +23,9 @@ namespace le
 		/* Initialize controller */
 		virtual void Initialize();
 
+		/* Destroy controller */
+		virtual void Destroy();
+
 		/* Update player controller */
 		virtual void Tick();
 

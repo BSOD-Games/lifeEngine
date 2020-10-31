@@ -34,9 +34,7 @@ le::ResourceSystem::ResourceSystem()
  * Destructor
  */
 le::ResourceSystem::~ResourceSystem()
-{
-	UnloadResources();
-}
+{}
 
 /**
  * Initialize resource system
@@ -77,42 +75,10 @@ le::FResourceRef le::ResourceSystem::FindResource( const Path& InPath, EResource
 	LIFEENGINE_LOG_INFO( "Engine", "Loaded resource [%s]", InPath.GetFullPath().c_str() );
 
 	resource->SetName( InPath.GetFullPath() );
-	resources.insert( std::make_pair( InPath.GetFullPath(), resource ) );
+	resource->GetEventChannelDelete().Subscribe( this, &ResourceSystem::OnResourceDelete );
+	
+	resources.insert( std::make_pair( InPath.GetFullPath(), resource.GetPtr() ) );
 	return resource;
-}
-
-/**
- * Unload resource
- */
-void le::ResourceSystem::UnloadResource( FResourceConstRef& InResource )
-{
-	LIFEENGINE_ASSERT( InResource );
-	if ( InResource->GetRefCount() <= 2 )
-	{
-		auto		it = resources.find( InResource->GetName() );
-		if ( it != resources.end() )
-		{
-			LIFEENGINE_LOG_INFO( "Engine", "Unloaded resource [%s]", it->first.c_str() );
-			resources.erase( it );
-		}
-	}
-}
-
-/**
- * Unload resources
- */
-void le::ResourceSystem::UnloadResources()
-{
-	for ( auto it = resources.begin(), itEnd = resources.end(); it != itEnd; )
-		if ( it->second->GetRefCount() <= 2 )
-		{
-			LIFEENGINE_LOG_INFO( "Engine", "Unloaded resource [%s]", it->first.c_str() );
-
-			it = resources.erase( it );
-			itEnd = resources.end();
-		}
-		else
-			++it;
 }
 
 /**
@@ -152,6 +118,23 @@ le::FResourceRef le::ResourceSystem::FindDefaultResource( EResourceType InResour
 	LIFEENGINE_LOG_INFO( "Engine", "Loaded default resource [%s]", path.GetFullPath().c_str() );
 
 	resource->SetName( path.GetFullPath() );
-	defaultResources.insert( std::make_pair( InResourceType, resource ) );
+	resource->GetEventChannelDelete().Subscribe( this, &ResourceSystem::OnResourceDelete );
+
+	defaultResources.insert( std::make_pair( InResourceType, resource.GetPtr() ) );
 	return resource;
+}
+
+/**
+ * On resource delete
+ */
+void le::ResourceSystem::OnResourceDelete( const Resource::EventDelete& InEvent )
+{
+	LIFEENGINE_ASSERT( InEvent.resource );
+	
+	auto		it = resources.find( InEvent.resource->GetName() );
+	if ( it != resources.end() )
+	{
+		LIFEENGINE_LOG_INFO( "Engine", "Unloaded resource [%s]", it->first.c_str() );
+		resources.erase( it );
+	}
 }

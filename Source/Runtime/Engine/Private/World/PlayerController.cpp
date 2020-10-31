@@ -22,6 +22,14 @@ void le::PlayerController::Initialize()
 {}
 
 /**
+ * Destroy controller
+ */
+void le::PlayerController::Destroy()
+{
+	actor = nullptr;
+}
+
+/**
  * Update controller
  */
 void le::PlayerController::Tick()

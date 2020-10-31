@@ -67,7 +67,7 @@ int AppEngineLoop( int Argc, char** Argv )
 
 			case le::SEvent::ET_WindowResize:
 				LIFEENGINE_ASSERT( le::GRHI );
-				le::GRHI->SetViewport( 0, 0, event.event.windowResize.width, event.event.windowResize.height );
+				le::GRHI->SetViewport( 0, 0, static_cast< le::uint32 >( event.event.windowResize.width ), static_cast< le::uint32 >( event.event.windowResize.height ) );
 				break;
 
 			default: break;
@@ -81,6 +81,6 @@ int AppEngineLoop( int Argc, char** Argv )
 		}
 	}
 
-	AppGameDelete( game );
+	//AppGameDelete( game );
 	return 0;
 }

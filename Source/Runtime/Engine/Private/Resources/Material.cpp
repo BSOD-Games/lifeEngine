@@ -83,7 +83,7 @@ void le::Material::RemoveVar( const std::string& InName )
 	for ( uint32 index = 0, count = static_cast< uint32 >( vars.size() ); index < count; ++index )
 		if ( vars[ index ].GetName() == InName )
 		{
-			vars[ index ].UnsubscribeMaterial( this );
+			vars[ index ].GetEventChannelUpdate().Unsubscribe( this, &Material::OnUpdateShaderVar );
 			vars.erase( index + vars.begin() );
 			
 			isNeadUpdateShader = true;		
@@ -130,9 +130,8 @@ bool le::Material::UpdateShader()
  */
 void le::Material::Clear()
 {
-	if ( shader )		shader->ReleaseRef();
 	for ( uint32 index = 0, count = static_cast< uint32 >( vars.size() ); index < count; ++index )
-		vars[ index ].UnsubscribeMaterial( this );
+		vars[ index ].GetEventChannelUpdate().Unsubscribe( this, &Material::OnUpdateShaderVar );
 
 	shader = nullptr;
 	vars.clear();
@@ -144,4 +143,12 @@ void le::Material::Clear()
 le::EResourceType le::Material::GetType() const
 {
 	return RT_Material;
+}
+
+/**
+ * On update shader var
+ */
+void le::Material::OnUpdateShaderVar( const ShaderVar::EventUpdate& InEvent )
+{
+	isNeadUpdateShader = true;
 }

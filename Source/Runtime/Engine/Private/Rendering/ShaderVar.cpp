@@ -66,30 +66,7 @@ void le::ShaderVar::Clear()
 	}
 
 	value = nullptr;
-	NotifyMaterials();
-}
-
-/**
- * Subscribe material
- */
-void le::ShaderVar::SubscribeMaterial( FMaterialConstRef& InMaterial )
-{
-	LIFEENGINE_ASSERT( InMaterial );
-	materials.push_back( InMaterial );
-}
-
-/**
- * Unsubscribe material
- */
-void le::ShaderVar::UnsubscribeMaterial( FMaterialConstRef& InMaterial )
-{
-	LIFEENGINE_ASSERT( InMaterial );
-	for ( uint32 index = 0, count = static_cast< uint32 >( materials.size() ); index < count; ++index )
-		if ( materials[ index ] == InMaterial )
-		{
-			materials.erase( index + materials.begin() );
-			return;
-		}
+	eventUpdate.Emit( EventUpdate{ this } );
 }
 
 /**
@@ -102,8 +79,7 @@ void le::ShaderVar::SetValueInt( int InValue )
 
 	*static_cast< int* >( value ) = InValue;
 	type = SVT_Int;
-
-	NotifyMaterials();	
+	eventUpdate.Emit( EventUpdate{ this } );
 }
 
 /**
@@ -116,8 +92,7 @@ void le::ShaderVar::SetValueFloat( float InValue )
 
 	*static_cast< float* >( value ) = InValue;
 	type = SVT_Float;
-
-	NotifyMaterials();
+	eventUpdate.Emit( EventUpdate{ this } );
 }
 
 /**
@@ -130,8 +105,7 @@ void le::ShaderVar::SetValueBool( bool InValue )
 
 	*static_cast< bool* >( value ) = InValue;
 	type = SVT_Bool;
-
-	NotifyMaterials();
+	eventUpdate.Emit( EventUpdate{ this } );
 }
 
 /**
@@ -144,8 +118,7 @@ void le::ShaderVar::SetValueVector2D( const FVector2D& InValue )
 
 	*static_cast< FVector2D* >( value ) = InValue;
 	type = SVT_Vector2D;
-
-	NotifyMaterials();
+	eventUpdate.Emit( EventUpdate{ this } );
 }
 
 /**
@@ -158,8 +131,7 @@ void le::ShaderVar::SetValueVector3D( const FVector3D& InValue )
 
 	*static_cast< FVector3D* >( value ) = InValue;
 	type = SVT_Vector3D;
-
-	NotifyMaterials();
+	eventUpdate.Emit( EventUpdate{ this } );
 }
 
 /**
@@ -172,8 +144,7 @@ void le::ShaderVar::SetValueVector4D( const FVector4D& InValue )
 
 	*static_cast< FVector4D* >( value ) = InValue;
 	type = SVT_Vector4D;
-
-	NotifyMaterials();
+	eventUpdate.Emit( EventUpdate{ this } );
 }
 
 /**
@@ -186,8 +157,7 @@ void le::ShaderVar::SetValueColor( const SColor& InValue )
 
 	*static_cast< SColor* >( value ) = InValue;
 	type = SVT_Color;
-
-	NotifyMaterials();
+	eventUpdate.Emit( EventUpdate{ this } );
 }
 
 /**
@@ -200,8 +170,7 @@ void le::ShaderVar::SetValueTexture2D( FTexture2DConstRef& InValue )
 
 	*static_cast< FTexture2DRef* >( value ) = InValue;
 	type = SVT_Texture2D;
-
-	NotifyMaterials();
+	eventUpdate.Emit( EventUpdate{ this } );
 }
 
 /**
@@ -274,13 +243,4 @@ le::FTexture2DRef le::ShaderVar::GetValueTexture2D() const
 {
 	if ( type != SVT_Texture2D )	return FTexture2DRef();
 	return *static_cast< FTexture2DRef* >( value );
-}
-
-/**
- * Notify materials
- */
-void le::ShaderVar::NotifyMaterials()
-{
-	for ( uint32 index = 0, count = static_cast< uint32 >( materials.size() ); index < count; ++index )
-		materials[ index ]->NeadUpdateShader();
 }

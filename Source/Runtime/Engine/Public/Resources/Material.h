@@ -38,7 +38,7 @@ namespace le
 		FORCEINLINE void AddVar( const ShaderVar& InShaderVar )
 		{
 			vars.push_back( InShaderVar );
-			vars.back().SubscribeMaterial( this );
+			vars.back().GetEventChannelUpdate().Subscribe( this, &Material::OnUpdateShaderVar );
 		}
 
 		/* Remove shader var by name*/
@@ -49,7 +49,7 @@ namespace le
 		{
 			LIFEENGINE_ASSERT( InIndex < vars.size() );
 			
-			vars[ InIndex ].UnsubscribeMaterial( this );
+			vars[ InIndex ].GetEventChannelUpdate().Unsubscribe( this, &Material::OnUpdateShaderVar );
 			vars.erase( InIndex + vars.begin() );
 		}
 
@@ -62,23 +62,11 @@ namespace le
 		/* Update shader */
 		FORCEINLINE bool UpdateShader();
 
-		/* Need update shader */
-		FORCEINLINE void NeadUpdateShader()
-		{
-			isNeadUpdateShader = true;
-		}
-
 		/* Clear material */
 		void Clear();
 
 		/* Set shader */
-		FORCEINLINE void SetShader( BaseShader* InShader )
-		{
-			if ( shader )		shader->ReleaseRef();
-
-			shader = InShader;
-			if ( InShader )		InShader->AddRef();
-		}
+		FORCEINLINE void SetShader( FBaseShaderRef InShader )				{ shader = InShader; }
 
 		/* Set shader by name */
 		FORCEINLINE void SetShader( const std::string& InName )				{ shader = GShaderFactory->Create( InName ); }
@@ -99,12 +87,13 @@ namespace le
 			
 			vars = InRight.vars;
 			shader = InRight.shader;
-			if ( shader )		shader->AddRef();		
-			
 			return *this;
 		}
 
 	private:
+		/* On update shader var */
+		void OnUpdateShaderVar( const ShaderVar::EventUpdate& InEvent );
+
 		bool							isNeadUpdateShader;
 		FBaseShaderRef					shader;
 		std::vector< ShaderVar >		vars;

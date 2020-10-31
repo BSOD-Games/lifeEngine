@@ -12,6 +12,7 @@
 #include "Misc/Types.h"
 #include "Math/Math.h"
 #include "Math/Color.h"
+#include "System/EventChannel.h"
 #include "Resources/Texture2D.h"
 
 namespace le
@@ -32,6 +33,12 @@ namespace le
 	class ShaderVar : public Object
 	{
 	public:
+
+		struct EventUpdate
+		{
+			ShaderVar*		object;
+		};
+
 		/* Constructor */
 		ShaderVar();
 
@@ -43,12 +50,6 @@ namespace le
 
 		/* Clear value */
 		void Clear();
-
-		/* Subscribe material */
-		void SubscribeMaterial( FMaterialConstRef& InMaterial );
-
-		/* Unsubscribe material */
-		void UnsubscribeMaterial( FMaterialConstRef& InMaterial );
 
 		/* Set name */
 		FORCEINLINE void SetName( const std::string& InName )		{ name = InName; }
@@ -134,15 +135,14 @@ namespace le
 			return *this;
 		}
 
-	private:
-		/* Notify materials for update shader */
-		void NotifyMaterials();
+		/* Get event channel "Update" */
+		FORCEINLINE TEventChannel< EventUpdate >& GetEventChannelUpdate()		{ return eventUpdate; }
 
+	private:
 		std::string						name;
 		EShaderVarType					type;
+		TEventChannel< EventUpdate >	eventUpdate;
 		void*							value;
-
-		std::vector< FMaterialRef >		materials;
 	};
 }
 
