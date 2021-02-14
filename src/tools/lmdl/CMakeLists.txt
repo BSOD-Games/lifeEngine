@@ -29,17 +29,17 @@ endif()
 #
 
 add_executable( ${MODULE_NAME} ${SOURCE_FILES} ${RESOURCE} )
-set_target_properties (${MODULE_NAME} PROPERTIES FOLDER Tools )
+set_target_properties (${MODULE_NAME} PROPERTIES FOLDER "Engine//Tools" )
 
 target_link_libraries( ${MODULE_NAME} ${CMAKE_DL_LIBS} )
 target_link_libraries( ${MODULE_NAME} mdlloader )
 target_link_libraries( ${MODULE_NAME} phyloader )
 include_directories( ../mdlloader )
 include_directories( ../phyloader )
-include_directories( ../../public )
-include_directories( ../../private )
+include_directories( ../../../public )
+include_directories( ../../../private )
 
-install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
+install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/${BUILD_BIN_DIR} )
 
 #
 #   --- Ищим и подключаем зависимости ---

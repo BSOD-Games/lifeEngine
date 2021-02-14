@@ -13,10 +13,11 @@
 
 //---------------------------------------------------------------------//
 
-#define LIFEENGINE_ENGINE_DLL			"${ENGINE_DLL}"
-#define LIFEENGINE_STUDIORENDER_DLL		"${STUDIORENDER_DLL}"
-#define LIFEENGINE_PHYSICSSYSTEM_DLL    "${PHYSICSSYSTEM_DLL}"
-#define LIFEENGINE_AUDIOSYSTEM_DLL    	"${AUDIOSYSTEM_DLL}"
+#define LIFEENGINE_BIN_DIR				"${BUILD_BIN_DIR}"
+#define LIFEENGINE_ENGINE_DLL			"${BUILD_BIN_DIR}/${ENGINE_DLL}"
+#define LIFEENGINE_STUDIORENDER_DLL		"${BUILD_BIN_DIR}/${STUDIORENDER_DLL}"
+#define LIFEENGINE_PHYSICSSYSTEM_DLL    "${BUILD_BIN_DIR}/${PHYSICSSYSTEM_DLL}"
+#define LIFEENGINE_AUDIOSYSTEM_DLL    	"${BUILD_BIN_DIR}/${AUDIOSYSTEM_DLL}"
 
 //---------------------------------------------------------------------//
 

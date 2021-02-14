@@ -13,4 +13,4 @@ set( MODULE_NAME phyloader )
 
 #source_group("Source Files\\module" FILES ${SOURCE_FILES})
 add_library( ${MODULE_NAME} STATIC ${SOURCE_FILES} )
-set_target_properties( ${MODULE_NAME} PROPERTIES FOLDER Libraries )
+set_target_properties( ${MODULE_NAME} PROPERTIES FOLDER "Engine//Libraries" )

@@ -35,6 +35,7 @@ Win32/*
 build/*
 src/build/*
 build-*/*
+intermediate/*
 src/extlibs/*
 src/.vscode/*
 src/stdshaders/shaders/*

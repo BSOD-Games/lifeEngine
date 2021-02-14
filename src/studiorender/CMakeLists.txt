@@ -10,7 +10,6 @@ file( GLOB SHADERS_FILES "shaders/*.h" "shaders/*.cpp" )
 file( GLOB PRIVATE_FILES "../private/studiorender/*.h" )
 
 set( MODULE_NAME studiorender )
-
 set( GLEW_PATH ${EXTLIBS_DIR}/GLEW CACHE PATH "Path to GLEW" )
 set( SDL2_PATH ${EXTLIBS_DIR}/SDL2 CACHE PATH "Path to SDL2" )
 
@@ -42,6 +41,8 @@ else()
     message( SEND_ERROR "Unknow platform")
 endif()
 
+set( ALL_SOURCE_FILES ${SOURCE_FILES} ${PUBLIC_FILES} ${PRIVATE_FILES} ${SHADERS_FILES} ${ICON} )
+
 #
 #   --- Задаем комманды препроцессора ---
 #
@@ -52,20 +53,21 @@ add_definitions( -DLIFEENGINE_EXPORT )
 #   --- Настройки проекта ---
 #
 
-source_group( "Public Files" FILES ${PUBLIC_FILES} )
-source_group( "Shaders Files" FILES ${SHADERS_FILES} )
-source_group( "Private Files" FILES ${PRIVATE_FILES} )
+source_group( "" FILES ${SOURCE_FILES} ${ICON} )
+source_group( "Public" FILES ${PUBLIC_FILES} )
+source_group( "Private" FILES ${PRIVATE_FILES} )
+source_group( "Shaders" FILES ${SHADERS_FILES} )
 
 configure_file( ${PATHS_H}.in ${PATHS_H} )
-add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${PUBLIC_FILES} ${PRIVATE_FILES} ${SHADERS_FILES} ${ICON} )
+add_library( ${MODULE_NAME} SHARED ${ALL_SOURCE_FILES} )
 
-install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
-install( DIRECTORY "shaders/shaders" DESTINATION ${BUILD_DIR}/engine )
+install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/${BUILD_BIN_DIR} )
+install( DIRECTORY "shaders/shaders" DESTINATION ${BUILD_DIR}/${BUILD_ENGINE_DIR} )
 
 set_target_properties (${MODULE_NAME} PROPERTIES FOLDER Engine )
 set_target_properties( ${MODULE_NAME} PROPERTIES PREFIX "" )
-include_directories( ../public )
-include_directories( ../private )
+include_directories( ../../public )
+include_directories( ../../private )
 include_directories( ../ )
 
 #

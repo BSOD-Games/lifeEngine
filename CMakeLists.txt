@@ -9,17 +9,17 @@ set_property( GLOBAL PROPERTY USE_FOLDERS ON )
 #   --- Название проектов ---
 #
 
-set( PROJECT_LAUNCHER launcher )
-set( PROJECT_ENGINE engine )
-set( PROJECT_STUDIORENDER studiorender )
-set( PROJECT_PHYSICS physics )
-set( PROJECT_AUDIO audio )
-set( PROJECT_LMDL tools/lmdl )
-set( PROJECT_MATERIALS_EDITOR tools/lmteditor ) 
-set( PROJECT_MODEL_VIEWER tools/mdlviewer )
-set( PROJECT_LMTLOADER tools/lmtloader )
-set( PROJECT_MDLLOADER tools/mdlloader )
-set( PROJECT_PHYLOADER tools/phyloader )
+set( PROJECT_LAUNCHER src/launcher )
+set( PROJECT_ENGINE src/engine )
+set( PROJECT_STUDIORENDER src/studiorender )
+set( PROJECT_PHYSICS src/physics )
+set( PROJECT_AUDIO src/audio )
+set( PROJECT_LMDL src/tools/lmdl )
+set( PROJECT_MATERIALS_EDITOR src/tools/lmteditor ) 
+set( PROJECT_MODEL_VIEWER src/tools/mdlviewer )
+set( PROJECT_LMTLOADER src/tools/lmtloader )
+set( PROJECT_MDLLOADER src/tools/mdlloader )
+set( PROJECT_PHYLOADER src/tools/phyloader )
 
 #
 #   --- Настройки сборки и пути к каталогам ---
@@ -27,9 +27,12 @@ set( PROJECT_PHYLOADER tools/phyloader )
 
 set( EXTLIBS_DIR ${CMAKE_BINARY_DIR}/extlibs )
 set( QT5_DIR CACHE PATH "Qt5 dir (ex. D:/Soft/Qt/5.12.2/mingw73_64)" )
-set( BUILD_DIR ${PROJECT_SOURCE_DIR}/../build )
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake" )
 set( CMAKE_PREFIX_PATH ${QT5_DIR} )
+
+set( BUILD_DIR ${CMAKE_INSTALL_PREFIX} )
+set( BUILD_BIN_DIR bin )
+set( BUILD_ENGINE_DIR engine )
 
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
 set( CMAKE_AUTOUIC ON )
@@ -37,6 +40,8 @@ set( CMAKE_AUTOMOC ON )
 set( CMAKE_AUTORCC ON )
 set( CMAKE_CXX_STANDARD 11 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
+
+include_directories( ${CMAKE_BINARY_DIR}/src )
 
 # Загрузка зависимостей из репозитория
 if ( NOT EXISTS ${EXTLIBS_DIR} )
@@ -54,7 +59,7 @@ if ( EXISTS ${EXTLIBS_DIR} )
 	execute_process( COMMAND ${GIT_EXECUTABLE} -C ${EXTLIBS_DIR} pull origin )
 
 	include( ${EXTLIBS_DIR}/cmake/install_extlibs.cmake )
-	install_extlibs( ${EXTLIBS_DIR} ${BUILD_DIR}/engine )
+	install_extlibs( ${EXTLIBS_DIR} ${BUILD_BIN_DIR} )
 endif()
 
 option( LIFEENGINE_DEBUG "Enable debug mode" OFF )

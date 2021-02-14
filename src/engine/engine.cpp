@@ -742,9 +742,9 @@ bool le::Engine::Initialize( const char* EngineDirectory, const char* LogFile, b
 		resourceSystem.AddPath( EngineDirectory );
 
 		// Р—Р°РіСЂСѓР¶Р°РµРј Рё РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РїРѕРґСЃРёСЃС‚РµРјС‹
-		if ( !LoadModule_StudioRender( ( engineDirectory + "/" + LIFEENGINE_STUDIORENDER_DLL ).c_str() ) )			throw std::runtime_error( "Failed loading studiorender" );
-		if ( !LoadModule_PhysicsSystem( ( engineDirectory + "/" + LIFEENGINE_PHYSICSSYSTEM_DLL ).c_str() ) )		throw std::runtime_error( "Failed loading physics system" );
-		if ( !LoadModule_AudioSystem( ( engineDirectory + "/" + LIFEENGINE_AUDIOSYSTEM_DLL ).c_str() ) )			throw std::runtime_error( "Failed loading audio system" );
+		if ( !LoadModule_StudioRender( LIFEENGINE_STUDIORENDER_DLL ) )			throw std::runtime_error( "Failed loading studiorender" );
+		if ( !LoadModule_PhysicsSystem( LIFEENGINE_PHYSICSSYSTEM_DLL ) )		throw std::runtime_error( "Failed loading physics system" );
+		if ( !LoadModule_AudioSystem( LIFEENGINE_AUDIOSYSTEM_DLL ) )			throw std::runtime_error( "Failed loading audio system" );
 
 		// Initialize studiorender
 		if ( !studioRender )							throw std::runtime_error( "Studiorender not loaded" );

@@ -18,18 +18,21 @@ else()
 endif()
 
 set( MODULE_NAME launcher )
+set( ALL_SOURCE_FILES ${SOURCE_FILE} ${ICON} )
 
 #
 #   --- Настройки проекта ---
 #
 
-add_executable( ${MODULE_NAME} WIN32 ${SOURCE_FILE} ${ICON} )
+source_group( "" FILES ${SOURCE_FILE} ${ICON} )
+
+add_executable( ${MODULE_NAME} WIN32 ${ALL_SOURCE_FILES} )
 set_target_properties (${MODULE_NAME} PROPERTIES FOLDER Engine )
 
 target_link_libraries( ${MODULE_NAME} ${CMAKE_DL_LIBS} )
 include_directories( ../ )
-include_directories( ../public )
-include_directories( ../private )
+include_directories( ../../public )
+include_directories( ../../private )
 
 install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR} )
 

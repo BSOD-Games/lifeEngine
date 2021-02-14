@@ -17,6 +17,8 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
     set( ICON resource.rc )
 endif()
 
+set( ALL_SOURCE_FILES ${SOURCE_FILES} ${PUBLIC_FILES} ${PRIVATE_FILES} ${ICON} )
+
 #
 #   --- Задаем комманды препроцессора ---
 #
@@ -27,20 +29,20 @@ add_definitions( -DLIFEENGINE_EXPORT )
 #   --- Настройки проекта ---
 #
 
-source_group( "Public Files" FILES ${PUBLIC_FILES} )
-source_group( "Private Files" FILES ${PRIVATE_FILES} )
+source_group( "" FILES ${SOURCE_FILES} ${ICON} )
+source_group( "Public" FILES ${PUBLIC_FILES} )
+source_group( "Private" FILES ${PRIVATE_FILES} )
 
-add_library( ${MODULE_NAME} SHARED ${SOURCE_FILES} ${PUBLIC_FILES} ${PRIVATE_FILES} ${ICON} )
+add_library( ${MODULE_NAME} SHARED ${ALL_SOURCE_FILES} )
 
 set_target_properties (${MODULE_NAME} PROPERTIES FOLDER Engine )
 set_target_properties( ${MODULE_NAME} PROPERTIES PREFIX "" )
 
-include_directories( ${CMAKE_BINARY_DIR}/${MODULE_NAME} )
-include_directories( ../public )
-include_directories( ../private )
+include_directories( ../../public )
+include_directories( ../../private )
 include_directories( ../ )
 
-install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/engine )
+install( TARGETS ${MODULE_NAME} DESTINATION ${BUILD_DIR}/${BUILD_BIN_DIR} )
 
 #
 #   --- Ищим и подключаем зависимости ---

@@ -66,9 +66,9 @@ void            Engine_CriticalError( const char* Message );
 void Application_LoadEngine()
 {
     // Loading engine
-    g_engineDescriptor.engineDLL = LoadLibraryA( "engine/" LIFEENGINE_ENGINE_DLL );
+    g_engineDescriptor.engineDLL = LoadLibraryA( LIFEENGINE_ENGINE_DLL );
     if ( !g_engineDescriptor.engineDLL )               
-        throw std::runtime_error( "Faile loaded engine/" LIFEENGINE_ENGINE_DLL );
+        throw std::runtime_error( "Faile loaded " LIFEENGINE_ENGINE_DLL );
 
     g_engineDescriptor.LE_CreateEngine = ( le::LE_CreateEngineFn_t ) GetProcAddress( g_engineDescriptor.engineDLL, "LE_CreateEngine" );
     if ( !g_engineDescriptor.LE_CreateEngine )		
@@ -121,7 +121,7 @@ void Engine_CriticalError( const char* Message )
 // ------------------------------------------------------------------------------------ //
 int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPreInst, LPSTR lpCmdLine, int nCmdShow )
 {	
-    SetDllDirectoryA( "engine" );
+    SetDllDirectoryA( LIFEENGINE_BIN_DIR );
 
     try
     {
